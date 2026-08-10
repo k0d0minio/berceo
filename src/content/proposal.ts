@@ -1,30 +1,31 @@
 /**
- * Single source of truth for the proposal's copy and structure.
+ * Single source of truth for the proposal’s copy and structure.
  *
  * The page renders itself from `sections` — add, remove or reorder entries here
  * and both the nav and the document body follow. Body content for each section
- * lives in `src/components/proposal/sections/`, keyed by `id`.
+ * lives in `src/app/page.tsx`, keyed by `id`.
  */
 
 export const proposal = {
   /** Shown in the header and the browser tab. */
   client: "Berceo",
-  title: "Lead Engineer — Proposal",
-  subtitle: "Technical assessment, scope and engagement terms",
+  title: "Proposition — Lead Engineer",
+  subtitle: "Cadrage, architecture et conditions d’engagement",
 
   author: {
     name: "Jamie Nisbet",
-    role: "Software Engineer & AI Consultant",
+    role: "Ingénieur logiciel & consultant IA",
     location: "Mafra, Portugal",
     email: "jamie.nisbet@outlook.be",
   },
 
   /** Free-form label — kept out of Date logic so the build stays deterministic. */
-  date: "",
-  version: "Draft",
+  date: "Août 2026",
+  version: "v1",
 
-  /** One-line summary rendered under the title. Replace with the real pitch. */
-  standfirst: "",
+  /** One-line summary rendered under the title. */
+  standfirst:
+    "De votre cahier des charges à une plateforme en production : une démarche par phases, menée par un ingénieur senior qui construit des systèmes de zéro.",
 } as const;
 
 export type SectionId =
@@ -50,47 +51,47 @@ export type Section = {
 export const sections: Section[] = [
   {
     id: "summary",
-    nav: "Summary",
-    title: "Executive summary",
-    description: "The proposal in a page.",
+    nav: "Essentiel",
+    title: "L’essentiel",
+    description: "La proposition en une page.",
   },
   {
     id: "understanding",
-    nav: "Context",
-    title: "What I understand you're building",
-    description: "Product, market and the constraints that shape the build.",
+    nav: "Projet",
+    title: "Votre projet",
+    description: "Ce que j’ai compris, et ce qui conditionne la réussite.",
   },
   {
     id: "scope",
-    nav: "Scope",
-    title: "Scope",
-    description: "What is in V1, what is deferred, and what is out.",
+    nav: "Périmètre",
+    title: "Périmètre",
+    description: "Une V1 resserrée plutôt que tout construire d’un coup.",
   },
   {
     id: "approach",
-    nav: "Approach",
-    title: "Technical approach",
-    description: "Stack, architecture and how I'd de-risk the unknowns.",
+    nav: "Approche",
+    title: "Approche technique",
   },
   {
     id: "timeline",
-    nav: "Timeline",
-    title: "Phasing & timeline",
+    nav: "Phasage",
+    title: "Phasage & rythme",
   },
   {
     id: "commercials",
-    nav: "Terms",
-    title: "Engagement & commercials",
+    nav: "Conditions",
+    title: "Conditions",
   },
   {
     id: "risks",
-    nav: "Risks",
-    title: "Risks & open questions",
-    description: "Decisions I need from you before work starts.",
+    nav: "Questions",
+    title: "Questions à trancher",
+    description:
+      "Les décisions qui conditionnent le budget, le calendrier et la conformité.",
   },
   {
     id: "next-steps",
-    nav: "Next steps",
-    title: "Next steps",
+    nav: "Suite",
+    title: "Prochaines étapes",
   },
 ];
