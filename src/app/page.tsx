@@ -38,9 +38,9 @@ const content: Record<SectionId, ReactNode> = {
           note="HTVA — structure aménageable (commission, participation…)"
         />
         <Stat
-          label="Sprint de cadrage"
-          value="5 jours"
-          note="Forfait 4 800 € HTVA, devis V1 ferme à la clé"
+          label="Première étape"
+          value="Cadrage"
+          note="Sprint court et facturé, devis V1 ferme à la clé"
         />
         <Stat label="Rythme" value="2–3 j/sem" note="À distance, points réguliers" />
         <Stat label="Démarrage" value="< 2 sem." note="Après accord sur le cadrage" />
@@ -105,9 +105,8 @@ const content: Record<SectionId, ReactNode> = {
       </ul>
       <p>
         Le reste — second mode de mise en relation, abonnements et cartes
-        cadeaux, automatisation de la revue documentaire, et la feuille de route
-        (application native, garde de jour, expansion) — se phase en V1.1 et
-        au-delà. La répartition exacte V1 / V1.1 est un livrable du sprint de
+        cadeaux, et la feuille de route (application native, garde de jour,
+        expansion) — se phase en V1.1 et au-delà. La répartition exacte V1 / V1.1 est un livrable du sprint de
         cadrage, pas une opinion a priori.
       </p>
     </>
@@ -131,11 +130,10 @@ const content: Record<SectionId, ReactNode> = {
         chiffrées, pour qu’aucun tiers ne bloque votre lancement.
       </p>
       <p>
-        Côté IA, deux apports concrets : une revue assistée des documents
-        (diplômes, attestations, identité) qui rend votre validation manuelle
-        rapide et cohérente — l’IA assiste, vous décidez — et mon propre outillage
-        de développement assisté par IA, qui est une partie de ce qui rend un
-        ingénieur seul compétitif face à une agence.
+        Enfin, j’utilise l’IA comme accélérateur de mon propre travail —
+        développement, revue, tests. C’est une partie de ce qui rend un
+        ingénieur seul compétitif face à une agence, sans rien changer au
+        produit que vous avez spécifié.
       </p>
     </>
   ),
@@ -144,7 +142,7 @@ const content: Record<SectionId, ReactNode> = {
     <>
       <Terms>
         <Term label="Phase 0 — Cadrage">
-          5 jours, répartis sur environ deux semaines. Ateliers avec vous,
+          Un sprint court, sur environ deux semaines. Ateliers avec vous,
           arbitrage des points ouverts, architecture cible, backlog V1 priorisé.
           Livrables : document de cadrage et devis ferme pour la V1.
         </Term>
@@ -175,10 +173,6 @@ const content: Record<SectionId, ReactNode> = {
           capital, forfaits par phase ou retainer mensuel. J’en discute
           volontiers.
         </Term>
-        <Term label="Sprint de cadrage">
-          Forfait de 4 800 € HTVA (5 jours). Le document de cadrage vous
-          appartient, quelle que soit la suite.
-        </Term>
         <Term label="Facturation">
           Mensuelle, avec relevé détaillé des heures.
         </Term>
@@ -186,9 +180,11 @@ const content: Record<SectionId, ReactNode> = {
           Chaque phase est engagée séparément : vous décidez de continuer — ou
           non — à la fin de chacune.
         </Term>
-        <Term label="Propriété">
-          Code, infrastructure et livrables vous appartiennent intégralement
-          une fois les factures réglées.
+        <Term label="Propriété intellectuelle">
+          Le code développé reste ma propriété et vous est concédé sous licence
+          d’exploitation. Si vous souhaitez en acquérir la pleine propriété,
+          cela fait l’objet d’un accord distinct — redevance de licence ou
+          rachat — à convenir ensemble.
         </Term>
         <Term label="Modalités">
           À distance depuis le Portugal (même fuseau de travail), déplacements
@@ -201,7 +197,7 @@ const content: Record<SectionId, ReactNode> = {
   risks: (
     <>
       <p>
-        Poser ces questions maintenant coûte cinq jours de cadrage ; les
+        Poser ces questions maintenant coûte quelques jours de cadrage ; les
         découvrir en cours de développement coûte des mois. Voici les
         principales — leur analyse détaillée est le contenu du sprint :
       </p>
@@ -235,8 +231,10 @@ const content: Record<SectionId, ReactNode> = {
         </li>
         <li>
           <strong>Modes de mise en relation.</strong> Le cahier des charges en
-          décrit deux ; construire les deux en V1 double le coût du cœur du
-          produit. Lequel d’abord ?
+          décrit deux : la publication d’une demande de garde à laquelle les
+          professionnelles candidatent, et la recherche sur carte avec demande
+          directe auprès d’une professionnelle. Construire les deux en V1
+          double le coût du cœur du produit. Lequel d’abord ?
         </li>
       </ol>
       <Callout title="Si vous savez déjà répondre à ces six questions">
