@@ -1,16 +1,20 @@
 import type { ReactNode } from "react";
 
-import type { Section as SectionMeta } from "@/content/proposal";
 import { cn } from "@/lib/utils";
 
-type SectionProps = SectionMeta & {
+type SectionProps = {
+  id: string;
+  /** Heading rendered above the section body. */
+  title: string;
+  /** Optional one-line description under the heading. */
+  description?: string;
   children: ReactNode;
   className?: string;
 };
 
 /**
- * A titled block of the proposal. `id` doubles as the scroll anchor the nav
- * links to, so it must match the id declared in `src/content/proposal.ts`.
+ * A titled block of a document page. `id` doubles as the scroll anchor that
+ * in-page navigation links to.
  */
 export function Section({
   id,

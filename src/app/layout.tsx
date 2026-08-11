@@ -19,9 +19,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: `${proposal.client} — ${proposal.title}`,
-  description: proposal.subtitle,
-  // The proposal is a private document shared by link, not something to index.
+  title: {
+    default: `${proposal.client} — Questions de découverte`,
+    template: `${proposal.client} — %s`,
+  },
+  description:
+    "Le document de découverte : tout ce qu’il faut clarifier avant de chiffrer et de construire la V1.",
+  // Private documents shared by link, not something to index.
   robots: { index: false, follow: false },
 };
 
