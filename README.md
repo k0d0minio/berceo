@@ -30,4 +30,4 @@ Body copy inside a `Section` is styled automatically — write plain `<p>`, `<ul
 - Dark/light/system toggle is wired up via `next-themes`.
 - The page sets `robots: noindex` — it is a private document shared by link.
 - Print styles strip the header/footer so ⌘P → PDF is presentable.
-- [REPORT.md](REPORT.md) holds the underlying research this proposal draws on.
+- [REPORT.md](.icm/docs/REPORT.md) holds the underlying research this proposal draws on.
