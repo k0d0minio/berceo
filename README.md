@@ -31,3 +31,5 @@ Body copy inside a `Section` is styled automatically — write plain `<p>`, `<ul
 - The page sets `robots: noindex` — it is a private document shared by link.
 - Print styles strip the header/footer so ⌘P → PDF is presentable.
 - [REPORT.md](.icm/docs/REPORT.md) holds the underlying research this proposal draws on.
+- [QUESTIONS.md](.icm/docs/QUESTIONS.md) is the master discovery questionnaire — every
+  question to answer before quoting, with stable IDs for paring down per audience.
