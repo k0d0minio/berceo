@@ -1,55 +1,61 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Fraunces, Karla } from "next/font/google";
 
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { proposal } from "@/content/proposal";
+import { site } from "@/content/site";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/*
+ * Fraunces for display, Karla for text.
+ *
+ * The wordmark is a high-contrast serif with a soft, slightly odd warmth to it.
+ * Fraunces is the closest living relative — an old-style serif with the same
+ * softness, so the headline reads as the same voice as the logo rather than as
+ * a caption pasted underneath it. Karla carries the rest: humanist, quiet, and
+ * unfussy at small sizes.
+ */
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const karla = Karla({
+  variable: "--font-karla",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: `${proposal.client} — Questions de découverte`,
-    template: `${proposal.client} — %s`,
+  title: site.meta.title,
+  description: site.meta.description,
+  openGraph: {
+    title: site.meta.title,
+    description: site.meta.description,
+    siteName: site.name,
+    locale: "fr_BE",
+    type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: site.name }],
   },
-  description:
-    "Le document de découverte : tout ce qu’il faut clarifier avant de chiffrer et de construire la V1.",
-  // Private documents shared by link, not something to index.
-  robots: { index: false, follow: false },
+  twitter: {
+    card: "summary_large_image",
+    title: site.meta.title,
+    description: site.meta.description,
+    images: ["/og.png"],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b1a16",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="fr"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${karla.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-background text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <TooltipProvider>
-            <SiteHeader />
-            <div className="flex-1">{children}</div>
-            <SiteFooter />
-          </TooltipProvider>
-        </ThemeProvider>
-      </body>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }
