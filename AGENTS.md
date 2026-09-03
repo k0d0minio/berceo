@@ -5,40 +5,50 @@
 
 ## What this repo is
 
-**berceo** — the single-page **proposal site for the Berceo lead-engineer engagement**. It
-is a document, not a product: one page, shared by link, that makes the case for the
-engagement and states its terms.
+**berceo** — the **holding page for Berceo**, a Belgian two-sided marketplace connecting
+parents of newborns with professionals who take overnight post-partum care shifts
+(*gardes de nuit*). One screen, in French, that says the site is being built.
 
 Next.js (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui, deployed on Vercel. The
-package is named `berceo-shell` — the shell was built first and the content fills it in.
+package is still named `berceo-shell`.
 
-The page sets `robots: noindex`. It is a **private document**: treat its contents as
-client-confidential and never add anything that assumes a public audience. Print styles
-strip the chrome so ⌘P → PDF is presentable, which is a real delivery path — check it
-before calling a change done.
+The engagement was won in September 2026 and the repo pivoted from proposal document to
+product site. The proposal and discovery questionnaire that used to live here are gone
+from the working tree — they are preserved in git history and in [`.icm/docs/`](.icm/docs/).
+
+**This page is public.** It is indexable, it carries an OG card, and it is the first thing
+anyone who hears the brand name will find. That is a deliberate reversal of the old
+`robots: noindex` — this repo used to hold a private client document and now holds a
+public one. If Berceo wants the brand kept quiet until launch, put `robots` back in
+[`src/app/layout.tsx`](src/app/layout.tsx); it is a two-line change.
 
 ## Routing — "if the task is… → go to…"
 
 | The task | Go to |
 |---|---|
-| Change what the proposal *says* — sections, order, title | [`src/content/proposal.ts`](src/content/proposal.ts) — `sections` drives both the nav and the page |
-| Write or replace proposal body copy | [`src/app/page.tsx`](src/app/page.tsx) — each `<Placeholder />` is content still to be written |
-| Section chrome — heading, anchor, body typography | [`src/components/proposal/section.tsx`](src/components/proposal/section.tsx) |
-| Presentation primitives — stats, callouts, terms | [`src/components/proposal/blocks.tsx`](src/components/proposal/blocks.tsx) |
-| Theme tokens, `.prose-proposal`, print styles | [`src/app/globals.css`](src/app/globals.css) |
-| shadcn components | [`src/components/ui/`](src/components/ui/) — add with `npx shadcn@latest add <name>` |
-| The research the proposal draws on | [`.icm/docs/REPORT.md`](.icm/docs/REPORT.md) |
-| What still needs answering before quoting | [`.icm/docs/QUESTIONS.md`](.icm/docs/QUESTIONS.md) — stable IDs, pare down per audience |
-| Plan or track work on this repo | [`.icm/intake/`](.icm/intake/) — epics and stubs, contract in its README |
+| Change any word on the page | [`src/content/site.ts`](src/content/site.ts) — the whole copy deck, one file |
+| Layout, spacing, the page itself | [`src/app/page.tsx`](src/app/page.tsx) — one screen, no nav |
+| Colour, type, the breathing animation | [`src/app/globals.css`](src/app/globals.css) — night palette + `souffle`/`halo`/`lever` |
+| Metadata, fonts, OG card | [`src/app/layout.tsx`](src/app/layout.tsx) |
+| The logo marks | [`src/components/berceo-logo.tsx`](src/components/berceo-logo.tsx) — inlined, `currentColor` |
+| Brand artwork | [`public/logos/`](public/logos/) — SVG is what the site uses; PNG for raster; `.ai` is the source |
+| shadcn components | [`src/components/ui/`](src/components/ui/) — retained and retuned to the brand palette, currently unused |
+| The research behind the engagement | [`.icm/docs/`](.icm/docs/) — `REPORT.md`, `cahier-des-charges.md`, `QUESTIONS.md` |
+| Plan or track work | [`.icm/intake/`](.icm/intake/) — epics and stubs, contract in its README |
 
 ## Standing rules
 
-- **Body copy inside a `Section` is styled automatically.** Write plain `<p>`, `<ul>`,
-  `<h3>` — do not reach for utility classes to make prose look right.
-- **Never invent a commercial term.** Rates, scope and dates come from Jamie or from
-  `.icm/docs/`; a blank is the correct state until they do.
-- **CI is the source of truth.** Never run `build`/`lint`/`typecheck` locally — push and
-  read the Vercel deployment check.
+- **Never invent a commercial term.** Rates, scope, launch dates and contact addresses
+  come from Jamie or from `.icm/docs/`. Berceo has no published email or domain yet — a
+  blank is the correct state until it does. The holding page deliberately shows no
+  contact for exactly this reason.
+- **The page is committed to dark.** Berceo is a night service; there is no light theme
+  and no toggle. Don't add one back "for completeness".
+- **Never commit archives or binaries over a few MB.** A 58MB brand-pack zip and 51MB of
+  flattened JPGs once landed here and had to be purged from history with a force-push.
+  `.gitignore` now blocks `*.zip` and friends. Brand masters live in Drive.
+- **CI is the source of truth.** Never run `build`/`lint`/`typecheck`/`dev` locally —
+  push and read the Vercel deployment check.
 - **Planning is tickets.** Any plan or backlog becomes stubs in `.icm/intake/`, never a
   loose `TODO.md`. Ticket-only commits go straight to `main`; everything else through a PR
   on a `claude/` branch.

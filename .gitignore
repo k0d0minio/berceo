@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# archives — brand packs and the like belong in Drive, not in git.
+# A 58MB zip once landed here and had to be purged from history.
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
