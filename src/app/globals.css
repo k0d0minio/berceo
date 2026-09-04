@@ -12,10 +12,15 @@
  * light theme and no toggle — a "night watch" that flips to white at noon
  * would be arguing with itself.
  *
- * Every value below is sampled from the delivered brand pack (public/logos),
- * not invented. The ground is the brand mint driven down to near-black while
- * keeping its hue, so the dark is a *green* dark rather than a neutral grey —
- * it belongs to the same family as the logo instead of sitting behind it.
+ * The palette starts from the delivered brand pack (public/logos); nothing here
+ * is invented except --menthe, which Jamie retuned to a softer sage. That one
+ * value is the page's whole colour identity — the night-light gradient, the
+ * halo behind the mark, the accent line of the headline and every focus ring
+ * read from it, so changing it here changes all of them together.
+ *
+ * The ground is that mint driven down to near-black while keeping its hue, so
+ * the dark is a *green* dark rather than a neutral grey — it belongs to the
+ * same family as the logo instead of sitting behind it.
  */
 @theme inline {
   --color-background: var(--background);
@@ -56,7 +61,7 @@
   color-scheme: dark;
 
   /* --- brand pack --- */
-  --menthe: #73d590; /* primary; the logo green */
+  --menthe: #8baf9f; /* primary; the sage the gradient is built from */
   --veilleuse: #fbfe95; /* night-light yellow, used once per screen */
   --sauge: #acbeab; /* muted text */
   --lin: #d9e3d8; /* body text */
@@ -109,7 +114,7 @@
       ),
       radial-gradient(
         34rem 30rem at 50% 34%,
-        color-mix(in oklab, var(--menthe) 9%, transparent) 0%,
+        color-mix(in oklab, var(--menthe) 13%, transparent) 0%,
         transparent 70%
       ),
       radial-gradient(120% 120% at 50% 50%, transparent 42%, var(--nuit-950) 100%);

@@ -17,7 +17,7 @@ export default function Page() {
           className="halo pointer-events-none absolute size-64 rounded-full blur-3xl sm:size-80"
           style={{
             background:
-              "radial-gradient(circle, color-mix(in oklab, var(--menthe) 55%, transparent) 0%, transparent 70%)",
+              "radial-gradient(circle, color-mix(in oklab, var(--menthe) 64%, transparent) 0%, transparent 70%)",
           }}
         />
         <BerceoLogomark className="souffle relative h-24 w-auto text-lin sm:h-28" />

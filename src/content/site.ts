@@ -13,14 +13,14 @@ export const site = {
   name: "Berceo",
 
   /**
-   * The product thesis, split into two beats. Someone stays awake so the
-   * parents can sleep — that is the entire service in two lines.
+   * The promise, split into two beats — the second beat is the one the page
+   * prints in the accent colour, so it has to stand on its own.
    */
-  headline: ["Quelqu’un veille.", "Pour que vous dormiez."],
+  headline: ["Votre bébé est entre", "de bonnes mains."],
 
   /** One sentence, plain terms, no selling. */
   blurb:
-    "Berceo met en relation les parents de nouveau-nés avec des professionnels de la garde de nuit.",
+    "Berceo met en relation les familles avec des professionnelles de santé diplômées pour des gardes de nuit à domicile.",
 
   /** Bottom-of-screen status. Present tense, no promised date. */
   status: "Site en construction",
@@ -28,6 +28,6 @@ export const site = {
   meta: {
     title: "Berceo — Site en construction",
     description:
-      "Berceo met en relation les parents de nouveau-nés avec des professionnels de la garde de nuit. Le site est en cours de construction.",
+      "Berceo met en relation les familles avec des professionnelles de santé diplômées pour des gardes de nuit à domicile. Le site est en cours de construction.",
   },
 } as const;
