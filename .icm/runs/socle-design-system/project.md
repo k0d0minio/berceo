@@ -13,9 +13,13 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- D-9: the DA is applied literally, including text/button colours below AA contrast (operator, Define).
+- D-24: red/green confirmation tokens live only in `src/components/ui/confirm-dialog.tsx`.
+- D-19/D-25: every rendered word comes from `src/content/`; the two CTA entries are distinct.
+- The holding page at `/` must look and read exactly as before; AGENTS.md's dark rule is not touched.
+- No shadows, no gadget animations, no gendered pink/blue, no naïve illustrations (the DA's "à éviter").
+- Fraunces stands in for Comodo behind `src/app/fonts.ts`; no other file names the display face.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read the DA and editorial guide extracts in `.icm/processed/` to fill the button table, type scale and palette.

@@ -6,13 +6,18 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator: read `02_define/output/spec.md`, tick **Spec approved** on PR #21, then run
+   `build socle-design-system`.
+2. Build: follow `plan.md` pass by pass; the PR targets `uat`.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
+- none. Comodo files and the students wording are Surya deliverables; the spec carries both as
+  non-blocking (Fraunces stand-in, `@relecture` tag).
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Tick a gate checkbox.
+- Change AGENTS.md's "committed to dark" rule (vitrine Release owns it).
+- Put a colour value outside `src/app/globals.css`, or the red/green tokens outside `confirm-dialog.tsx`.
+- Change how `/` looks or reads.
