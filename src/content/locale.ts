@@ -30,6 +30,20 @@ export function catalogue<const T>(entries: Catalogue<T>): Catalogue<T> {
   return entries;
 }
 
+/**
+ * Puts values into a catalogue entry's `{name}` slots, e.g.
+ * `fill("Bonjour {prenom},", { prenom: "Julie" })`. A slot with no value is
+ * left as written, so a missing value shows up in review, not as "undefined".
+ */
+export function fill(
+  template: string,
+  values: Readonly<Record<string, string>>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (slot, name: string) =>
+    Object.hasOwn(values, name) ? values[name] : slot,
+  );
+}
+
 /** A surface's words in one locale (French unless told otherwise). */
 export function words<T>(
   surface: Catalogue<T>,

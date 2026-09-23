@@ -16,7 +16,7 @@
     "db:verify": "tsx scripts/verify-migrations.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "admin:grant": "tsx scripts/grant-admin.ts"
+    "admin:grant": "tsx --conditions=react-server scripts/grant-admin.ts"
   },
   "dependencies": {
     "@neondatabase/auth": "0.5.0-beta",

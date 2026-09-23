@@ -28,3 +28,17 @@ step, so a resuming session can pick up the first unticked line.
 ## Queue
 
 - [ ] <task — small enough for one commit; name the file or area>
+
+## Queue
+
+- [x] Pass 1 — `vercel-build` migrates previews and uat (production stays on db-migrate.yml)
+- [x] Pass 2 — schema + `0001_comptes` (users joined to Neon Auth, names, phone, welcome_sent_at; user_consents)
+- [x] Pass 3 — Neon Auth wiring: `getAuth()`, `currentUser()`, guard, routing table, `src/proxy.ts`, `/api/auth/[...path]`
+- [x] Pass 4 — words: `src/content/comptes.ts`, `src/content/emails.ts`, `fill()`
+- [x] Pass 5 — auth pages and server actions (`src/app/(auth)/`)
+- [x] Pass 6 — the three spaces on the portal shell, sign-out wired
+- [x] Pass 7 — e-mail: Resend sender, layout + three templates, webhook with Ed25519 check, verification confirmation, welcome once
+- [x] Pass 8 — `npm run admin:grant`
+- [ ] Pass 9 — Neon Auth config on `main` and `preview/uat`; Vercel env vars; `.env.example` names
+- [x] Pass 10 — README, AGENTS.md, project-rules
+- [ ] Cheap-tier GREEN, merge base, flip ready, full GREEN

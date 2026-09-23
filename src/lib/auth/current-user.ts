@@ -1,0 +1,50 @@
+import "server-only";
+
+import { eq } from "drizzle-orm";
+import { cache } from "react";
+
+import { db, users, type User } from "@/db";
+
+import { getAuth } from "./server";
+
+/**
+ * Who is asking, in one read per request: the Neon Auth session joined to the
+ * app's `users` row. Every page and action asks here, never the session alone,
+ * because the role lives on the row.
+ *
+ * - `signed-out`: no session.
+ * - `unverified`: a session whose e-mail is not confirmed (Neon Auth should
+ *   not issue one, but a space must not open if it does).
+ * - `no-row`: an identity with no `users` row, e.g. a sign-up whose row write
+ *   failed. It opens nothing and is logged.
+ */
+export type CurrentUser =
+  | { status: "signed-out" }
+  | { status: "unverified"; email: string }
+  | { status: "no-row"; authUserId: string }
+  | { status: "ok"; user: User };
+
+export const currentUser = cache(async (): Promise<CurrentUser> => {
+  const { data } = await getAuth().getSession();
+  const identity = data?.user;
+  if (!identity) return { status: "signed-out" };
+
+  if (!identity.emailVerified) {
+    return { status: "unverified", email: identity.email };
+  }
+
+  const [row] = await db
+    .select()
+    .from(users)
+    .where(eq(users.authUserId, identity.id))
+    .limit(1);
+
+  if (!row) {
+    console.error("[comptes] signed-in identity has no users row", {
+      authUserId: identity.id,
+    });
+    return { status: "no-row", authUserId: identity.id };
+  }
+
+  return { status: "ok", user: row };
+});

@@ -62,13 +62,19 @@ answer is here, and it is this repo's own.
   (`reversible: false`): a code revert must tolerate the newer schema, and `rollback.sh` says so.
   Applied to production by `.github/workflows/db-migrate.yml` on every push to `main` that
   touches `drizzle/`, `src/db/` or the config, from the `DATABASE_URL` Actions secret (an act
-  owed). The schema today is one table, `users` (0000_users): identity and persona only — the
-  authentication provider is undecided, so the credential or external-id column is a later
-  migration.
-- **Environment surfaces** — `.env.example` at the root declares `DATABASE_URL` (names only;
-  `env.sh audit` reads it). Locally: copy to `.env.local` with a branch's connection string from
-  Neon, never production's. On Vercel the Neon integration injects it into every environment
-  once the database is attached (below). The holding page itself still reads no variable.
+  owed; as of 2026-09-23 production has never been migrated, not even 0000). The schema:
+  `users` (0000_users; 0001_comptes joins it to Neon Auth by `auth_user_id` and adds names,
+  phone, `welcome_sent_at`) and `user_consents`, the append-only consent ledger (0001).
+  Identity lives in Neon Auth's `neon_auth` schema, which Drizzle never declares.
+- **Environment surfaces** — `.env.example` at the root declares the names (`env.sh audit`
+  reads it): `DATABASE_URL`, and since comptes-neon-auth `NEON_AUTH_BASE_URL` (the auth URL of
+  the environment's own Neon branch), `NEON_AUTH_COOKIE_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`
+  (the sender, the operator's once a domain is verified on Resend). Locally: copy to
+  `.env.local` with a branch's values from Neon, never production's. On Vercel the Neon
+  integration injects `DATABASE_URL` into every environment once the database is attached
+  (below); the four others are set per environment by hand. Neon Auth's own config is per
+  branch too (verification by link, Google off, trusted domains, the `send.magic_link` webhook
+  at that environment's `/api/webhooks/neon-auth`): a new long-lived branch needs it set.
 - **Local feedback scripts** — not wired: `scripts/format.sh` and `scripts/lint.sh` report
   SKIP. No formatter in the repo; ESLint (`eslint-config-next`) is CI's, never run here.
 - **The security gate** — `scripts/security-check.sh` runs before every commit in Build and
@@ -97,10 +103,9 @@ answer is here, and it is this repo's own.
   Until it is on, every preview and the `uat` branch read the Preview environment's
   `DATABASE_URL`, which can only point at production's branch. The UAT branch's database is
   then `preview/uat`, created on the branch's first deployment after the toggle. Migrations
-  reach previews and UAT at build only once the build runs the migrate step — **an act owed,
-  Jamie's choice** between the Vercel build command and a `vercel-build` script
-  (`npm run db:migrate && npm run db:verify && next build` is the candidate; `db-migrate.yml`
-  keeps applying production's on `main`). `.github/workflows/neon-cleanup.yaml` deletes a PR's
+  reach previews and UAT at build through the `vercel-build` script (comptes-neon-auth, D-29):
+  `db:migrate && db:verify` before `next build` unless `VERCEL_ENV` is `production`;
+  `db-migrate.yml` keeps applying production's on `main`. `.github/workflows/neon-cleanup.yaml` deletes a PR's
   `preview/*` and `run/*` branches on close and needs `NEON_API_KEY` as an Actions secret;
   `db-migrate.yml` needs `DATABASE_URL` as one (both acts owed — `printf '%s' "$KEY" |
   .icm/scripts/env.sh add <NAME> --ci --github secret`). `db-env.sh init` lists every act;

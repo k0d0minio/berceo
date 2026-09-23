@@ -7,8 +7,8 @@ import { portal } from "@/content/portal"
 
 /*
  * The DA's own confirmation example: leaving is the sensitive answer (red),
- * staying the confirming one (green). No session exists yet, so answering
- * only closes the dialog; the accounts stub gives `onSignOut` its real job.
+ * staying the confirming one (green). In a space, `onSignOut` is the sign-out
+ * server action; on the design-system page it is absent and only closes.
  */
 function SignOutDialog({
   variant = "blanc",
