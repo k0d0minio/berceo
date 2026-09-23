@@ -46,3 +46,5 @@ decision made mid-run has one home.
 - D-33 — `/admin/**` answers 404 to any non-admin; admins are granted by `npm run admin:grant`, never by sign-up. Define.
 - D-34 — Sign-up shows the same success message for an address that already has an account (no e-mail enumeration, the guide's reset rule extended). Define.
 - D-35 — Google sign-in, enabled by Neon's default, is switched off: the guide's sign-in form has two fields. Define.
+- D-36 — `main`'s Neon Auth webhook waits for the first promotion: PR previews copy `main`'s auth config at creation, and a webhook pointing at `www.berceo.be` (no route yet) would fail every preview sign-up. Build, 2026-09-23; a detail the spec's "per branch, main and preview/uat" did not foresee.
+- D-37 — Verification links go through our `/verification-email/confirmer` and the SDK's proxy handler, not `auth.verifyEmail()`, which POSTs to a GET-only endpoint. Build, 2026-09-23; implementation, not behaviour.

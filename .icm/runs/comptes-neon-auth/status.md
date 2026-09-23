@@ -4,7 +4,7 @@ Where the run is, in five lines. Updated at every stage start and stop, and when
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: build
-- step: 4 (implementing plan pass 1)
-- ci: none yet
-- blocked: no
+- step: 9 (cheap tier GREEN on cafeee8; stopped before the ready flip)
+- ci: GREEN (cheap tier, cafeee8)
+- blocked: yes — env audit GAPS 5 and the operator's config (handoff.md → Blockers)
 - updated: 2026-09-23

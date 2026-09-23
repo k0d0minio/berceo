@@ -22,3 +22,20 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 ## Learned rules
 
 - <one sentence, imperative, general enough to apply to the next run in this repo>
+
+## 2026-09-23 — Build stopped before the ready flip (blocked on the operator)
+
+- What happened: the env audit reported 5 gaps. This session's permission settings deny any
+  write to `.env*`, so `.env.example` could not take the four names, even after the operator
+  approved it (a deny rule, not a prompt). Separately, `NEON_AUTH_COOKIE_SECRET`,
+  `RESEND_API_KEY` and `EMAIL_FROM` exist on no Vercel environment, and the Neon Auth settings
+  the spec needs (verification by link, the webhook) are not exposed by the Neon MCP and
+  `NEON_API_KEY` is not in this environment.
+- Why stop: flipping ready would build previews whose account pages throw (no cookie secret),
+  so the operator's smoke would test nothing.
+- Resumes with: `build comptes-neon-auth` once handoff.md → Blockers is cleared.
+
+## Learned rules
+
+- A run that adds env vars in a session whose settings deny `.env*` writes: declare the
+  `.env.example` block to the operator at the start of Build, not at the flip.
