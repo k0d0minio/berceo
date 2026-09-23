@@ -6,13 +6,17 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator: read `02_define/output/spec.md` on PR #22, edit it or `revise comptes-neon-auth "<change>"`, then tick **Spec approved**.
+2. Then `build comptes-neon-auth` (executor: opus, complex spec), following `plan.md` pass by pass.
+3. Before the founders test on uat.berceo.be: verify a sending domain on Resend, add SPF and DKIM at Infomaniak, set `EMAIL_FROM` on Vercel (D-28).
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
+- none for Build. `EMAIL_FROM` blocks real e-mail on uat, not the build (plan.md → Risks).
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not tick either gate checkbox.
+- Do not write data to Neon `main` (production); only its auth configuration changes in plan pass 9.
+- Do not add a Vercel protection bypass to make webhooks reach PR previews.
+- Do not commit an e-mail address, the Resend key or the cookie secret.

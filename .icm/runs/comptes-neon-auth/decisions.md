@@ -38,5 +38,11 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-28 — The transactional sender is read from `EMAIL_FROM`; the spec names no address. The domain, its DNS at Infomaniak and the variable are the operator's, before the founders test on uat. Operator, Define, 2026-09-23.
+- D-29 — Preview and UAT builds migrate their own Neon branch through a `vercel-build` script (`db:migrate && db:verify && next build`); `db-migrate.yml` keeps production. Closes the act owed in `_shared/project-rules.md`. Operator, Define, 2026-09-23.
+- D-30 — E-mail verification and password reset are by link, not by code; verification is required before a space opens. The guide's copy describes links. Define.
+- D-31 — Consent is an append-only `user_consents` table (document, version, accepted_at), not columns on `users`, so a new CGU version adds a row and history is kept (B-06). Define; departs from the stub's "consent columns".
+- D-32 — A pending professional can sign in (D-21 needs resumable onboarding); the guide's "en attente de validation" line is shown in her space, not as a sign-in refusal. Define.
+- D-33 — `/admin/**` answers 404 to any non-admin; admins are granted by `npm run admin:grant`, never by sign-up. Define.
+- D-34 — Sign-up shows the same success message for an address that already has an account (no e-mail enumeration, the guide's reset rule extended). Define.
+- D-35 — Google sign-in, enabled by Neon's default, is switched off: the guide's sign-in form has two fields. Define.

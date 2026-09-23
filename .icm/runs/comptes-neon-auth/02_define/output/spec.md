@@ -90,7 +90,7 @@ unverified address gets a message and a way to resend the link. The reset page c
 instruction. Its confirmation is always the guide's neutral line ("Si un compte existe avec cette
 adresse, vous recevrez un e-mail dans quelques minutes."). The e-mailed link opens
 `/nouveau-mot-de-passe`. After a successful change the user signs in with the new password. Sign-out
-uses the existing `sign-out-dialog.tsx` and returns to `/connexion`.
+uses the existing `sign-out-dialog.tsx` (red and green only there, D-24) and returns to `/connexion`.
 
 **Roles and redirects.** After sign-in or verification each role lands in its own space: parent
 → `/espace/famille`, professionnel → `/espace/professionnelle`, admin → `/admin`. A signed-out
@@ -129,6 +129,9 @@ unsigned (401). Retries with the same event id send only one e-mail. The foundat
   - **Reset your password.**
   The last two are not in the guide. They are written to its rules and tagged `@relecture Surya`.
 - No e-mail says Berceo insures the garde (D-8).
+
+**Look (D-9).** Every page is built from the socle's components and tokens (capsule input and
+button, 32 px cards, no shadow). Nothing new is styled outside them.
 
 **Words (D-19).** Every visible string of the auth pages and the spaces lives in
 `src/content/comptes.ts` (and `portal.ts` for the shell), in French, keyed by locale like the rest
@@ -170,6 +173,7 @@ name.
 
 ## Out of scope
 
+- Scope decisions this run neither builds nor changes; they belong to later stubs: D-1, D-2, D-3, D-4, D-5, D-6, D-7, D-10, D-11, D-12, D-14, D-15, D-16, D-17, D-18, D-20, D-23, D-25. D-26 concerned the scope's own PR only. D-22 holds: this PR targets `uat`.
 - The sending domain and its DNS. The spec names no address. The operator verifies a domain on Resend, adds SPF and DKIM at Infomaniak, and sets `EMAIL_FROM`. Until then the verification and reset e-mails cannot reach real inboxes on uat.berceo.be, so the operator does it before the founders test. "Arrives from Berceo's domain" is proven then, not in this PR.
 - The professional's onboarding steps (stub 4), the validation state and back-office (stub 5), the family profile and commune (stub 6), suspension and user search (stub 14).
 - SMS phone verification and two-factor authentication [D-27]. Social sign-in.
