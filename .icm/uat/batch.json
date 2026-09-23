@@ -1,5 +1,7 @@
 {
-  "stubs": [],
+  "stubs": [
+    "socle-design-system"
+  ],
   "client_approved": false,
   "approved_by": "",
   "approved_on": "",
