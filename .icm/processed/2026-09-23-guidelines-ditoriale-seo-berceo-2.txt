@@ -1,0 +1,594 @@
+BRIEF BERCEO
+
+
+GUIDELINES
+ÉDITORIALES & SEO
+         01
+
+CONTEXTE & OBJECTIFS
+
+
+
+                       02
+À PROPOS DE CE
+DOCUMENT
+Ce guide est le document de référence unique pour toute
+rédaction produite dans le cadre du développement
+de la plateforme Berceo. Il couvre deux dimensions
+indissociables : l’identité éditoriale (comment écrire) et la
+stratégie SEO (comment optimiser).
+
+
+
+
+                                                                03
+UTILISATION DU GUIDE
+Lire ce guide en entier avant d’écrire la moindre ligne. Le
+consulter ensuite bloc par bloc lors de la rédaction. En cas de
+doute sur une formulation, on se pose cette question :
+
+Est-ce que Julie (33 ans, Bruxelles, épuisée) se sent
+comprise et rassurée en lisant ça ?
+
+
+
+
+                                                                  04
+CHAMPS D’ACTION
+Ce guide couvre : l’ensemble des textes fonctionnels de la
+plateforme, les règles éditoriales et SEO par bloc, des exemples
+concrets de formulations. En revanche, il ne couvre pas les CGU
+et documents juridiques, la gestion des réseaux sociaux.
+
+
+
+
+                                                                   05
+         02
+
+IDENTITÉ ÉDITORIALE &
+   VOIX DE BERCEO
+
+
+
+                        06
+                     BERCEO EN UNE PHRASE
+
+
+ La première plateforme belge à mettre en relation des familles
+avec des professionnelles de santé diplômées, pour des nuits de
+ repos à domicile, avec autant de compétence que de douceur.
+
+
+
+
+                                                                  07
+                      LA PROMESSE DE MARQUE
+
+
+ Chaque famille qui fait confiance à Berceo a la certitude d'être
+accompagnée par une professionnelle de santé diplômée, vérifiée
+et bienveillante, pour vivre les premières nuits avec sérénité, sans
+              jamais compromettre la qualité du soin.
+
+
+
+
+                                                                       08
+                                          LES 4 VALEURS
+
+          ce ce
+        CONFIANCE                              ce ce
+                                             DOUCEUR                             ce ce
+                                                                                SAVOIR                            ce ce
+                                                                                                             BIENVEILLANCE
+
+
+Elle se prouve, elle ne s’affirme   Des phrases courtes, des mots     Nommer les diplômes et            Ne jamais juger ni culpabiliser.
+pas. Écrire « chaque profil est     simples, pas de jargon. On        compétences       concrètement.   Accueillir la vulnérabilité avec
+vérifié manuellement » plutôt       suggère, on invite, on rassure.   « Formée à la réanimation         douceur. Une maman épuisée a
+que « vous pouvez nous faire        Jamais d’injonction.              néonatale     »    plutôt   que   le droit de demander de l’aide.
+confiance ».                                                          « qualifiée en soins de bébé ».
+
+
+
+
+                                                                                                                                           09
+                LES 5 AXES DE TON
+      ce ce
+RASSURANT       Donner des faits et de la chaleur. Jamais condescendant : reconnaître l’inquiétude, y répondre.
+
+
+      ce ce
+PROFESSIONNEL   Vocabulaire médical habillé d’intention humaine. Jamais froid ni administratif.
+
+
+      ce ce
+CHALEUREUX      Reconnaître l’expérience avec respect. Jamais infantilisant ni trop familier.
+
+
+CLAIR ce ce     Aller droit au but sans sur-vendre. Jamais simpliste ni marketing creux.
+
+
+HUMAINce ce     Le langage e-commerce est banni. On ne « commande » pas une garde de nuit.
+
+
+
+
+                                                                                                                  10
+       03
+
+RÈGLES D'ÉCRITURE
+
+
+
+
+                    11
+TUTOIEMENT VS
+VOUVOIEMENT
+Vouvoiement dans toute la plateforme, pour les deux cibles.
+Berceo s’adresse à des adultes en situation parentale ou
+professionnelle. Dans ce cadre, le vouvoiement assoit la
+crédibilité et respecte la maturité de la cible. Jamais de
+tutoiement, « hey », « salut », « les filles ».
+
+
+
+
+                                                              12
+PONCTUATION,
+MAJUSCULES
+ET ABRÉVIATIONS
+ Pas de point d’exclamation sauf célébration exceptionnelle.
+
+ Pas de points de suspension, car ils créent de l’ambigüité.
+
+ Pas d’abréviations : « SF » pour sage-femme est interdit dans
+ toutes les interfaces.
+
+ « Berceo » prend toujours une majuscule.
+
+ Les intitulés de profession s’écrivent en minuscules : « sage-
+ femme », « puéricultrice ».
+
+
+
+                                                                  13
+      04
+
+LES DEUX CIBLES
+
+
+
+
+                  14
+PORTRAIT DE LA
+CIBLE FAMILLE
+JULIE, 33 ANS, BRUXELLES
+
+25 à 40 ans, diplômée, CSP+, Bruxelles ou Wallonie.
+
+Son bébé a entre quelques jours et 2 ans. Souvent seule la nuit,
+car son partenaire a repris le travail, la famille habite à 45
+minutes. Elle allaite ou essaie, avec des crevasses et des doutes.
+
+Elle se pose 10 000 questions : est-ce que mon bébé va bien ?
+Est-ce que je fais bien les choses ? Elle a peur de la mort subite
+du nourrisson. Elle pleure sans savoir pourquoi. Elle veut souffler,
+mais elle culpabilise de le vouloir.
+
+Elle a les moyens de faire appel à un service premium, à
+condition qu'il inspire une confiance absolue.
+
+
+                                                                       15
+LES 3 MESSAGES PRIORITAIRES FAMILLE
+
+                                                                                         LA PLATEFORME COMME
+             ce ce
+    LA SÉCURITÉ AVANT TOUT                              ce ceDE SOUFFLER
+                                             LA PERMISSION                                        ce ce
+                                                                                           FILET DE SÉCURITÉ
+
+
+Les professionnelles sont diplômées,         Demander de l’aide, ce n’est pas        Même sans jamais réserver, savoir que
+vérifiées manuellement, compétentes          abandonner. C’est prendre soin de soi   Berceo existe et qu’on peut y recourir à
+médicalement. Sages-femmes, infirmières      pour mieux prendre soin de son bébé.    tout moment suffit à alléger la charge
+en néonatologie, puéricultrices : formées    Berceo     donne  aux    mamans    la   mentale.    C’est     une     assurance
+à reconnaître ce qui ne va pas, à soutenir   permission de se reposer sans           émotionnelle autant que pratique.
+un allaitement difficile.                    culpabilité.
+
+
+
+
+                                                                                                                                16
+PORTRAIT DE LA
+CIBLE PRO
+21 à 35 ans. Sage-femme diplômée, infirmière en néonatologie,
+puéricultrice, étudiante sage-femme en 3e ou 4e année, ou
+paramédicale spécialisée périnatalité.
+
+Elle travaille en milieu hospitalier ou vient de terminer ses études.
+Elle connaît les nourrissons, leurs besoins, leurs signaux, les
+situations qui appellent une attention médicale.
+
+Elle cherche à exercer ses compétences en dehors du cadre
+hospitalier, dans un environnement plus humain et plus flexible.
+
+Elle veut choisir ses missions, être rémunérée à la hauteur de son
+expertise, et ne pas être confondue avec une baby-sitter.
+
+
+
+
+                                                                        17
+      LES 3 MESSAGES PRIORITAIRES PRO
+
+      LA VALORISATION DE                              LA LIBERTÉ                              LA COMMUNAUTÉ ET LA
+              ce ce                                       ce ce                                      ce ce
+          L'EXPERTISE                              ET LA FLEXIBILITÉ                              CRÉDIBILITÉ
+
+
+Ici, les diplômes comptent vraiment.       Berceo n’emploie pas, il met en relation.     Rejoindre Berceo, c’est associer son nom
+Berceo n’est pas une plateforme de         La professionnelle reste indépendante :       et son diplôme à une plateforme sérieuse.
+baby-sitting : c’est un réseau de          elle choisit ses disponibilités, ses zones,   C’est rejoindre un réseau de pairs dans
+professionnelles de santé, et ça se voit   les gardes qu’elle accepte ou refuse.         un cadre structuré et rassurant.
+dans la façon dont on parle d’elles.
+
+
+
+
+                                                                                                                                     18
+LES ÉLÉMENTS DE
+RÉASSURANCE
+La réassurance n'est pas un élément parmi d'autres dans la
+communication Berceo : elle en est la colonne vertébrale. Chaque
+page, chaque interface, chaque e-mail doit contenir au moins un
+argument qui dit à la famille : vous êtes en sécurité.
+
+Côté famille, par ordre de priorité :
+→ diplômes vérifiés manuellement
+→ qualification médicale réelle
+→ certificat de Bonne vie & moeurs
+→ transparence des profils
+→ couverture assurance
+→ système d'avis.
+
+Côté professionnelle :
+→ sérieux du cadre et de la vérification
+→ liberté d'exercice
+→ qualité et sécurité des familles
+→ appartenance à une communauté de pairs.
+                                                                   19
+     05
+
+STRATÉGIE SEO
+
+
+
+
+                20
+         OBJECTIFS SEO DE LA PLATEFORME
+    CAPTURER LES                   CONSTRUIRE UNE                   POSITIONNER LES FICHES               S'IMPOSER FACE
+         ce ce
+    RECHERCHES À                 AUTORITÉce ce
+                                          THÉMATIQUE                    PROS ce ce LES
+                                                                             POUR                              ce ce
+                                                                                                        AUX CONCURRENTS
+   FORTE INTENTION                SUR LE POST-PARTUM               RECHERCHES NOMINATIVES                   INDIRECTS
+
+
+Les familles qui tapent "garde   Les pages vitrines doivent         Quand une famille recherche le   Bsit, Yoopies, Babysite ne
+de nuit nourrisson Bruxelles"    poser Berceo comme une             nom      d’une professionnelle   proposent pas de gardes par
+sont en phase de décision. Ce    référence sur le post-partum,      recommandée, la fiche Berceo     des professionnelles de santé.
+sont les requêtes les plus       l'épuisement      parental,  le    doit apparaître en premier       Berceo se positionne là où ils
+précieuses, elles arrivent sur   soutien aux nouvelles familles.    résultat.                        sont    présents    mais   ne
+Berceo avec une intention        C'est le levier de trafic                                           répondent pas vraiment au
+claire.                          organique sur le long terme.                                        besoin.
+
+
+
+
+                                                                                                                                      21
+LES INTENTIONS DE
+RECHERCHE : FAMILLE
+Intention urgente : « garde de nuit bébé Bruxelles », « aide nuit
+nourrisson domicile », « quelqu’un pour garder mon bébé la nuit ».
+
+Intention qualitative : « sage-femme garde de nuit domicile »,
+« garde nuit bébé diplômée Belgique », « puéricultrice nuit
+domicile Bruxelles ».
+
+Intention informationnelle : « comment se reposer avec un
+nourrisson », « aide post-partum nuit Belgique », « garde de nuit
+bébé prix Belgique ».
+
+
+
+
+                                                                     22
+LES INTENTIONS
+DE RECHERCHE : PRO
+Intention reconversion / complément de revenus : « faire des
+gardes de nuit bébé », « travail nuit sage-femme domicile »,
+« missions sage-femme indépendante Belgique », « plateforme
+garde de nuit professionnelle santé ».
+
+Intention informationnelle : « comment proposer des gardes de
+nuit en Belgique », « statut indépendant sage-femme Belgique ».
+
+
+
+
+                                                                  23
+              06
+
+CONSIGNES PAR BLOC FONCTIONNEL
+
+
+
+
+                                 24
+LE SITE PUBLIC
+      OBJECTIF                  MESSAGE                      TON
+
+ Convaincre un inconnu     « Des professionnelles    Chaleureux, rassurant,
+ de comprendre Berceo      de santé diplômées        sobre, jamais sur-
+         ce ce
+ et passer à l’action.
+                                     ce ce
+                           veillent sur votre bébé   vendeur.
+                                                              ce ce
+                           cette nuit.»
+
+
+
+
+Consignes spécifiques :
+
+→ Deux CTA distincts dès l’accueil : « Trouver une professionnelle »
+(famille) et « Rejoindre le réseau » (pro). Ne jamais utiliser le même
+bouton pour les deux cibles.
+
+→ Au moins un argument de réassurance dans le premier tiers :
+diplômes vérifiés ou assurance. Pas en bas de page.
+
+
+                                                                              25
+NOTRE HISTOIRE
+      OBJECTIF                 MESSAGE                     TON
+
+ Humaniser Berceo,        La genèse d’Alix et
+                                                   Personnel, incarné,
+ c’est ici que la         Jordane, deux sages-
+           ce ce
+ plateforme devient
+                                  ce ce
+                          femmes face au vide
+                                                             ce ce
+                                                   narratif, jamais
+                                                   institutionnel.
+ une histoire.            du post-partum.
+
+
+
+Consignes spécifiques :
+
+→ Inclure la genèse du projet, le premier bébé Basile, le groupe
+Facebook. Ces éléments sont les fondations émotionnelles de la
+marque.
+
+→ C’est la seule page où on raconte avant d’expliquer. Ne pas
+commencer par « nous sommes une plateforme de mise en relation ».
+
+→ Terminer par un appel à l’action doux.
+                                                                         26
+"COMMENT ÇA MARCHE"
+      OBJECTIF                    MESSAGE                      TON
+
+ Rendre le service            Trois étapes maximum    Clair, direct, guidant,
+ immédiatement                par parcours, pas une   jamais technique.
+          ce ce
+ compréhensible pour          de plus.
+                                       ce ce                   ce ce
+ les deux cibles.
+
+
+
+Consignes spécifiques :
+
+Famille : Publiez votre demande     → Choisissez votre professionnelle →
+Dormez enfin.
+
+Pro : Créez votre profil   → Validez votre diplôme → Choisissez vos
+gardes.
+
+Inclure un bloc « Ce que garantit Berceo » avec les arguments de
+réassurance clés (diplômes, assurance).
+
+                                                                                27
+LES COMPTES
+      OBJECTIF                 MESSAGE                   TON
+
+ Créer un compte en 3     « Votre première nuit   Direct, guidant,
+ minutes avec un          de repos est plus       rassurant à chaque
+         ce ce
+ minimum de friction.
+                                   ce ce
+                          proche que vous ne le   étape.
+                                                          ce ce
+                          pensez.»
+
+
+
+Consignes spécifiques :
+
+→ Le formulaire famille est précédé d’une phrase d’accroche. Jamais un
+formulaire nu sans contexte.
+
+→ L’inscription pro est découpée en 4 étapes numérotées avec barre
+de progression visible.
+
+
+
+
+                                                                         28
+LES ANNONCES
+      OBJECTIF                   MESSAGE                    TON
+
+ Permettre à une           « Plus votre demande     Guidant, simple, sans
+ famille de publier une    est précise, plus vite   jargon.
+ demandece   ce en
+           claire                   ce ce la
+                           vous trouverez                   ce ce
+ moins de 2 minutes.       professionnelle qui
+                           vous correspond.»
+
+
+
+Consignes spécifiques :
+
+→ L’adresse exacte n’est jamais révélée avant confirmation de la
+réservation. Mentionner cette note sous le champ commune.
+
+→ Case à cocher obligatoire : « Mon enfant n’a pas de condition
+médicale particulière nécessitant des soins spécialisés.»
+
+→ Le bouton urgence s’appelle « Publier une demande urgente ».
+Jamais de question réthorique.
+
+                                                                            29
+       07
+
+ERREURS À ÉVITER
+
+
+
+                   30
+                                      TROP CLINIQUE
+
+
+
+                                                                                 « Chaque profil est vérifié par
+« Validation documentaire préalable     Jargon administratif incompréhensible
+                                                                                notre équipe avant d’être visible
+       à l’activation du profil.»       pour une maman à 3h du matin.
+                                                                                       sur la plateforme.»
+
+
+
+
+                                                                                                                    31
+                              TROP BABYSITTING
+
+
+
+                                  « baby-sitter» sous-estime                « Trouvez une professionnelle de
+« Trouvez votre baby-sitter
+                                  radicalement la qualification médicale.   santé disponible pour veiller sur
+     de nuit idéale !»
+                                  Berceo n’est pas Bsit.                      votre nourrisson cette nuit.»
+
+
+
+
+                                                                                                                32
+                                      TROP PINTEREST
+
+
+
+« Un cocon de sérénité tissé avec        Une maman épuisée à 2h du matin ne         « Une professionnelle diplômée
+amour dans les nuits étoilées de la      veut pas de poésie. Elle veut savoir si   chez vous cette nuit pour que vous
+          maternité.»                    quelqu’un peut venir demain soir.               puissiez enfin dormir.»
+
+
+
+
+                                                                                                                        33
+                           TROP INSTITUTIONNEL
+
+
+
+« Votre demande a été enregistrée    C’est la langue d’un service public, pas   « Votre demande est bien reçue.
+   et sera traitée dans les délais   d’une startup qui prend soin des            Nous vous répondons dans les
+              impartis.»             familles.                                       24 heures ouvrables.»
+
+
+
+
+                                                                                                                  34
+                   TROP TRANSACTIONNEL
+
+
+                            On ne commande pas une garde de
+   « Ajoutez au panier»,                                       « Confirmez la réservation»,
+                            nourrisson comme on commande une
+« Passez votre commande»,                                       « Réservez cette garde»,
+                            pizza. Le langage e-commerce est
+ « Procédez au checkout.»                                        « Accédez aux profils.»
+                            banni absolument.
+
+
+
+
+                                                                                              35
+         08
+
+EXEMPLES DE RÉFÉRENCE
+
+
+
+
+                        36
+      OUATINEce&ce
+                 CUMULUS                                          ceBATEAU
+                                                              PETIT  ce                                          ce ce
+                                                                                                                SÉZANE
+
+
+Univers chaleureux, épuré, sans jargon.           Confiant sans être arrogant, chaleureux       Ton sobre, classe, humain. Textes courts,
+Priorité donnée à l’émotion sur la                sans être mièvre. Parle aux parents           jamais sur-vendus. Pas de superlatifs, pas
+description technique.                            comme à des adultes.                          de « meilleur », pas de « révolutionnaire.»
+À retenir : la sobrieté du langage.               À retenir : la dignité et la confiance.       À retenir : simple mais classe, ça donne
+                                                                                                envie.
+
+
+
+
+                                         ce ce
+                                       DOOMOO                                           ce ce
+                                                                                    LITTLE DUTCH
+
+
+                        Ton doux, rassurant, adapté aux nouveaux         Ton chaleureux, authentique, familial.
+                        parents.                                         À retenir : la capacité à créer un
+                        À retenir : la cohérence entre le visuel et      sentiment de familiarité avant même le
+                        l’éditorial, les deux parlent la même            premier achat.
+                        langue.
+
+
+
+
+                                                                                                                                              37
+PROCHAINES ÉTAPES
+ Ce guide est votre référence unique jusqu'à la mise en ligne de la
+ plateforme.
+
+ Surya reste disponible pendant tout le développement :
+ une question sur une formulation, un doute sur un CTA, on est là !
+
+ On se retrouve pour l'audit de la V1 : on passe en revue
+ l'ensemble du site et on vous livre nos recommandations.
+
+
+
+
+                                                                      38
+     NOUS RESTONS À VOTRE
+DISPOSITION POUR TOUTE QUESTION
+   chloe@agencesurya.com · 06.75.81.78.35      romane@agencesurya.com · 07.88.92.35.46
+
+
+
+                                            SITE WEB
+

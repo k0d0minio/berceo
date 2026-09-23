@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "2026-09-23-berceo-brand-identity-guideline",
+      "source": "Berceo Brand identity & Guideline.pdf",
+      "sha256": "65ba580e59e90da47a4ef2c79d40fb1ad112f78e772b951724b585cc0aff5fc0",
+      "kind": "pdf",
+      "extractor": "pdftotext",
+      "bytes": 57068402,
+      "chars": 17990,
+      "processed_at": "2026-09-23T12:49:03Z",
+      "text": ".icm/processed/2026-09-23-berceo-brand-identity-guideline.txt",
+      "archived": ".icm/raw/_processed/2026-09-23-berceo-brand-identity-guideline.pdf",
+      "stub": ".icm/intake/triage/2026-09-23-berceo-brand-identity-guideline.md"
+    },
+    {
+      "id": "2026-09-23-direction-artistique-web",
+      "source": "Direction artistique web.pdf",
+      "sha256": "738a4bbe2ef23cdd3e9dd3ceb86a4c6833e3e686716611d76f268a95b6d824c7",
+      "kind": "pdf",
+      "extractor": "pdftotext",
+      "bytes": 30579606,
+      "chars": 32428,
+      "processed_at": "2026-09-23T12:49:03Z",
+      "text": ".icm/processed/2026-09-23-direction-artistique-web.txt",
+      "archived": ".icm/raw/_processed/2026-09-23-direction-artistique-web.pdf",
+      "stub": ".icm/intake/triage/2026-09-23-direction-artistique-web.md"
+    },
+    {
+      "id": "2026-09-23-guidelines-ditoriale-seo-berceo",
+      "source": "Guidelines éditoriale & SEO - Berceo.docx",
+      "sha256": "201e144528a324d674e2826f1c04afaaeeaadc92bf7de495a5cc2fdbe2985fd0",
+      "kind": "office",
+      "extractor": "python3 zipfile",
+      "bytes": 249358,
+      "chars": 49792,
+      "processed_at": "2026-09-23T12:49:03Z",
+      "text": ".icm/processed/2026-09-23-guidelines-ditoriale-seo-berceo.txt",
+      "archived": ".icm/raw/_processed/2026-09-23-guidelines-ditoriale-seo-berceo.docx",
+      "stub": ".icm/intake/triage/2026-09-23-guidelines-ditoriale-seo-berceo.md"
+    },
+    {
+      "id": "2026-09-23-guidelines-ditoriale-seo-berceo-2",
+      "source": "Guidelines éditoriale & SEO - Berceo.pdf",
+      "sha256": "ee33fc91a38b0aa2c879dad6d355d6742c9951ffd1e8c77976587c7a68075672",
+      "kind": "pdf",
+      "extractor": "pdftotext",
+      "bytes": 25541264,
+      "chars": 22469,
+      "processed_at": "2026-09-23T12:49:03Z",
+      "text": ".icm/processed/2026-09-23-guidelines-ditoriale-seo-berceo-2.txt",
+      "archived": ".icm/raw/_processed/2026-09-23-guidelines-ditoriale-seo-berceo-2.pdf",
+      "stub": ".icm/intake/triage/2026-09-23-guidelines-ditoriale-seo-berceo-2.md"
+    },
+    {
+      "id": "2026-09-23-kick-off-brief-website-berceo-2026-09-11-11-59-cest-notes-pa",
+      "source": "Kick off brief website Berceo - 2026_09_11 11_59 CEST - Notes par Gemini.docx",
+      "sha256": "f552c7113193330df0954bfe13f348fa68313d4c3600f7c4c0d99789bcb2481b",
+      "kind": "office",
+      "extractor": "python3 zipfile",
+      "bytes": 82920,
+      "chars": 152274,
+      "processed_at": "2026-09-23T12:49:03Z",
+      "text": ".icm/processed/2026-09-23-kick-off-brief-website-berceo-2026-09-11-11-59-cest-notes-pa.txt",
+      "archived": ".icm/raw/_processed/2026-09-23-kick-off-brief-website-berceo-2026-09-11-11-59-cest-notes-pa.docx",
+      "stub": ".icm/intake/triage/2026-09-23-kick-off-brief-website-berceo-2026-09-11-11-59-cest-notes-pa.md"
+    },
+    {
+      "id": "2026-09-23-kick-off-brief-website-berceo-2026-09-11-11-59-cest-notes-pa-2",
+      "source": "Kick off brief website Berceo - 2026_09_11 11_59 CEST - Notes par Gemini.md",
+      "sha256": "d1a308f6d94249cddb24ee18fc3b0a878307aa318de598a09ed9986c3f8f18e6",
+      "kind": "text",
+      "extractor": "copy",
+      "bytes": 160811,
+      "chars": 160811,
+      "processed_at": "2026-09-23T12:49:03Z",
+      "text": ".icm/processed/2026-09-23-kick-off-brief-website-berceo-2026-09-11-11-59-cest-notes-pa-2.txt",
+      "archived": ".icm/raw/_processed/2026-09-23-kick-off-brief-website-berceo-2026-09-11-11-59-cest-notes-pa-2.md",
+      "stub": ".icm/intake/triage/2026-09-23-kick-off-brief-website-berceo-2026-09-11-11-59-cest-notes-pa-2.md"
+    }
+  ]
+}
