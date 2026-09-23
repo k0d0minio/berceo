@@ -68,7 +68,7 @@
     "name": "app",
     "provider": "neon",
     "neon": {
-      "project_id": "br-long-brook-b2qw6uzd",
+      "project_id": "tiny-cell-08223046",
       "api_key_env": "NEON_API_KEY",
       "production_branch": "main",
       "previews": "vercel",
