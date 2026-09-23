@@ -1,0 +1,668 @@
+         DIRECTION
+       ARTISTIQUE WEB
+
+2026
+           SOMMAIRE
+
+           1.Recap               8.Système typographique web     15.Le système de transparence
+
+           2.logotype            9.Hiérarchie typographique      16. Boutons et actions
+
+           3.Symbole            10.Règles d’utilisation          17.Cartes et blocs de contenu
+
+           4.Zone d’exclusion   11.Application                   18.Direction Photographique
+
+           5.Les interdits      12.Couleurs                      19.Traitement Photographique
+
+           6.Iconographie       13.Espacement et respiration     20.Matières, textures et ambiance
+
+           7.Application        14.Formes et langage graphique   21.Ce que l’on veut éviter
+
+
+
+
+Sommaire                                                                                             02
+    UNE DA WEB AU SERVICE
+    DU CONCEPT
+    Berceo met en relation de jeunes parents avec des professionnelles de santé qualifiées pour leur offrir des nuits de repos à
+    domicile. Sa direction artistique web doit donc créer un équilibre entre la douceur de l’univers familial, le sérieux de
+    l’accompagnement médical et la simplicité d’une plateforme immédiatement accessible.
+
+
+    Rassurer les parents                    Valoriser les professionnelles                 Faciliter la mise en relation
+    Une maman épuisée n'a pas               Les professionnelles de santé sont             Les gardiennes s'installent dans
+    besoin de perfection. Elle a            formées à reconnaître ce qui ne va pas, à      chaque foyer dans les gestes, dans
+    besoin de se sentir comprise,           soutenir un allaitement, à rendormir un        les mots, dans la façon d'être là sans
+    soutenue, et enfin autorisée à se       enfant à 3h du matin.                          jamais s'imposer.
+    reposer.
+
+    Douceur, confiance, savoir et bienveillance deviennent des principes de conception, et pas seulement des valeurs de marque.
+
+
+
+
+Le concept                                                                                                                          03
+      LOGOTYPE
+      Le logotype complet associe le nom Berceo à son
+      symbole. Il permet d’identifier clairement la
+      marque dès le premier regard. Il est utilisé dans les
+      espaces où Berceo doit être nommé, présenté ou
+      réintroduit.
+
+      Usages recommandés
+
+      • Page d’accueil
+      • Écrans de connexion et d’inscription
+      • En-tête des communications officielles
+      • E-mails et documents générés par la plateforme
+      • Pied de page du site
+      • Supports destinés à un public qui ne connaît pas
+      encore Berceo
+
+      Le logotype complet ne doit pas être utilisé comme
+      un élément décoratif ni répété plusieurs fois dans
+      une même interface.
+
+
+
+Logotype                                                      04
+     LOGOMARK
+     Le symbole agit comme une signature visuelle. Il rappelle la
+     présence de Berceo avec discrétion lorsque la marque a déjà
+     été clairement identifiée. Il sert de repère dans les interfaces,
+     les espaces personnels et les formats où la place disponible est
+     limitée.
+
+     Usages recommandés
+
+     • En-tête des pages intérieures
+     • Portails des familles et des professionnelles
+     • Navigation sur mobile
+     • Favicon et icône d’application
+     • Signature discrète sur les photographies et contenus de
+     marque
+     • Éléments décoratifs ponctuels
+
+     Le symbole ne remplace pas le logotype lorsque le nom Berceo
+     doit être identifié. Il ne doit pas être placé à côté du logotype
+     complet dans une même zone.
+
+
+
+Logomark                                                                 05
+    ZONE
+    D’EXCLUSION
+    Un espace libre doit toujours être conservé autour
+    du logo afin qu’il reste visible et identifiable. Aucun
+    texte, bouton, bordure ou élément graphique ne doit
+    entrer dans cette zone.
+
+    La zone d’exclusion minimale autour du logo
+    correspond à la taille du cercle supérieur du
+    symbole.
+
+
+
+
+Zone d’exclusion                                              06
+    LES INTERDITS
+    Lorsque vous utilisez un logo dans une charte graphique, il est crucial
+    de respecter certaines règles pour maintenir l'intégrité de la marque.
+
+    En respectant ces consignes, vous assurez une utilisation cohérente
+    et professionnelle du logo, renforçant ainsi l'identité de la marque.
+          Ces règles sont les mêmes pour le logotype ou le logomark.
+
+
+
+
+    Ne pas modifier les proportions                  Ne pas ajouter d’effets                  Ne pas changer les couleurs
+
+
+
+
+    Ne pas changer l’opacité                          Ne pas utiliser des fonds non adaptés   Ne pas appliquer de rotation
+
+
+
+
+    Ne pas ajouter d’éléments                         Ne pas utiliser le contour uniquement   Ne pas pixelliser
+
+Les interdits                                                                                                                07
+      ICONOGRAPHIE
+      L’iconographie Berceo prolonge l’identité
+      de la marque au sein de la plateforme.
+      Douces, épurées et immédiatement
+      lisibles,  les    icônes    facilitent   la
+      compréhension des contenus tout en
+      apportant      une     dimension       plus
+      chaleureuse à l’expérience.
+
+      Icônes fonctionnelles
+      Elles accompagnent la navigation et
+      permettent d’identifier rapidement une
+      information ou une action.
+
+      Icônes illustratives
+      Elles enrichissent les contenus         et
+      renforcent l’univers de Berceo.
+
+
+
+
+Iconographie                                        08
+      ICONOGRAPHIE
+      Style                                                           Tailles indicatives
+      Les icônes Berceo reposent sur des formes pleines, simples et
+      arrondies. Toute nouvelle icône ajoutée à la plateforme devra   Usage                         Taille
+      respecter ce même niveau de détail, d’épaisseur et de
+      douceur.
+                                                                      Champ, bouton ou navigation   20–24 px
+          Ne pas mélanger avec des icônes fines ou anguleuses
+          Conserver des proportions et des dimensions homogènes
+          Éviter les détails trop fins, surtout aux petites tailles   Information dans une carte    24–32 px
+          Utiliser les icônes décoratives avec parcimonie
+
+      Pour les fonctions génériques non couvertes par la collection   Présentation d’un service     40–56 px
+      Berceo, une bibliothèque complémentaire pourra être utilisée.
+      Les icônes sélectionnées devront être simples, pleines et
+      arrondies afin de conserver une cohérence visuelle avec         Élément illustratif           64–96 px
+      l’identité existante.
+
+
+
+
+Iconographie                                                                                                   09
+      APPLICATIONS
+
+                 LES GARDIENNES
+
+
+                      LES GARDIENNES
+                 Lorem Ipsum is simply dummy text of the printing and typesetting
+               industry. Lorem Ipsum has been the industry's standard dummy text
+                   ever since 1966, when designers at Letraset and James Mosley.
+
+Iconographie                                                                        10
+       SYSTÈME TYPOGRAPHIQUE WEB
+       Comodo — typographie expressive
+       Comodo porte la personnalité de Berceo. Ses formes organiques et ses terminaisons arrondies traduisent la douceur
+       et la bienveillance de la marque.
+
+       Sur le web, elle est réservée aux éléments courts et identitaires :
+           Titres principaux et titres de section
+           Navigation et éléments du header
+           Accroches courtes
+           Chiffres ou mots-clés mis en avant
+
+       Elle ne doit pas être utilisée pour les paragraphes, les formulaires ou les informations fonctionnelles longues, afin
+       de préserver sa lisibilité et son impact.
+
+
+
+
+                                                           COMODO
+                                                           Aa
+                                                                             ABCDEFGHIJKLMNOPQRSTUVWXYZ
+                                                                             abcdefghijklmnopqrstuvwxyz
+                                                                             0123456789
+Typographie                                                                                                                    11
+       SYSTÈME TYPOGRAPHIQUE WEB
+       Nunito — typographie fonctionnelle
+       Lisible, douce et polyvalente, Nunito accompagne tous les contenus informatifs et fonctionnels de la plateforme.
+
+       Elle est utilisée pour :
+           Paragraphes et introductions
+           Intertitres fonctionnels
+           Boutons et liens
+           Formulaires et filtres
+           Cartes profils
+           Légendes, messages d’aide et informations secondaires
+
+
+
+
+                                                         Nunito
+                                                         Aa             ABCDEFGHIJKLMNOPQRSTUVWXYZ
+                                                                        abcdefghijklmnopqrstuvwxyz
+                                                                        0123456789
+
+
+
+Typographie                                                                                                               12
+       HIÉRARCHIE TYPOGRAPHIQUE
+       Ces dimensions constituent une base adaptable aux maquettes. La hiérarchie entre les différents niveaux doit
+       cependant rester constante sur l’ensemble de la plateforme.
+
+
+       Élément                 Police                   Graisse                 Desktop                  Mobile
+
+       H1                      Comodo                   Regular                 56–64 px                 38–44 px
+
+       H2                      Comodo                   Regular                 40–48 px                 30–36 px
+
+       Navigation              Comodo                   Regular                 17–19 px                 18–20 px
+
+       H3                      Nunito                   Bold                    26–30 px                 22–26 px
+
+       Texte d’introduction    Nunito                   Regular                 20–22 px                 18–20 px
+
+       Texte courant           Nunito                   Regular                 17–18 px                 16 px
+
+       Bouton                  Nunito                   SemiBold                16–17 px                 16 px
+
+       Champ de formulaire     Nunito                   Regular                 16 px                    16 px
+
+       Légende                 Nunito                   Regular                 14 px                    14 px
+
+
+
+
+Typographie                                                                                                           13
+       RÈGLES D’UTILISATION
+       Comodo
+          Utiliser uniquement en majuscule
+          Éviter les phrases longues
+          Ne pas l’utiliser dans les petits corps de texte
+
+       Nunito
+          Privilégier la casse naturelle
+          Pas de textes uniquement en capitale
+          Utiliser les graisses 400, 600 et 700
+          Conserver un espacement naturel entre les lettres
+
+       Lisibilité
+           Limiter les lignes à environ 60–75 caractères
+           Éviter de centrer les textes de plus de trois lignes
+           Conserver un corps minimum de 16 px
+           Garantir un contraste suffisant
+           Placer les textes dans un bloc uni sur le motif rayé
+           Ajouter un voile sur les photographies si nécessaire
+
+
+
+
+Typographie                                                       14
+       APPLICATIONS
+
+              Les Gardiennes de la nuit
+              Elles sont sages-femmes, infirmières en néonatologie, puéricultrices... Toutes les Gardiennes de la nuit
+              sont diplômées et vérifiées avant leur première garde. Elles connaissent les besoins du nourrisson et
+              accompagnent les familles en post-partum avec expertise et bienveillance.
+
+               Découvrir leur profil
+
+
+
+
+Typographie                                                                                                              15
+       COULEURS
+           Répartition indicative
+           La répartition des couleurs s’adapte au
+           contenu et à la fonction de chaque page. Elle
+           sert de repère pour conserver un équilibre
+           cohérent sur l’ensemble de la plateforme.
+                                                                                                                         fond principal
+                                                                        couleur identitaire                              et surface de contenu
+              30 % blanc                                                CMJN : 21 · 0 · 9 · 31
+                                                                        RVB : 139 · 175 · 159
+                                                                                                                         CMJN : 0 · 0 · 0 · 0
+                                                                                                                         RVB : 255 · 255 · 255
+              25 % vert sauge                                           #8BAF9F                                          #FFFFFF
+              20 % motif rayé
+              15 % gris taupe
+              5 % gris perle          CMJN : 0 · 1 · 5 · 27
+                                      RVB : 186 · 185 · 176
+                                                              CMJN : 0 · 0 · 3 · 12
+                                                              RVB : 224 · 223 · 218
+                                                                                                 CMJN : 0 · 4 · 29 · 0
+                                                                                                 RVB : 254 · 245 · 181
+              5 % jaune beurre        #bab9ad                 #e0ded8                            #FEF5B5
+
+                                      couleur de soutien      fond secondaire                    couleur d’accent                          fond secondaire
+           Une page peut                                                                                                                   identitaire
+           s’écarter de cette
+           répartition si sa
+           composition respecte
+           la hiérarchie générale
+           de la palette.
+
+
+
+Couleurs                                                                                                                                                     16
+       COULEURS
+           Palette
+           Blanc : fond principal et surface de contenu
+           Il constitue la base de l’interface. Il apporte de la lumière, facilite la lecture et laisse respirer les contenus.
+           Il peut également être utilisé pour les cartes, les formulaires et les blocs fonctionnels placés sur un fond vert sauge.
+
+           Vert sauge : couleur identitaire
+           Il peut occuper de grandes surfaces afin d’identifier immédiatement l’univers Berceo. Il est notamment utilisé pour les fonds de
+           sections, les cartes de témoignages et certaines zones du portail. Il intervient également dans les éléments fonctionnels comme les
+           boutons, les contours, les indicateurs de validation et certains pictogrammes.
+
+           Gris taupe : surface éditoriale
+           Le gris taupe est utilisé pour les grands blocs de contenu placés sur le motif rayé. Il apporte une surface calme et lisible qui permet
+           d’intégrer des textes, des boutons et des pictogrammes sans concurrencer l’arrière-plan. Il peut également être utilisé pour certains
+           titres, textes, contours ou éléments secondaires sur fond clair.
+
+           Gris perle : fond discret
+           Il permet de différencier certaines zones sans créer de rupture forte avec le blanc. Il peut être utilisé pour des encarts secondaires,
+           ou des surfaces nécessitant une séparation légère.
+
+           Jaune beurre : couleur d’accent
+           Le jaune beurre attire ponctuellement le regard sur un pictogramme, une note, une information positive ou un détail graphique.
+           Il peut également apparaître dans certains états interactifs, notamment au survol.
+Couleurs                                                                                                                                             17
+       COULEURS
+           Motif rayé — fond secondaire identitaire
+
+
+           Le motif rayé associe le blanc et le gris taupe pour créer un arrière-plan immédiatement reconnaissable. Il rythme les pages et
+           renforce l’identité de Berceo sans introduire de nouvelle couleur. Il peut occuper toute la largeur d’une section et accueillir un
+           bloc de contenu uni au premier plan.
+
+           Usages recommandés
+           • Fond d’une section éditoriale, d’un bloc de présentation ou de réassurance
+           • Mise en valeur d’un bloc important
+           • Séparation entre deux grandes parties d’une page
+
+           Règles d’utilisation
+           • Toujours placer les textes dans un bloc uni au-dessus du motif
+           • Privilégier un bloc gris taupe
+           • Conserver la même largeur et le même espacement de rayures sur toutes les pages
+           • Utiliser un motif continu, sans déformation ni étirement
+           • Éviter plusieurs sections rayées consécutives
+           • Ne pas associer le motif à une autre texture dans la même section
+
+
+
+Couleurs                                                                                                                                        18
+        ESPACEMENT                                                   accueil       histoire       Nos gardes de nuit             contact
+
+
+
+
+        ET RESPIRATION
+        L’espace fait pleinement partie de l’identité de
+        Berceo. Une mise en page aérée apporte de la
+        douceur, améliore la lisibilité et permet aux
+        utilisateurs d’identifier rapidement les informations
+        importantes.
+
+        Principes de mise en page
+            Des marges généreuses autour des contenus
+            Une séparation claire entre les différentes         Dormez. Votre bébé est entre de bonnes mains.
+            sections
+                                                                Publiez votre demande de garde de nuit. Les professionnelles de santé
+            Des textes courts et facilement parcourables        diplômées disponibles dans votre zone vous répondent. Vous choisissez celle
+            Une largeur de lecture limitée                      qui veillera sur votre bébé.
+            Peu d’éléments mis en avant simultanément
+            Un rythme visuel constant sur toutes les pages        Je cherche une garde de nuit
+
+            Des compositions équilibrées, sans
+            accumulation de blocs
+
+
+
+Espace et respiration                                                                                                                         19
+       FORMES ET
+       LANGAGE GRAPHIQUE                                                              Dormir pour prendre
+                                                                                      soin de son bébé
+       L’interface Berceo associe des formes généreusement arrondies, des aplats de
+       couleur et des jeux de transparence. Ce langage visuel crée une expérience     Les premières nuits avec un
+       douce et enveloppante, tout en conservant une structure simple et              nourrisson sont intenses. Berceo
+                                                                                      est là pour veiller sur votre bébé
+       fonctionnelle.                                                                 pendant que vous vous reposez,
+                                                                                      grâce à des professionnelles de
+       Une échelle limitée permet de conserver des formes cohérentes sur l’ensemble   santé diplômées.
+       de la plateforme.
+
+
+                                  32 px
+                                  Encarts
+                                  Cartes
+
+                                  Capsule
+                                  Actions
+                                  Boutons, champs de recherche et filtres.
+
+
+Formes et langage graphique                                                                                                20
+       LE SYSTÈME DE TRANSPARENCE
+                                           La transparence permet d’intégrer un contenu sur une photographie ou un fond coloré
+                                           sans masquer complètement l’arrière-plan. Elle doit toujours préserver la lisibilité et rester
+                                           limitée à des blocs courts.
+
+                                           Sur une photographie
+                       Titre               Fond gris perle : 70 à 80 % d’opacité
+                Lorem Ipsum is simply
+                                           Texte : blanc à 100 %
+              dummy text of the printing
+               and typesetting industry.   Sur un fond coloré
+                                           Conteneur gris perle : 70 à 80 % d’opacité
+                                           Champs intérieurs : blanc à 100 %
+                                           Textes et pictogrammes : 100 %
+
+                                           Règles d’utilisation
+                                           • Appliquer l’opacité uniquement au fond du bloc
+                                           • Conserver les textes, pictogrammes et boutons à 100 %
+                                           • Réserver la transparence aux textes courts et aux éléments fonctionnels
+                             ville
+                                           • Éviter les photographies trop contrastées derrière un contenu
+                                           • Ne pas superposer un bloc transparent au motif rayé
+                                           • Vérifier systématiquement la lisibilité sur mobile
+
+
+Le système de transparence                                                                                                                  21
+       COULEURS DE CONFIRMATION
+       Le vert et le rouge sont utilisés ponctuellement pour faciliter les
+       choix importants. Le vert permet de confirmer une action, tandis que
+       le rouge indique une annulation, un refus ou attire l’attention sur
+       une action sensible.
+                                                                              Souhaitez-vous vraiment
+                                                                                vous déconnecter ?
+
+                                         #ED5957                              Vous devrez vous identifier à
+                                         RVB : 237, 89, 87                    nouveau pour accéder à votre
+                                         CMJN : 0, 62, 63, 7                            espace.
+
+
+
+                                                                                 Oui, me déconnecter
+
+                                         #B6D3C6
+                                         RVB : 182, 211, 198
+                                                                                 Non, rester connecté
+                                         CMJN : 14, 0, 6, 17
+
+
+
+
+Le système de transparence                                                                                    21
+        BOUTONS ET ACTIONS
+        Les boutons guident l’utilisateur vers les actions essentielles. Leur hiérarchie doit être immédiatement compréhensible, tandis
+        que leur forme capsule prolonge le langage doux et organique de Berceo.
+
+        Ils conservent la même forme, les mêmes dimensions et le même comportement sur toute la plateforme. Leur traitement
+        coloré s’adapte à l’arrière-plan afin de garantir leur visibilité.
+
+
+
+                     Arrière-plan                    État par défaut                               État au survol
+
+
+
+                     Blanc                           Fond blanc, contour vert, texte vert          Fond vert, contour vert, texte blanc
+
+
+
+                                                     Fond blanc, contour gris taupe, texte gris
+                     Motif rayé                                                                    Fond jaune, contour jaune, texte gris taupe
+                                                     taupe
+
+
+
+                     Vert sauge                      Fond vert sauge, contour blanc, texte blanc   Fond jaune, contour jaune, texte vert
+
+
+
+                     Gris taupe                      Fond gris taupe, contour blanc, texte blanc   Fond jaune, contour jaune, texte gris taupe
+
+
+Boutons et actions                                                                                                                               22
+        BOUTONS ET ACTIONS
+        Au survol, le bouton s’agrandit légèrement grâce à      Par défaut   Au survol
+        une transformation d’échelle fluide, sans modifier la
+        mise en page ni déplacer les éléments voisins.
+                                                                 Boutons     Boutons
+        Spécifications techniques
+           transform: scale(1.03)
+           transform-origin: center
+           Transition de 200 ms
+           Courbe d’animation : ease-out
+           Transition appliquée à transform,                     Boutons     Boutons
+           background-color, border-color et color
+           Aucun effet d’ombre
+           Aucun déplacement vertical
+
+        Construction commune
+           Forme capsule : border-radius: 999px                  Boutons     Boutons
+           Contour : 1px solid
+           Hauteur minimale : 48px
+           Padding horizontal : 24px à 32px
+           Typographie : Nunito SemiBold
+           Corps : 16px
+           Aucun retour à la ligne
+                                                                 Boutons     Boutons
+Boutons et actions                                                                       23
+        CARTES ET BLOCS DE CONTENU
+        Tous les composants conservent des principes communs : angles arrondis, espacements généreux, contraste lisible et absence
+        d’ombre portée.
+
+
+
+
+                                                                        GARDE DE NUIT À BRUXELLES
+
+                                         EMMA                              Bruxelles
+                        Étudiante sage-femme en 4e année                   30/09/2026 de 20h00 à 7h00
+                                 Profil vérifié par Berceo
+
+                         Bruxelles
+                                                                           Un bébé de trois mois
+
+                         4,8/5 - 58 gardes réalisées                       150€ pour la garde de nuit
+
+                         Spécialisée dans le soutien à l'allaitement
+                                                                           Je suis disponible pour cette garde
+                     Voir le profil complet    Envoyer une demande
+
+
+
+Cartes et blocs de contenu                                                                                                           24
+NOTRE HISTOIRE
+Alix et Jordane sont sages-femmes. Elles ont vu des centaines de familles rentrer chez
+elles après l'accouchement, seules face aux premières nuits. Sans relais, l'épuisement et la
+culpabilité prenne place.
+
+Berceo est né de ce constat. Une plateforme qui met en relation les familles avec des
+professionnelles de santé diplômées, pour des gardes de nuit à domicile.
+
+Pas des baby-sitters, mais bien des sages-femmes, des infirmières en néonatologie, des
+puéricultrices : Des Gardiennes de la nuit.
+
+  Rejoindre le réseau de professionelles         Trouver une Gardienne de la nuit
+« Après plusieurs semaines sans véritable nuit de repos, nous avons réservé une garde       « Après plusieurs semaines sans véritable nuit de repos, nous avons réservé une garde
+avec une sage-femme rencontrée sur Berceo. Son profil vérifié nous a immédiatement          avec une sage-femme rencontrée sur Berceo. Son profil vérifié nous a immédiatement
+rassurés. Cette nuit nous a permis de souffler tout en sachant notre bébé entre de bonnes   rassurés. Cette nuit nous a permis de souffler tout en sachant notre bébé entre de bonnes
+mains. »                                                                                    mains. »
+
+Sophie, Bruxelles                                                                           Sophie, Bruxelles
+Maman d’un bébé de trois mois                                                               Maman d’un bébé de trois mois
+             Votre bébé est entre
+               de bonnes mains
+Berceo met en relation les familles avec des professionnelles de
+     santé diplômées pour des gardes de nuit à domicile.
+
+
+                     Site en construction
+       DIRECTION PHOTOGRAPHIQUE
+       La direction photographique
+       de Berceo privilégie les
+       cadrages serrés, la peau et
+       les gestes de proximité. Les
+       mains, les pieds et les
+       contacts entre le bébé et
+       l’adulte racontent l’intimité
+       sans tomber dans une
+       esthétique trop tendre ou
+       enfantine. Le bois foncé, le
+       lin et les matières naturelles
+       installent un univers
+       chaleureux et tactile. La
+       lumière reste douce, les
+       scènes spontanées et les
+       décors sobres, loin des
+       images de famille trop
+       posées ou trop parfaites.
+
+
+
+
+Photographie                            29
+       TRAITEMENT PHOTOGRAPHIQUE
+           Tons chauds et naturels
+           Contraste doux
+           Lumière légèrement dorée
+           Peaux naturelles
+           Grain très léger éventuel
+           Arrière-plans sobres
+           Pas de couleurs trop saturées
+           Pas de rendu publicitaire trop
+           lisse
+
+
+
+
+Photographie                                30
+       MATIÈRES, TEXTURES ET AMBIANCE
+       Les matières doivent évoquer un intérieur
+       doux, familier et vécu. L’ambiance reste
+       soignée, sans paraître figée ou artificielle.
+
+           Matières naturelles et tactiles
+           Lin, coton, gaze et maille
+           Bois chaud, patiné ou légèrement
+           vieilli
+           Osier, rotin et fibres tressées
+           Surfaces mates et textures visibles
+           Tons crème, sable, taupe et brun
+           Mobilier vintage utilisé avec sobriété
+           Intérieurs chaleureux et réellement
+           habités
+           Pas de plastique brillant ou de
+           matières laquées
+           Pas d’univers clinique ou de chambre
+           de bébé trop stéréotypée
+
+
+
+Photographie                                           31
+       CE QUE L’ON VEUT ÉVITER
+           Univers trop « bébé »
+           Rose et bleu genrés
+           Illustrations naïves
+           Imagerie médicale
+           Photos de banque trop posées
+           Interfaces froides ou trop technologiques
+           Accumulation de couleurs
+           Ombres trop marquées
+           Effets et animations gadgets
+           Excès d’arrondis façon application pour enfants
+
+
+
+
+Photographie                                                 32
+

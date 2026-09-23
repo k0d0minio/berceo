@@ -3,7 +3,9 @@
   "complexity": "standard",
   "docs_path": ".icm/docs",
   "required_env": [],
-  "required_checks": [],
+  "required_checks": [
+    "Lint, typecheck, test"
+  ],
   "personas": [
     "parent",
     "professionnel",
@@ -11,7 +13,10 @@
   ],
   "runs_archive": ".icm/runs/_done",
   "intake_archive": ".icm/intake/_done",
-  "health_endpoint": "https://www.berceo.be/",
+  "health_endpoint": [
+    "https://uat.berceo.be/api/health",
+    "https://www.berceo.be/api/health"
+  ],
   "deploy": {
     "platform": "vercel",
     "team_slug": "kodominio",
@@ -53,17 +58,25 @@
     }
   },
   "migrations": {
-    "path": "",
+    "path": "drizzle",
     "reversible": false,
     "stamp": "millis",
-    "tool": "sql",
-    "out_of_order": true
+    "tool": "drizzle",
+    "out_of_order": false
   },
   "database": {
     "url_env": "DATABASE_URL",
-    "isolation": "none",
+    "isolation": "neon",
     "image": "postgres:16",
-    "name": "app"
+    "name": "app",
+    "provider": "neon",
+    "neon": {
+      "project_id": "tiny-cell-08223046",
+      "api_key_env": "NEON_API_KEY",
+      "production_branch": "main",
+      "previews": "vercel",
+      "uat_branch": ""
+    }
   },
   "security": {
     "audit_command": ""

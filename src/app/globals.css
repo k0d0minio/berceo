@@ -2,136 +2,266 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 /*
- * Berceo — night palette.
+ * Berceo — Surya's web art direction (DA), as tokens.
  *
- * Berceo is a night service: a professional stays awake so the parents can
- * sleep. The page is therefore committed to one mode, a dark one. There is no
- * light theme and no toggle — a "night watch" that flips to white at noon
- * would be arguing with itself.
+ * This file is the only place a colour value is written. Components name the
+ * DA's colours (`bg-sauge`, `border-taupe`…) or the shadcn contract below;
+ * they never carry a hex. The values are the DA's own, applied literally,
+ * text and button colours included (operator decision, spec socle-design-system).
  *
- * The palette starts from the delivered brand pack (public/logos); nothing here
- * is invented except --menthe, which Jamie retuned to a softer sage. That one
- * value is the page's whole colour identity — the night-light gradient, the
- * halo behind the mark, the accent line of the headline and every focus ring
- * read from it, so changing it here changes all of them together.
+ * Tailwind's default palette is switched off so an off-brand `bg-red-500`
+ * cannot creep in: the only colours that exist are the ones declared here.
  *
- * The ground is that mint driven down to near-black while keeping its hue, so
- * the dark is a *green* dark rather than a neutral grey — it belongs to the
- * same family as the logo instead of sitting behind it.
+ * The holding page at `/` is still the old night page. Its palette lives under
+ * `.nuit` further down and applies to nothing else.
  */
+@theme {
+  --color-*: initial;
+  --breakpoint-md: 48rem;
+}
+
 @theme inline {
+  /* --- the DA palette, named as the DA names it --- */
+  --color-blanc: var(--blanc); /* fond principal, 30 % */
+  --color-sauge: var(--sauge); /* couleur identitaire, 25 % */
+  --color-taupe: var(--taupe); /* couleur de soutien, surface éditoriale, 15 % */
+  --color-perle: var(--perle); /* fond discret, 5 % */
+  --color-beurre: var(--beurre); /* couleur d'accent, survol, 5 % */
+
+  /*
+   * Confirmation colours (D-24). Referenced by one component only:
+   * src/components/ui/confirm-dialog.tsx. Never a page-wide button.
+   */
+  --color-rouge-confirmation: var(--rouge-confirmation);
+  --color-vert-confirmation: var(--vert-confirmation);
+
+  /* --- the shadcn contract, so src/components/ui/ reads the DA --- */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-karla);
-  --font-display: var(--font-fraunces);
-  --font-mono: var(--font-mono-stack);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-  /* Brand colours, named as the brand names them. */
-  --color-menthe: var(--menthe);
-  --color-veilleuse: var(--veilleuse);
-  --color-sauge: var(--sauge);
-  --color-lin: var(--lin);
+  /* --- the holding page's night palette, used under .nuit only --- */
+  --color-nuit-menthe: var(--nuit-menthe);
+  --color-nuit-veilleuse: var(--nuit-veilleuse);
+  --color-nuit-sauge: var(--nuit-sauge);
+  --color-nuit-lin: var(--nuit-lin);
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
+  /*
+   * Type. The faces are bound in src/app/fonts.ts: --font-titre is Comodo's
+   * slot (Fraunces stands in until Surya delivers the files), --font-texte is
+   * Nunito. Nothing else names a typeface.
+   */
+  --font-display: var(--font-titre);
+  --font-heading: var(--font-titre);
+  --font-sans: var(--font-texte);
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /*
+   * The DA's hierarchy (Hiérarchie typographique). Each level has a mobile and
+   * a desktop size; the switch happens in :root at the md breakpoint, so
+   * `text-h1` is responsive on its own.
+   */
+  --text-h1: var(--taille-h1);
+  --text-h1--line-height: 1.1;
+  --text-h2: var(--taille-h2);
+  --text-h2--line-height: 1.15;
+  --text-nav: var(--taille-nav);
+  --text-nav--line-height: 1.3;
+  --text-h3: var(--taille-h3);
+  --text-h3--line-height: 1.25;
+  --text-intro: var(--taille-intro);
+  --text-intro--line-height: 1.5;
+  --text-corps: var(--taille-corps);
+  --text-corps--line-height: 1.6;
+  --text-bouton: var(--taille-bouton);
+  --text-bouton--line-height: 1.2;
+  --text-champ: 1rem;
+  --text-champ--line-height: 1.4;
+  --text-legende: 0.875rem;
+  --text-legende--line-height: 1.4;
+
+  /* Shapes (Formes et langage graphique): 32 px blocks, capsule actions. */
+  --radius-carte: 2rem;
+  --radius-capsule: 999px;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* --- brand pack --- */
-  --menthe: #8baf9f; /* primary; the sage the gradient is built from */
-  --veilleuse: #fbfe95; /* night-light yellow, used once per screen */
-  --sauge: #acbeab; /* muted text */
-  --lin: #d9e3d8; /* body text */
+  /* --- the DA palette --- */
+  --blanc: #ffffff;
+  --sauge: #8baf9f;
+  --taupe: #bab9ad;
+  --perle: #e0ded8;
+  --beurre: #fef5b5;
+  --rouge-confirmation: #ed5957;
+  --vert-confirmation: #b6d3c6;
 
-  /* --- night ground, derived from --menthe's hue --- */
-  --nuit-950: #071310; /* vignette edge */
-  --nuit-900: #0b1a16; /* page */
-  --nuit-800: #11241e; /* raised surface */
+  /* --- the shadcn contract, on the DA --- */
+  --background: var(--blanc);
+  --foreground: var(--taupe);
+  --card: var(--blanc);
+  --card-foreground: var(--taupe);
+  --popover: var(--blanc);
+  --popover-foreground: var(--taupe);
+  --primary: var(--sauge);
+  --primary-foreground: var(--blanc);
+  --secondary: var(--perle);
+  --secondary-foreground: var(--taupe);
+  --muted: var(--perle);
+  --muted-foreground: var(--taupe);
+  --accent: var(--beurre);
+  --accent-foreground: var(--taupe);
+  /* The DA has no error colour, and red is the dialogs' alone (D-24). */
+  --destructive: var(--taupe);
+  --border: var(--perle);
+  --input: var(--taupe);
+  --ring: var(--sauge);
 
-  /* --- shadcn contract, given Berceo values so ui/ stays on-brand --- */
-  --background: var(--nuit-900);
-  --foreground: var(--lin);
-  --card: var(--nuit-800);
-  --card-foreground: var(--lin);
-  --popover: var(--nuit-800);
-  --popover-foreground: var(--lin);
-  --primary: var(--menthe);
-  --primary-foreground: var(--nuit-950);
-  --secondary: var(--nuit-800);
-  --secondary-foreground: var(--lin);
-  --muted: var(--nuit-800);
-  --muted-foreground: var(--sauge);
-  --accent: var(--nuit-800);
-  --accent-foreground: var(--menthe);
-  --destructive: #e5806f;
-  --border: color-mix(in oklab, var(--sauge) 16%, transparent);
-  --input: color-mix(in oklab, var(--sauge) 22%, transparent);
-  --ring: var(--menthe);
-  --radius: 0.625rem;
+  /* --- the type scale, mobile first (the DA's "Mobile" column) --- */
+  --taille-h1: 2.5rem; /* 40 px */
+  --taille-h2: 2rem; /* 32 px */
+  --taille-nav: 1.125rem; /* 18 px */
+  --taille-h3: 1.5rem; /* 24 px */
+  --taille-intro: 1.1875rem; /* 19 px */
+  --taille-corps: 1rem; /* 16 px */
+  --taille-bouton: 1rem; /* 16 px */
 
-  --font-mono-stack: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  /* The striped pattern: one stripe width everywhere, never stretched. */
+  --rayure: 1.5rem;
+}
+
+/* The DA's "Desktop" column. */
+@media (min-width: 48rem) {
+  :root {
+    --taille-h1: 3.75rem; /* 60 px */
+    --taille-h2: 2.75rem; /* 44 px */
+    --taille-nav: 1.125rem; /* 18 px */
+    --taille-h3: 1.75rem; /* 28 px */
+    --taille-intro: 1.3125rem; /* 21 px */
+    --taille-corps: 1.0625rem; /* 17 px */
+    --taille-bouton: 1rem; /* 16 px */
+  }
+}
+
+/*
+ * Motif rayé — white and taupe, full width, continuous. Text never sits on it
+ * directly: it goes in a solid block (see src/components/ui/striped-section.tsx).
+ */
+@utility motif-raye {
+  background-color: var(--blanc);
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--blanc) 0 var(--rayure),
+    var(--taupe) var(--rayure) calc(var(--rayure) * 2)
+  );
+  background-size: auto;
+  background-repeat: repeat;
+}
+
+/*
+ * Le système de transparence — pearl at 75 %, on the block's background only;
+ * its text, icons and buttons stay at 100 %. Never over the stripes.
+ */
+@utility voile-perle {
+  background-color: color-mix(in oklab, var(--perle) 75%, transparent);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-    /*
-     * The night-light. A single warm pool of light behind the mark, the way a
-     * veilleuse sits in a nursery — this is the page's one piece of atmosphere,
-     * so nothing else gets a gradient.
-     */
-    background-image:
-      radial-gradient(
-        58rem 44rem at 50% 38%,
-        color-mix(in oklab, var(--veilleuse) 7%, transparent) 0%,
-        transparent 68%
-      ),
-      radial-gradient(
-        34rem 30rem at 50% 34%,
-        color-mix(in oklab, var(--menthe) 13%, transparent) 0%,
-        transparent 70%
-      ),
-      radial-gradient(120% 120% at 50% 50%, transparent 42%, var(--nuit-950) 100%);
-    background-attachment: fixed;
+    @apply border-border;
   }
   html {
     @apply font-sans;
     -webkit-font-smoothing: antialiased;
   }
-  ::selection {
-    background: color-mix(in oklab, var(--menthe) 30%, transparent);
-    color: var(--lin);
+  body {
+    @apply bg-background text-corps text-foreground;
   }
+  ::selection {
+    background: var(--beurre);
+    color: var(--taupe);
+  }
+  /* One focus treatment for the whole system: an outline, never a shadow. */
   :focus-visible {
-    outline: 2px solid var(--menthe);
+    outline: 2px solid var(--ring);
     outline-offset: 3px;
   }
+}
+
+/*
+ * The holding page — the night.
+ *
+ * `/` still shows the dark holding page until the vitrine replaces it. Its
+ * palette is scoped to `.nuit` (set by src/app/(holding)/layout.tsx) so it
+ * cannot leak into the light platform, and the page keeps its old look: a
+ * green dark built from the brand mint, a warm veilleuse behind the mark.
+ */
+.nuit {
+  --nuit-menthe: #8baf9f;
+  --nuit-veilleuse: #fbfe95;
+  --nuit-sauge: #acbeab;
+  --nuit-lin: #d9e3d8;
+  --nuit-950: #071310;
+  --nuit-900: #0b1a16;
+
+  color-scheme: dark;
+  font-family: var(--font-karla);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--nuit-lin);
+}
+
+html:has(.nuit) {
+  color-scheme: dark;
+}
+
+/* The night covers the whole canvas, overscroll included, as it did before. */
+html:has(.nuit) body {
+  background-color: #0b1a16;
+  background-image:
+    radial-gradient(
+      58rem 44rem at 50% 38%,
+      color-mix(in oklab, #fbfe95 7%, transparent) 0%,
+      transparent 68%
+    ),
+    radial-gradient(
+      34rem 30rem at 50% 34%,
+      color-mix(in oklab, #8baf9f 13%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(120% 120% at 50% 50%, transparent 42%, #071310 100%);
+  background-attachment: fixed;
+}
+
+.nuit ::selection {
+  background: color-mix(in oklab, var(--nuit-menthe) 30%, transparent);
+  color: var(--nuit-lin);
+}
+
+.nuit :focus-visible {
+  outline: 2px solid var(--nuit-menthe);
+  outline-offset: 3px;
 }
 
 /*

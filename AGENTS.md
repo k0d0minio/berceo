@@ -9,7 +9,8 @@
 parents of newborns with professionals who take overnight post-partum care shifts
 (*gardes de nuit*). One screen, in French, that says the site is being built.
 
-Next.js (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui, deployed on Vercel. The
+Next.js (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui · Drizzle on Neon Postgres,
+deployed on Vercel. The
 package is still named `berceo-shell`.
 
 The engagement was won in September 2026 and the repo pivoted from proposal document to
@@ -26,13 +27,19 @@ public one. If Berceo wants the brand kept quiet until launch, put `robots` back
 
 | The task | Go to |
 |---|---|
-| Change any word on the page | [`src/content/site.ts`](src/content/site.ts) — the whole copy deck, one file |
-| Layout, spacing, the page itself | [`src/app/page.tsx`](src/app/page.tsx) — one screen, no nav |
-| Colour, type, the breathing animation | [`src/app/globals.css`](src/app/globals.css) — night palette + `souffle`/`halo`/`lever` |
-| Metadata, fonts, OG card | [`src/app/layout.tsx`](src/app/layout.tsx) |
+| Change any word on the site | [`src/content/`](src/content/) — one file per surface, keyed by locale; README → The content catalogue |
+| The holding page at `/` | [`src/app/(holding)/page.tsx`](src/app/(holding)/page.tsx) — one screen, no nav, the `.nuit` palette |
+| Colour, type scale, radii, stripes, the breathing animation | [`src/app/globals.css`](src/app/globals.css) — the DA's tokens + the holding page's `.nuit` scope |
+| Fonts | [`src/app/fonts.ts`](src/app/fonts.ts) — the one file that names a typeface (Fraunces stands in for Comodo) |
+| Root metadata, the light root layout | [`src/app/layout.tsx`](src/app/layout.tsx); the holding page's metadata and OG card are in its `page.tsx` |
+| See every token and component | `/design-system` ([`src/app/(public)/design-system/`](src/app/(public)/design-system/)) and `/design-system/portail` — noindex |
+| Header, footer, portal shell | [`src/components/shell/`](src/components/shell/) |
+| The health endpoint | [`src/app/api/health/route.ts`](src/app/api/health/route.ts) |
 | The logo marks | [`src/components/berceo-logo.tsx`](src/components/berceo-logo.tsx) — inlined, `currentColor` |
 | Brand artwork | [`public/logos/`](public/logos/) — SVG is what the site uses; PNG for raster; `.ai` is the source |
-| shadcn components | [`src/components/ui/`](src/components/ui/) — retained and retuned to the brand palette, currently unused |
+| The data model | [`src/db/schema.ts`](src/db/schema.ts) — Drizzle, one `users` table; `db` client in `src/db/index.ts` |
+| A schema change | edit the schema, `npm run db:generate -- --name <what>`, commit `drizzle/`; `.icm/skills/database-migration/` |
+| shadcn components | [`src/components/ui/`](src/components/ui/) — retuned to the DA; red and green only in `confirm-dialog.tsx` (D-24) |
 | The research behind the engagement | [`.icm/docs/`](.icm/docs/) — `REPORT.md`, `cahier-des-charges.md`, `QUESTIONS.md` |
 | Plan or track work | [`.icm/intake/`](.icm/intake/) — epics and stubs, contract in its README |
 
@@ -53,4 +60,8 @@ public one. If Berceo wants the brand kept quiet until launch, put `robots` back
   loose `TODO.md`. Ticket-only commits go straight to `main`; everything else through a PR
   on a `claude/` branch.
 - **Gates are human checkboxes** — read them, never tick them.
+- **The pipeline is changed at its source.** Every `T` line of `.icm/MANIFEST` and the
+  canonical `.claude/` assets (the router, `/setup`, the hooks) are icm-board's: a request to
+  change one is a **template change request** ([`.icm/_shared/template-change.md`](.icm/_shared/template-change.md))
+  — a prompt for icm-board, parked as a triage stub — never an edit here. The sync brings it back.
 - **No secrets in git, ever.** Env vars only; flag any plaintext credential found.

@@ -112,7 +112,8 @@ overruns on a one-line `Context budget:` note in the `## Release` record.
 4. **Run the review passes, then triage every finding by the rule.**
    - **Readiness, measured first:** `.icm/scripts/env.sh audit --changed` → `RESULT: OK`. `GAPS`
      is stop class 3 with the rows naming the fix (declare the key, add it where it is scoped —
-     the value is the operator's). A `support.tier` of `basic`/`retainer` with no fail-safe page
+     the value is the operator's). `UNKNOWN` is not `OK`: a surface could not be read — re-run
+     once, then stop and say which (`env-check.sh` names a project the token cannot see). A `support.tier` of `basic`/`retainer` with no fail-safe page
      or Sentry key (`setup.sh` section 11) is the same class.
    - **The gate, over the whole branch:** `.icm/scripts/security-check.sh <slug> --branch --audit`
      → `RESULT: OK` — the deterministic input to stop class 2 (a leaked secret, a known-high
@@ -215,6 +216,10 @@ overruns on a one-line `Context budget:` note in the `## Release` record.
 
    **(c) Then close the run out, as its own commit and its own push:**
 
+   Record the stage's end first — `.icm/scripts/usage-snapshot.sh <slug> release end` — so the
+   line rides in the close-out commit: nothing written after the close-out (or after the merge)
+   reaches the run's PR. Then run the close-out:
+
    ```bash
    .icm/scripts/close-out.sh <slug>
    ```
@@ -283,8 +288,8 @@ overruns on a one-line `Context budget:` note in the `## Release` record.
    operator: what merged (SHA), production's state and health, what announced where, what was
    parked in triage (by stub name — the health stub, if one was written, is uncommitted and
    waits for them), and that the run is archived — on a UAT repo, that it is now on the UAT
-   address and `promote-uat.sh status` shows the batch. Last act:
-   `.icm/scripts/usage-snapshot.sh <slug> release end`.
+   address and `promote-uat.sh status` shows the batch. The usage `end` line was
+   written before the close-out in step 7; nothing else is written after the merge.
 
 ## Outputs
 
@@ -347,4 +352,5 @@ all in the one PR.
   promotion) and one call to `report.sh announce` (or recorded `deferred to CI` / `deferred to
   promotion`), and reverted nothing by your own decision — a revert is the hotfix lane's,
   prepared by `rollback.sh` and merged by the operator.
-- Both usage lines are in `usage.md` — `release start` as the first act, `release end` as the last.
+- Both usage lines are in `usage.md` — `release start` as the first act, `release end` just before
+  the close-out, so the archive commit carries it.
