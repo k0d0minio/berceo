@@ -56,4 +56,8 @@ public one. If Berceo wants the brand kept quiet until launch, put `robots` back
   loose `TODO.md`. Ticket-only commits go straight to `main`; everything else through a PR
   on a `claude/` branch.
 - **Gates are human checkboxes** — read them, never tick them.
+- **The pipeline is changed at its source.** Every `T` line of `.icm/MANIFEST` and the
+  canonical `.claude/` assets (the router, `/setup`, the hooks) are icm-board's: a request to
+  change one is a **template change request** ([`.icm/_shared/template-change.md`](.icm/_shared/template-change.md))
+  — a prompt for icm-board, parked as a triage stub — never an edit here. The sync brings it back.
 - **No secrets in git, ever.** Env vars only; flag any plaintext credential found.
