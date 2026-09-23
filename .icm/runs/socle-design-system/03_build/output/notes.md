@@ -16,6 +16,7 @@
 - `src/content/`: `locale.ts` (`catalogue()`, `words()`, `Shape`/`Catalogue` types), `common.ts`, `holding.ts`, `design-system.ts`, `portal.ts`; `site.ts` removed. `@relecture` tags on every entry the guide does not give verbatim, and on the students wording.
 - `src/lib/utils.ts`: tailwind-merge told about the DA's `text-*` sizes (outside `touches:`, required — otherwise `cn("text-bouton", "text-sauge")` drops the size).
 - `README.md`, `AGENTS.md` routing table.
+- `package.json`, `package-lock.json`: `next` and `eslint-config-next` 16.3.0 → 16.3.6 and `npm audit fix` for sharp, fast-uri, js-yaml — the branch security gate blocked on these pre-existing advisories and the spec's `touches:` covers the manifest (security-audit skill). Consumes `triage/npm-audit-high-advisories`.
 
 ## Acceptance criteria status
 
@@ -44,4 +45,5 @@
 - The DA's text colours are applied literally (operator decision): taupe body text on white is ~1.9:1. Expected, not a bug — to raise with Surya.
 - `health_endpoint`'s production entry answers 404 until the first UAT promotion (operator decision in Define).
 - `_shared/project-rules.md` → The factory → Health endpoint still describes `https://www.berceo.be/`; Release should update that line.
+- The `next` patch bump (16.3.0 → 16.3.6) rides in this PR; the preview is its first build.
 - The header/footer links point at vitrine pages that do not exist yet (404 by design until `vitrine-publique`).

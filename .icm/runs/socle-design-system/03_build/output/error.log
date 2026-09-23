@@ -1,0 +1,8 @@
+## 2026-09-23T15:14:26Z security-check.sh — dependency-audit
+scope=branch head=0452e92 branch=claude/practical-johnson-2wrp8b — BLOCKED 1 (redacted trace; the secret itself is never written)
+dependency-audit  npm reports 4 high/critical advisor(y|ies) — run: npm audit --audit-level=high
+
+## 2026-09-23T15:14:30Z security-check.sh — dependency-audit
+scope=branch head=0452e92 branch=claude/practical-johnson-2wrp8b — BLOCKED 1 (redacted trace; the secret itself is never written)
+dependency-audit  npm reports 4 high/critical advisor(y|ies) — run: npm audit --audit-level=high
+- resolved: Four high/critical advisories predating this run (next 16.3.0, sharp, fast-uri, js-yaml; parked as triage/npm-audit-high-advisories) blocked the branch gate. This spec touches the manifest, so next and eslint-config-next were bumped to 16.3.6 and `npm audit fix` (never --force) took the transitive three; `npm audit --audit-level=high` is clean and the triage stub moved to _done.
