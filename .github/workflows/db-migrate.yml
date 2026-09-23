@@ -1,0 +1,50 @@
+name: DB migrate
+
+# Provisions the Neon Postgres database with the current Drizzle schema. Runs on
+# pushes to main that touch the migrations or schema, and can be triggered
+# manually. Requires the `DATABASE_URL` repository secret (the production
+# branch's Neon connection string).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "drizzle/**"
+      - "src/db/**"
+      - "drizzle.config.ts"
+      - ".github/workflows/db-migrate.yml"
+  workflow_dispatch:
+
+concurrency:
+  # Never run two migrations against the same database at once.
+  group: db-migrate
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Drizzle migrations
+        run: npm run db:migrate
+
+      # `drizzle-kit migrate` reports success even when it skipped an entry —
+      # it applies only what is stamped later than the newest applied row. This
+      # step compares every journal file's hash against the table and fails the
+      # job on any gap, so a skipped migration is red here rather than a 42703
+      # in production (see scripts/verify-migrations.ts).
+      - name: Verify every journal entry is applied
+        run: npm run db:verify
