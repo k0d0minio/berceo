@@ -25,6 +25,33 @@ npm run dev      # http://localhost:3000
 | [src/components/berceo-logo.tsx](src/components/berceo-logo.tsx) | Wordmark and logomark, inlined so they take `currentColor`. |
 | [public/logos/](public/logos/) | Brand pack. SVG is what the site uses; PNG for raster; `.ai` is the source. |
 
+## Database (Neon Postgres + Drizzle)
+
+The platform's data starts here: one Neon Postgres database, read through
+[Drizzle ORM](https://orm.drizzle.team). The holding page itself reads nothing from it yet.
+
+- **Schema:** `src/db/schema.ts` — one table, `users` (email, name, role: `parent` |
+  `professionnel` | `admin`). The authentication provider is not chosen; the credential or
+  external-id column is a later migration.
+- **Client:** `src/db/index.ts` — a lazily-initialized Drizzle client on Neon's serverless HTTP
+  driver. Import `db` from server code only.
+- **Migrations:** `drizzle/` — `NNNN_<name>.sql` plus `meta/_journal.json`, the order of record.
+
+Copy `.env.example` to `.env.local` and set `DATABASE_URL` (a Neon branch's connection string,
+never production's), then:
+
+```bash
+npm run db:generate -- --name <what>   # regenerate SQL after editing the schema
+npm run db:migrate                     # apply pending migrations
+npm run db:verify                      # every journal entry is in __drizzle_migrations
+npm run db:studio                      # browse the database
+```
+
+Production is migrated by the **DB migrate** workflow (`.github/workflows/db-migrate.yml`) on
+pushes to `main` that touch `drizzle/` or `src/db/`, from the `DATABASE_URL` repository secret.
+`src/db/migrations-journal.test.ts` refuses a journal whose stamps are out of order — the one
+way Drizzle's migrator skips a file silently.
+
 ## Design notes
 
 - **The page is a night.** Berceo's service is someone staying awake so parents can

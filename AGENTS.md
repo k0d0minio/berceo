@@ -9,7 +9,8 @@
 parents of newborns with professionals who take overnight post-partum care shifts
 (*gardes de nuit*). One screen, in French, that says the site is being built.
 
-Next.js (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui, deployed on Vercel. The
+Next.js (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui · Drizzle on Neon Postgres,
+deployed on Vercel. The
 package is still named `berceo-shell`.
 
 The engagement was won in September 2026 and the repo pivoted from proposal document to
@@ -32,6 +33,8 @@ public one. If Berceo wants the brand kept quiet until launch, put `robots` back
 | Metadata, fonts, OG card | [`src/app/layout.tsx`](src/app/layout.tsx) |
 | The logo marks | [`src/components/berceo-logo.tsx`](src/components/berceo-logo.tsx) — inlined, `currentColor` |
 | Brand artwork | [`public/logos/`](public/logos/) — SVG is what the site uses; PNG for raster; `.ai` is the source |
+| The data model | [`src/db/schema.ts`](src/db/schema.ts) — Drizzle, one `users` table; `db` client in `src/db/index.ts` |
+| A schema change | edit the schema, `npm run db:generate -- --name <what>`, commit `drizzle/`; `.icm/skills/database-migration/` |
 | shadcn components | [`src/components/ui/`](src/components/ui/) — retained and retuned to the brand palette, currently unused |
 | The research behind the engagement | [`.icm/docs/`](.icm/docs/) — `REPORT.md`, `cahier-des-charges.md`, `QUESTIONS.md` |
 | Plan or track work | [`.icm/intake/`](.icm/intake/) — epics and stubs, contract in its README |
