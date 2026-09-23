@@ -1,0 +1,105 @@
+# Project rules — what is true of THIS repo (Layer 3 reference, project-owned)
+
+The stage and lane contracts under `stages/` and `lanes/` are template-owned: byte-identical in
+every pipeline repo, and carrying no repo's identity. Everything that is specific to this repo
+lives in two project-owned files the sync never touches — `.icm/project.json` for the values a
+script reads (name, docs path, archive paths, required checks and variables) and **this file**
+for the rules a stage reads. A contract that says "see `_shared/project-rules.md`" means: the
+answer is here, and it is this repo's own.
+
+## People and gates
+
+- **The operator** — Jamie Nisbet: ticks **Spec approved** and **Ready to merge**, merges every
+  run's PR into the UAT branch from GitHub, and merges every promotion PR into `main`.
+- **Authors** — the founders, Alix and Jordane (they decide jointly), through the annotated
+  cahier des charges and the 40-page answers document in `.icm/docs/` — declared the source of
+  truth for scope; the operator themselves for the estate's own work. No story is invented from
+  a commercial term the founders have not written down (`AGENTS.md` → Standing rules).
+- **The client contact** — no client-facing report channel: `announce` cuts a GitHub Release
+  and the operator relays to the founders in French. `REPORT_EMAIL_TO` is not set; add the
+  email channel to `reporting` when the founders want the release note directly.
+- **UAT sign-off** — `uat` in `.icm/project.json`: branch `uat`, the one fixed address
+  `https://uat.berceo.be`. The founders test each batch there and say yes by email or on a
+  call; the operator records it with `promote-uat.sh approve --by "<founder>"`
+  (`.icm/uat/CONTEXT.md`). Vercel's SSO protection covers every non-custom domain on this
+  project, so the branch alias is not an address the founders can open — the custom domain is
+  required. One-time acts still owed (2026-09-23): push the branch once
+  (`git push origin main:uat`); protect it — `main` carries no protection today, decide the
+  two together; in Vercel add `uat.berceo.be` to the `berceo` project assigned to the git
+  branch `uat`, and at Infomaniak (berceo.be's nameservers) add the CNAME Vercel asks for.
+  Alternative needing no DNS act: `uat.berceo.jamienisbet.com` (jamienisbet.com is on Vercel
+  DNS) — one line in `project.json`. The UAT branch deploys on the Preview environment's
+  variables; the holding page needs none, so nothing to decide until the platform does.
+
+## Knowledge
+
+- **Docs tree** — `docs_path` is `.icm/docs`: the discovery material the engagement rests on
+  (`REPORT.md`, `cahier-des-charges.md`, `QUESTIONS.md`, `DECOUVERTE-BERCEO.md`,
+  `berceo-answers.pdf`), mapped in `_shared/knowledge-map.md`. There is no product docs site;
+  the holding page as built is described in `README.md`.
+- **Code rules** — `AGENTS.md` at the root (the file `_shared/conventions.md` redirects to).
+
+## The factory
+
+- **Required CI checks** — `required_checks` is empty: this repo runs no GitHub Actions
+  workflow. The one verdict on a head is Vercel's commit status, context `Vercel`, read through
+  `deploy.projects[].status_context`. No tiering.
+- **Deploy** — one product project, `berceo`, on the `kodominio` team; production is
+  `https://www.berceo.be` (`berceo.eu` and `berceo.jamienisbet.com` alias it). The token is
+  named in `project.json`. Every branch builds a preview; the UAT branch deploys on the Preview
+  environment's variables. Vercel SSO protection is on for everything but custom domains.
+- **Migrations** — none: the holding page has no database. Declare `migrations` and
+  `database` when the platform's data layer is chosen; until then `rollback.sh` assumes a
+  forward-only code revert.
+- **Environment surfaces** — no `.env.example` yet: the holding page reads no variable. Write
+  one before the first platform run (`env.sh audit` reads it).
+- **Local feedback scripts** — not wired: `scripts/format.sh` and `scripts/lint.sh` report
+  SKIP. No formatter in the repo; ESLint (`eslint-config-next`) is CI's, never run here.
+- **The security gate** — `scripts/security-check.sh` runs before every commit in Build and
+  before every lane's push. Not wired as a git hook (no Husky) — the stages call it. gitleaks:
+  absent — the built-in patterns are the floor. `security.audit_command` is empty: the npm
+  lockfile is audited.
+- **The run's database** — `none` — no database, no per-run isolation.
+- **Health endpoint** — `https://www.berceo.be/`: the holding page itself; a 200 means the
+  site is up. Give the platform a real `/api/health` and point `health_endpoint` at it.
+- **Archive** — the default `_done/` folders; served from nowhere.
+
+## Reporting
+
+- **Kinds → channels** — `announce` → github-release (the seeded default); `alert` → none —
+  a red CI job and Vercel's own deployment-failed email are the alert; `economics` → none —
+  icm-board's `run-economics.sh` writes it into the deal folder.
+- **Who calls the hook** — `announce_from: session` — Release step 9 calls `report.sh
+  announce`; with UAT declared, a run records `announce: deferred to promotion` and
+  `promote-uat.sh sync` announces the batch once it reached production.
+- **Changelog** — none; the PR's Summary line is the Release's body.
+- **Workflows** — `release.yaml` and `labels.yaml` absent, deliberately: no Actions in this
+  repo. Labels are projected by `new-run.sh` when a PR opens and by Release itself; the
+  define → build move is not automated. `.github/labels.yml` is the vocabulary.
+
+## Support
+
+- **Tier** — `none`. The quote of 2026-08-27 presents after-launch support as the equity
+  conversation, not as an agreed line; nothing after handover until the founders decide. No
+  fail-safe page, no Sentry.
+
+## Capability skills the stages may call
+
+- **Pipeline capability skills** — `.icm/skills/<name>/SKILL.md` (three-tier, loaded on a
+  trigger; `.icm/skills/README.md`). Seeded and template-owned: `security-audit`,
+  `database-migration`, `preview-deploy`. This repo's own additions: none.
+- **Repo skills** — `.claude/skills/`: `pipeline` (the router), `setup`, `ticket-craft`,
+  `pr-conventions`. No docs skill and no smoke-test skill; the contracts say what to do when a
+  named skill is absent.
+
+## Learned rules
+
+*The constraints earlier runs paid for, appended before each close-out by two writers with one
+shape: `.icm/scripts/retrospective.sh --apply` (at Release and at the end of every lane — one
+line per error class a run fixed and flagged with `- rule:` in its `error.log`, or fixed again
+after an earlier run already had, counted across the archive's `error.log`s) and
+`.icm/scripts/run-pack.sh --sync-rules` (called by `close-out.sh` — the `## Learned rules` a run
+wrote in its `FAILURE.md`: what no tool logged — a wrong assumption, a STOP, a skipped step).
+Each line carries the run it was learned in. Build and the lanes read this section before their
+first edit, with the same standing as the code rules. Edit or delete lines freely — this file is
+the repo's own, never synced — and delete a line that reads as a slip rather than a constraint.*
