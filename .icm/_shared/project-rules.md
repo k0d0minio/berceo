@@ -23,8 +23,7 @@ answer is here, and it is this repo's own.
   call; the operator records it with `promote-uat.sh approve --by "<founder>"`
   (`.icm/uat/CONTEXT.md`). Vercel's SSO protection covers every non-custom domain on this
   project, so the branch alias is not an address the founders can open — the custom domain is
-  required. One-time acts still owed (2026-09-23): push the branch once
-  (`git push origin main:uat`); protect it — `main` carries no protection today, decide the
+  required. The branch is pushed (2026-09-23). One-time acts still owed: protect it — `main` carries no protection today, decide the
   two together; in Vercel add `uat.berceo.be` to the `berceo` project assigned to the git
   branch `uat`, and at Infomaniak (berceo.be's nameservers) add the CNAME Vercel asks for.
   Alternative needing no DNS act: `uat.berceo.jamienisbet.com` (jamienisbet.com is on Vercel
@@ -77,29 +76,36 @@ answer is here, and it is this repo's own.
   absent — the built-in patterns are the floor. `security.audit_command` is empty: the npm
   lockfile is audited.
 - **The run's database** — `database.isolation: neon` in `.icm/project.json` (decided
-  2026-09-23, mirroring agorasim — estate decision D32): every run is to get a Neon branch of
-  its own, `run/<slug>`, a child of production with a 7-day expiry, through the key
-  `NEON_API_KEY` names in the shell (`database.neon.api_key_env`; the value is never in git).
-  No psql and no docker on Jamie's machine, which is why `schema` and `container` were not
-  chosen. **This repo's template copy predates the engine** (icm-board e5c30ae: no
-  `lib/neon.sh`, no `db-env.sh`, `db-branch.sh` maps `neon` to `none`), so until the operator
-  runs `icm-sync.sh --apply` from icm-board, `db-branch.sh` answers SKIP, `setup.sh` reports the
-  isolation as `none`, and a session runs no migration locally — the preview applies it.
-- **The environments' databases** — Neon on the Kodominio org, **not yet created** (the first
-  act owed, Jamie's, 2026-09-23): in Vercel → project `berceo` → Storage → Create Database →
-  Neon, which makes a Vercel-managed project, injects `DATABASE_URL` into every environment and
-  offers the Preview-branching toggle. Then `database.neon.project_id` in `.icm/project.json`
-  takes the id (Storage → Open in Neon shows it; `neon-cleanup.yaml` fails red on every PR close
-  while it is empty). Production is the `main` branch — never written by a script; protect it in
-  Neon. Previews are the integration's `preview/<git-branch>` (`neon.previews: vercel`) once the
-  toggle is on; the UAT branch's database is then `preview/uat`, created on the branch's first
-  deployment. Migrations reach previews and UAT at build only once the build runs the migrate
-  step — Jamie's choice between the Vercel build command and a `vercel-build` script
+  2026-09-23, mirroring agorasim — estate decision D32): every run gets a Neon branch of its
+  own, `run/<slug>`, a child of production made at `db-branch.sh <slug> up` with a 7-day expiry,
+  through the key `NEON_API_KEY` names in the shell (`database.neon.api_key_env`; the value is
+  never in git). No psql and no docker on Jamie's machine, which is why `schema` and `container`
+  were not chosen. Template synced to icm-board dc3a406 the same day (`icm-sync.sh --apply`,
+  run from the icm-board checkout), which brought `lib/neon.sh`, `db-env.sh` and the `neon`
+  mode of `db-branch.sh`. Until the key is exported, `db-branch.sh` answers SKIP and a session
+  runs no migration locally — the preview applies it.
+- **The environments' databases** — Neon project `tiny-cell-08223046` (`berceo`, Kodominio,
+  created 2026-09-23 from Vercel → Storage, Postgres 18, eu-central-1; `database.neon` in
+  `.icm/project.json`). The id first recorded there, `br-long-brook-b2qw6uzd`, is the **`main`
+  branch's** id, not the project's — corrected the same day; a Neon project id reads
+  `<adjective>-<noun>-<8 digits>`, a branch id `br-…`. Production is that `main` branch —
+  never written by a script — and it is **not yet protected** (an act owed). Previews are to
+  be the integration's `preview/<git-branch>` (`neon.previews: vercel`); on 2026-09-23 the
+  branch list holds `main` alone, so **the integration's Preview-branching toggle is off and is
+  the first act owed** (Vercel → Storage → the database → Connect Project → Advanced options →
+  Deployments configuration: enable Preview, and "Resource must be active before deployment").
+  Until it is on, every preview and the `uat` branch read the Preview environment's
+  `DATABASE_URL`, which can only point at production's branch. The UAT branch's database is
+  then `preview/uat`, created on the branch's first deployment after the toggle. Migrations
+  reach previews and UAT at build only once the build runs the migrate step — **an act owed,
+  Jamie's choice** between the Vercel build command and a `vercel-build` script
   (`npm run db:migrate && npm run db:verify && next build` is the candidate; `db-migrate.yml`
-  keeps applying production's on `main`). `.github/workflows/neon-cleanup.yaml` (copied from the
-  reference 2026-09-23) deletes a PR's `preview/*` and `run/*` branches on close and needs
-  `NEON_API_KEY` as an Actions secret; `db-migrate.yml` needs `DATABASE_URL` as one (both acts
-  owed — `printf '%s' "$KEY" | .icm/scripts/env.sh add <NAME> --ci --github secret`).
+  keeps applying production's on `main`). `.github/workflows/neon-cleanup.yaml` deletes a PR's
+  `preview/*` and `run/*` branches on close and needs `NEON_API_KEY` as an Actions secret;
+  `db-migrate.yml` needs `DATABASE_URL` as one (both acts owed — `printf '%s' "$KEY" |
+  .icm/scripts/env.sh add <NAME> --ci --github secret`). `db-env.sh init` lists every act;
+  `db-env.sh status` reads the project once the key is exported; `db-env.sh reset-uat --apply`
+  is the operator's reset after a promotion.
 - **Health endpoint** — `https://www.berceo.be/`: the holding page itself; a 200 means the
   site is up. Give the platform a real `/api/health` and point `health_endpoint` at it.
 - **Archive** — the default `_done/` folders; served from nowhere.
