@@ -1,7 +1,7 @@
 # Build notes: socle-design-system
 
 - commits: see PR #21 (`feat: socle-design-system — …`)
-- ci: pending
+- ci: GREEN on the cheap tier (eca4569); full gate on the post-flip head
 
 ## What changed
 
@@ -37,7 +37,7 @@
 - [x] Catalogue keyed by locale, `fr` only; `Catalogue<T>` requires every other locale in French's shape.
 - [x] `@relecture` on the students entry and every non-verbatim label.
 - [x] README documents the catalogue and adding a locale; AGENTS.md routing updated.
-- [ ] Lint, typecheck, tests and the Vercel build — read from CI.
+- [x] Lint, typecheck, tests and the Vercel build — GREEN in CI.
 
 ## Notes for Release
 
