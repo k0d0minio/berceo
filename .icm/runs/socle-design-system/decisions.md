@@ -38,5 +38,11 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- B-1 (Build) — The public header collapses into the menu below `lg`, not `md`: four vitrine links and two capsule buttons do not fit a 768 px line. Below `md` it is still the menu button, so the criterion holds; the spec said `md`.
+- B-2 (Build) — `viewport.themeColor` cannot read a CSS variable, so the two browser-chrome colours are written out once in `src/app/theme-color.ts`, each mirroring a `globals.css` token. The only colour value outside `globals.css`.
+- B-3 (Build) — Tailwind's default palette is switched off (`--color-*: initial`): only the DA's tokens exist, so an off-brand colour class fails to generate rather than slipping in.
+- B-4 (Build) — shadcn's `--destructive` maps to taupe: the DA has no error colour and red belongs to the dialogs alone (D-24). The accounts stub decides how a form error looks.
+- B-5 (Build) — Focus is an outline everywhere (global `:focus-visible`); every `ring-*`/`shadow-*` class was stripped from `src/components/ui/`, since rings are box-shadows.
+- B-6 (Build) — The night tokens are renamed `nuit-*` (`text-nuit-lin`…): the DA's `sauge` (#8BAF9F) and the holding page's old `sauge` (#acbeab) are different colours under one name.
+- B-7 (Build) — The portal demo lives in its own route group, `(portail)`, so `/design-system/portail` escapes the public header and footer.
+- B-8 (Build) — The display face is a single `--font-titre` binding; the holding page's headline reads it too, so it will switch to Comodo along with the platform when the files arrive.

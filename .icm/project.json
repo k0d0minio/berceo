@@ -13,7 +13,10 @@
   ],
   "runs_archive": ".icm/runs/_done",
   "intake_archive": ".icm/intake/_done",
-  "health_endpoint": "https://www.berceo.be/",
+  "health_endpoint": [
+    "https://uat.berceo.be/api/health",
+    "https://www.berceo.be/api/health"
+  ],
   "deploy": {
     "platform": "vercel",
     "team_slug": "kodominio",

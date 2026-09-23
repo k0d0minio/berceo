@@ -28,4 +28,11 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Catalogue: `src/content/` per surface, `locale.ts`, `site.ts` → `holding.ts`
+- [x] Holding page into `(holding)` with the `.nuit` scope and Karla
+- [x] Tokens and type in `globals.css`, `fonts.ts`, light root layout
+- [x] Components: button, card, input, alert-dialog, confirm-dialog, striped-section, translucent-block; shadows and rings stripped
+- [x] Shell: public header and footer, mobile menu, portal shell, sign-out dialog
+- [x] Reference pages `/design-system` and `/design-system/portail`
+- [x] `/api/health` + test, `health_endpoint` array
+- [x] README and AGENTS.md routing
