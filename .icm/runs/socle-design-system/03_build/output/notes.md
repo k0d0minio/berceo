@@ -47,3 +47,14 @@
 - `_shared/project-rules.md` → The factory → Health endpoint still describes `https://www.berceo.be/`; Release should update that line.
 - The `next` patch bump (16.3.0 → 16.3.6) rides in this PR; the preview is its first build.
 - The header/footer links point at vitrine pages that do not exist yet (404 by design until `vitrine-publique`).
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on dc9e226 before the release pushes (ci-status.sh, full gate); re-read after the last push
+- reviews: code medium (1 finding: the portal shell's logomark defaulted to `/` under a "retour à mon espace" label — trivial, in-ticket, fixed: `home` is required) · security security-check.sh --branch --audit: OK ([WARN] gitleaks not installed — built-in patterns only) · /security-review n/a (no auth, payments, PII or route policy in the diff) · /production-readiness n/a (no DB, auth, payments or env var) · readiness env.sh audit --changed: OK
+- parked: none
+- migrations: skip — none of this run's own
+- learned: none (1 candidate, the dependency bump, judged a one-off fix rather than a repo constraint; it counted twice only because the gate's read was logged twice)
+- docs: no docs-tree impact; `_shared/project-rules.md` → Health endpoint updated · announce: deferred to promotion
+

@@ -15,12 +15,13 @@ import { words } from "@/content/locale"
  */
 function PortalShell({
   nav,
-  home = "/",
+  home,
   actions,
   children,
 }: {
   nav: readonly MenuLink[]
-  home?: string
+  /** Where the logomark leads: the portal's own home, never the public site. */
+  home: string
   actions?: React.ReactNode
   children: React.ReactNode
 }) {

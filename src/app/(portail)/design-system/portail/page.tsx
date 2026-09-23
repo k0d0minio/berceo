@@ -22,6 +22,7 @@ export default function PortalShellPage() {
   return (
     <PortalShell
       nav={t.nav}
+      home="/design-system/portail"
       actions={<SignOutDialog />}
     >
       <div className="flex flex-col gap-4">

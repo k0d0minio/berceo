@@ -106,8 +106,10 @@ answer is here, and it is this repo's own.
   .icm/scripts/env.sh add <NAME> --ci --github secret`). `db-env.sh init` lists every act;
   `db-env.sh status` reads the project once the key is exported; `db-env.sh reset-uat --apply`
   is the operator's reset after a promotion.
-- **Health endpoint** — `https://www.berceo.be/`: the holding page itself; a 200 means the
-  site is up. Give the platform a real `/api/health` and point `health_endpoint` at it.
+- **Health endpoint** — `GET /api/health` (`src/app/api/health/route.ts`, 200 `{"status":"ok"}`,
+  no dependency touched). `health_endpoint` lists `https://uat.berceo.be/api/health` and
+  `https://www.berceo.be/api/health` (socle-design-system, 2026-09-23); the production entry
+  answers 404 until the first UAT promotion carries the route to `main`.
 - **Archive** — the default `_done/` folders; served from nowhere.
 
 ## Reporting
