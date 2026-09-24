@@ -16,4 +16,4 @@ curl -X GET  "$NEON_AUTH_BASE_URL/verify-email?token=invalid" → HTTP 401 {"cod
 ## 2026-09-24 Neon API — link verification refused on the shared e-mail provider
 PATCH /projects/tiny-cell-08223046/branches/br-steep-butterfly-b27l5oo9/auth/email_and_password → HTTP 400 INVALID_EMAIL_VERIFICATION_METHOD "Verification link is not supported for shared email provider"
 PATCH /projects/tiny-cell-08223046/branches/br-withered-dust-b2e7eht6/auth/email_and_password → HTTP 400 INVALID_EMAIL_VERIFICATION_METHOD (same)
-- open: link verification needs a standard (SMTP) e-mail provider per branch; the operator's decision (handoff.md → Blockers 3).
+- resolved: the operator set Resend SMTP (standard provider) on main, preview/uat and the PR preview, and link verification on main and preview/uat, in the Neon Console.

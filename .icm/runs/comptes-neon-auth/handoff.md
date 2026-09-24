@@ -6,49 +6,36 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: clear what is left of blocker 3 below (the e-mail verification settings). Neon
-   refuses the **link** method while a branch uses its shared e-mail provider, so this needs
-   your decision first.
-2. Then operator: `build comptes-neon-auth` (re-runs env audit, flips ready, full gate, preview
-   URLs).
-3. After the smoke: tick **Ready to merge**, then `release comptes-neon-auth`.
+1. Operator: clear the two Neon settings under Blockers (runtime configuration, no rebuild).
+2. Operator: smoke the PR preview against the acceptance criteria; the full-gate verdict and the
+   preview URL are in the Build stop message and on PR #22.
+3. Tick **Ready to merge**, then `release comptes-neon-auth`.
 
 ## Blockers
 
-1. **`.env.example`**: done (2026-09-24). `NEON_AUTH_BASE_URL` `[production,preview]`,
-   `NEON_AUTH_COOKIE_SECRET`, `RESEND_API_KEY` and `EMAIL_FROM` `[production,preview,development]`
-   are declared by name, each with its own note. Each key carries a `[targets]` suffix: without
-   one, `env.sh` reads the note as empty (two tabs collapse in its `read`) and the Vercel check
-   defaults to all three targets. `env.sh audit --changed` → `RESULT: OK (0 warnings)`.
-2. **Vercel env**: done (operator). The audit sees `NEON_AUTH_COOKIE_SECRET`, `RESEND_API_KEY`,
-   `EMAIL_FROM` on development, preview and production, and `NEON_AUTH_BASE_URL` on preview and
-   production.
-3. **Neon Auth configuration**: **partly done.**
-   - Webhook on `preview/uat` (`br-steep-butterfly-b27l5oo9`): done by API. The GET after the
-     PUT reads `{"enabled":true,"webhook_url":"https://uat.berceo.be/api/webhooks/neon-auth","enabled_events":["send.magic_link"],"timeout_seconds":5}`.
-     `main` and the PR preview have no webhook (D-36; Vercel SSO), as before:
-     `{"enabled":false,"enabled_events":[],"timeout_seconds":5}`.
-   - **E-mail verification: not done on any branch.** `PATCH .../auth/email_and_password` with
-     `require_email_verification: true`, `send_verification_email_on_sign_up: true`,
-     `email_verification_method: "link"`, `auto_sign_in_after_verification: true` answered
-     **HTTP 400** on `preview/uat` and on `preview/claude/nifty-turing-dlhore`:
-     `INVALID_EMAIL_VERIFICATION_METHOD` — "Verification link is not supported for shared email
-     provider". All three branches use `email_provider` `{"type":"shared"}`. Nothing was changed
-     partially: switching verification on with OTP would contradict D-30 and send codes the pages
-     do not ask for. On `main` the call was not made: the session's permission rules refused a
-     production write, so `main` is yours by hand in any case.
-   - The three branches still read `{"enabled":true,"email_verification_method":"otp","require_email_verification":false,"auto_sign_in_after_verification":true,"send_verification_email_on_sign_up":false,"send_verification_email_on_sign_in":false,"disable_sign_up":false}`.
-   - The decision it needs: link verification requires a custom (`standard`, SMTP) e-mail
-     provider on each branch. Resend offers SMTP, which would keep D-28's sender; setting it
-     means an SMTP password in Neon, which is yours to enter. Then re-apply the four fields on
-     `main`, `preview/uat` and the PR preview (a preview created before `main` changes keeps its
-     old copy). Whether Neon still defers to the `send.magic_link` webhook on uat once a
-     standard provider is set is not documented on the pages read; check it in the uat smoke.
-4. **Resend domain**: done (operator).
+The PR is open (flipped 2026-09-24). Env audit OK, Vercel values set, Resend domain sending
+(DKIM and SPF verified). Neon Auth, read by API on 2026-09-24:
 
-Done by Build earlier: Google sign-in removed on `main`, `preview/uat` and this PR's preview;
-`https://www.berceo.be` added to `main`'s trusted domains (the integration manages the
-previews' and uat's).
+| Branch | E-mail provider | Method | Required | Send on sign-up | Webhook |
+|---|---|---|---|---|---|
+| `main` | Resend SMTP | link | yes | **no** | off (D-36) |
+| `preview/uat` | Resend SMTP | link | yes | **no** | `send.magic_link` → uat.berceo.be |
+| `preview/claude/nifty-turing-dlhore` | Resend SMTP | **otp** | yes | **no** | off |
+
+1. **`send_verification_email_on_sign_up` is false on all three branches.** Sign-up
+   (`src/app/(auth)/actions.ts`) relies on Neon to send the first verification e-mail; with this
+   off, a new account gets none until "renvoyer" is used, and criterion 2 fails. The console's
+   "Verify at Sign-up" switch set `require_email_verification`, not this field; it may only be
+   settable by API: `PATCH /projects/tiny-cell-08223046/branches/<id>/auth/email_and_password`
+   `{"send_verification_email_on_sign_up": true}`. This session's permission rules refuse Neon
+   writes, so it is the operator's (or a session allowed to PATCH `…/auth/*`).
+2. **The PR preview's method is `otp`**; the pages expect a link (D-30). Set it to `link` on
+   `br-withered-dust-b2e7eht6`.
+3. **`uat.berceo.be` does not resolve** (triage `uat-address-dns`, someone else's act). Until
+   it does, the uat webhook cannot deliver, so no verification or reset e-mail leaves uat. Does
+   not block the PR preview smoke; blocks the founders' test on uat.
+
+Also: the sender is `mail.jamienisbet.com`, a stand-in; D-28 expects a Berceo domain before launch.
 
 ## Do not
 

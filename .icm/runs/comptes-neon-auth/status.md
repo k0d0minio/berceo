@@ -4,7 +4,7 @@ Where the run is, in five lines. Updated at every stage start and stop, and when
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: build
-- step: 9 (env names declared, audit OK, uat webhook set; stopped before the ready flip)
-- ci: GREEN (cheap tier, cafeee8)
-- blocked: yes — Neon refuses link verification with its shared e-mail provider (handoff.md → Blockers 3)
+- step: 12 (flipped ready; settling the full gate)
+- ci: GREEN (cheap tier, 7ed02e7); full gate pending
+- blocked: no — two Neon settings still open for the smoke (handoff.md → Blockers)
 - updated: 2026-09-24
