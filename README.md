@@ -79,9 +79,11 @@ vouvoiement, no exclamation mark, no em dash, no ellipsis, the validated lexicon
 The platform's data starts here: one Neon Postgres database, read through
 [Drizzle ORM](https://orm.drizzle.team). The holding page itself reads nothing from it yet.
 
-- **Schema:** `src/db/schema.ts` — one table, `users` (email, name, role: `parent` |
-  `professionnel` | `admin`). The authentication provider is not chosen; the credential or
-  external-id column is a later migration.
+- **Schema:** `src/db/schema.ts` — `users` (the Neon Auth id in `auth_user_id`, e-mail, first
+  and last name, E.164 phone, role: `parent` | `professionnel` | `admin`, `welcome_sent_at`) and
+  `user_consents`, an append-only ledger of the CGU and privacy-policy versions each account
+  accepted, with the moment. Identity itself lives in Neon Auth's `neon_auth` schema, which Neon
+  manages and Drizzle never declares.
 - **Client:** `src/db/index.ts` — a lazily-initialized Drizzle client on Neon's serverless HTTP
   driver. Import `db` from server code only.
 - **Migrations:** `drizzle/` — `NNNN_<name>.sql` plus `meta/_journal.json`, the order of record.
@@ -98,8 +100,36 @@ npm run db:studio                      # browse the database
 
 Production is migrated by the **DB migrate** workflow (`.github/workflows/db-migrate.yml`) on
 pushes to `main` that touch `drizzle/` or `src/db/`, from the `DATABASE_URL` repository secret.
+Every other Vercel build (previews and uat.berceo.be) migrates its own Neon branch first:
+the `vercel-build` script runs `db:migrate` and `db:verify` unless `VERCEL_ENV` is `production`.
 `src/db/migrations-journal.test.ts` refuses a journal whose stamps are out of order — the one
 way Drizzle's migrator skips a file silently.
+
+## Accounts and e-mail
+
+Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mail on **Resend**.
+
+- **Auth instance:** `src/lib/auth/server.ts` (`getAuth()`, created on first use). Pages and
+  actions ask `currentUser()` (`src/lib/auth/current-user.ts`), which joins the session to the
+  `users` row, because the role lives on the row. Spaces call `requireAccess(path)`
+  (`src/lib/auth/guard.ts`); the redirect table is `src/lib/auth/routing.ts`.
+- **Routes:** `/inscription-famille`, `/inscription-professionnelle`, `/connexion`,
+  `/mot-de-passe-oublie`, `/nouveau-mot-de-passe`, `/verification-email` (`src/app/(auth)/`);
+  the spaces `/espace/famille`, `/espace/professionnelle`, `/admin` (`src/app/(portail)/`).
+  `src/proxy.ts` refreshes the session on `/espace/**` and bounces signed-out visitors to
+  `/connexion?retour=…`. `/admin` answers 404 to anyone but an admin.
+- **E-mail:** Neon Auth's `send.magic_link` webhook calls `/api/webhooks/neon-auth`, which
+  checks the Ed25519 signature and sends Berceo's own verification and reset e-mails
+  (`src/lib/email/`, words in `src/content/emails.ts`). Their links carry the raw token to this
+  site: `/verification-email/confirmer` (signs the user in and sends a family's welcome e-mail
+  once) and `/nouveau-mot-de-passe`.
+- **Admins** never sign up. A founder signs up as a family, then
+  `npm run admin:grant -- --email <address>` promotes the account on the database
+  `DATABASE_URL` points at.
+- **Environment:** `NEON_AUTH_BASE_URL` (the auth URL of the environment's own Neon branch),
+  `NEON_AUTH_COOKIE_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`. On each Neon branch, Neon Auth's
+  config requires verification, turns Google off, trusts the site's domains and points the
+  webhook at that environment's `/api/webhooks/neon-auth`.
 
 ## The holding page
 
