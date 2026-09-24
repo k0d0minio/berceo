@@ -25,7 +25,9 @@ let fetchFailed = false;
 async function keyFor(kid: string): Promise<Jwk | null> {
   const cached = keys.find((key) => key.kid === kid);
   if (cached) return cached;
-  if (Date.now() - fetchedAt < 60_000) {
+  // After a failure, refetch within Neon's 15-second retry budget; after a
+  // success, at most once a minute.
+  if (Date.now() - fetchedAt < (fetchFailed ? 5_000 : 60_000)) {
     if (fetchFailed) throw new Error("JWKS unavailable (last fetch failed)");
     return null;
   }
