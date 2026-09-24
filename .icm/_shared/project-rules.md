@@ -63,13 +63,21 @@ answer is here, and it is this repo's own.
   (`reversible: false`): a code revert must tolerate the newer schema, and `rollback.sh` says so.
   Applied to production by `.github/workflows/db-migrate.yml`, called by `release.yaml` when
   the operator publishes a promotion Release — never on the push to `main` while UAT is declared
-  (its `gate` job) — from the `DATABASE_URL` Actions secret. The schema today is one table, `users` (0000_users): identity and persona only — the
-  authentication provider is undecided, so the credential or external-id column is a later
-  migration.
-- **Environment surfaces** — `.env.example` at the root declares `DATABASE_URL` (names only;
-  `env.sh audit` reads it). Locally: copy to `.env.local` with a branch's connection string from
-  Neon, never production's. On Vercel the Neon integration injects it into every environment
-  once the database is attached (below). The holding page itself still reads no variable.
+  (its `gate` job) — from the `DATABASE_URL` Actions secret. First applied at the baseline
+  promotion of 2026-09-24 (`release/2026-09-24-promote-5916543`: 0000). The schema:
+  `users` (0000_users; 0001_comptes joins it to Neon Auth by `auth_user_id` and adds names,
+  phone, `welcome_sent_at`) and `user_consents`, the append-only consent ledger (0001).
+  Identity lives in Neon Auth's `neon_auth` schema, which Drizzle never declares.
+- **Environment surfaces** — `.env.example` at the root declares the names (`env.sh audit`
+  reads it): `DATABASE_URL`, and since comptes-neon-auth `NEON_AUTH_BASE_URL` (the auth URL of
+  the environment's own Neon branch), `NEON_AUTH_COOKIE_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`
+  (the sender, the operator's once a domain is verified on Resend). Locally: copy to
+  `.env.local` with a branch's values from Neon, never production's. On Vercel the Neon
+  integration injects `DATABASE_URL` into Production and Preview once the database is attached
+  (below); the four others are set per environment by hand, and all five by hand on the `uat`
+  environment. Neon Auth's own config is per branch too (verification by link, Google off,
+  trusted domains, the `send.magic_link` webhook at that environment's
+  `/api/webhooks/neon-auth`): a new long-lived branch needs it set.
 - **Local feedback scripts** — not wired: `scripts/format.sh` and `scripts/lint.sh` report
   SKIP. No formatter in the repo; ESLint (`eslint-config-next`) is CI's, never run here.
 - **The security gate** — `scripts/security-check.sh` runs before every commit in Build and
@@ -100,17 +108,19 @@ answer is here, and it is this repo's own.
   (`database.neon.uat_branch`, a persistent child of production, created 2026-09-24): its
   strings and its own Neon Auth URL are set by hand on the `uat` environment's variables, and
   the integration is not connected to it. Migrations
-  reach previews and UAT at build only once the build runs the migrate step — **an act owed,
-  Jamie's choice** between the Vercel build command and a `vercel-build` script
-  (`npm run db:migrate && npm run db:verify && next build` is the candidate; `db-migrate.yml`
-  applies production's at promotion). `.github/workflows/neon-cleanup.yaml` deletes a PR's
+  reach previews and UAT at build through the `vercel-build` script (comptes-neon-auth, D-29):
+  `db:migrate && db:verify` before `next build` unless `VERCEL_ENV` is `production` (inside the
+  `uat` environment it is `preview`); `db-migrate.yml` applies production's at promotion.
+  `.github/workflows/neon-cleanup.yaml` deletes a PR's
   `preview/*` and `run/*` branches on close and needs `NEON_API_KEY` as an Actions secret;
   `db-migrate.yml` needs `DATABASE_URL` as one (both acts owed — `printf '%s' "$KEY" |
   .icm/scripts/env.sh add <NAME> --ci --github secret`). `db-env.sh init` lists every act;
   `db-env.sh status` reads the project once the key is exported; `db-env.sh reset-uat --apply`
   is the operator's reset after a promotion.
-- **Health endpoint** — `https://www.berceo.be/`: the holding page itself; a 200 means the
-  site is up. Give the platform a real `/api/health` and point `health_endpoint` at it.
+- **Health endpoint** — `GET /api/health` (`src/app/api/health/route.ts`, 200 `{"status":"ok"}`,
+  no dependency touched). `health_endpoint` lists `https://uat.berceo.be/api/health` and
+  `https://www.berceo.be/api/health` (socle-design-system, 2026-09-23); the production entry
+  answers 404 until the first promotion of the batch carries the route to production.
 - **Archive** — the default `_done/` folders; served from nowhere.
 
 ## Reporting
@@ -157,3 +167,16 @@ wrote in its `FAILURE.md`: what no tool logged — a wrong assumption, a STOP, a
 Each line carries the run it was learned in. Build and the lanes read this section before their
 first edit, with the same standing as the code rules. Edit or delete lines freely — this file is
 the repo's own, never synced — and delete a line that reads as a slip rather than a constraint.*
+
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- never call auth.verifyEmail() from @neondatabase/auth 0.5.x (it POSTs; Neon's verify-email is GET-only); go through getAuth().handler().GET with path ["verify-email"]. (`curl -x post "$?token=invalid" → http n`, seen 1× — comptes-neon-auth; .claude, drizzle, drizzle/meta, public/emails)
+
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- never trust a server action's arguments, bound ones included; check every role, id or flag at runtime inside the action. (`auth) signup(role, …): a server action's bound argument can be rewritt`, seen 1× — comptes-neon-auth; .claude, drizzle, drizzle/meta, public/emails)
+
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- a review fix is itself reviewed before the merge; re-run the reviewer on the fix commit's delta. (`normalizephone('(n)n n n n') returned null after the "(n)" strip; a jwks`, seen 1× — comptes-neon-auth; .claude, drizzle, drizzle/meta, public/emails)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- After a push, trust a `ci-status.sh` verdict only when its `head` line matches `git rev-parse --short HEAD`; re-run it otherwise. (`FAILURE.md` — vitrine-publique)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- When a spec quotes Surya's guide verbatim for a title or meta description, measure it against the guide's own length rules in Define, not in Build. (`FAILURE.md` — vitrine-publique)
