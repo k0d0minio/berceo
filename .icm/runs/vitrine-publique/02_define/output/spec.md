@@ -211,6 +211,13 @@ gadget animation). The identity paragraph drops "holding page".
 - Raising the DA's text contrast (taupe on white): socle's note for Surya, not changed here.
 - Analytics, a cookie banner (no tracker is added, so none is needed).
 - Promoting the vitrine to www.berceo.be: that is the UAT promotion, the operator's act after the founders' sign-off.
+- Scope decisions with no surface on these pages, carried here by id so the trace is explicit:
+  D-11 (search by commune, no map) and D-12 (availability calendar) belong to the search and
+  availability stubs, and the vitrine names neither feature. D-13 (Neon Auth) and D-27 (family
+  accounts unverified) belong to `comptes-neon-auth`, so the FAQ promises no SMS or identity check
+  for families. D-16 (messaging) belongs to `messagerie`. D-22 (runs merge into `uat`) applies to
+  this run's base branch, not to any page. D-26 (the scope's own branch) was about the Scope run
+  only.
 
 ## Open questions
 
