@@ -100,13 +100,16 @@ export type WebhookResult = { status: 200 | 401 | 400; sent: boolean };
 /**
  * The sign-up's `users` row is written after Neon Auth answers, and Neon calls
  * this webhook before it answers, so on the very first e-mail the row may not
- * exist yet: fall back to the first word of the name given to Neon Auth.
+ * exist yet: fall back to the name given to Neon Auth, which actions.ts writes
+ * as "Prénom|Nom" precisely so the part before "|" is the first name whole,
+ * compound ones ("Marie Claire") included — splitting on whitespace instead
+ * would truncate them at the first word.
  */
 async function prenomFor(event: MagicLinkEvent, deps: WebhookDeps): Promise<string | null> {
   const email = event.user?.email;
   const fromRow = email ? await deps.firstNameFor(email) : null;
   if (fromRow) return fromRow;
-  const fromName = event.user?.name?.trim().split(/\s+/)[0];
+  const fromName = event.user?.name?.split("|")[0]?.trim();
   return fromName || null;
 }
 
