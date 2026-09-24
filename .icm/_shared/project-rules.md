@@ -73,9 +73,9 @@ answer is here, and it is this repo's own.
   the environment's own Neon branch), `NEON_AUTH_COOKIE_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`
   (the sender, the operator's once a domain is verified on Resend). Locally: copy to
   `.env.local` with a branch's values from Neon, never production's. On Vercel the Neon
-  integration injects `DATABASE_URL` into Production and Preview once the database is attached
-  (below); the four others are set per environment by hand, and all five by hand on the `uat`
-  environment. Neon Auth's own config is per branch too (verification by link, Google off,
+  integration injects `DATABASE_URL` — production's database into Production, `uat-berceo`
+  into `uat` and Preview (below); the four others are set per environment by hand, `uat`
+  included. Neon Auth's own config is per branch too (verification by link, Google off,
   trusted domains, the `send.magic_link` webhook at that environment's
   `/api/webhooks/neon-auth`): a new long-lived branch needs it set.
 - **Local feedback scripts** — not wired: `scripts/format.sh` and `scripts/lint.sh` report
@@ -86,37 +86,42 @@ answer is here, and it is this repo's own.
   lockfile is audited.
 - **The run's database** — `database.isolation: neon` in `.icm/project.json` (decided
   2026-09-23, mirroring agorasim — estate decision D32): every run gets a Neon branch of its
-  own, `run/<slug>`, a child of production made at `db-branch.sh <slug> up` with a 7-day expiry,
+  own, `run/<slug>`, made at `db-branch.sh <slug> up` with a 7-day expiry — since the D41 sync
+  (2026-09-24) a child of the UAT database in `uat-berceo`, never a copy of production
+  (`database.neon.nonprod_project_id`; the D32 shape made it a child of production's `main`),
   through the key `NEON_API_KEY` names in the shell (`database.neon.api_key_env`; the value is
   never in git). No psql and no docker on Jamie's machine, which is why `schema` and `container`
-  were not chosen. Template synced to icm-board dc3a406 the same day (`icm-sync.sh --apply`,
-  run from the icm-board checkout), which brought `lib/neon.sh`, `db-env.sh` and the `neon`
-  mode of `db-branch.sh`. Until the key is exported, `db-branch.sh` answers SKIP and a session
-  runs no migration locally — the preview applies it.
-- **The environments' databases** — Neon project `tiny-cell-08223046` (`berceo`, Kodominio,
-  created 2026-09-23 from Vercel → Storage, Postgres 18, eu-central-1; `database.neon` in
-  `.icm/project.json`). The id first recorded there, `br-long-brook-b2qw6uzd`, is the **`main`
-  branch's** id, not the project's — corrected the same day; a Neon project id reads
-  `<adjective>-<noun>-<8 digits>`, a branch id `br-…`. Production is that `main` branch —
-  never written by a script — and it is **not yet protected** (an act owed). Previews are to
-  be the integration's `preview/<git-branch>` (`neon.previews: vercel`); on 2026-09-23 the
-  branch list holds `main` alone, so **the integration's Preview-branching toggle is off and is
-  the first act owed** (Vercel → Storage → the database → Connect Project → Advanced options →
-  Deployments configuration: enable Preview, and "Resource must be active before deployment").
-  Until it is on, every preview reads the Preview environment's `DATABASE_URL`, which can only
-  point at production's branch. The UAT database is the named Neon branch `uat`
-  (`database.neon.uat_branch`, a persistent child of production, created 2026-09-24): its
-  strings and its own Neon Auth URL are set by hand on the `uat` environment's variables, and
-  the integration is not connected to it. Migrations
-  reach previews and UAT at build through the `vercel-build` script (comptes-neon-auth, D-29):
-  `db:migrate && db:verify` before `next build` unless `VERCEL_ENV` is `production` (inside the
-  `uat` environment it is `preview`); `db-migrate.yml` applies production's at promotion.
-  `.github/workflows/neon-cleanup.yaml` deletes a PR's
-  `preview/*` and `run/*` branches on close and needs `NEON_API_KEY` as an Actions secret;
-  `db-migrate.yml` needs `DATABASE_URL` as one (both acts owed — `printf '%s' "$KEY" |
-  .icm/scripts/env.sh add <NAME> --ci --github secret`). `db-env.sh init` lists every act;
-  `db-env.sh status` reads the project once the key is exported; `db-env.sh reset-uat --apply`
-  is the operator's reset after a promotion.
+  were not chosen. Until the key is exported, `db-branch.sh` answers SKIP and a session runs no
+  migration locally — the preview applies it.
+- **The environments' databases** — two Vercel Marketplace (Neon) databases since the
+  2026-09-24 cutover (estate decision D41). **Production**: Neon project `tiny-cell-08223046`
+  (store `berceo`, Kodominio, created 2026-09-23, Postgres 18, eu-central-1), its `main`
+  branch — never written by a script, **not yet protected** (Jamie's, in the Neon Console) —
+  connected to the **Production** environment only, preview branching off. **UAT and
+  previews**: the second database `uat-berceo` (Neon project `dawn-scene-70949411`), connected
+  to the `uat` environment and Preview with preview branching on: UAT reads its default branch,
+  a PR preview gets `preview/<git-branch>` inside it (proven by the probe #28). Nothing
+  non-production is wired to production's project, and no database variable is set by hand —
+  `DATABASE_URL` is the integration's everywhere. The first shape — a named branch `uat` of
+  production's project with hand-set strings — sent every UAT build to production (the
+  production database's Preview Deployment Action overrode them; `0001_comptes` reached
+  production early, additive and harmless) and was deleted the same day. A Neon project id
+  reads `<adjective>-<noun>-<8 digits>`, a branch id `br-…` (the first id recorded here was
+  production's `main` branch, corrected 2026-09-23). `.icm/project.json` declares both:
+  `database.neon.project_id` is production's, `database.neon.nonprod_project_id` the UAT
+  database's — so `db-branch.sh` cuts runs, `db-env.sh` lists UAT, previews and runs, and
+  `neon-cleanup.yaml` deletes a closed PR's `preview/*` and `run/*`, all in `uat-berceo`, and no
+  pipeline script writes production's project (icm-board D41, stub 5, synced 2026-09-24).
+  `database.neon.reset_command` is empty — this repo has no script that empties the UAT
+  database, so `db-env.sh reset-uat` answers SKIP; to rebuild it, recreate the branch and let
+  the next UAT build re-migrate. Migrations reach previews and UAT at build through the
+  `vercel-build` script (comptes-neon-auth, D-29): `db:migrate && db:verify` before
+  `next build` unless `VERCEL_ENV` is `production` (inside the `uat` environment it is
+  `preview`); `db-migrate.yml` applies production's at promotion.
+  `.github/workflows/neon-cleanup.yaml` needs `NEON_API_KEY` as an Actions secret and
+  `db-migrate.yml` needs `DATABASE_URL` as one (`printf '%s' "$KEY" | .icm/scripts/env.sh add
+  <NAME> --ci --github secret`). `db-env.sh init` lists every act; `db-env.sh status` reads
+  both projects once the key is exported.
 - **Health endpoint** — `GET /api/health` (`src/app/api/health/route.ts`, 200 `{"status":"ok"}`,
   no dependency touched). `health_endpoint` lists `https://uat.berceo.be/api/health` and
   `https://www.berceo.be/api/health` (socle-design-system, 2026-09-23); the production entry

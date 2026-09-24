@@ -72,10 +72,11 @@
     "provider": "neon",
     "neon": {
       "project_id": "tiny-cell-08223046",
+      "nonprod_project_id": "dawn-scene-70949411",
       "api_key_env": "NEON_API_KEY",
       "production_branch": "main",
       "previews": "vercel",
-      "uat_branch": "uat"
+      "reset_command": ""
     }
   },
   "security": {
