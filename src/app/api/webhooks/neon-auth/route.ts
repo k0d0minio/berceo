@@ -18,21 +18,28 @@ export const dynamic = "force-dynamic";
 // up (key rotation), at most once a minute.
 let keys: Jwk[] = [];
 let fetchedAt = 0;
+let fetchFailed = false;
 
+// An unreachable JWKS is our failure, not a bad signature: it throws, so the
+// route answers 500 and Neon retries instead of dropping the e-mail.
 async function keyFor(kid: string): Promise<Jwk | null> {
   const cached = keys.find((key) => key.kid === kid);
   if (cached) return cached;
-  if (Date.now() - fetchedAt < 60_000) return null;
+  if (Date.now() - fetchedAt < 60_000) {
+    if (fetchFailed) throw new Error("JWKS unavailable (last fetch failed)");
+    return null;
+  }
 
   fetchedAt = Date.now();
-  const response = await fetch(`${authBaseUrl()}/.well-known/jwks.json`, { cache: "no-store" });
-  // An unreachable JWKS is our failure, not a bad signature: throw, so the
-  // route answers 500 and Neon retries instead of dropping the e-mail.
-  if (!response.ok) {
-    fetchedAt = 0;
-    throw new Error(`JWKS fetch failed: HTTP ${response.status}`);
+  try {
+    const response = await fetch(`${authBaseUrl()}/.well-known/jwks.json`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`JWKS fetch failed: HTTP ${response.status}`);
+    keys = ((await response.json()) as { keys?: Jwk[] }).keys ?? [];
+    fetchFailed = false;
+  } catch (error) {
+    fetchFailed = true;
+    throw error;
   }
-  keys = ((await response.json()) as { keys?: Jwk[] }).keys ?? [];
   return keys.find((key) => key.kid === kid) ?? null;
 }
 

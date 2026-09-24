@@ -14,3 +14,7 @@ verified user then hits `compteIndisponible` on every sign-in. Nothing backfills
 
 Recover in place: on "existe", or on a signed-in identity with no row, write the missing row from
 what is known (or delete the Neon identity when the batch fails), with a test for each path.
+
+## Prompt
+
+In the berceo repo, read `.icm/intake/triage/comptes-orphaned-auth-identity.md`. In `src/app/(auth)/actions.ts` signUp, a Neon Auth identity can exist without its `users` row when the Drizzle batch fails, and the address is then locked out. Make it recoverable (write the missing row on a retry or on the first sign-in, or remove the Neon identity when the batch fails), with a test per path. Run it through `/pipeline bug comptes-orphaned-auth-identity`.

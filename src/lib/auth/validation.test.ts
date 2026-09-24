@@ -89,6 +89,7 @@ describe("phone numbers are stored as E.164 (spec: Belgian national and internat
     ["+32 (0)470 12 34 56", "+32470123456"],
     ["+32 0470 12 34 56", "+32470123456"],
     ["0032 (0)2 123 45 67", "+3221234567"],
+    ["(0)470 12 34 56", "+32470123456"],
   ])("%s → %s", (raw, e164) => {
     expect(normalizePhone(raw)).toBe(e164);
   });

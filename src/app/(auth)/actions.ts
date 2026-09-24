@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { db, userConsents, users, type UserRole } from "@/db";
+import { db, userConsents, users } from "@/db";
 import { consentRows } from "@/lib/auth/consent";
 import { authOutcome } from "@/lib/auth/errors";
 import { landingFor, SIGN_IN_PATH } from "@/lib/auth/routing";
@@ -18,6 +18,7 @@ import {
   validateSignUp,
   type FieldErrors,
   type SignUpField,
+  type SignUpRole,
 } from "@/lib/auth/validation";
 
 /*
@@ -41,16 +42,18 @@ export type SignUpState = {
   values?: { prenom: string; nom: string; email: string; telephone: string };
 };
 
-/** One of the two sign-up roles; admins are granted, never signed up (D-33). */
-export type SignUpRole = Extract<UserRole, "parent" | "professionnel">;
-
 export async function signUp(
   role: SignUpRole,
   _previous: SignUpState,
   form: FormData,
 ): Promise<SignUpState> {
   // A server action's arguments come from the client: never trust the bound role.
-  if (!isSignUpRole(role)) return { message: "generique" };
+  if (!isSignUpRole(role)) {
+    console.error("[comptes] sign-up refused: role not allowed", {
+      role: String(role).slice(0, 32),
+    });
+    return { message: "generique" };
+  }
 
   const input = readSignUpForm(form);
   const values = {

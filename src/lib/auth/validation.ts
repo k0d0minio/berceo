@@ -73,8 +73,11 @@ export function isValidEmail(email: string): boolean {
  * (landline) or 10 (mobile).
  */
 export function normalizePhone(raw: string): string | null {
-  // "(0)" is the trunk digit Belgians write after +32; E.164 drops it.
-  const compact = raw.trim().replace(/\(0\)/g, "").replace(/[\s.\-/()]/g, "");
+  // "(0)" after a country code is the trunk digit (+32 (0)470…); E.164 drops it.
+  const compact = raw
+    .trim()
+    .replace(/^((?:\+|00)\d{1,3})\s*\(0\)/, "$1")
+    .replace(/[\s.\-/()]/g, "");
   if (compact === "") return null;
 
   let international: string;
@@ -167,6 +170,9 @@ export function readSignUpForm(form: FormData): SignUpInput {
  * an argument the client can rewrite, so it is checked at runtime: admins are
  * granted by `npm run admin:grant`, never signed up (D-33).
  */
-export function isSignUpRole(value: unknown): value is "parent" | "professionnel" {
-  return value === "parent" || value === "professionnel";
+export const SIGN_UP_ROLES = ["parent", "professionnel"] as const;
+export type SignUpRole = (typeof SIGN_UP_ROLES)[number];
+
+export function isSignUpRole(value: unknown): value is SignUpRole {
+  return (SIGN_UP_ROLES as readonly unknown[]).includes(value);
 }

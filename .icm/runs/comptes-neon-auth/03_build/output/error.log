@@ -26,3 +26,8 @@ src/app/(auth)/actions.ts signUp(role, …): a server action's bound argument ca
 ## 2026-09-24T12:00:00Z session — /code-review (high) findings fixed in-ticket before release
 webhook JWKS fetch failure answered 401 (Neon does not retry); welcome claim error 500'd the confirmer after verification; "+32 (0)470…" stored with the trunk 0; sign-in return path dropped the query string.
 - resolved: JWKS failure throws (500, Neon retries); the claim is caught and logged; "(0)" and a 0 after 32 are dropped, with tests; the proxy keeps `search`. Six other findings parked in triage (comptes-orphaned-auth-identity, comptes-welcome-email-no-retry, comptes-compound-first-name, comptes-auth-cleanups).
+
+## 2026-09-24T13:00:00Z session — /code-review (high) on the release fix commit: a regression and three partial fixes
+normalizePhone('(0)470 12 34 56') returned null after the "(0)" strip; a JWKS fetch that threw left the throttle set, so Neon's retry got a 401; the welcome claim release could still 500 the confirmer; the role type and its guard were two lists.
+- resolved: "(0)" is stripped only right after a country code (test added); a failed JWKS fetch keeps answering 500 inside the throttle; the release is caught; SIGN_UP_ROLES is the one list, and a refused role is logged. The guard's query string and the confirmer's unguarded SELECT are parked (comptes-auth-cleanups, comptes-welcome-email-no-retry).
+- rule: a review fix is itself reviewed before the merge; re-run the reviewer on the fix commit's delta.

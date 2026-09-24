@@ -42,6 +42,12 @@ export async function sendWelcomeIfDue(user: User, siteUrl: string): Promise<voi
     );
   } catch (error) {
     console.error("[comptes] welcome e-mail failed", { userId: user.id, error });
-    await db.update(users).set({ welcomeSentAt: null }).where(eq(users.id, user.id));
+    await db
+      .update(users)
+      .set({ welcomeSentAt: null })
+      .where(eq(users.id, user.id))
+      .catch((releaseError) =>
+        console.error("[comptes] welcome claim not released", { userId: user.id, releaseError }),
+      );
   }
 }
