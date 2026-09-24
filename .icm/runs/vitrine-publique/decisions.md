@@ -43,3 +43,9 @@ decision made mid-run has one home.
 - V-3 (Define) — The four DA image-bank photographs (1, 4, 5, 8) are used on the vitrine as optimised WebP. D-20's "no photos of children" governs user uploads, not the brand's generated imagery. Operator, Define, 2026-09-24.
 - V-4 (Define) — `robots.txt` allows indexing only when `VERCEL_ENV` is `production`; UAT and previews disallow everything. The legal and story placeholders are `noindex`. Define, 2026-09-24.
 - V-5 (Define) — The two CTAs link to `/inscription-famille` and `/inscription-professionnelle`, served by `comptes-neon-auth`; this run does not create them and they 404 on UAT until that run merges. Define, 2026-09-24 (the header shipped by socle already does the same).
+- B-1 (Build) — The home and Comment ça marche titles are not the guide's verbatim ones: the guide's home title is 45 characters and its Comment ça marche title 67, while the spec's criterion (and the test) holds every title to 50–60. Both were rewritten around the same main keyword and tagged `@relecture`. A spec gap: the spec asked for both "verbatim" and "50 to 60"; the testable criterion won.
+- B-2 (Build) — `next/image`'s `priority` is deprecated in Next 16.3.6; the photo component uses `preload`.
+- B-3 (Build) — The production URL and the "may this deployment be indexed" test live in `src/app/site.ts` (`VERCEL_ENV === "production"`), read by the metadata base, the sitemap and robots.txt. Outside the spec's `touches:` list, inside its intent.
+- B-4 (Build) — A `@relecture` tag on a catalogue object covers every entry inside it (the FAQ, the legal pages, the photographs' alt texts), rather than one tag per string.
+- B-5 (Build) — The OG card was rendered once with sharp (outside the repo) from the wordmark, Fraunces, Nunito and `main-doigt.webp`: white ground, sage headline, the guide's main message without « diplômées ». It is a static file; re-rendering it is a manual act.
+

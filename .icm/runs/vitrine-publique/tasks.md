@@ -29,3 +29,12 @@ step, so a resuming session can pick up the first unticked line.
 ## Queue
 
 - [ ] <task — small enough for one commit; name the file or area>
+
+- [x] The words: six page catalogues, `photos.ts`, `common.cta.rejoindreReseau`, the catalogue test (`vitrine.test.ts`) — 70445fd
+- [x] The shared blocks in `src/components/vitrine/` — 70445fd
+- [x] The photographs as WebP under `public/photos/` (37–136 KB each) — 70445fd
+- [x] The seven pages under `src/app/(public)/` with `pageMetadata()` — 70445fd
+- [x] The holding page removed (route group, catalogue, `.nuit`, animations, Karla, `themeColorNuit`) — 70445fd
+- [x] `sitemap.ts`, `robots.ts`, `site.ts`, `metadataBase`, the light `public/og.png` — 70445fd
+- [ ] Cheap-tier GREEN, merge `uat`, flip ready, full gate GREEN
+
