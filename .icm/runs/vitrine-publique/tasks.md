@@ -36,5 +36,5 @@ step, so a resuming session can pick up the first unticked line.
 - [x] The seven pages under `src/app/(public)/` with `pageMetadata()` — 70445fd
 - [x] The holding page removed (route group, catalogue, `.nuit`, animations, Karla, `themeColorNuit`) — 70445fd
 - [x] `sitemap.ts`, `robots.ts`, `site.ts`, `metadataBase`, the light `public/og.png` — 70445fd
-- [ ] Cheap-tier GREEN, merge `uat`, flip ready, full gate GREEN
+- [x] Cheap-tier GREEN, merge `uat`, flip ready, full gate GREEN — 5c423fd
 

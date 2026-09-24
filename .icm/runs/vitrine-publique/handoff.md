@@ -6,18 +6,18 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: read `02_define/output/spec.md` (or edit it to steer Build), then tick
-   **Spec approved** on PR #25.
-2. Then `build vitrine-publique`, following `plan.md` pass by pass.
+1. Operator: smoke the preview https://berceo-git-claude-nifty-davinci-h5svk0-kodominio.vercel.app
+   (behind Vercel SSO) — the three things Build could not see: every page at 360 px and 1280 px
+   without horizontal scroll; the home H1 above the fold at 360×640 and 1280×720; the overall
+   look against the DA. Also `/robots.txt` should read `Disallow: /` there.
+2. Tick **Ready to merge** on PR #25, then `release vitrine-publique`.
 
 ## Blockers
 
-- none for Build. `comptes-neon-auth` is not merged: the two sign-up links will 404 on UAT until
-  it is (Out of scope, by design).
+- none.
 
 ## Do not
 
-- Do not tick either gate box. Do not create `/inscription-famille` or
-  `/inscription-professionnelle` (they belong to `comptes-neon-auth`).
-- Do not write the founders' story or any legal text.
-- Do not rewrite README.md/AGENTS.md's dark rule during Build: that happens at Release.
+- Do not tick either gate box.
+- Release rewrites README.md and AGENTS.md (the holding-page descriptions and the dark rule, D-9);
+  Build left them as they are.
