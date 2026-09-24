@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { comptes } from "./comptes";
 import { emails } from "./emails";
+import { famille } from "./famille";
 import { fill } from "./locale";
 
 /**
- * Spec (D-19, D-8): no page or e-mail of the accounts uses an exclamation
- * mark, an em dash, an ellipsis or the words "assurance Berceo". Walks every
- * string the two surfaces show.
+ * Spec (D-19, D-8): no page or e-mail of the accounts, and no line of the
+ * family's profile, uses an exclamation mark, an em dash, an ellipsis or the
+ * words "assurance Berceo". Walks every string the three surfaces show.
  */
 function strings(value: unknown): string[] {
   if (typeof value === "string") return [value];
@@ -18,6 +19,7 @@ function strings(value: unknown): string[] {
 describe.each([
   ["comptes", comptes.fr],
   ["emails", emails.fr],
+  ["famille", famille.fr],
 ])("%s catalogue", (_name, surface) => {
   const all = strings(surface);
 
@@ -46,6 +48,17 @@ describe("the guide's lines, verbatim", () => {
 
   it("drops the SMS claim from the phone helper (D-27)", () => {
     expect(comptes.fr.aides.telephone).not.toMatch(/SMS/i);
+  });
+});
+
+describe("the family profile's words", () => {
+  it("asks for no health information and no children's names (D-20)", () => {
+    expect(famille.fr.profil.aides.contexte).toMatch(/santé/);
+    expect(famille.fr.profil.aides.contexte).toMatch(/enfants/);
+  });
+
+  it("says the address is shared only once a booking is confirmed (D-15)", () => {
+    expect(famille.fr.profil.aides.adresse).toMatch(/réservation confirmée/);
   });
 });
 
