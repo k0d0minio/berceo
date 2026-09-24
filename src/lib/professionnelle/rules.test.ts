@@ -250,7 +250,9 @@ describe("step 4 and the states", () => {
     for (const change of ["profession", "documents", "details"] as const) {
       expect(changeNeedsReview("en_attente", change)).toBe(false);
     }
-    expect(reopenedStatus("en_attente")).toBe("en_attente");
+    // Reopening is her choice, for a profession whose documents she has not provided yet.
+    expect(reopenedStatus("en_attente")).toBe("brouillon");
+    expect(reopenedStatus("refuse")).toBe("refuse");
   });
 
   it("sends a validated file back to review on a new profession or any document change", () => {

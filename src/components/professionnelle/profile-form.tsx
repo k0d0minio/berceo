@@ -68,6 +68,15 @@ function ProfileForm({
         </FormMessage>
       ) : null}
 
+      {/*
+        A locked profession still has to reach the server with the form. Outside
+        the fieldset: a disabled fieldset disables every control in it, hidden
+        inputs included.
+      */}
+      {professionLocked && saved.profession ? (
+        <input type="hidden" name="profession" value={saved.profession} />
+      ) : null}
+
       <fieldset
         className="flex flex-col gap-3"
         disabled={professionLocked}
@@ -86,10 +95,6 @@ function ProfileForm({
             {t.professions[key]}
           </label>
         ))}
-        {/* A locked profession still has to reach the server with the form. */}
-        {professionLocked && saved.profession ? (
-          <input type="hidden" name="profession" value={saved.profession} />
-        ) : null}
         {e.profession ? (
           <p id="champ-profession-erreur" className={errorText}>
             {errorOf("profession")}

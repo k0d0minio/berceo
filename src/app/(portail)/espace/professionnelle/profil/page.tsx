@@ -53,10 +53,13 @@ export default async function DossierPage() {
   const photo = file.documents.find((d) => d.kind === "photo");
   const of = (kind: "diplome" | "attestation_inscription") =>
     file.documents.filter((d) => d.kind === kind).map((d) => ({ id: d.id, fileName: d.fileName }));
+  // The ledger keeps every acceptance; the page shows the set of her last submission.
+  const last = Math.max(0, ...file.declarations.map((d) => d.acceptedAt.getTime()));
+  const latest = file.declarations.filter((d) => d.acceptedAt.getTime() === last);
 
   return (
     <SpaceShell user={user} title={t.meta.dossier}>
-      {locked ? <ReopenDialog /> : null}
+      <ReopenDialog />
 
       <h2 className="font-display text-h2 text-sauge">{t.etapes.titres.profil}</h2>
       <ProfileForm
@@ -82,7 +85,7 @@ export default async function DossierPage() {
 
       <h2 className="font-display text-h2 text-sauge">{t.declarations.acceptees}</h2>
       <ul className="flex flex-col gap-3">
-        {file.declarations.map((d, i) => (
+        {latest.map((d, i) => (
           <li key={i} className="flex flex-col gap-1 rounded-carte bg-perle px-6 py-4 text-corps text-taupe">
             <span>{t.declarations.textes[d.declaration as keyof typeof t.declarations.textes]}</span>
             <span className="text-legende">{fill(t.declarations.accepteeLe, { date: date.format(d.acceptedAt) })}</span>

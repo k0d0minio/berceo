@@ -63,4 +63,12 @@ describe("serveFile", () => {
       `inline; filename="dipl_me.pdf"; filename*=UTF-8''dipl%C3%B4me.pdf`,
     );
   });
+
+  it("encodes the characters RFC 5987 forbids in filename*", async () => {
+    const d = deps({ id: OWNER, role: "professionnel" }, { ...file, fileName: "l'attestation (2025).pdf" });
+    const response = await serveFile(ID, d);
+    expect(response.headers.get("content-disposition")).toBe(
+      `inline; filename="l'attestation (2025).pdf"; filename*=UTF-8''l%27attestation%20%282025%29.pdf`,
+    );
+  });
 });

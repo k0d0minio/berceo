@@ -35,7 +35,12 @@ function notFound(): Response {
 /** A file name safe for a Content-Disposition header, accents kept in `filename*`. */
 function disposition(fileName: string): string {
   const ascii = fileName.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
-  return `inline; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(fileName)}`;
+  // RFC 5987: encodeURIComponent leaves ' ( ) * as they are, which `filename*` may not carry.
+  const encoded = encodeURIComponent(fileName).replace(
+    /['()*]/g,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+  return `inline; filename="${ascii}"; filename*=UTF-8''${encoded}`;
 }
 
 export async function serveFile(id: string, deps: ServeDeps): Promise<Response> {

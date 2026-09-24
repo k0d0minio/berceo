@@ -137,7 +137,18 @@ export function searchCommunes(query: string, limit = 8): Commune[] {
   return [...seen.values()];
 }
 
-/** Every postcode serving a commune, in order. */
+let postcodes: Map<string, string[]> | null = null;
+
+/** Every postcode serving a commune, in order (built once, then a lookup). */
 export function postcodesOf(ins: string): string[] {
-  return [...new Set(all().filter((l) => l.ins === ins).map((l) => l.postcode))].sort();
+  if (!postcodes) {
+    postcodes = new Map();
+    for (const l of all()) {
+      const list = postcodes.get(l.ins) ?? [];
+      if (!list.includes(l.postcode)) list.push(l.postcode);
+      postcodes.set(l.ins, list);
+    }
+    for (const list of postcodes.values()) list.sort();
+  }
+  return postcodes.get(ins) ?? [];
 }

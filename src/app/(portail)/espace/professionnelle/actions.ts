@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { redirect } from "next/navigation";
 
@@ -45,7 +45,13 @@ import { studentsAdmitted } from "@/lib/settings";
  * and every value. Messages are catalogue keys (src/content/professionnelle.ts).
  */
 
-export type FormMessage = "enregistre" | "verrouille" | "ferme" | "generique" | "declarations";
+export type FormMessage =
+  | "enregistre"
+  | "verrouille"
+  | "autresJustificatifs"
+  | "ferme"
+  | "generique"
+  | "declarations";
 
 const ONBOARDING = "/espace/professionnelle/inscription";
 const SPACE = "/espace/professionnelle";
@@ -131,6 +137,14 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
 
   // A submitted file stays complete: it is saved whole or not at all.
   const submitted = profile.status !== "brouillon";
+  // A new profession on a waiting file is kept only if the documents on file already meet it;
+  // otherwise she reopens her file (the dialog on her file's page) and goes through step 3 again.
+  if (submitted && professionChanges) {
+    const after = { ...file.state, draft: { ...file.state.draft, profession: values.profession } };
+    if (Object.keys(missingDocuments(after)).length > 0) {
+      return { message: "autresJustificatifs", values: input };
+    }
+  }
   const missing = missingProfile(values, (file.state.files.photo ?? 0) > 0);
   if (submitted || intent === "continuer") {
     const all = { ...missing, ...errors };
@@ -294,6 +308,13 @@ export async function confirmUpload(request: {
       contentType,
       sizeBytes: uploaded.size,
     });
+  } catch (error) {
+    console.error("[onboarding] upload not recorded", { profileId: profile.id, error });
+    return discard("echec");
+  }
+
+  // Recorded: from here on the new file stays, whatever happens to the old one.
+  try {
     // Her photo is one file: the new one replaces the old at once.
     if (kind === "photo") await removeDocuments(file, ["photo"]);
     await db
@@ -301,8 +322,7 @@ export async function confirmUpload(request: {
       .set({ updatedAt: new Date() })
       .where(eq(professionalProfiles.id, profile.id));
   } catch (error) {
-    console.error("[onboarding] upload not recorded", { profileId: profile.id, error });
-    return discard("echec");
+    console.error("[onboarding] old photo not removed after an upload", { profileId: profile.id, error });
   }
   return { ok: true };
 }
@@ -405,22 +425,26 @@ export async function submitFile(
   if (!DECLARATIONS.every((d) => ticked.includes(d))) return { message: "declarations", ticked };
   if (!canSubmit(file.state, ticked)) return { message: "generique", ticked };
 
-  const now = new Date();
+  // One statement: the status moves only from `brouillon`, and the five declarations are
+  // inserted only for the row that moved. A second submit (a double click, another tab)
+  // waits on the row lock, finds it no longer a draft, and inserts nothing.
+  const now = new Date().toISOString();
+  const rows = sql.join(
+    DECLARATIONS.map((d) => sql`(${d}::declaration)`),
+    sql`, `,
+  );
   try {
-    await db.batch([
-      db.insert(professionalDeclarations).values(
-        DECLARATIONS.map((declaration) => ({
-          profileId: file.profile.id,
-          declaration,
-          version: DECLARATIONS_VERSION,
-          acceptedAt: now,
-        })),
-      ),
-      db
-        .update(professionalProfiles)
-        .set({ status: "en_attente", submittedAt: now, updatedAt: now })
-        .where(and(eq(professionalProfiles.id, file.profile.id), eq(professionalProfiles.status, "brouillon"))),
-    ]);
+    await db.execute(sql`
+      with submitted as (
+        update ${professionalProfiles}
+        set status = 'en_attente', submitted_at = ${now}::timestamptz, updated_at = ${now}::timestamptz
+        where id = ${file.profile.id}::uuid and status = 'brouillon'
+        returning id
+      )
+      insert into ${professionalDeclarations} (profile_id, declaration, version, accepted_at)
+      select submitted.id, d.declaration, ${DECLARATIONS_VERSION}::text, ${now}::timestamptz
+      from submitted cross join (values ${rows}) as d(declaration)
+    `);
   } catch (error) {
     console.error("[onboarding] file not submitted", { profileId: file.profile.id, error });
     return { message: "generique", ticked };
@@ -443,7 +467,9 @@ export async function reopenFile(): Promise<void> {
     await db
       .update(professionalProfiles)
       .set({ status: next, updatedAt: new Date() })
-      .where(and(eq(professionalProfiles.id, file.profile.id), eq(professionalProfiles.status, "valide")));
+      .where(
+        and(eq(professionalProfiles.id, file.profile.id), eq(professionalProfiles.status, file.profile.status)),
+      );
   }
   redirect(`${ONBOARDING}/profil`);
 }

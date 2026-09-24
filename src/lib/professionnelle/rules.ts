@@ -357,13 +357,17 @@ export function changeNeedsReview(status: ProfileStatus, change: Change): boolea
 }
 
 /**
- * The state a validated file goes to once she confirms such a change: back to
- * the draft, so she passes through the steps again, ticks the five
- * declarations afresh and resubmits, which sets a new `submitted_at`. Until
- * then the profile is hidden, as the confirmation dialog tells her.
+ * The state a submitted file goes to once she confirms she wants a new
+ * profession or new documents: back to the draft, so she passes through the
+ * steps again, ticks the five declarations afresh and resubmits, which sets a
+ * new `submitted_at`. Until then the profile is hidden, as the confirmation
+ * dialog tells her. On a waiting file she needs it only for a profession whose
+ * documents she has not yet provided; every other edit keeps the file waiting.
  */
 export function reopenedStatus(status: ProfileStatus): ProfileStatus {
-  return status === "valide" ? "brouillon" : status;
+  return status === "valide" || status === "en_attente" || status === "complement_demande"
+    ? "brouillon"
+    : status;
 }
 
 // ---------------------------------------------------------------------------

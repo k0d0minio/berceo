@@ -208,6 +208,9 @@ export const professionnelle = catalogue({
       genre: "Ce justificatif ne correspond pas à votre profession.",
       contenu: "Ce fichier ne correspond pas à son format. Vérifiez-le et déposez-le à nouveau.",
       echec: "L'envoi n'a pas abouti. Réessayez dans un instant.",
+      /** @relecture Surya — nouvelle profession sans ses justificatifs, sur un dossier envoyé. */
+      autresJustificatifs:
+        "Cette profession demande d'autres justificatifs. Utilisez « Modifier ma profession ou mes justificatifs » pour les déposer.",
       dernier: "Déposez d'abord le nouveau fichier, puis retirez l'ancien.",
       verrouille: "Pour changer de profession ou de justificatifs, utilisez le bouton prévu à cet effet.",
       ferme: "Votre dossier ne peut plus être modifié.",
