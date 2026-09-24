@@ -8,7 +8,7 @@ project-owned: it names this repo's pages, and the sync never touches it. Valida
 `.icm/scripts/validate-knowledge-map.sh` whenever a page moves.
 
 `docs_path` is `.icm/docs` — the discovery material the engagement rests on, mostly in French.
-There is no product docs site yet; the holding page as built is described at the root.
+There is no product docs site yet; the platform as built is described at the root.
 
 ## Where the knowledge lives
 
@@ -26,9 +26,11 @@ There is no product docs site yet; the holding page as built is described at the
 - The questions asked — `.icm/docs/QUESTIONS.md`: the exhaustive discovery questionnaire with
   stable ids (`A1`, `B2`, …) that the answers and call notes reference; `.icm/docs/DECOUVERTE-BERCEO.md`
   is the pared-down French version sent to the founders.
-- The site as built — `README.md` (root): where every file of the holding page lives, and the
-  design notes (the page is a night; committed to dark). `AGENTS.md` (root): identity, routing,
-  the standing rules — never invent a commercial term, no archives or binaries, no local checks.
+- The site as built — `README.md` (root): where every file of the vitrine, accounts and the
+  signed-in spaces lives, plus the design system (Surya's light DA, D-9) and the content
+  catalogue. `AGENTS.md` (root): identity, routing, the standing rules — the light DA, the
+  editorial guide (D-19), never invent a commercial term, no archives or binaries, CI as the
+  source of truth.
 - The deal — outside this repo, in icm-board under workspaces/deals/berceo (the quote and the
   devis). No stage reads it.
 
