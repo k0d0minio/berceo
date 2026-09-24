@@ -39,12 +39,22 @@ answer is here, and it is this repo's own.
 
 ## The factory
 
-- **Required CI check** — `Lint, typecheck, test` (`required_checks` in `.icm/project.json`;
-  the name contains commas, which is why the list is an array). The workflow is `CI`
-  (`.github/workflows/ci.yml`, added 2026-09-23 with the database); the check run is named after
-  its one job: ESLint, `tsc --noEmit`, the vitest suite (today the migration-journal test). No
-  `next build` there — the build is Vercel's, read as the commit status `Vercel` through
-  `deploy.projects[].status_context`. No tiering: a draft head and a ready head run the same job.
+- **The verdict** — the `Vercel` status (`deploy.projects[].status_context`; `_shared/ci.md`
+  → the cost floor, D43). `required_checks` in `.icm/project.json` is **empty**; the merge-gate
+  ruleset on `main` requires the `Vercel` status alone, as it has since the UAT cutover.
+- **The advisory quality job** — `Quality (advisory)` in `.github/workflows/ci.yml` (added
+  2026-09-23 with the database, reshaped 2026-09-24): ESLint · `next typegen && tsc --noEmit` ·
+  the vitest suite (today the migration-journal test), as steps of one job, on a **ready** head
+  only (`ready_for_review` / `synchronize` / `reopened` with a job-level draft guard),
+  path-filtered out of `.icm/**`, markdown and `.github/**`, never on `main`, no build.
+  Reported by `ci-status.sh`, never required: a red run is a finding the stage fixes on the
+  branch. **A draft head owes CI nothing** — `lint.sh` before every push and
+  `security-check.sh` before every commit are the pre-flip check.
+- **Every other workflow, and what each costs** — `Release` (Release published: migrate,
+  promote, announce — D39), `DB migrate` (called by `Release`; production Neon from the
+  `DATABASE_URL` secret), `Neon cleanup` (PR closed: deletes `preview/<branch>` and `run/<slug>`
+  in `uat-berceo`, D41). Nothing runs on a draft, and nothing runs on `main` but the deploy.
+  The repo is public, so its minutes are free — the shape is the estate's.
 - **Deploy** — one product project, `berceo`, on the `kodominio` team; production is
   `https://www.berceo.be` (`berceo.eu` and `berceo.jamienisbet.com` alias it). The token is
   named in `project.json` and is the Actions secret `release.yaml` reads. Every branch builds a
