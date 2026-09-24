@@ -29,4 +29,11 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Schema + migration 0002 (`src/db/schema.ts`, `drizzle/`), applied on `run/onboarding-professionnelle` — b9b8d36
+- [x] Commune register 2025 + search (`scripts/communes/`, `src/lib/communes/`) — 05c0df8
+- [x] Neon bucket `documents` (private, CORS) + credential on nonprod `main`; Vercel Preview + `uat` variables — out of git
+- [x] File rules, storage, `/api/fichiers/[id]`, settings store (`src/lib/professionnelle/`, `src/lib/documents/`, `src/lib/settings/`) — b1fa5b5
+- [x] Catalogue (`src/content/professionnelle.ts`, `src/content/admin.ts`) — afe4b9d
+- [x] Onboarding pages, file page, uploads, admin switch (`src/app/(portail)/`, `src/components/professionnelle/`, `src/components/admin/`) — 9538545
+- [x] README, AGENTS, `.env.example` — 48e5a59
+- [ ] Ready flip, full gate, previews GREEN

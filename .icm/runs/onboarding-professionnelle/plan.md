@@ -18,11 +18,11 @@ reality disagrees with it — never left describing a plan that was abandoned.
    `en_attente`, the `valide` → `en_attente` rule; INAMI normalisation; field validation) and
    `src/lib/settings/` (read and write the students switch) — done when: unit tests cover every
    acceptance criterion that names a rule, with no database or network.
-3. **Communes data** — `scripts/communes/` (regenerate from Statbel REFNIS + bpost, sources named)
+3. **Communes data** — `scripts/communes/` (regenerate from NGI's 2025 register + bpost's postcodes, sources named; Statbel refuses scripts)
    and `src/lib/communes/` (the committed data, search by FR name, NL name, postcode) — done when:
    the count and NIS-uniqueness test passes and a search test finds a commune three ways.
 4. **Storage** — `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`; `src/lib/documents/`
-   (client from the five env vars, presigned PUT bound to type and size, confirm = HEAD + first
+   (client from the five `DOCUMENTS_*` env vars — Vercel reserves `AWS_*`, D-43 —, presigned PUT bound to type and size, confirm = HEAD + first
    bytes check or delete, delete, stream) and `src/app/api/fichiers/[id]/route.ts` (owner or
    admin, else 404); Neon API: private bucket, CORS, `storage:write` credential on the nonprod
    `main` branch; Vercel Preview and `uat` env vars; `.env.example` — done when: the route's

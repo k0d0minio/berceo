@@ -1,0 +1,8 @@
+## 2026-09-24T21:50:00Z session — statbel.fgov.be refuses a non-browser client
+curl https://statbel.fgov.be/sites/default/files/Over_Statbel_FR/Nomenclaturen/REFNIS_2025.csv → 200 with an HTML bot challenge (`/TSPD/?type=25`), no CSV
+- resolved: the register comes from NGI's `georef-belgium-municipality` (year 2025, 565 communes) on public.opendatasoft.com, which carries the same NIS codes; scripts/communes/build.ts names it.
+- rule: statbel.fgov.be answers scripts with a bot challenge; regenerate the commune register from NGI's dataset on public.opendatasoft.com (scripts/communes/build.ts), never from Statbel.
+
+## 2026-09-24T22:00:00Z session — NGI's postcode table misplaces postcodes
+scripts/communes/build.ts: Error: communes with no postcode: Mol, Trooz, Enghien (2400 carries Dessel's area, one commune per postcode)
+- resolved: postcodes are bpost's list (jief/zipcode-belgium) placed by point into the 2025 communes, with bpost's province ranges and a 20 km outlier rule; every commune now has a postcode and the build fails loudly otherwise.
