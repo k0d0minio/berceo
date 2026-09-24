@@ -11,3 +11,9 @@ curl -X GET  "$NEON_AUTH_BASE_URL/verify-email?token=invalid" → HTTP 401 {"cod
 [GAP]  code reads process.env.NEON_AUTH_BASE_URL and no .env.example declares it
 [GAP]  code reads process.env.NEON_AUTH_COOKIE_SECRET and no .env.example declares it
 [GAP]  code reads process.env.RESEND_API_KEY and no .env.example declares it
+- resolved: `.env.example` declares the four keys, each with its note and a `[targets]` suffix, and `env.sh audit --changed` prints RESULT: OK.
+
+## 2026-09-24 Neon API — link verification refused on the shared e-mail provider
+PATCH /projects/tiny-cell-08223046/branches/br-steep-butterfly-b27l5oo9/auth/email_and_password → HTTP 400 INVALID_EMAIL_VERIFICATION_METHOD "Verification link is not supported for shared email provider"
+PATCH /projects/tiny-cell-08223046/branches/br-withered-dust-b2e7eht6/auth/email_and_password → HTTP 400 INVALID_EMAIL_VERIFICATION_METHOD (same)
+- open: link verification needs a standard (SMTP) e-mail provider per branch; the operator's decision (handoff.md → Blockers 3).

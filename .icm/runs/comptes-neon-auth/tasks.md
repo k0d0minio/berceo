@@ -39,6 +39,6 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Pass 6 — the three spaces on the portal shell, sign-out wired
 - [x] Pass 7 — e-mail: Resend sender, layout + three templates, webhook with Ed25519 check, verification confirmation, welcome once
 - [x] Pass 8 — `npm run admin:grant`
-- [~] Pass 9 — Google removed on 3 branches, www trusted on main; env names, Vercel values and Neon e-mail + webhook settings are the operator's (handoff.md)
+- [~] Pass 9 — Google removed on 3 branches, www trusted on main; env names declared (audit OK), Vercel values set by the operator, uat webhook set by API; link verification refused by Neon on the shared e-mail provider (handoff.md)
 - [x] Pass 10 — README, AGENTS.md, project-rules
 - [ ] Cheap-tier GREEN, merge base, flip ready, full GREEN
