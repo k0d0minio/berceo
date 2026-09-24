@@ -1,7 +1,7 @@
 # Build notes: comptes-neon-auth
 
 - commits: 903e1c5 schema + 0001_comptes + vercel-build · cafeee8 accounts, spaces, e-mail, admin:grant, docs
-- ci: GREEN on cafeee8 (cheap tier: Lint, typecheck, test; Vercel build, which applied 0000 + 0001 to `preview/claude/nifty-turing-dlhore` and passed `db:verify`)
+- ci: GREEN on 19c00c2 (full gate, ready)
 
 ## What changed
 
