@@ -109,3 +109,46 @@ export function parseLocalityValue(value: string): Locality | null {
   if (at < 0) return null;
   return findLocality(value.slice(0, at), value.slice(at + 1));
 }
+
+// ---------------------------------------------------------------------------
+// Communes, for a zone (onboarding-professionnelle, D-11)
+// ---------------------------------------------------------------------------
+
+/** A commune as a professional's zone lists it: its code, its name, its postcodes. */
+export type Commune = { ins: string; name: string; postcodes: string[] };
+
+/** Whether a REFNIS code names a current commune. */
+export function isKnownCommune(ins: string): boolean {
+  return communeName(ins) !== null;
+}
+
+/**
+ * Communes matching what a person typed, through their localities: a postcode
+ * prefix or part of a name (the commune's, a locality's, or their other
+ * official name). One entry per commune, in the order its first locality
+ * matched, with every postcode the commune has.
+ */
+export function searchCommunes(query: string, limit = 8): Commune[] {
+  const seen = new Map<string, Commune>();
+  for (const l of searchLocalities(query, 200)) {
+    if (!seen.has(l.ins)) seen.set(l.ins, { ins: l.ins, name: l.commune, postcodes: postcodesOf(l.ins) });
+    if (seen.size >= limit) break;
+  }
+  return [...seen.values()];
+}
+
+let postcodes: Map<string, string[]> | null = null;
+
+/** Every postcode serving a commune, in order (built once, then a lookup). */
+export function postcodesOf(ins: string): string[] {
+  if (!postcodes) {
+    postcodes = new Map();
+    for (const l of all()) {
+      const list = postcodes.get(l.ins) ?? [];
+      if (!list.includes(l.postcode)) list.push(l.postcode);
+      postcodes.set(l.ins, list);
+    }
+    for (const list of postcodes.values()) list.sort();
+  }
+  return postcodes.get(ins) ?? [];
+}

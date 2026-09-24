@@ -33,4 +33,6 @@ The admin space's first screen: "Dossiers en attente de vérification" as a tabl
 
 - D-5, D-7 (the switch), D-8 (validation is the reassurance; no insurance claim in the validation e-mail), D-19 (the guide, "L'outil de vérification"), D-24 (confirmation colours).
 - Open: the documents required per profession decide what "complete" means in the queue.
+- Settled in `onboarding-professionnelle` (2026-09-24): the documents per profession (sage-femme and infirmière en néonatologie: diplôme + typed INAMI number; puéricultrice: diplôme; étudiante: attestation d'inscription); the students switch already lives in `app_settings` with its `/admin` toggle; the states `complement_demande`, `valide`, `refuse` are declared, this stub sets them.
+- Owed here: a refused file's documents are deleted 30 days after refusal by a scheduled purge (operator, 2026-09-24); files are served through `/api/fichiers/[id]` to admins already.
 - touches: src/db/schema.ts, drizzle/**, src/app/(admin)/**, src/lib/admin/journal.ts, src/content/admin.ts, src/content/emails.ts
