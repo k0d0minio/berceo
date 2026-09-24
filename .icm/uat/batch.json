@@ -1,7 +1,8 @@
 {
   "stubs": [
     "socle-design-system",
-    "comptes-neon-auth"
+    "comptes-neon-auth",
+    "vitrine-publique"
   ],
   "client_approved": false,
   "approved_by": "",
