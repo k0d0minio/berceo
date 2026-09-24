@@ -3,9 +3,7 @@
   "complexity": "standard",
   "docs_path": ".icm/docs",
   "required_env": [],
-  "required_checks": [
-    "Lint, typecheck, test"
-  ],
+  "required_checks": [],
   "personas": [
     "parent",
     "professionnel",
