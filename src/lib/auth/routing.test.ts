@@ -41,6 +41,22 @@ describe("each role lands on its own space (spec)", () => {
     });
   });
 
+  it("opens the family profile to a parent only", () => {
+    expect(accessFor("parent", "/espace/famille/profil")).toEqual({ kind: "allow" });
+    expect(accessFor("professionnel", "/espace/famille/profil")).toEqual({
+      kind: "redirect",
+      to: "/espace/professionnelle",
+    });
+    expect(accessFor("admin", "/espace/famille/profil")).toEqual({
+      kind: "redirect",
+      to: "/admin",
+    });
+    expect(accessFor(null, "/espace/famille/profil")).toEqual({
+      kind: "redirect",
+      to: "/connexion?retour=%2Fespace%2Ffamille%2Fprofil",
+    });
+  });
+
   it("does not mistake a lookalike path for a space", () => {
     expect(accessFor("admin", "/administration")).toEqual({
       kind: "redirect",

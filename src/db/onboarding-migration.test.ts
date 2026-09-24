@@ -10,11 +10,11 @@ import { describe, expect, it } from "vitest";
  * refused, 100 and 300 accepted (03_build/output/notes.md).
  */
 const sql = readFileSync(
-  fileURLToPath(new URL("../../drizzle/0002_onboarding_professionnelle.sql", import.meta.url)),
+  fileURLToPath(new URL("../../drizzle/0003_onboarding_professionnelle.sql", import.meta.url)),
   "utf8",
 );
 
-describe("migration 0002_onboarding_professionnelle", () => {
+describe("migration 0003_onboarding_professionnelle", () => {
   it.each([
     "professional_profiles",
     "professional_communes",

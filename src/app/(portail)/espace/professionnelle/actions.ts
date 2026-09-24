@@ -157,7 +157,7 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
       writes.push(
         db
           .insert(professionalCommunes)
-          .values(values.communes.map((nisCode) => ({ profileId: profile.id, nisCode }))),
+          .values(values.communes.map((communeIns) => ({ profileId: profile.id, communeIns }))),
       );
     }
   }

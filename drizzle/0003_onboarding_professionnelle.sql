@@ -12,8 +12,8 @@ CREATE TABLE "app_settings" (
 --> statement-breakpoint
 CREATE TABLE "professional_communes" (
 	"profile_id" uuid NOT NULL,
-	"nis_code" text NOT NULL,
-	CONSTRAINT "professional_communes_profile_id_nis_code_pk" PRIMARY KEY("profile_id","nis_code")
+	"commune_ins" text NOT NULL,
+	CONSTRAINT "professional_communes_profile_id_commune_ins_pk" PRIMARY KEY("profile_id","commune_ins")
 );
 --> statement-breakpoint
 CREATE TABLE "professional_declarations" (
@@ -60,6 +60,6 @@ ALTER TABLE "professional_communes" ADD CONSTRAINT "professional_communes_profil
 ALTER TABLE "professional_declarations" ADD CONSTRAINT "professional_declarations_profile_id_professional_profiles_id_fk" FOREIGN KEY ("profile_id") REFERENCES "public"."professional_profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "professional_documents" ADD CONSTRAINT "professional_documents_profile_id_professional_profiles_id_fk" FOREIGN KEY ("profile_id") REFERENCES "public"."professional_profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "professional_profiles" ADD CONSTRAINT "professional_profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "professional_communes_nis_code_idx" ON "professional_communes" USING btree ("nis_code");--> statement-breakpoint
+CREATE INDEX "professional_communes_commune_ins_idx" ON "professional_communes" USING btree ("commune_ins");--> statement-breakpoint
 CREATE INDEX "professional_declarations_profile_id_idx" ON "professional_declarations" USING btree ("profile_id");--> statement-breakpoint
 CREATE INDEX "professional_documents_profile_id_idx" ON "professional_documents" USING btree ("profile_id");

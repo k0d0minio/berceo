@@ -52,7 +52,7 @@ export async function loadFile(userId: string): Promise<ProfessionalFile> {
 
   const [communes, documents, declarations] = await Promise.all([
     db
-      .select({ nis: professionalCommunes.nisCode })
+      .select({ ins: professionalCommunes.communeIns })
       .from(professionalCommunes)
       .where(eq(professionalCommunes.profileId, profile.id)),
     db
@@ -74,10 +74,10 @@ export async function loadFile(userId: string): Promise<ProfessionalFile> {
   const files: Partial<Record<DocumentKind, number>> = {};
   for (const doc of documents) files[doc.kind] = (files[doc.kind] ?? 0) + 1;
 
-  const nis = communes.map((c) => c.nis);
+  const codes = communes.map((c) => c.ins);
   return {
     profile,
-    communes: nis,
+    communes: codes,
     documents,
     declarations,
     state: {
@@ -85,7 +85,7 @@ export async function loadFile(userId: string): Promise<ProfessionalFile> {
       draft: {
         profession: profile.profession,
         specialisations: profile.specialisations.filter(isSpecialisation),
-        communes: nis,
+        communes: codes,
         nightRateEur: profile.nightRateEur,
         experience: profile.experience,
         bio: profile.bio,

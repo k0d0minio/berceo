@@ -1,10 +1,10 @@
-# Status: onboarding-professionnelle
+# Status: profil-famille
 
 Where the run is, in five lines. Updated at every stage start and stop, and whenever a flag
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: release
-- step: 1
-- ci: GREEN (full gate, 9c5b18c: Vercel preview + Quality advisory 374/374 tests)
+- step: done
+- ci: GREEN
 - blocked: no
 - updated: 2026-09-24

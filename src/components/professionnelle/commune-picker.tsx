@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input"
 import { fill, words } from "@/content/locale"
 import { professionnelle } from "@/content/professionnelle"
 import { COMMUNES_MAX } from "@/lib/professionnelle/rules"
-import { communeByNis, searchCommunes } from "@/lib/communes"
+import { communeName, searchCommunes } from "@/lib/communes"
 
 /*
  * "Ma zone d'intervention" (D-11): she types a commune's French or Dutch name
- * or a postcode and picks from the suggestions; each commune she picked shows
+ * or a postcode and picks from the suggestions (the shared register,
+ * src/lib/communes, through its localities); each commune she picked shows
  * as a removable capsule. Only NIS codes leave the form (hidden inputs named
  * `communes`), never free text. Arrow keys move through the suggestions,
  * Enter picks, Escape closes (the ARIA combobox pattern).
@@ -34,7 +35,7 @@ function CommunePicker({
   const listId = `${id}-suggestions`
 
   const suggestions = React.useMemo(
-    () => searchCommunes(query).filter((c) => !selected.includes(c.nis)),
+    () => searchCommunes(query).filter((c) => !selected.includes(c.ins)),
     [query, selected],
   )
   const open = query.trim().length > 0
@@ -58,7 +59,7 @@ function CommunePicker({
     } else if (event.key === "Enter") {
       // Enter picks a commune; it never submits the whole form from here.
       event.preventDefault()
-      if (suggestions[active]) pick(suggestions[active].nis)
+      if (suggestions[active]) pick(suggestions[active].ins)
     } else if (event.key === "Escape") {
       setQuery("")
     }
@@ -73,7 +74,7 @@ function CommunePicker({
       {selected.length > 0 ? (
         <ul className="flex flex-wrap gap-2">
           {selected.map((nis) => {
-            const name = communeByNis(nis)?.fr ?? nis
+            const name = communeName(nis) ?? nis
             return (
               <li key={nis}>
                 <button
@@ -98,7 +99,7 @@ function CommunePicker({
           aria-expanded={open}
           aria-controls={listId}
           aria-autocomplete="list"
-          aria-activedescendant={open && suggestions[active] ? `${listId}-${suggestions[active].nis}` : undefined}
+          aria-activedescendant={open && suggestions[active] ? `${listId}-${suggestions[active].ins}` : undefined}
           aria-describedby={describedBy}
           aria-invalid={invalid ? true : undefined}
           aria-label={t.rechercheCommune}
@@ -121,14 +122,14 @@ function CommunePicker({
             ) : (
               suggestions.map((commune, i) => (
                 <li
-                  key={commune.nis}
-                  id={`${listId}-${commune.nis}`}
+                  key={commune.ins}
+                  id={`${listId}-${commune.ins}`}
                   role="option"
                   aria-selected={i === active}
                   onMouseDown={(event) => {
                     // Keep the focus in the field while the pointer picks.
                     event.preventDefault()
-                    pick(commune.nis)
+                    pick(commune.ins)
                   }}
                   onMouseEnter={() => setActive(i)}
                   className={
@@ -137,8 +138,7 @@ function CommunePicker({
                       : "cursor-pointer px-6 py-2 text-corps text-taupe"
                   }
                 >
-                  <span className="font-semibold">{commune.fr}</span>
-                  {commune.nl ? <span> ({commune.nl})</span> : null}
+                  <span className="font-semibold">{commune.name}</span>
                   <span className="text-legende"> {commune.postcodes.slice(0, 3).join(", ")}</span>
                 </li>
               ))
