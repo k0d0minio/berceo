@@ -13,9 +13,16 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Every word in `src/content/` (D-19); `@relecture` on anything not verbatim from the guide.
+- No insurance wording (D-8), no Facebook group (D-23), no price but 100–300 € and 3 % (D-2,
+  D-3, D-4), no blanket "diplômées" (D-7), the CTA rule (D-25).
+- No colour value or literal text in a component; no shadow (socle's rules, D-9).
+- The sign-up routes are `comptes-neon-auth`'s: link to them, never create them here.
+- No legal text and no founders' story is written; placeholders only, `noindex`.
+- Base branch is `uat` (D-22); the run merges there, production is the promotion.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `origin/uat`'s shipped socle build notes, shell components and `src/content/` to
+  set `touches:` against the real tree (the stub guessed `src/app/(vitrine)/**`; socle shipped the
+  `(public)` group), and the four image-bank PNGs to settle D-20's reach.
