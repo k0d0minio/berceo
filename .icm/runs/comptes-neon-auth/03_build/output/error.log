@@ -17,3 +17,12 @@ curl -X GET  "$NEON_AUTH_BASE_URL/verify-email?token=invalid" → HTTP 401 {"cod
 PATCH /projects/tiny-cell-08223046/branches/br-steep-butterfly-b27l5oo9/auth/email_and_password → HTTP 400 INVALID_EMAIL_VERIFICATION_METHOD "Verification link is not supported for shared email provider"
 PATCH /projects/tiny-cell-08223046/branches/br-withered-dust-b2e7eht6/auth/email_and_password → HTTP 400 INVALID_EMAIL_VERIFICATION_METHOD (same)
 - resolved: the operator set Resend SMTP (standard provider) on main, preview/uat and the PR preview, and link verification on main and preview/uat, in the Neon Console.
+
+## 2026-09-24T12:00:00Z session — /security-review: sign-up's role argument is trusted from the client
+src/app/(auth)/actions.ts signUp(role, …): a server action's bound argument can be rewritten by the caller; "admin" passed the TypeScript type and the user_role enum, so anyone could sign up as admin (D-33 bypass).
+- resolved: `isSignUpRole()` allow-lists parent and professionnel at runtime before anything is read or written, with a test; no admin row found on the PR preview's database.
+- rule: never trust a server action's arguments, bound ones included; check every role, id or flag at runtime inside the action.
+
+## 2026-09-24T12:00:00Z session — /code-review (high) findings fixed in-ticket before release
+webhook JWKS fetch failure answered 401 (Neon does not retry); welcome claim error 500'd the confirmer after verification; "+32 (0)470…" stored with the trunk 0; sign-in return path dropped the query string.
+- resolved: JWKS failure throws (500, Neon retries); the claim is caught and logged; "(0)" and a 0 after 32 are dropped, with tests; the proxy keeps `search`. Six other findings parked in triage (comptes-orphaned-auth-identity, comptes-welcome-email-no-retry, comptes-compound-first-name, comptes-auth-cleanups).

@@ -10,6 +10,7 @@ import { authOutcome } from "@/lib/auth/errors";
 import { landingFor, SIGN_IN_PATH } from "@/lib/auth/routing";
 import { getAuth } from "@/lib/auth/server";
 import {
+  isSignUpRole,
   isValidEmail,
   normalizeEmail,
   passwordErrors,
@@ -48,6 +49,9 @@ export async function signUp(
   _previous: SignUpState,
   form: FormData,
 ): Promise<SignUpState> {
+  // A server action's arguments come from the client: never trust the bound role.
+  if (!isSignUpRole(role)) return { message: "generique" };
+
   const input = readSignUpForm(form);
   const values = {
     prenom: input.prenom,

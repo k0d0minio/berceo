@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isSignUpRole,
   normalizePhone,
   passwordErrors,
   readSignUpForm,
@@ -85,6 +86,9 @@ describe("phone numbers are stored as E.164 (spec: Belgian national and internat
     ["+32 470 12 34 56", "+32470123456"],
     ["0032 470 12 34 56", "+32470123456"],
     ["+33 6 12 34 56 78", "+33612345678"],
+    ["+32 (0)470 12 34 56", "+32470123456"],
+    ["+32 0470 12 34 56", "+32470123456"],
+    ["0032 (0)2 123 45 67", "+3221234567"],
   ])("%s → %s", (raw, e164) => {
     expect(normalizePhone(raw)).toBe(e164);
   });
@@ -107,5 +111,15 @@ describe("reading the form", () => {
     expect(input.nom).toBe("");
     expect(input.consentement).toBe(true);
     expect(readSignUpForm(new FormData()).consentement).toBe(false);
+  });
+});
+
+describe("only the two sign-up roles can be signed up (D-33)", () => {
+  it.each(["parent", "professionnel"])("%s is accepted", (role) => {
+    expect(isSignUpRole(role)).toBe(true);
+  });
+
+  it.each(["admin", "", "Parent", null, undefined, 1, {}])("%s is refused", (role) => {
+    expect(isSignUpRole(role)).toBe(false);
   });
 });

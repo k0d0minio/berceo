@@ -73,7 +73,8 @@ export function isValidEmail(email: string): boolean {
  * (landline) or 10 (mobile).
  */
 export function normalizePhone(raw: string): string | null {
-  const compact = raw.trim().replace(/[\s.\-/()]/g, "");
+  // "(0)" is the trunk digit Belgians write after +32; E.164 drops it.
+  const compact = raw.trim().replace(/\(0\)/g, "").replace(/[\s.\-/()]/g, "");
   if (compact === "") return null;
 
   let international: string;
@@ -86,6 +87,9 @@ export function normalizePhone(raw: string): string | null {
   } else {
     return null;
   }
+
+  // A trunk 0 written after Belgium's code (+32 0470…) is dropped as well.
+  if (/^320\d{8,9}$/.test(international)) international = `32${international.slice(3)}`;
 
   // E.164: a country code that does not start with 0, 8 to 15 digits in all.
   if (!/^[1-9]\d{7,14}$/.test(international)) return null;
@@ -156,4 +160,13 @@ export function readSignUpForm(form: FormData): SignUpInput {
     confirmation: text("confirmation"),
     consentement: form.get("consentement") === "on",
   };
+}
+
+/**
+ * The roles a sign-up form may create. The role reaches the server action as
+ * an argument the client can rewrite, so it is checked at runtime: admins are
+ * granted by `npm run admin:grant`, never signed up (D-33).
+ */
+export function isSignUpRole(value: unknown): value is "parent" | "professionnel" {
+  return value === "parent" || value === "professionnel";
 }

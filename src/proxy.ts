@@ -20,7 +20,7 @@ export default async function proxy(request: NextRequest) {
 
   const location = response.headers.get("location");
   if (location && new URL(location, request.url).pathname === SIGN_IN_PATH) {
-    const back = new URL(signInWithReturn(request.nextUrl.pathname), request.url);
+    const back = new URL(signInWithReturn(request.nextUrl.pathname + request.nextUrl.search), request.url);
     response.headers.set("location", back.toString());
   }
   return response;

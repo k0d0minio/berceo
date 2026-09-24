@@ -17,11 +17,17 @@ import { SPACES } from "./routing";
 export async function sendWelcomeIfDue(user: User, siteUrl: string): Promise<void> {
   if (user.role !== "parent" || user.welcomeSentAt) return;
 
-  const claimed = await db
-    .update(users)
-    .set({ welcomeSentAt: new Date() })
-    .where(and(eq(users.id, user.id), isNull(users.welcomeSentAt)))
-    .returning({ id: users.id });
+  let claimed: { id: string }[];
+  try {
+    claimed = await db
+      .update(users)
+      .set({ welcomeSentAt: new Date() })
+      .where(and(eq(users.id, user.id), isNull(users.welcomeSentAt)))
+      .returning({ id: users.id });
+  } catch (error) {
+    console.error("[comptes] welcome claim failed", { userId: user.id, error });
+    return;
+  }
   if (claimed.length === 0) return;
 
   try {

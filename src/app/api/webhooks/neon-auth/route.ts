@@ -26,7 +26,12 @@ async function keyFor(kid: string): Promise<Jwk | null> {
 
   fetchedAt = Date.now();
   const response = await fetch(`${authBaseUrl()}/.well-known/jwks.json`, { cache: "no-store" });
-  if (!response.ok) return null;
+  // An unreachable JWKS is our failure, not a bad signature: throw, so the
+  // route answers 500 and Neon retries instead of dropping the e-mail.
+  if (!response.ok) {
+    fetchedAt = 0;
+    throw new Error(`JWKS fetch failed: HTTP ${response.status}`);
+  }
   keys = ((await response.json()) as { keys?: Jwk[] }).keys ?? [];
   return keys.find((key) => key.kid === kid) ?? null;
 }
