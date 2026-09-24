@@ -128,6 +128,7 @@ function ProfileForm({
           emptyText={t.commune.aucunResultat}
           listLabel={t.commune.liste}
           defaultValue={locality}
+          defaultText={v && !locality ? v.commune : undefined}
         />
         <p className="text-corps text-taupe">{t.aides.adresse}</p>
         <div className="grid gap-6 md:grid-cols-[1fr_8rem_8rem]">

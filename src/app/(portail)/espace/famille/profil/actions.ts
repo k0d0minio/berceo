@@ -40,7 +40,14 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
   try {
     await saveFamilyProfile(user.id, values);
   } catch (writeError) {
-    console.error("[famille] profile not saved", { userId: user.id, writeError });
+    // Never the error itself: Drizzle's message lists the query's parameters,
+    // which here are the family's address and phone.
+    const cause = (writeError as { cause?: { code?: unknown } } | null)?.cause;
+    console.error("[famille] profile not saved", {
+      userId: user.id,
+      error: writeError instanceof Error ? writeError.name : typeof writeError,
+      code: typeof cause?.code === "string" ? cause.code : undefined,
+    });
     return { message: "generique", values: input };
   }
 

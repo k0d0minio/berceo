@@ -28,6 +28,7 @@ function CommuneCombobox({
   emptyText,
   listLabel,
   defaultValue,
+  defaultText,
 }: {
   name: string
   label: string
@@ -37,6 +38,8 @@ function CommuneCombobox({
   emptyText: string
   listLabel: string
   defaultValue: Locality | null
+  /** Text typed but not picked, kept when a refused form comes back. */
+  defaultText?: string
 }) {
   const id = `champ-${name}`
   const listId = `${id}-liste`
@@ -44,7 +47,9 @@ function CommuneCombobox({
   const errorId = error ? `${id}-erreur` : undefined
 
   const [selected, setSelected] = React.useState<Locality | null>(defaultValue)
-  const [query, setQuery] = React.useState(defaultValue ? localityLabel(defaultValue) : "")
+  const [query, setQuery] = React.useState(
+    defaultValue ? localityLabel(defaultValue) : (defaultText ?? ""),
+  )
   const [open, setOpen] = React.useState(false)
   const [active, setActive] = React.useState(0)
 

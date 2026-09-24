@@ -41,3 +41,13 @@
 - The combobox ships the list to the browser (≈116 KB raw, much less gzipped) on the profile page only.
 - `getAuth().updateUser` is the only Neon Auth call new here; on failure it logs `[famille] Neon Auth name not updated` and the save still succeeds.
 - Look closely at: the forged-value path (`parseLocalityValue`), the batch in `saveFamilyProfile`, and the guard test's allowed list.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the release head (ci-status.sh, after the last push — read in the stop report)
+- reviews: code medium (1 finding, fixed: a refused form kept no unpicked commune text) + code low on the fix delta (none) · security OK (security-check.sh --branch --audit) + /security-review — no finding at or above the bar; one below it fixed (a failed save logged the whole Drizzle error, whose message carries the address and phone — now the error name and code only) · readiness OK (env.sh audit --changed); /production-readiness n/a — the skill is not shipped in this repo
+- parked: none
+- migrations: skip — none stamped (drizzle journal; 0002_family_profiles applied and verified on the preview)
+- learned: 1 rule appended to _shared/project-rules.md (Statbel downloads)
+- docs: no docs impact (.icm/docs is discovery material; README and AGENTS.md updated in Build) · announce: deferred to promotion
