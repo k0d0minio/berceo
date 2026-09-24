@@ -7,7 +7,9 @@
  * append-only ledger beside it (`user_consents`), so a new version of the CGU
  * adds a row and the history of what each person accepted is kept (B-06).
  */
+import { sql } from "drizzle-orm";
 import {
+  check,
   index,
   pgEnum,
   pgTable,
@@ -15,6 +17,8 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+
+import { CONTEXT_MAX } from "../lib/famille/limits";
 
 // ---------------------------------------------------------------------------
 // People
@@ -58,6 +62,48 @@ export const users = pgTable("users", {
 });
 
 // ---------------------------------------------------------------------------
+// The family's profile
+// ---------------------------------------------------------------------------
+
+/**
+ * One row per parent, written at the first save of the profile. Kept off
+ * `users` because `currentUser()` loads that row on every request and hands it
+ * to every page: the address must travel nowhere but its owner's page (D-15).
+ * Only `src/lib/famille/` reads `street`, `house_number` and `box`.
+ *
+ * The commune is a locality of the official list (`src/lib/communes/`): its
+ * postcode and name, and the commune's REFNIS code, which is what matching
+ * keys on.
+ */
+export const familyProfiles = pgTable(
+  "family_profiles",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    communeIns: text("commune_ins").notNull(),
+    postcode: text("postcode").notNull(),
+    locality: text("locality").notNull(),
+    /** The address, optional until a booking is confirmed. */
+    street: text("street"),
+    houseNumber: text("house_number"),
+    box: text("box"),
+    /** A short optional line about the family; never health data. */
+    context: text("context"),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("family_profiles_commune_ins_idx").on(table.communeIns),
+    check(
+      "family_profiles_context_length",
+      sql`char_length(${table.context}) <= ${sql.raw(String(CONTEXT_MAX))}`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Consent
 // ---------------------------------------------------------------------------
 
@@ -88,5 +134,6 @@ export const userConsents = pgTable(
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type UserRole = (typeof userRoleEnum.enumValues)[number];
+export type FamilyProfile = typeof familyProfiles.$inferSelect;
 export type UserConsent = typeof userConsents.$inferSelect;
 export type ConsentDocument = (typeof consentDocumentEnum.enumValues)[number];
