@@ -38,8 +38,8 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- D-28 — The network is "professionnelles de santé vérifiées par Berceo" with the professions named; "diplômée" only next to a named profession; students unmentioned while the switch is off; every such entry `@relecture`. The guide's H1 and main message lose their blanket "diplômées". Operator, Define, 2026-09-24 (answers D-7's open wording).
-- D-29 — `/qui-sommes-nous` ships as a placeholder block with the soft CTA, `noindex` and out of the sitemap, until the founders deliver their first-person text. Operator, Define, 2026-09-24.
-- D-30 — The four DA image-bank photographs (1, 4, 5, 8) are used on the vitrine as optimised WebP. D-20's "no photos of children" governs user uploads, not the brand's generated imagery. Operator, Define, 2026-09-24.
-- D-31 — `robots.txt` allows indexing only when `VERCEL_ENV` is `production`; UAT and previews disallow everything. The legal and story placeholders are `noindex`. Define, 2026-09-24.
-- D-32 — The two CTAs link to `/inscription-famille` and `/inscription-professionnelle`, served by `comptes-neon-auth`; this run does not create them and they 404 on UAT until that run merges. Define, 2026-09-24 (the header shipped by socle already does the same).
+- V-1 (Define) — The network is "professionnelles de santé vérifiées par Berceo" with the professions named; "diplômée" only next to a named profession; students unmentioned while the switch is off; every such entry `@relecture`. The guide's H1 and main message lose their blanket "diplômées". Operator, Define, 2026-09-24 (answers D-7's open wording).
+- V-2 (Define) — `/qui-sommes-nous` ships as a placeholder block with the soft CTA, `noindex` and out of the sitemap, until the founders deliver their first-person text. Operator, Define, 2026-09-24.
+- V-3 (Define) — The four DA image-bank photographs (1, 4, 5, 8) are used on the vitrine as optimised WebP. D-20's "no photos of children" governs user uploads, not the brand's generated imagery. Operator, Define, 2026-09-24.
+- V-4 (Define) — `robots.txt` allows indexing only when `VERCEL_ENV` is `production`; UAT and previews disallow everything. The legal and story placeholders are `noindex`. Define, 2026-09-24.
+- V-5 (Define) — The two CTAs link to `/inscription-famille` and `/inscription-professionnelle`, served by `comptes-neon-auth`; this run does not create them and they 404 on UAT until that run merges. Define, 2026-09-24 (the header shipped by socle already does the same).
