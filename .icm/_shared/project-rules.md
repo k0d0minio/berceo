@@ -200,3 +200,6 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - statbel.fgov.be downloads sit behind a JavaScript bot challenge; a script cannot fetch them. Take Belgian REFNIS codes from Eurostat's LAU file and check new codes by hand on Statbel. (`ERR_CERT_AUTHORITY_INVALID`, seen 1× — profil-famille; drizzle, drizzle/meta, root, scripts/communes)
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - When a spec names an external dataset, Define checks from a session that a script can download it, and names the fallback if it cannot. (`FAILURE.md` — profil-famille)
+
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- when a merge of main renumbers this branch's Drizzle migration, the PR's Neon preview branch still holds the old one: drop its objects and its __drizzle_migrations row (or reset the branch from its parent) before trusting the next preview build. (`error: command "npm run vercel-build" exited with n (applying migrations`, seen 1× — onboarding-professionnelle; drizzle, drizzle/meta, root, src/app)

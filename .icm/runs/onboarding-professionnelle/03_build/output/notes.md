@@ -5,8 +5,8 @@
 
 ## What changed
 
-- `src/db/schema.ts`, `drizzle/0002_onboarding_professionnelle.sql`: five enums, `professional_profiles` (CHECKs: rate 100–300, bio ≤ 500, INAMI 11 digits), `professional_communes`, `professional_documents`, `professional_declarations`, `app_settings`. Applied on the run's Neon branch `run/onboarding-professionnelle` with `db:migrate` + `db:verify` (3 of 3 journal entries); a live insert there refused a rate of 99 and 301 and accepted 100 and 300.
-- `scripts/communes/build.ts`, `src/lib/communes/`: the 565 communes of 2025 (NGI), French and Dutch names, 1,145 postcodes; search by name or postcode.
+- `src/db/schema.ts`, `drizzle/0003_onboarding_professionnelle.sql` (regenerated after main's 0002 at Release): five enums, `professional_profiles` (CHECKs: rate 100–300, bio ≤ 500, INAMI 11 digits), `professional_communes` (`commune_ins`), `professional_documents`, `professional_declarations`, `app_settings`. Applied on the run's Neon branch `run/onboarding-professionnelle` with `db:migrate` + `db:verify` (3 of 3 journal entries); a live insert there refused a rate of 99 and 301 and accepted 100 and 300.
+- `src/lib/communes/`: at Release this run's own register was dropped for the shared list main gained with the family's profile (D-49); `searchCommunes`, `postcodesOf` and `isKnownCommune` were added on top for the zone (`zone.test.ts`).
 - `src/lib/professionnelle/rules.ts`: the whole spec as pure functions (requirements per profession, completeness, first incomplete step, submission, the `valide` rule, upload checks, magic-byte sniffing, who reads a file). `file.ts` loads a file; `src/lib/settings/` the students switch.
 - `src/lib/documents/`: the S3 client on Neon Object Storage (presigned PUT, inspect, delete, stream) and `serveFile` behind `/api/fichiers/[id]`.
 - `src/app/(portail)/espace/professionnelle/`: the space's redirect by state, the three step pages behind `openStep`, the file page, and every server action (role, state and values checked at runtime).
@@ -40,7 +40,18 @@
 
 - Not run locally, by the repo's rule: typecheck, lint, the vitest suite, the build. The Quality (advisory) job and the preview are the first to compile this branch; read them closely.
 - Spec gaps decided here, in decisions.md: D-43 (`DOCUMENTS_S3_*` names, Vercel reserves `AWS_*`), D-44 (reopening a validated file goes through `brouillon`), D-45 (the photo is a document row, not `photo_file_id`), D-46 (postcode source), D-47 (the last file of a required document cannot be removed from a submitted file).
-- The postcode list carries a few stray links (a postcode suggested for a neighbouring commune when OpenStreetMap placed a single locality wrong, e.g. 2223 under Anvers). NIS codes are exact; only the picker's suggestions are affected.
 - Production is not set up (D41): a private `documents` bucket, its CORS rule for `https://www.berceo.be`, a credential on production's `main` branch and the five Vercel Production variables are the operator's before the batch is promoted. `env.sh audit --changed` reports those Production gaps on purpose.
 - The run's Neon branch `run/onboarding-professionnelle` expires on its own in 7 days; `db-branch.sh onboarding-professionnelle down` releases it at close-out.
 - Context budget: over the Inputs table. Neon object-storage docs, the Vercel project's environment list, the Eurostat LAU file and the NGI and bpost-derived datasets were read to build the storage and the register.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 6e464a3 (ci-status.sh, full gate: Vercel preview built and migrated; Quality lint · typecheck · tests passed) — re-read after the last push
+- reviews: code high (/code-review: 10 findings — 7 fixed on the branch in 6e464a3, 3 parked) · security security-check.sh --branch --audit: OK (gitleaks absent — built-in patterns) + /security-review — no finding at confidence 8 or above · readiness env.sh audit --changed: OK · /production-readiness n/a — the skill is not installed in this session
+- parked: onboarding-upload-limit-race.md, onboarding-cleanups.md
+- migrations: regenerated as 0003 after main's 0002_family_profiles (drizzle journal; check-migrations.sh SKIP — not a stamped tool), applied 0000–0003 on run/onboarding-professionnelle; the PR's preview branch had its pre-merge objects dropped (operator-approved) before the rebuild
+- learned: 1 rule appended to _shared/project-rules.md (a candidate duplicating profil-famille's Statbel rule was deleted); FAILURE.md adds 1 at close-out
+- docs: README and AGENTS updated in the branch; no docs-tree impact · announce: deferred to promotion
+- context budget: over — the merge of main required reading profil-famille's commune module and schema
+

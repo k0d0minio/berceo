@@ -6,3 +6,8 @@ curl https://statbel.fgov.be/sites/default/files/Over_Statbel_FR/Nomenclaturen/R
 ## 2026-09-24T22:00:00Z session — NGI's postcode table misplaces postcodes
 scripts/communes/build.ts: Error: communes with no postcode: Mol, Trooz, Enghien (2400 carries Dessel's area, one commune per postcode)
 - resolved: postcodes are bpost's list (jief/zipcode-belgium) placed by point into the 2025 communes, with bpost's province ranges and a 20 km outlier rule; every commune now has a postcode and the build fails loudly otherwise.
+
+## 2026-09-24T22:40:00Z ci Vercel — preview build fails in `drizzle-kit migrate` after merging main
+Error: Command "npm run vercel-build" exited with 1 (applying migrations: 0003_onboarding_professionnelle hit types created by this run's pre-merge 0002, still recorded on preview/claude/quirky-cannon-ta3dag)
+- resolved: main's 0002_family_profiles took the number this run had used; the migration was regenerated as 0003 on the merged tree, and the PR's preview branch (empty) had the pre-merge objects and their __drizzle_migrations row dropped (operator-approved), then the build re-applied 0002 and 0003.
+- rule: when a merge of main renumbers this branch's Drizzle migration, the PR's Neon preview branch still holds the old one: drop its objects and its __drizzle_migrations row (or reset the branch from its parent) before trusting the next preview build.
