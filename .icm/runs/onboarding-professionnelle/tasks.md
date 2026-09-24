@@ -36,4 +36,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Catalogue (`src/content/professionnelle.ts`, `src/content/admin.ts`) — afe4b9d
 - [x] Onboarding pages, file page, uploads, admin switch (`src/app/(portail)/`, `src/components/professionnelle/`, `src/components/admin/`) — 9538545
 - [x] README, AGENTS, `.env.example` — 48e5a59
-- [ ] Ready flip, full gate, previews GREEN
+- [x] Ready flip, full gate, previews GREEN — 9c5b18c

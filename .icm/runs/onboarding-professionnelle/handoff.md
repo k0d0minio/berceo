@@ -6,18 +6,25 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. The operator reads `02_define/output/spec.md` and ticks **Spec approved** on
-   https://github.com/k0d0minio/berceo/pull/35 (or asks for `revise onboarding-professionnelle "<what>"`).
-2. Then `/pipeline build onboarding-professionnelle`, following `plan.md` pass by pass.
+1. The operator smokes the preview https://berceo-git-claude-quirky-cannon-ta3dag-kodominio.vercel.app
+   (a professional account on that preview's branch: the four steps, uploads, submission, the file
+   page; an admin for `/admin`), then ticks **Ready to merge** on https://github.com/k0d0minio/berceo/pull/35.
+2. `/pipeline release onboarding-professionnelle`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** on https://github.com/k0d0minio/berceo/pull/35.
+- blocked on operator: tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/35 after the smoke.
+- blocked on operator: Release stop class 3 re-asks `env.sh audit --changed`, which reports the five
+  `DOCUMENTS_*` keys missing on Vercel Production. Production's store is the operator's (D41): a
+  private `documents` bucket on production's Neon `main` branch, its CORS rule (PUT from
+  `https://www.berceo.be`), a `storage:read`+`storage:write` credential, and the five variables on
+  Vercel Production. Either set them before Release, or tell Release to record the gap as owed
+  before the promotion.
 
 ## Do not
 
-- Do not start Build before the Spec approved box is ticked; never tick it.
-- Do not write to the production Neon project (`tiny-cell-08223046`): its bucket, credential and
-  Vercel Production variables are the operator's before promotion (D41).
-- Do not build the founders' review, the refusal purge or any family-facing profile view: stubs 5,
-  7, 8, 15 own them.
+- Do not write to the production Neon project (`tiny-cell-08223046`) from a run (D41).
+- Do not tick Ready to merge.
+- Do not print or commit the storage credential; it lives only in Vercel (sensitive) and Neon.
+- The acceptance line "uat.berceo.be applies the migration" is proven only once the merge deploys
+  UAT; Release reads it.
