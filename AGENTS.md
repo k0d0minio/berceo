@@ -5,9 +5,10 @@
 
 ## What this repo is
 
-**berceo** — the **holding page for Berceo**, a Belgian two-sided marketplace connecting
+**berceo** — the **platform for Berceo**, a Belgian two-sided marketplace connecting
 parents of newborns with professionals who take overnight post-partum care shifts
-(*gardes de nuit*). One screen, in French, that says the site is being built.
+(*gardes de nuit*). In French: the public site (the vitrine), accounts and the signed-in
+spaces, built increment by increment on `uat` and promoted to production as a batch.
 
 Next.js (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui · Drizzle on Neon Postgres,
 deployed on Vercel. The
@@ -17,21 +18,24 @@ The engagement was won in September 2026 and the repo pivoted from proposal docu
 product site. The proposal and discovery questionnaire that used to live here are gone
 from the working tree — they are preserved in git history and in [`.icm/docs/`](.icm/docs/).
 
-**This page is public.** It is indexable, it carries an OG card, and it is the first thing
-anyone who hears the brand name will find. That is a deliberate reversal of the old
-`robots: noindex` — this repo used to hold a private client document and now holds a
-public one. If Berceo wants the brand kept quiet until launch, put `robots` back in
-[`src/app/layout.tsx`](src/app/layout.tsx); it is a two-line change.
+**The vitrine is public.** Production is indexable, carries an OG card, and is the first
+thing anyone who hears the brand name will find. Only production: [`src/app/robots.ts`](src/app/robots.ts)
+allows crawling when `VERCEL_ENV` is `production` and refuses every crawler on UAT and the
+previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` in
+[`src/app/site.ts`](src/app/site.ts) false; it is a one-line change.
 
 ## Routing — "if the task is… → go to…"
 
 | The task | Go to |
 |---|---|
 | Change any word on the site | [`src/content/`](src/content/) — one file per surface, keyed by locale; README → The content catalogue |
-| The holding page at `/` | [`src/app/(holding)/page.tsx`](src/app/(holding)/page.tsx) — one screen, no nav, the `.nuit` palette |
-| Colour, type scale, radii, stripes, the breathing animation | [`src/app/globals.css`](src/app/globals.css) — the DA's tokens + the holding page's `.nuit` scope |
+| The vitrine's pages | [`src/app/(public)/`](src/app/(public)/) — `/`, `/comment-ca-marche`, `/tarifs`, `/faq`, and the placeholders `/qui-sommes-nous`, `/conditions-generales`, `/confidentialite` (noindex until their texts arrive); blocks in [`src/components/vitrine/`](src/components/vitrine/) |
+| Page titles, descriptions, OG tags | each page's `meta` in its catalogue file, built by [`src/app/(public)/page-metadata.ts`](src/app/(public)/page-metadata.ts); `vitrine.test.ts` holds them to 50–60 and 140–160 characters |
+| Sitemap, robots, the production URL | [`src/app/sitemap.ts`](src/app/sitemap.ts), [`src/app/robots.ts`](src/app/robots.ts), [`src/app/site.ts`](src/app/site.ts) |
+| Photographs, the OG card | [`public/photos/`](public/photos/) (WebP, alt texts in `src/content/photos.ts`), [`public/og.png`](public/og.png) |
+| Colour, type scale, radii, stripes | [`src/app/globals.css`](src/app/globals.css) — the DA's tokens, the only file holding a colour |
 | Fonts | [`src/app/fonts.ts`](src/app/fonts.ts) — the one file that names a typeface (Fraunces stands in for Comodo) |
-| Root metadata, the light root layout | [`src/app/layout.tsx`](src/app/layout.tsx); the holding page's metadata and OG card are in its `page.tsx` |
+| Root metadata, the light root layout | [`src/app/layout.tsx`](src/app/layout.tsx) — `metadataBase` is production |
 | See every token and component | `/design-system` ([`src/app/(public)/design-system/`](src/app/(public)/design-system/)) and `/design-system/portail` — noindex |
 | Header, footer, portal shell | [`src/components/shell/`](src/components/shell/) |
 | The health endpoint | [`src/app/api/health/route.ts`](src/app/api/health/route.ts) |
@@ -48,10 +52,17 @@ public one. If Berceo wants the brand kept quiet until launch, put `robots` back
 
 - **Never invent a commercial term.** Rates, scope, launch dates and contact addresses
   come from Jamie or from `.icm/docs/`. Berceo has no published email or domain yet — a
-  blank is the correct state until it does. The holding page deliberately shows no
-  contact for exactly this reason.
-- **The page is committed to dark.** Berceo is a night service; there is no light theme
-  and no toggle. Don't add one back "for completeness".
+  blank is the correct state until it does. The vitrine deliberately shows no contact
+  for exactly this reason.
+- **The platform is light, per Surya's art direction (D-9).** White base, sage, taupe,
+  pearl, butter yellow, the stripes; Comodo (Fraunces until delivered) and Nunito; capsule
+  buttons, 32 px cards. No shadow, no gendered pink or blue, no naïve illustration, no gadget
+  animation; red and green only in confirmation dialogs (D-24). There is no dark theme and no
+  toggle — the old night holding page is gone.
+- **Every word follows Surya's guide (D-19).** Vouvoiement; no `!`, `…` or `—`; no insurance
+  wording (D-8), no Facebook group (D-23), no price but 100–300 € and 3 % (D-2–D-4), no
+  blanket « diplômées » (D-7); `@relecture` on anything not quoted from the guide.
+  `src/content/vitrine.test.ts` enforces the mechanical part.
 - **Never commit archives or binaries over a few MB.** A 58MB brand-pack zip and 51MB of
   flattened JPGs once landed here and had to be purged from history with a force-push.
   `.gitignore` now blocks `*.zip` and friends. Brand masters live in Drive.

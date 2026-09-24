@@ -167,3 +167,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - a review fix is itself reviewed before the merge; re-run the reviewer on the fix commit's delta. (`normalizephone('(n)n n n n') returned null after the "(n)" strip; a jwks`, seen 1× — comptes-neon-auth; .claude, drizzle, drizzle/meta, public/emails)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- After a push, trust a `ci-status.sh` verdict only when its `head` line matches `git rev-parse --short HEAD`; re-run it otherwise. (`FAILURE.md` — vitrine-publique)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- When a spec quotes Surya's guide verbatim for a title or meta description, measure it against the guide's own length rules in Define, not in Build. (`FAILURE.md` — vitrine-publique)

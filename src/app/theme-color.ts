@@ -9,5 +9,3 @@
 /** The DA's --blanc. */
 export const themeColorJour = "#ffffff";
 
-/** The holding page's --nuit-900 (`.nuit`). */
-export const themeColorNuit = "#0b1a16";

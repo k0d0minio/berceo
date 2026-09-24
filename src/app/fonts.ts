@@ -1,4 +1,4 @@
-import { Fraunces, Karla, Nunito } from "next/font/google";
+import { Fraunces, Nunito } from "next/font/google";
 
 /*
  * Every typeface the site loads is bound here, and only here.
@@ -23,12 +23,3 @@ export const texte = Nunito({
   display: "swap",
 });
 
-/*
- * Karla is the holding page's text face and nothing else's. Only
- * src/app/(holding)/layout.tsx loads it, so the platform never downloads it.
- */
-export const karla = Karla({
-  variable: "--font-karla",
-  subsets: ["latin"],
-  display: "swap",
-});

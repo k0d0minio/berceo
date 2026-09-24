@@ -3,8 +3,8 @@
 **Berceo** — a Belgian marketplace connecting parents of newborns with professionals who
 take overnight post-partum care shifts.
 
-Today `/` is a one-screen holding page, in French, saying the site is being built. Under it
-sits the platform's foundation: Surya's design system, the app shell and the content catalogue.
+In French: the public site (the vitrine) at `/`, accounts on Neon Auth and the signed-in
+spaces, on Surya's design system, the app shell and the content catalogue.
 
 Next.js (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui.
 
@@ -20,18 +20,20 @@ npm run dev      # http://localhost:3000
 | Path | Purpose |
 | --- | --- |
 | [src/content/](src/content/) | Every word the site shows, one file per surface. See **The content catalogue** below. |
-| [src/app/(holding)/](src/app/(holding)/) | The holding page at `/` — one screen, no navigation, still the night palette. |
-| [src/app/(public)/](src/app/(public)/) | Public pages, under the public header and footer. Holds `/design-system` today. |
+| [src/app/(public)/](src/app/(public)/) | The vitrine, under the public header and footer: `/`, `/comment-ca-marche`, `/tarifs`, `/faq`, the placeholders `/qui-sommes-nous`, `/conditions-generales`, `/confidentialite`, and `/design-system`. `page-metadata.ts` builds each page's title, description, canonical and OG tags. |
+| [src/components/vitrine/](src/components/vitrine/) | The vitrine's blocks: section band, page header, photo, steps, reason cards, the two-door CTA pair, the placeholder page. Words come in as props. |
+| [src/app/sitemap.ts](src/app/sitemap.ts), [robots.ts](src/app/robots.ts), [site.ts](src/app/site.ts) | The four indexable pages on `https://www.berceo.be`; crawling allowed on production only (`VERCEL_ENV`). |
 | [src/app/(portail)/](src/app/(portail)/) | `/design-system/portail`: the signed-in portal's shell with sample navigation. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
-| [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency), and the holding page's `.nuit` scope with its `souffle` / `halo` / `lever` animations. The only file that holds a colour. |
-| [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo), Nunito, Karla for the holding page. |
-| [src/app/theme-color.ts](src/app/theme-color.ts) | The two browser-chrome colours — a `<meta>` cannot read a CSS variable. |
-| [src/app/layout.tsx](src/app/layout.tsx) | The light root layout. |
+| [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
+| [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
+| [src/app/theme-color.ts](src/app/theme-color.ts) | The browser-chrome colour — a `<meta>` cannot read a CSS variable. |
+| [src/app/layout.tsx](src/app/layout.tsx) | The light root layout; `metadataBase` is production. |
 | [src/components/ui/](src/components/ui/) | shadcn components retuned to the DA, plus `confirm-dialog`, `striped-section`, `translucent-block`, `input`. |
 | [src/components/shell/](src/components/shell/) | Public header and footer, the portal shell, the mobile menu, the sign-out dialog. |
 | [src/components/berceo-logo.tsx](src/components/berceo-logo.tsx) | Wordmark and logomark, inlined so they take `currentColor`. |
 | [public/logos/](public/logos/) | Brand pack. SVG is what the site uses; PNG for raster; `.ai` is the source. |
+| [public/photos/](public/photos/), [public/og.png](public/og.png) | The DA's four photographs as WebP (1600 × 900, under 300 KB each) and the 1200 × 630 share card. |
 
 `/design-system` shows every token and component of the DA on one page, with the header and
 footer. It and `/design-system/portail` are `noindex, nofollow` and linked from nowhere.
@@ -63,13 +65,21 @@ Surya).
 Every word lives in `src/content/`, in French, written to Surya's editorial guide (D-19):
 vouvoiement, no exclamation mark, no em dash, no ellipsis, the validated lexicon.
 
-- **One file per surface**: `common.ts` (brand, header, footer, the two CTAs of D-25),
-  `holding.ts`, `design-system.ts`, `portal.ts`. A new screen adds its own file.
+- **One file per surface**: `common.ts` (brand, header, footer, the CTAs of D-25),
+  `accueil.ts`, `comment-ca-marche.ts`, `tarifs.ts`, `faq.ts`, `qui-sommes-nous.ts`,
+  `legal.ts`, `photos.ts` (sources and alt texts), `comptes.ts`, `emails.ts`,
+  `design-system.ts`, `portal.ts`. A new screen adds its own file. A vitrine page's `meta`
+  (title and description) sits in its own file.
 - **Keyed by locale**: each file exports `catalogue({ fr: { … } })`. Components read it with
   `words(surface)`, which returns the default locale. `locale.ts` holds `locales`,
   `defaultLocale` and the types.
 - **`@relecture`**: an entry the guide does not give verbatim carries a JSDoc
-  `@relecture Surya — <why>` tag. `grep -rn @relecture src/content` is the list to send Surya.
+  `@relecture Surya — <why>` tag (on an object, it covers every entry inside it).
+  `grep -rn @relecture src/content` is the list to send Surya.
+- **The rules are tested**: `src/content/vitrine.test.ts` fails on `!`, `…`, `—`, insurance
+  wording (D-8), Facebook (D-23), a subscription tier, an amount in euros other than 100 and
+  300, "abonnement" except to say there is none, and a title or description out of the
+  guide's lengths (50–60, 140–160) or used twice.
 - **Adding a language**: add its code to `locales` in `locale.ts`, then add the same key to
   every `catalogue({ … })`. The type is derived from French, so a surface that misses the new
   locale, or a key inside it, fails the typecheck.
@@ -77,7 +87,7 @@ vouvoiement, no exclamation mark, no em dash, no ellipsis, the validated lexicon
 ## Database (Neon Postgres + Drizzle)
 
 The platform's data starts here: one Neon Postgres database, read through
-[Drizzle ORM](https://orm.drizzle.team). The holding page itself reads nothing from it yet.
+[Drizzle ORM](https://orm.drizzle.team). The vitrine itself reads nothing from it.
 
 - **Schema:** `src/db/schema.ts` — `users` (the Neon Auth id in `auth_user_id`, e-mail, first
   and last name, E.164 phone, role: `parent` | `professionnel` | `admin`, `welcome_sent_at`) and
@@ -131,17 +141,22 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   config requires verification, turns Google off, trusts the site's domains and points the
   webhook at that environment's `/api/webhooks/neon-auth`.
 
-## The holding page
+## The vitrine
 
-- **The page is a night.** `/` still shows the dark holding page until the vitrine replaces
-  it. Its palette lives under `.nuit` in `globals.css`, scoped by `src/app/(holding)/layout.tsx`,
-  so it never reaches the light platform.
-- **The signature is the breathing logomark.** A five-second rise and fall inside a soft pool
-  of light, the way a *veilleuse* sits in a nursery. `prefers-reduced-motion` turns it off.
-- **Type**: Fraunces for the headline (through the display slot), Karla for text.
+- **Two doors from the first screen.** The home page's H1 and both calls to action sit above
+  the fold on a phone: the family's (filled sage) to `/inscription-famille`, "Rejoindre le
+  réseau" (outlined) to `/inscription-professionnelle`. "Trouver votre gardienne de la nuit"
+  is used only under text that names health professionals; everywhere else it is "Trouver une
+  professionnelle" (D-25).
+- **Reassurance is the manual verification**, never insurance (D-8).
+- **Prices**: the professional's night rate between 100 € and 300 €, paid to her directly, and
+  the 3 % service fee with its refund rule. No subscription in V1 (D-3).
+- **Placeholders**: `/qui-sommes-nous` waits for the founders' first-person story (D-23), the
+  two legal pages for the founders' texts. All three are `noindex` and out of the sitemap;
+  lifting that is part of the change that brings the text.
 - **No contact is shown.** Berceo has no published address yet, and inventing one would
   be worse than showing none.
-- The page **is indexed**. See AGENTS.md if that needs reversing.
+- **Indexed on production only.** See AGENTS.md if that needs reversing.
 
 ## Notes
 
