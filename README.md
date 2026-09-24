@@ -23,7 +23,8 @@ npm run dev      # http://localhost:3000
 | [src/app/(public)/](src/app/(public)/) | The vitrine, under the public header and footer: `/`, `/comment-ca-marche`, `/tarifs`, `/faq`, the placeholders `/qui-sommes-nous`, `/conditions-generales`, `/confidentialite`, and `/design-system`. `page-metadata.ts` builds each page's title, description, canonical and OG tags. |
 | [src/components/vitrine/](src/components/vitrine/) | The vitrine's blocks: section band, page header, photo, steps, reason cards, the two-door CTA pair, the placeholder page. Words come in as props. |
 | [src/app/sitemap.ts](src/app/sitemap.ts), [robots.ts](src/app/robots.ts), [site.ts](src/app/site.ts) | The four indexable pages on `https://www.berceo.be`; crawling allowed on production only (`VERCEL_ENV`). |
-| [src/app/(portail)/](src/app/(portail)/) | `/design-system/portail`: the signed-in portal's shell with sample navigation. |
+| [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
+| [src/lib/professionnelle/](src/lib/professionnelle/), [src/lib/documents/](src/lib/documents/), [src/lib/communes/](src/lib/communes/) | The professional's file: its rules, the private document bucket and `/api/fichiers/[id]`, the Belgian commune register. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
 | [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
@@ -92,8 +93,13 @@ The platform's data starts here: one Neon Postgres database, read through
 - **Schema:** `src/db/schema.ts` — `users` (the Neon Auth id in `auth_user_id`, e-mail, first
   and last name, E.164 phone, role: `parent` | `professionnel` | `admin`, `welcome_sent_at`) and
   `user_consents`, an append-only ledger of the CGU and privacy-policy versions each account
-  accepted, with the moment. Identity itself lives in Neon Auth's `neon_auth` schema, which Neon
-  manages and Drizzle never declares.
+  accepted, with the moment. A professional's file (0002): `professional_profiles` (one per
+  professional: status, profession, spécialisations, experience, night rate held to 100–300 € by
+  a `CHECK`, bio, INAMI number, `submitted_at`), `professional_communes` (NIS codes),
+  `professional_documents` (her files in the private bucket) and `professional_declarations`
+  (append-only, with the wording version). `app_settings` holds the founders' switches.
+  Identity itself lives in Neon Auth's `neon_auth` schema, which Neon manages and Drizzle never
+  declares.
 - **Client:** `src/db/index.ts` — a lazily-initialized Drizzle client on Neon's serverless HTTP
   driver. Import `db` from server code only.
 - **Migrations:** `drizzle/` — `NNNN_<name>.sql` plus `meta/_journal.json`, the order of record.
@@ -140,6 +146,28 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   `NEON_AUTH_COOKIE_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`. On each Neon branch, Neon Auth's
   config requires verification, turns Google off, trusts the site's domains and points the
   webhook at that environment's `/api/webhooks/neon-auth`.
+
+## The professional's onboarding and documents
+
+- **Steps (D-21):** `/espace/professionnelle` sends a draft file to its first incomplete step:
+  `/espace/professionnelle/inscription/profil`, `…/justificatifs`, `…/declarations`. Once
+  submitted, the file is `en_attente` and `/espace/professionnelle/profil` edits it. The rules
+  (requirements per profession, completeness, states, file checks) are pure functions in
+  `src/lib/professionnelle/rules.ts`; the actions are
+  `src/app/(portail)/espace/professionnelle/actions.ts`; the words `src/content/professionnelle.ts`.
+- **Documents and photos** live in a private bucket on **Neon Object Storage** (S3-compatible,
+  eu-central-1), one per Neon project: UAT and previews share the non-production one, production
+  has its own. The browser uploads straight to it with a five-minute presigned PUT; the server
+  then checks the size and first bytes before recording the file (`src/lib/documents/`). Files are
+  read only through `/api/fichiers/[id]`, streamed to their owner or an admin, 404 to anyone else.
+  Environment: `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION`, `DOCUMENTS_BUCKET`,
+  `DOCUMENTS_S3_ACCESS_KEY_ID`, `DOCUMENTS_S3_SECRET_ACCESS_KEY` (not `AWS_*`: Vercel reserves
+  those). The bucket's CORS rule allows PUT from `https://uat.berceo.be`, the project's preview
+  origins and `http://localhost:3000`.
+- **Communes (D-11):** `src/lib/communes/communes.json`, the 565 communes of 2025 by NIS code
+  with their French and Dutch names and postcodes, searched in the browser by the commune picker.
+  `npx tsx scripts/communes/build.ts` regenerates it and names its sources.
+- **The students switch (D-7)** is `etudiantes_admises` in `app_settings`, flipped on `/admin`.
 
 ## The vitrine
 
