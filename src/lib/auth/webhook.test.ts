@@ -31,12 +31,12 @@ function signed(body: string, opts: { at?: number; key?: typeof privateKey; kid?
   });
 }
 
-function event(linkType: string, id = "evt-1") {
+function event(linkType: string, id = "evt-1", name = "Julie|Dupont") {
   return JSON.stringify({
     event_id: id,
     event_type: "send.magic_link",
     timestamp: new Date(NOW).toISOString(),
-    user: { email: "julie@exemple.be", name: "Julie Dupont" },
+    user: { email: "julie@exemple.be", name },
     event_data: { link_type: linkType, token: "tok/en+1", link_url: "https://neon.example/verify" },
   });
 }
@@ -106,6 +106,14 @@ describe("Neon Auth webhook: e-mails", () => {
       "https://uat.berceo.be/verification-email/confirmer?token=tok%2Fen%2B1",
     );
     expect(email.text).toContain("Bonjour Julie,");
+  });
+
+  it("greets with the whole first name when it is compound and the users row is not written yet", async () => {
+    const d = deps();
+    const body = event("email-verification", "evt-compound", "Marie Claire|Dupont");
+    await handleNeonAuthWebhook(body, signed(body), SITE, d);
+    const [, email] = vi.mocked(d.send).mock.calls[0];
+    expect(email.text).toContain("Bonjour Marie Claire,");
   });
 
   it("sends the reset e-mail with a link to the new-password page", async () => {
