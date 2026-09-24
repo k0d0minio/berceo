@@ -15,6 +15,13 @@
       "when": 1790198012572,
       "tag": "0001_comptes",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790287374168,
+      "tag": "0002_family_profiles",
+      "breakpoints": true
     }
   ]
 }
