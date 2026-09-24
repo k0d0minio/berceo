@@ -203,3 +203,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - when a merge of main renumbers this branch's Drizzle migration, the PR's Neon preview branch still holds the old one: drop its objects and its __drizzle_migrations row (or reset the branch from its parent) before trusting the next preview build. (`error: command "npm run vercel-build" exited with n (applying migrations`, seen 1× — onboarding-professionnelle; drizzle, drizzle/meta, root, src/app)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- Before building a module other stubs of the same scope also name (a shared list, a shared component), check `main` and the live sibling runs' branches for it, and build on the one that exists rather than a second copy. (`FAILURE.md` — onboarding-professionnelle)
