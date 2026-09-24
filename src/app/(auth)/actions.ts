@@ -69,7 +69,10 @@ export async function signUp(
   const { data, error } = await getAuth().signUp.email({
     email,
     password,
-    name: `${firstName} ${lastName}`,
+    // "|" keeps the first name recoverable even when it is itself compound
+    // ("Marie Claire"): webhook.ts's prenomFor() splits on it, never on
+    // whitespace, for the users row race on the first verification e-mail.
+    name: `${firstName}|${lastName}`,
   });
 
   if (error) {
