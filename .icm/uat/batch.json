@@ -1,6 +1,7 @@
 {
   "stubs": [
-    "socle-design-system"
+    "socle-design-system",
+    "comptes-neon-auth"
   ],
   "client_approved": false,
   "approved_by": "",

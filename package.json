@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "if [ \"$VERCEL_ENV\" != production ]; then npm run db:migrate && npm run db:verify; fi && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
@@ -14,9 +15,11 @@
     "db:migrate": "drizzle-kit migrate",
     "db:verify": "tsx scripts/verify-migrations.ts",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "admin:grant": "tsx --conditions=react-server scripts/grant-admin.ts"
   },
   "dependencies": {
+    "@neondatabase/auth": "0.5.0-beta",
     "@neondatabase/serverless": "^0.10.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -27,6 +30,7 @@
     "radix-ui": "^1.6.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "resend": "^6.28.1",
     "server-only": "^0.0.1",
     "shadcn": "^4.16.2",
     "tailwind-merge": "^3.6.0",

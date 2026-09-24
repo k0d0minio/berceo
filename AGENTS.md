@@ -37,7 +37,8 @@ public one. If Berceo wants the brand kept quiet until launch, put `robots` back
 | The health endpoint | [`src/app/api/health/route.ts`](src/app/api/health/route.ts) |
 | The logo marks | [`src/components/berceo-logo.tsx`](src/components/berceo-logo.tsx) — inlined, `currentColor` |
 | Brand artwork | [`public/logos/`](public/logos/) — SVG is what the site uses; PNG for raster; `.ai` is the source |
-| The data model | [`src/db/schema.ts`](src/db/schema.ts) — Drizzle, one `users` table; `db` client in `src/db/index.ts` |
+| The data model | [`src/db/schema.ts`](src/db/schema.ts) — Drizzle: `users` (persona, joined to Neon Auth by `auth_user_id`) and the `user_consents` ledger; `db` client in `src/db/index.ts` |
+| Accounts, sign-in, roles, e-mail | [`src/lib/auth/`](src/lib/auth/) and [`src/lib/email/`](src/lib/email/); pages in `src/app/(auth)/`, spaces in `src/app/(portail)/`; README → Accounts and e-mail |
 | A schema change | edit the schema, `npm run db:generate -- --name <what>`, commit `drizzle/`; `.icm/skills/database-migration/` |
 | shadcn components | [`src/components/ui/`](src/components/ui/) — retuned to the DA; red and green only in `confirm-dialog.tsx` (D-24) |
 | The research behind the engagement | [`.icm/docs/`](.icm/docs/) — `REPORT.md`, `cahier-des-charges.md`, `QUESTIONS.md` |
