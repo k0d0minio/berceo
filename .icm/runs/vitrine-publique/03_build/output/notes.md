@@ -1,7 +1,7 @@
 # Build notes: vitrine-publique
 
 - commits: 70445fd `feat: vitrine-publique — the public site replaces the holding page` · 7481214 merge of `origin/uat` (brings `comptes-neon-auth`, #22)
-- ci: GREEN on 9a17520 (cheap tier); re-settling after the `uat` merge
+- ci: GREEN on 9eb8a0d (cheap tier, after the `uat` merge); PR flipped ready
 
 ## What changed
 
