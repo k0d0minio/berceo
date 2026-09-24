@@ -1,0 +1,16 @@
+## 2026-09-24T21:45:00Z session — Statbel's REFNIS download returns a bot-challenge page, not the file
+curl https://statbel.fgov.be/sites/default/files/files/opendata/REFNIS%20code/TU_COM_REFNIS.zip → 200 text/html (TSPD challenge); unzip: End-of-central-directory signature not found
+headless Chromium: page.goto: net::ERR_CERT_AUTHORITY_INVALID; with request routing the TSPD challenge never resolved
+- resolved: The REFNIS codes are read from Eurostat's LAU list for Belgium (the same codes, as of 2024) plus the 2025 mergers' codes listed in scripts/communes/generate.py; the generator fails on any bpost commune it cannot place.
+- rule: statbel.fgov.be downloads sit behind a JavaScript bot challenge; a script cannot fetch them. Take Belgian REFNIS codes from Eurostat's LAU file and check new codes by hand on Statbel.
+
+## 2026-09-24T21:55:00Z session — Wikidata's SPARQL endpoint answers 502/504, and its REFNIS codes are inconsistent
+curl https://query.wikidata.org/sparql → 504 upstream request timeout, then 502 Bad Gateway (three tries)
+Q819152 Hoeselt P1567 = 71072 (Hasselt's new code); Borsbeek P1567 = 11007A
+- resolved: Wikidata is not used as a source; the merger codes it gave are kept only where the commune counts check (581 − 29 absorbed + 13 = 565, bpost's count) and are marked for a hand check on Statbel.
+
+## 2026-09-24T22:00:00Z session — generate.py: two bpost communes with no single REFNIS code
+bpost communes with no single REFNIS code:
+  HAM-SUR-HEURE → no REFNIS code
+  SAINT-NICOLAS → ['46021', '62093']
+- resolved: BPOST_OVERRIDES in the generator places both by (commune, province): Ham-sur-Heure is Ham-sur-Heure-Nalinnes (56086); Saint-Nicolas in Liège is 62093, not Sint-Niklaas, whose French name it shares.

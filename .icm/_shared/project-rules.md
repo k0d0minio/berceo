@@ -195,3 +195,8 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - After a push, trust a `ci-status.sh` verdict only when its `head` line matches `git rev-parse --short HEAD`; re-run it otherwise. (`FAILURE.md` — vitrine-publique)
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - When a spec quotes Surya's guide verbatim for a title or meta description, measure it against the guide's own length rules in Define, not in Build. (`FAILURE.md` — vitrine-publique)
+
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- statbel.fgov.be downloads sit behind a JavaScript bot challenge; a script cannot fetch them. Take Belgian REFNIS codes from Eurostat's LAU file and check new codes by hand on Statbel. (`ERR_CERT_AUTHORITY_INVALID`, seen 1× — profil-famille; drizzle, drizzle/meta, root, scripts/communes)
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- When a spec names an external dataset, Define checks from a session that a script can download it, and names the fallback if it cannot. (`FAILURE.md` — profil-famille)

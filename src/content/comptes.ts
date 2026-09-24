@@ -188,6 +188,8 @@ export const comptes = catalogue({
       salutation: "Bonjour {prenom}",
       /** @relecture Surya — entrée de navigation de l'espace. */
       navAccueil: "Mon espace",
+      /** @relecture Surya — entrée de navigation vers le profil de la famille. */
+      navProfil: "Mon profil",
       famille: {
         /** @relecture Surya — espace famille avant la publication des demandes. */
         vide: "Votre espace est prêt. Vous pourrez bientôt y publier vos demandes de garde.",
