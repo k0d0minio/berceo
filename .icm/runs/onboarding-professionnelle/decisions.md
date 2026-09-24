@@ -38,5 +38,8 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-38 — Professions and documents: sage-femme and infirmière en néonatologie give a diploma and a typed INAMI number; puéricultrice a diplôme or certificat de puériculture; étudiante sage-femme (3e ou 4e année) an attestation d'inscription for the current year. One to three files per document. Operator, Define, 2026-09-24.
+- D-39 — The students switch (D-7) is a row in `app_settings` flipped by an admin on `/admin`, off by default; off hides the option from anyone not already carrying it. Operator, Define, 2026-09-24.
+- D-40 — Documents and photos live in Neon Object Storage (eu-central-1), one private bucket per Neon project, uploaded by presigned PUT and served only through `/api/fichiers/[id]` to the owner or an admin. Operator, Define, 2026-09-24.
+- D-41 — Retention: a replaced or removed document is deleted at once; a refused file's documents 30 days after refusal (built in stub 5); a validated file keeps them while the account exists. Operator, Define, 2026-09-24.
+- D-42 — Spécialisations are an optional multi-select from a draft list (`@relecture`); expérience is one of four ranges; the photo is required; the file stays editable while `en_attente`. Operator, Define, 2026-09-24.
