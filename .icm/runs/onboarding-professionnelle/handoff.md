@@ -14,14 +14,12 @@ stops, so nothing is carried in anyone's head.
 ## Blockers
 
 - blocked on operator: tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/35 after the smoke.
-- Production's store, as of 2026-09-24: the private `documents` bucket exists on production's
-  `main` branch (`br-long-brook-b2qw6uzd`), and `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION` and
-  `DOCUMENTS_BUCKET` are set on Vercel Production. Still owed before the promotion (not before this
-  merge): a `storage:read`+`storage:write` credential on that branch, its two values as
-  `DOCUMENTS_S3_ACCESS_KEY_ID` and `DOCUMENTS_S3_SECRET_ACCESS_KEY` (sensitive) on Vercel
-  Production, and the bucket's CORS rule allowing PUT from `https://www.berceo.be`. The session's
-  permission check refused minting the credential. Release records the two missing keys as owed
-  before the promotion, not as a stop.
+- Production's store, as of 2026-09-24: the private `documents` bucket on production's `main`
+  branch (`br-long-brook-b2qw6uzd`) and all five `DOCUMENTS_*` variables on Vercel Production (the
+  credential set by the operator); `env.sh audit --changed` → OK. Still owed before the promotion,
+  not before this merge: the bucket's CORS rule allowing PUT from `https://www.berceo.be` (S3
+  `PutBucketCors`, which needs that credential). Without it, uploads on www.berceo.be fail in the
+  browser; nothing else is affected.
 
 ## Do not
 
