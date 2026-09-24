@@ -14,12 +14,14 @@ stops, so nothing is carried in anyone's head.
 ## Blockers
 
 - blocked on operator: tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/35 after the smoke.
-- blocked on operator: Release stop class 3 re-asks `env.sh audit --changed`, which reports the five
-  `DOCUMENTS_*` keys missing on Vercel Production. Production's store is the operator's (D41): a
-  private `documents` bucket on production's Neon `main` branch, its CORS rule (PUT from
-  `https://www.berceo.be`), a `storage:read`+`storage:write` credential, and the five variables on
-  Vercel Production. Either set them before Release, or tell Release to record the gap as owed
-  before the promotion.
+- Production's store, as of 2026-09-24: the private `documents` bucket exists on production's
+  `main` branch (`br-long-brook-b2qw6uzd`), and `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION` and
+  `DOCUMENTS_BUCKET` are set on Vercel Production. Still owed before the promotion (not before this
+  merge): a `storage:read`+`storage:write` credential on that branch, its two values as
+  `DOCUMENTS_S3_ACCESS_KEY_ID` and `DOCUMENTS_S3_SECRET_ACCESS_KEY` (sensitive) on Vercel
+  Production, and the bucket's CORS rule allowing PUT from `https://www.berceo.be`. The session's
+  permission check refused minting the credential. Release records the two missing keys as owed
+  before the promotion, not as a stop.
 
 ## Do not
 
