@@ -12,9 +12,6 @@
  *
  * Tailwind's default palette is switched off so an off-brand `bg-red-500`
  * cannot creep in: the only colours that exist are the ones declared here.
- *
- * The holding page at `/` is still the old night page. Its palette lives under
- * `.nuit` further down and applies to nothing else.
  */
 @theme {
   --color-*: initial;
@@ -55,12 +52,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-
-  /* --- the holding page's night palette, used under .nuit only --- */
-  --color-nuit-menthe: var(--nuit-menthe);
-  --color-nuit-veilleuse: var(--nuit-veilleuse);
-  --color-nuit-sauge: var(--nuit-sauge);
-  --color-nuit-lin: var(--nuit-lin);
 
   /*
    * Type. The faces are bound in src/app/fonts.ts: --font-titre is Comodo's
@@ -206,125 +197,5 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 3px;
-  }
-}
-
-/*
- * The holding page — the night.
- *
- * `/` still shows the dark holding page until the vitrine replaces it. Its
- * palette is scoped to `.nuit` (set by src/app/(holding)/layout.tsx) so it
- * cannot leak into the light platform, and the page keeps its old look: a
- * green dark built from the brand mint, a warm veilleuse behind the mark.
- */
-.nuit {
-  --nuit-menthe: #8baf9f;
-  --nuit-veilleuse: #fbfe95;
-  --nuit-sauge: #acbeab;
-  --nuit-lin: #d9e3d8;
-  --nuit-950: #071310;
-  --nuit-900: #0b1a16;
-
-  color-scheme: dark;
-  font-family: var(--font-karla);
-  font-size: 1rem;
-  line-height: 1.5;
-  color: var(--nuit-lin);
-}
-
-html:has(.nuit) {
-  color-scheme: dark;
-}
-
-/* The night covers the whole canvas, overscroll included, as it did before. */
-html:has(.nuit) body {
-  background-color: #0b1a16;
-  background-image:
-    radial-gradient(
-      58rem 44rem at 50% 38%,
-      color-mix(in oklab, #fbfe95 7%, transparent) 0%,
-      transparent 68%
-    ),
-    radial-gradient(
-      34rem 30rem at 50% 34%,
-      color-mix(in oklab, #8baf9f 13%, transparent) 0%,
-      transparent 70%
-    ),
-    radial-gradient(120% 120% at 50% 50%, transparent 42%, #071310 100%);
-  background-attachment: fixed;
-}
-
-.nuit ::selection {
-  background: color-mix(in oklab, var(--nuit-menthe) 30%, transparent);
-  color: var(--nuit-lin);
-}
-
-.nuit :focus-visible {
-  outline: 2px solid var(--nuit-menthe);
-  outline-offset: 3px;
-}
-
-/*
- * The signature: the logomark breathes.
- *
- * A slow, shallow rise and fall — a settled sleeping breath, not a heartbeat.
- * The halo swells a beat behind the mark so the light feels like it is coming
- * off the figure rather than being painted on it.
- */
-@keyframes berceo-souffle {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.035);
-  }
-}
-
-@keyframes berceo-halo {
-  0%,
-  100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.82;
-    transform: scale(1.09);
-  }
-}
-
-/* Page-load sequence: everything rises once, in order, then settles. */
-@keyframes berceo-lever {
-  from {
-    opacity: 0;
-    transform: translateY(0.75rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@layer components {
-  .souffle {
-    animation: berceo-souffle 5s ease-in-out infinite;
-  }
-  .halo {
-    animation: berceo-halo 5s ease-in-out infinite;
-  }
-  .lever {
-    animation: berceo-lever 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .souffle,
-  .halo,
-  .lever {
-    animation: none;
-  }
-  .lever {
-    opacity: 1;
-    transform: none;
   }
 }

@@ -5,7 +5,7 @@ import { PublicHeader } from "@/components/shell/public-header";
 
 /*
  * Every public page: the header, the page, the footer. The vitrine's pages
- * land in this group; today it holds only the design-system reference.
+ * and the design-system reference live in this group.
  */
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (

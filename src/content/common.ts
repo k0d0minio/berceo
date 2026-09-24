@@ -62,6 +62,8 @@ export const common = catalogue({
     cta: {
       trouverGardienne: "Trouver votre gardienne de la nuit",
       trouverProfessionnelle: "Trouver une professionnelle",
+      /** The professional's door, the guide's recommended wording (vitrine). */
+      rejoindreReseau: "Rejoindre le réseau",
     },
 
     /**
