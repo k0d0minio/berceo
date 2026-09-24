@@ -1,0 +1,33 @@
+## 2026-09-23T21:05:00Z session — the SDK's auth.verifyEmail() cannot verify against Neon Auth
+curl -X POST "$NEON_AUTH_BASE_URL/verify-email?token=invalid" → HTTP 404
+curl -X GET  "$NEON_AUTH_BASE_URL/verify-email?token=invalid" → HTTP 401 {"code":"INVALID_TOKEN"}
+@neondatabase/auth 0.5.0-beta server-b0OzGjXl.mjs: verifyEmail: { path: "verify-email", method: "POST" }
+- resolved: the verification e-mail links to /verification-email/confirmer, which forwards the token as a GET through the SDK's own /api/auth proxy handler, so Neon's session cookie is set on this origin.
+- rule: never call auth.verifyEmail() from @neondatabase/auth 0.5.x (it POSTs; Neon's verify-email is GET-only); go through getAuth().handler().GET with path ["verify-email"].
+
+## 2026-09-23T21:40:00Z env.sh audit --changed — GAPS 5 before the ready flip
+[GAP]  NEON_AUTH_BASE_URL: on Vercel/berceo [preview,production], sensitive but undeclared in .env.example
+[GAP]  code reads process.env.EMAIL_FROM and no .env.example declares it
+[GAP]  code reads process.env.NEON_AUTH_BASE_URL and no .env.example declares it
+[GAP]  code reads process.env.NEON_AUTH_COOKIE_SECRET and no .env.example declares it
+[GAP]  code reads process.env.RESEND_API_KEY and no .env.example declares it
+- resolved: `.env.example` declares the four keys, each with its note and a `[targets]` suffix, and `env.sh audit --changed` prints RESULT: OK.
+
+## 2026-09-24 Neon API — link verification refused on the shared e-mail provider
+PATCH /projects/tiny-cell-08223046/branches/br-steep-butterfly-b27l5oo9/auth/email_and_password → HTTP 400 INVALID_EMAIL_VERIFICATION_METHOD "Verification link is not supported for shared email provider"
+PATCH /projects/tiny-cell-08223046/branches/br-withered-dust-b2e7eht6/auth/email_and_password → HTTP 400 INVALID_EMAIL_VERIFICATION_METHOD (same)
+- resolved: the operator set Resend SMTP (standard provider) on main, preview/uat and the PR preview, and link verification on main and preview/uat, in the Neon Console.
+
+## 2026-09-24T12:00:00Z session — /security-review: sign-up's role argument is trusted from the client
+src/app/(auth)/actions.ts signUp(role, …): a server action's bound argument can be rewritten by the caller; "admin" passed the TypeScript type and the user_role enum, so anyone could sign up as admin (D-33 bypass).
+- resolved: `isSignUpRole()` allow-lists parent and professionnel at runtime before anything is read or written, with a test; no admin row found on the PR preview's database.
+- rule: never trust a server action's arguments, bound ones included; check every role, id or flag at runtime inside the action.
+
+## 2026-09-24T12:00:00Z session — /code-review (high) findings fixed in-ticket before release
+webhook JWKS fetch failure answered 401 (Neon does not retry); welcome claim error 500'd the confirmer after verification; "+32 (0)470…" stored with the trunk 0; sign-in return path dropped the query string.
+- resolved: JWKS failure throws (500, Neon retries); the claim is caught and logged; "(0)" and a 0 after 32 are dropped, with tests; the proxy keeps `search`. Six other findings parked in triage (comptes-orphaned-auth-identity, comptes-welcome-email-no-retry, comptes-compound-first-name, comptes-auth-cleanups).
+
+## 2026-09-24T13:00:00Z session — /code-review (high) on the release fix commit: a regression and three partial fixes
+normalizePhone('(0)470 12 34 56') returned null after the "(0)" strip; a JWKS fetch that threw left the throttle set, so Neon's retry got a 401; the welcome claim release could still 500 the confirmer; the role type and its guard were two lists.
+- resolved: "(0)" is stripped only right after a country code (test added); a failed JWKS fetch keeps answering 500 inside the throttle; the release is caught; SIGN_UP_ROLES is the one list, and a refused role is logged. The guard's query string and the confirmer's unguarded SELECT are parked (comptes-auth-cleanups, comptes-welcome-email-no-retry).
+- rule: a review fix is itself reviewed before the merge; re-run the reviewer on the fix commit's delta.
