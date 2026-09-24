@@ -4,7 +4,7 @@ Where the run is, in five lines. Updated at every stage start and stop, and when
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: build
-- step: 12 (release stopped on a security finding; fix pushed, full gate re-settling)
-- ci: pending on the fix push
+- step: done (release stopped on a security finding, fixed; re-run release)
+- ci: GREEN (full gate, c63bef7)
 - blocked: no — two Neon settings still open for the smoke (handoff.md → Blockers)
 - updated: 2026-09-24

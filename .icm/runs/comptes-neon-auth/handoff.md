@@ -6,10 +6,13 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: clear the two Neon settings under Blockers (runtime configuration, no rebuild).
-2. Operator: smoke the PR preview against the acceptance criteria; the full-gate verdict and the
-   preview URL are in the Build stop message and on PR #22.
-3. Tick **Ready to merge**, then `release comptes-neon-auth`.
+1. Operator: the release on 2026-09-24 stopped on a security finding (stop class 2): sign-up
+   trusted the role argument from the client, so anyone could sign up as admin. Fixed in
+   c63bef7 (`isSignUpRole()` + tests) with four small review fixes; full gate GREEN on c63bef7.
+   Re-smoke the preview (sign up as a family, verify, land in /espace/famille), keep **Ready to
+   merge** ticked if it passes, then `release comptes-neon-auth`. Release re-runs the reviews on
+   the new head.
+2. The Neon settings below are runtime configuration, fixed in the console, no rebuild.
 
 ## Blockers
 
