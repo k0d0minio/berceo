@@ -13,12 +13,23 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-24 — ci-status.sh settled on the previous head right after a push
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: twice in Build (after the `uat` merge push and after the post-flip push), the
+  first `ci-status.sh` call printed `head <old sha>` and `RESULT: GREEN` from the previous
+  commit's checks.
+- why: GitHub had not yet moved the PR's head to the just-pushed commit when the script read
+  it, so it settled the old head's finished checks.
+- fixed by: re-running the call until its `head` line matched `git rev-parse --short HEAD`.
+
+### 2026-09-24 — the spec asked for two guide titles "verbatim" and for 50–60 characters
+
+- what happened: the guide's home title is 45 characters and its Comment ça marche title 67;
+  both could not be kept verbatim under the spec's length criterion.
+- why: Define quoted the guide's examples without measuring them against its own rule.
+- fixed by: Build rewrote both around the same keyword (decision B-1), tagged `@relecture`.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- After a push, trust a `ci-status.sh` verdict only when its `head` line matches `git rev-parse --short HEAD`; re-run it otherwise.
+- When a spec quotes Surya's guide verbatim for a title or meta description, measure it against the guide's own length rules in Define, not in Build.

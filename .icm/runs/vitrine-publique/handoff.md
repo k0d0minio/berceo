@@ -6,11 +6,8 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: smoke the preview https://berceo-git-claude-nifty-davinci-h5svk0-kodominio.vercel.app
-   (behind Vercel SSO) — the three things Build could not see: every page at 360 px and 1280 px
-   without horizontal scroll; the home H1 above the fold at 360×640 and 1280×720; the overall
-   look against the DA. Also `/robots.txt` should read `Disallow: /` there.
-2. Tick **Ready to merge** on PR #25, then `release vitrine-publique`.
+1. Merged into `uat` and archived; nothing to pick up. The vitrine reaches production with the
+   UAT batch (`uat status`, then `uat approve "<who>"` on the founders' sign-off).
 
 ## Blockers
 
@@ -18,6 +15,4 @@ stops, so nothing is carried in anyone's head.
 
 ## Do not
 
-- Do not tick either gate box.
-- Release rewrites README.md and AGENTS.md (the holding-page descriptions and the dark rule, D-9);
-  Build left them as they are.
+- Do not reopen this run; follow-ups are triage stubs.

@@ -40,3 +40,13 @@
 - Two titles are not the guide's verbatim (B-1): the length criterion won. Surya reviews them with every `@relecture` entry (`grep -rn @relecture src/content`).
 - On the preview, `/robots.txt` must disallow everything (a preview is not production); the "allow" branch is only observable after promotion.
 - `comptes-neon-auth` merged into `uat` during this Build (#22) and came in through the step-10 merge: `/inscription-famille` and `/inscription-professionnelle` now exist, so every CTA and every header and footer link resolves on the preview. The spec's Out of scope line about the 404 is overtaken; nothing in this diff changed for it.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 7bd990d before the release pushes (ci-status.sh, full gate); re-read after the last push
+- reviews: code medium (2 findings: the home "Pourquoi" card said "chaque diplôme", false for a student's certificate (D-7) — trivial, in-ticket, fixed to "chaque dossier"; the FAQ's "contactez l'équipe Berceo" with no published contact — kept, the spec sets exactly that wording (D-17, AGENTS.md: no contact until Berceo has one)) · security security-check.sh --branch --audit: OK ([WARN] gitleaks not installed — built-in patterns only) · /security-review n/a (no auth, payments, PII or route policy in this run's own diff) · /production-readiness n/a (no DB, auth, payments or env var) · readiness env.sh audit --changed: OK
+- parked: knowledge-map-site-as-built.md
+- migrations: skip — none of this run's own
+- learned: skip — no error.log (2 rules from FAILURE.md, synced at close-out)
+- docs: README.md and AGENTS.md rewritten for the vitrine (the holding page, the dark rule → the light DA and editorial standing rules, D-9) · announce: deferred to promotion

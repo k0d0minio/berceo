@@ -4,3 +4,4 @@
 - usage: define end 2026-09-24T11:51:36Z harness=claude-cloud session=01763140-8be3-56c9-8bee-ed44dc1bdc24 source=transcript model=anthropic/claude-opus-5-5 in=70 out=28663 cache_read=4915121 cache_write=144820 cost_usd=unknown turns=1
 - usage: build start 2026-09-24T11:53:39Z harness=claude-cloud session=01763140-8be3-56c9-8bee-ed44dc1bdc24 source=transcript model=anthropic/claude-opus-5-5 in=81 out=30526 cache_read=6103759 cache_write=179505 cost_usd=unknown turns=2
 - usage: build end 2026-09-24T12:06:57Z harness=claude-cloud session=01763140-8be3-56c9-8bee-ed44dc1bdc24 source=transcript model=anthropic/claude-opus-5-5 in=183 out=88275 cache_read=20303829 cache_write=284437 cost_usd=unknown turns=2
+- usage: release start 2026-09-24T12:09:34Z harness=claude-cloud session=01763140-8be3-56c9-8bee-ed44dc1bdc24 source=transcript model=anthropic/claude-opus-5-5 in=191 out=89831 cache_read=21611140 cache_write=296130 cost_usd=unknown turns=3

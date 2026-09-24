@@ -77,7 +77,7 @@ export const accueil = catalogue({
       reasons: [
         {
           title: "Des profils vérifiés un par un",
-          text: "L'équipe Berceo vérifie chaque diplôme à la main. Un profil n'est visible qu'après cette vérification.",
+          text: "L'équipe Berceo vérifie chaque dossier à la main. Un profil n'est visible qu'après cette vérification.",
         },
         {
           title: "Des professionnelles de santé",
