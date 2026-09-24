@@ -13,12 +13,16 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-24 — the spec named a data source no session can fetch
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: the spec said the commune list is "joined to Statbel's REFNIS codes"; Statbel's
+  download is behind a bot challenge, Wikidata's SPARQL was down and its codes inconsistent, and
+  Eurostat's LAU list still describes 2024. Build spent many turns finding a source.
+- why: Define named Statbel from knowledge, without checking that a script could download it.
+- fixed by: D-38 — Eurostat's LAU codes plus a listed table of the 13 codes from the 2025 mergers,
+  a generator that fails on any unplaced commune, and a hand check of the 13 codes left to the
+  operator.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- When a spec names an external dataset, Define checks from a session that a script can download it, and names the fallback if it cannot.

@@ -38,5 +38,7 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-38 — The commune list's REFNIS codes come from Eurostat's LAU list for Belgium (Statbel's codes, as of 2024) plus a 13-line table of the 2025 mergers' codes in `scripts/communes/generate.py`, instead of Statbel's own REFNIS file. Statbel's download sits behind a bot challenge no script in the session could pass, and Wikidata's codes proved inconsistent (Hoeselt carries Hasselt's code). bpost's list, which follows the 2025 mergers, stays the source of localities and communes. The 13 merger codes are to be checked by hand against Statbel. Build; a spec gap (the spec names Statbel) — see notes.md → Notes for Release.
+- D-39 — Names shown are the French forms from Eurostat's LAU list (Ixelles, Mouscron, Anvers), because bpost's French file gives Dutch names for Brussels and Mouscron. A commune's main locality is shown under the commune's French name; sub-localities keep bpost's name. Every other name stays searchable. Build, within the spec's "French where one exists".
+- D-40 — Only `src/lib/famille/` may name the `family_profiles` table at all (the guard test), not just its address columns: the form component passes the address under its own field names, and a table-level rule is the one that cannot be sidestepped. Build, stricter than the criterion's wording.
+- D-41 — The regeneration script is Python (xlrd, openpyxl), not TypeScript: bpost publishes .xls and Eurostat .xlsx, and reading them in Node would add a spreadsheet dependency to the app for a script run by hand. Build.

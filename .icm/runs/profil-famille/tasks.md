@@ -26,4 +26,9 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] The commune list: `scripts/communes/generate.py`, `src/lib/communes/` (data, lookup, tests)
+- [x] Schema and migration: `family_profiles` in `src/db/schema.ts`, `drizzle/0002_family_profiles.sql`
+- [x] The family module: `src/lib/famille/` (limits, validation, profile reader and save, address guard, tests)
+- [x] Words: `src/content/famille.ts`, "Mon profil" in `src/content/comptes.ts`, catalogue test
+- [x] Pages: `/espace/famille/profil` (page, action, form, combobox), the home's prompt, the nav entry, routing test
+- [x] Docs: README → The family's profile and the commune list, AGENTS.md routing rows
