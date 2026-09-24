@@ -1,7 +1,7 @@
 # Build notes: vitrine-publique
 
-- commits: 70445fd `feat: vitrine-publique — the public site replaces the holding page`
-- ci: pending (cheap tier on the draft head)
+- commits: 70445fd `feat: vitrine-publique — the public site replaces the holding page` · 7481214 merge of `origin/uat` (brings `comptes-neon-auth`, #22)
+- ci: GREEN on 9a17520 (cheap tier); re-settling after the `uat` merge
 
 ## What changed
 
@@ -39,4 +39,4 @@
 - README.md and AGENTS.md still describe the holding page and the dark rule: Release rewrites them (spec, D-9).
 - Two titles are not the guide's verbatim (B-1): the length criterion won. Surya reviews them with every `@relecture` entry (`grep -rn @relecture src/content`).
 - On the preview, `/robots.txt` must disallow everything (a preview is not production); the "allow" branch is only observable after promotion.
-- The sign-up buttons 404 until `comptes-neon-auth` merges (spec, Out of scope).
+- `comptes-neon-auth` merged into `uat` during this Build (#22) and came in through the step-10 merge: `/inscription-famille` and `/inscription-professionnelle` now exist, so every CTA and every header and footer link resolves on the preview. The spec's Out of scope line about the 404 is overtaken; nothing in this diff changed for it.
