@@ -28,7 +28,7 @@
     ]
   },
   "uat": {
-    "branch": "uat",
+    "target": "uat",
     "url": "https://uat.berceo.be"
   },
   "reporting": {
@@ -72,7 +72,7 @@
       "api_key_env": "NEON_API_KEY",
       "production_branch": "main",
       "previews": "vercel",
-      "uat_branch": ""
+      "uat_branch": "uat"
     }
   },
   "security": {
