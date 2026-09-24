@@ -56,3 +56,15 @@ Covered by tests and CI so far; the rest waits for the operator's config and the
 - Pass 9 is partly the operator's: see handoff.md → Blockers.
 - `.env.example` could not be written from this session (the session's permissions deny
   `.env*`). The block to append is in handoff.md.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 85d2c5d (ci-status.sh, full gate; re-read after the close-out push)
+- reviews: code high (branch, then each fix delta) · security security-check.sh --branch --audit: OK + /security-review — one high finding (sign-up trusted a client-supplied role: anyone could sign up as admin), fixed in c63bef7 and reviewed; no admin row on the preview database · readiness env.sh audit --changed: OK
+- parked: comptes-orphaned-auth-identity.md, comptes-welcome-email-no-retry.md, comptes-compound-first-name.md, comptes-auth-cleanups.md
+- migrations: skip — none of this run's own to re-order (check-migrations.sh SKIP)
+- learned: 3 rules appended to _shared/project-rules.md
+- docs: no docs impact (README and AGENTS.md updated in Build) · announce: deferred to promotion
+- smoke (operator): sign-up, verification and sign-in on the PR preview; the preview uses Neon's own e-mail (no webhook behind Vercel SSO), so the link lands on / signed out, and the webhook path (sign-in and landing in the space) is first exercised on uat once uat.berceo.be resolves
+

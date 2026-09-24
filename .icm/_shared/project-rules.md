@@ -158,3 +158,12 @@ wrote in its `FAILURE.md`: what no tool logged — a wrong assumption, a STOP, a
 Each line carries the run it was learned in. Build and the lanes read this section before their
 first edit, with the same standing as the code rules. Edit or delete lines freely — this file is
 the repo's own, never synced — and delete a line that reads as a slip rather than a constraint.*
+
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- never call auth.verifyEmail() from @neondatabase/auth 0.5.x (it POSTs; Neon's verify-email is GET-only); go through getAuth().handler().GET with path ["verify-email"]. (`curl -x post "$?token=invalid" → http n`, seen 1× — comptes-neon-auth; .claude, drizzle, drizzle/meta, public/emails)
+
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- never trust a server action's arguments, bound ones included; check every role, id or flag at runtime inside the action. (`auth) signup(role, …): a server action's bound argument can be rewritt`, seen 1× — comptes-neon-auth; .claude, drizzle, drizzle/meta, public/emails)
+
+<!-- Retrospective Learned Rule [2026-09-24] -->
+- a review fix is itself reviewed before the merge; re-run the reviewer on the fix commit's delta. (`normalizephone('(n)n n n n') returned null after the "(n)" strip; a jwks`, seen 1× — comptes-neon-auth; .claude, drizzle, drizzle/meta, public/emails)
