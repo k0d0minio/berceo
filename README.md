@@ -209,7 +209,7 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
 
 - **« Mes disponibilités » (D-12):** `/espace/professionnelle/disponibilites`, for a `valide`
   profile only (any other sees one line). The nights from tonight to today + 56 days in
-  Brussels (D-79) as week rows; she taps nights, then « Disponible » or « Indisponible » saves
+  Brussels (D-79), one block per month in Monday-to-Sunday rows; she taps nights, then « Disponible » or « Indisponible » saves
   the selection (`actions.ts` beside the page). A night is named by its evening's date, like a
   care request's `night_date`.
 - **Two states (D-81):** `professional_availability` holds one row per night marked available,
@@ -223,7 +223,7 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   marked. She sees it under her calendar; `/design-system/portail` shows both states. The
   family-facing full profile (candidature-et-reservation) and the search cards
   (recherche-et-fiches-publiques) mount it.
-- **Where:** rules in `src/lib/disponibilites/rules.ts` (window, week grid, what a save may
+- **Where:** rules in `src/lib/disponibilites/rules.ts` (window, month blocks, what a save may
   carry), wording in `format.ts` (« Nuit du lundi 12 au mardi 13 octobre »), reads and writes in
   `nights.ts`; words in `src/content/disponibilites.ts`.
 

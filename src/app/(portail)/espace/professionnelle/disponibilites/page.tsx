@@ -8,7 +8,7 @@ import { words } from "@/content/locale";
 import { requireAccess } from "@/lib/auth/guard";
 import { markedNights, nextAvailableNights, ownProfile } from "@/lib/disponibilites/nights";
 import { AVAILABILITY_PATH } from "@/lib/disponibilites/paths";
-import { availabilityWindow, calendarWeeks } from "@/lib/disponibilites/rules";
+import { availabilityWindow, calendarMonths } from "@/lib/disponibilites/rules";
 
 import { saveNightsAction } from "./actions";
 
@@ -52,7 +52,7 @@ export default async function DisponibilitesPage() {
   return (
     <SpaceShell user={user} title={p.titre}>
       <p className="max-w-2xl text-intro text-taupe">{p.instructions}</p>
-      <AvailabilityCalendar weeks={calendarWeeks(range)} marked={marked} action={saveNightsAction} />
+      <AvailabilityCalendar months={calendarMonths(range)} marked={marked} action={saveNightsAction} />
       <p className="max-w-2xl text-corps text-taupe">{p.aide}</p>
 
       <h2 className="font-display text-h2 text-sauge">{p.apercu}</h2>

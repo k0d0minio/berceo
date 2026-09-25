@@ -2,7 +2,7 @@ import { NORMAL_LAST_DAY, addDays, brusselsNow, isIsoDate } from "@/lib/demandes
 
 /**
  * The rules of the indicative calendar that do not need the database: which
- * nights a professional may mark, the calendar's weeks, what a save may carry,
+ * nights a professional may mark, the calendar's months, what a save may carry,
  * and how many nights families see. Pure and dependency-free (beyond the care
  * request's Brussels date helpers), so the page, the server action, the read
  * and the tests share them.
@@ -39,31 +39,45 @@ export function weekdayIndex(date: string): number {
   return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
 }
 
+/** A cell of the calendar: a night she may mark, or padding (another month, or outside the window). */
 export type CalendarDay = { date: string; inWindow: boolean };
 
 /**
- * One row of the calendar, Monday to Sunday. `month` (`YYYY-MM`) heads the
- * first row and every row where a month starts inside the window.
+ * One month of the calendar under its own heading (`YYYY-MM`), as Monday to
+ * Sunday rows. A cell is `inWindow` only when its date is in this month and in
+ * the window, so a heading never sits over another month's nights.
  */
-export type CalendarWeek = { month: string | null; days: CalendarDay[] };
+export type CalendarMonth = { month: string; weeks: CalendarDay[][] };
 
-/** The window as week rows, padded to whole weeks with days outside it. */
-export function calendarWeeks(range: NightWindow): CalendarWeek[] {
-  const weeks: CalendarWeek[] = [];
-  let monday = addDays(range.first, -weekdayIndex(range.first));
+function lastOfMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  const next = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
+  return addDays(next, -1);
+}
 
-  while (monday <= range.last) {
-    const days = Array.from({ length: 7 }, (_, i) => {
-      const date = addDays(monday, i);
-      return { date, inWindow: date >= range.first && date <= range.last };
-    });
-    const starting = days.find((day) => day.inWindow && day.date.endsWith("-01"));
-    const month = weeks.length === 0 ? range.first.slice(0, 7) : (starting?.date.slice(0, 7) ?? null);
-    weeks.push({ month, days });
-    monday = addDays(monday, 7);
+/** The window as one block per month, each padded to whole weeks. */
+export function calendarMonths(range: NightWindow): CalendarMonth[] {
+  const months: CalendarMonth[] = [];
+  let month = range.first.slice(0, 7);
+
+  while (`${month}-01` <= range.last) {
+    const from = `${month}-01` > range.first ? `${month}-01` : range.first;
+    const end = lastOfMonth(month);
+    const to = end < range.last ? end : range.last;
+    const weeks: CalendarDay[][] = [];
+    for (let monday = addDays(from, -weekdayIndex(from)); monday <= to; monday = addDays(monday, 7)) {
+      weeks.push(
+        Array.from({ length: 7 }, (_, i) => {
+          const date = addDays(monday, i);
+          return { date, inWindow: date >= from && date <= to };
+        }),
+      );
+    }
+    months.push({ month, weeks });
+    month = addDays(end, 1).slice(0, 7);
   }
 
-  return weeks;
+  return months;
 }
 
 export type NightsCheck =

@@ -4,16 +4,18 @@ import {
   NIGHTS_IN_WINDOW,
   SHOWN_TO_FAMILIES,
   availabilityWindow,
-  calendarWeeks,
+  calendarMonths,
   isInWindow,
   validateNights,
+  weekdayIndex,
+  type CalendarMonth,
 } from "./rules";
 
 /**
  * Spec (disponibilites-indicatives, D-79, D-80, D-81): the window runs from
  * tonight to today + 56 days in Brussels time, around midnight and across a
- * daylight-saving change; the calendar is Monday-first week rows with month
- * headings and padding; a save carries 1 to 57 dates inside the window or is
+ * daylight-saving change; the calendar is one block per month, Monday-first
+ * rows padded with inert days; a save carries 1 to 57 dates inside the window or is
  * refused whole; families see five nights. Written from the acceptance
  * criteria, not from the implementation.
  */
@@ -61,27 +63,40 @@ describe("the window", () => {
   });
 });
 
-describe("the calendar's weeks", () => {
-  const weeks = calendarWeeks(availabilityWindow(SUMMER_NOON));
+describe("the calendar's months", () => {
+  const months = calendarMonths(availabilityWindow(SUMMER_NOON));
+  const nights = (month: CalendarMonth) =>
+    month.weeks.flat().filter((day) => day.inWindow).map((day) => day.date);
 
-  it("is whole Monday-to-Sunday rows covering the window", () => {
-    expect(weeks).toHaveLength(9);
-    for (const week of weeks) expect(week.days).toHaveLength(7);
-    expect(weeks[0].days[0].date).toBe("2026-09-21");
-    expect(weeks.at(-1)?.days[6].date).toBe("2026-11-22");
+  it("heads each month of the window once, in order", () => {
+    expect(months.map((month) => month.month)).toEqual(["2026-09", "2026-10", "2026-11"]);
   });
 
-  it("pads the first and last rows with days outside the window", () => {
-    expect(weeks[0].days.map((day) => day.inWindow)).toEqual([
+  it("lays each month out as whole Monday-to-Sunday rows", () => {
+    expect(months.map((month) => month.weeks.length)).toEqual([2, 5, 4]);
+    for (const month of months) {
+      for (const week of month.weeks) {
+        expect(week).toHaveLength(7);
+        expect(weekdayIndex(week[0].date)).toBe(0);
+      }
+    }
+  });
+
+  it("pads before tonight, after the window and around each month with inert days", () => {
+    expect(months[0].weeks[0].map((day) => day.inWindow)).toEqual([
+      false, // Monday 21, before tonight
       false,
       false,
       false,
-      false,
-      true,
+      true, // Friday 25, tonight
       true,
       true,
     ]);
-    expect(weeks.at(-1)?.days.map((day) => day.inWindow)).toEqual([
+    // October's first row starts on Monday 28 September: those three days are padding.
+    expect(months[1].weeks[0].slice(0, 3).map((day) => day.inWindow)).toEqual([false, false, false]);
+    expect(months[1].weeks[0][3]).toEqual({ date: "2026-10-01", inWindow: true });
+    // After Friday 20 November, the last night.
+    expect(months[2].weeks.at(-1)?.map((day) => day.inWindow)).toEqual([
       true,
       true,
       true,
@@ -92,30 +107,35 @@ describe("the calendar's weeks", () => {
     ]);
   });
 
-  it("holds exactly the 57 nights of the window as in-window days", () => {
-    const inWindow = weeks.flatMap((week) => week.days).filter((day) => day.inWindow);
-    expect(inWindow).toHaveLength(57);
-    expect(inWindow[0].date).toBe("2026-09-25");
-    expect(inWindow.at(-1)?.date).toBe("2026-11-20");
-  });
-
-  it("heads the first row with tonight's month and a row with the month starting in it", () => {
-    expect(weeks.map((week) => week.month)).toEqual([
-      "2026-09",
-      "2026-10", // Thursday 1 October
-      null,
-      null,
-      null,
-      "2026-11", // Sunday 1 November
-      null,
-      null,
-      null,
+  it("puts every night of the window under its own month, exactly once", () => {
+    expect(nights(months[0])).toEqual([
+      "2026-09-25",
+      "2026-09-26",
+      "2026-09-27",
+      "2026-09-28",
+      "2026-09-29",
+      "2026-09-30",
     ]);
+    expect(nights(months[1])).toHaveLength(31);
+    expect(nights(months[2])).toHaveLength(20);
+    const all = months.flatMap(nights);
+    expect(all).toHaveLength(57);
+    expect(new Set(all).size).toBe(57);
+    expect(all[0]).toBe("2026-09-25");
+    expect(all.at(-1)).toBe("2026-11-20");
   });
 
-  it("starts on the Monday itself when tonight is a Monday", () => {
-    const monday = calendarWeeks(availabilityWindow(new Date("2026-10-12T10:00:00Z")));
-    expect(monday[0].days[0]).toEqual({ date: "2026-10-12", inWindow: true });
+  it("gives the next month its own heading when it starts in tonight's week", () => {
+    // Monday 28 September: 1 October falls in the first week.
+    const monday = calendarMonths(availabilityWindow(new Date("2026-09-28T10:00:00Z")));
+    expect(monday.map((month) => month.month)).toEqual(["2026-09", "2026-10", "2026-11"]);
+    expect(nights(monday[0])).toEqual(["2026-09-28", "2026-09-29", "2026-09-30"]);
+    expect(nights(monday[1])[0]).toBe("2026-10-01");
+  });
+
+  it("crosses the year end", () => {
+    const december = calendarMonths(availabilityWindow(new Date("2026-12-20T10:00:00Z")));
+    expect(december.map((month) => month.month)).toEqual(["2026-12", "2027-01", "2027-02"]);
   });
 });
 
@@ -130,8 +150,8 @@ describe("what a save may carry", () => {
   });
 
   it("accepts the whole window in one save", () => {
-    const all = calendarWeeks(range)
-      .flatMap((week) => week.days)
+    const all = calendarMonths(range)
+      .flatMap((month) => month.weeks.flat())
       .filter((day) => day.inWindow)
       .map((day) => day.date);
     expect(validateNights(all, range)).toMatchObject({ ok: true });
