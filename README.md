@@ -25,6 +25,8 @@ npm run dev      # http://localhost:3000
 | [src/app/sitemap.ts](src/app/sitemap.ts), [robots.ts](src/app/robots.ts), [site.ts](src/app/site.ts) | The four indexable pages on `https://www.berceo.be`; crawling allowed on production only (`VERCEL_ENV`). |
 | [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
 | [src/lib/professionnelle/](src/lib/professionnelle/), [src/lib/documents/](src/lib/documents/) | The professional's file: its rules, the private document bucket and `/api/fichiers/[id]`. |
+| [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' review: the queue and decision rules, the admin journal, the purge of refused files. See **The founders' verification** below. |
+| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files, guarded by `CRON_SECRET`. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
 | [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
@@ -98,6 +100,9 @@ The platform's data starts here: one Neon Postgres database, read through
   a `CHECK`, bio, INAMI number, `submitted_at`), `professional_communes` (REFNIS codes),
   `professional_documents` (her files in the private bucket) and `professional_declarations`
   (append-only, with the wording version). `app_settings` holds the founders' switches.
+  The founders' review (0004): `review_reason` and `reviewed_at` on `professional_profiles`, and
+  `admin_journal`, one row per admin action, which a trigger keeps append-only (no `UPDATE`,
+  `DELETE` or `TRUNCATE`) and which names people by id and name without foreign keys.
   Identity itself lives in Neon Auth's `neon_auth` schema, which Neon manages and Drizzle never
   declares.
 - **Client:** `src/db/index.ts` — a lazily-initialized Drizzle client on Neon's serverless HTTP
@@ -190,6 +195,37 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   REFNIS codes in `professional_communes.commune_ins`, the key `family_profiles` carries too.
   `searchCommunes` in `src/lib/communes/` groups the list's localities by commune for the picker.
 - **The students switch (D-7)** is `etudiantes_admises` in `app_settings`, flipped on `/admin`.
+
+## The founders' verification
+
+- **The queue:** `/admin` opens on "Dossiers en attente de vérification", every `en_attente` and
+  `complement_demande` file, oldest `submitted_at` first, then the students switch and a link to
+  the journal. `/admin/dossiers/[id]` shows one file whole (documents embedded through
+  `/api/fichiers/[id]`, declarations, the file's journal history) and, while it waits, the three
+  decisions: "Valider le profil", "Demander un complément", "Refuser le profil" (the last two with
+  a reason of 1 to 1,000 characters). All three are 404 to anyone but an admin.
+- **A decision** (`src/lib/admin/review.ts`) is one statement: the state change and its journal
+  entry, applied only if the file still has the state and the last decision the founder's page
+  showed, so a second founder or a stale page changes nothing. The e-mail
+  (`src/lib/email/templates.ts`: the guide's validation e-mail; the complément and the refusal
+  without a contact address, D-51) leaves after, once per decision; a refused send leaves the
+  decision standing and says so. The rules (statuts, allowed decisions, the reason, the students
+  hold, the purge's cutoff) are pure functions in `src/lib/admin/rules.ts`.
+- **Her side:** `/espace/professionnelle` shows the guide's validated line, or the reason of a
+  complément or a refusal. Asked for a complément, she edits her file and sends it back with
+  "Renvoyer mon dossier" (`/espace/professionnelle/profil`): it returns to `en_attente` with its
+  `submitted_at`, so its place in the queue, and reads "Complément reçu". A refusal is final.
+- **Students (D-7, D-52):** while the switch is off, a waiting student file is held without a new
+  state: the queue reads "Étudiantes non admises", validation is refused on the page and the
+  server, and her space says why. Turning the switch on releases it at its place.
+- **The journal:** `/admin/journal`, newest first, 50 per page. Every admin action writes through
+  `src/lib/admin/journal.ts` (the decisions, the students switch, the purge, and stub 14's actions
+  to come); the module has no update or delete, and the database refuses both.
+- **The purge (D-41, D-55):** `/api/cron/purge-dossiers-refuses`, scheduled daily in
+  `vercel.json`, deletes every file (documents and photo) of a profile refused more than 30 days
+  ago, from the bucket and `professional_documents`, and journals "Documents supprimés". It answers
+  404 without `Authorization: Bearer <CRON_SECRET>`. Vercel runs cron jobs on production only; on
+  uat.berceo.be the route is called by hand with the environment's `CRON_SECRET`.
 
 ## The vitrine
 

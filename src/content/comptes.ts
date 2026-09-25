@@ -200,8 +200,6 @@ export const comptes = catalogue({
       },
       admin: {
         title: "Vue d'ensemble",
-        /** @relecture Surya — back-office avant ses outils. */
-        vide: "Les outils de l'équipe arriveront ici.",
       },
     },
   },
