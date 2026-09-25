@@ -1,7 +1,7 @@
 # Build notes: demande-de-garde
 
 - commits: c4ac24f (schema + migration), e83cd9c (rules, wording, validation), 4fce3c7 (data module, urgent e-mail, digest), 06230d4 (family pages, professional list), a8d5e45 (digest route, schedule, env, docs)
-- ci: see the PR — draft head owed nothing (format.sh and lint.sh are not wired here: SKIP); the full gate settles on the post-flip head
+- ci: GREEN on 1d28ea4 (full gate: Vercel preview pass, Quality (advisory) pass); draft 5f5cff6 GREEN; format.sh and lint.sh not wired (SKIP)
 
 ## What changed
 
