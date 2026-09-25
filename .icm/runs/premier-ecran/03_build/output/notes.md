@@ -1,6 +1,6 @@
 # Build notes: premier-ecran
 
-- commits: 7022ee1 (header, photo fill mode, hero, PageHeader) · 94ab1f2 (doors at 320 px) · f928743 (hero H1 at 320 px, D-16) · bb5c8ab (hero crop focal point) · 56ce34d (merge of main, #45)
+- commits: 7022ee1 (header, photo fill mode, hero, PageHeader) · 94ab1f2 (doors at 320 px) · f928743 (hero H1 at 320 px, D-16) · bb5c8ab (hero crop focal point) · 56ce34d (merge of main, #45) · f351b63 (Release review fixes: capsules at 24 px, sizes 72rem)
 - ci: GREEN on 80e5af4, full gate after the ready flip (Vercel pass). Quality (advisory) passed on 56ce34d, the last head that changed code; it is path-filtered off the `.icm`-only commits after it
 
 ## What changed
@@ -37,3 +37,13 @@ The boxes in the PR body stay unticked: a session ticking them is refused as sel
 - The hero crop is a portrait (352 × 474 at 1280, 352 × 633 at 1024). Its focal point is set at the call site, not in `src/content/photos.ts`, because the spec keeps the content catalogue untouched.
 - The header capsules' 20 px side padding applies only in the header (a `className`), not in the `Button` variants.
 - `blocs-accueil` edits `src/app/(public)/page.tsx` next. This run touched only the hero `<section>`.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on f351b63 (ci-status.sh, full gate); re-read after the close-out push below
+- reviews: code medium — two minor findings fixed in-ticket (f351b63): the tightened capsules sat at 20 px sides, under the DA's 24–32 px (now 24 px: header row about 1,075 of 1,088 px, family door 285 of 288 px at 320 px), and the filled photo's `sizes` hint undershot the 1024 px crop (now 72rem); the fix commit reviewed again (low): clean; all 48 page-widths re-measured on f351b63: 0 failures (`measurements.txt`) · security security-check.sh --branch --audit: OK (npm audit: no high/critical) · /security-review n/a (no auth, payments, PII or route policy touched) · /production-readiness n/a (no DB, auth, payments or env var touched) · readiness env.sh audit --changed: OK
+- parked: none
+- migrations: skip — none of this run's own
+- learned: 1 rule appended to _shared/project-rules.md (retrospective.sh: measure vitrine layout at 320 px); FAILURE.md's rule follows through close-out.sh
+- docs: no docs impact (README's vitrine row still true) · announce: deferred to promotion

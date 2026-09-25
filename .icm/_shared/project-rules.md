@@ -233,3 +233,6 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - Before Define numbers a decision, list every remote branch (`git branch -r`) and grep each for its highest `D-n`; a same-day sibling's branch counts even before it has a PR. (`FAILURE.md` — frais-de-service)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - When a payment is taken before the work it pays for, design for the holder of the lock failing: whatever state it leaves must be one the next caller (webhook retry, return page, refresh) can finish, never one only a retry that may not come can. (`FAILURE.md` — frais-de-service)
+
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- before shipping a vitrine layout change, measure it at 320 px as well as 390: a no-wrap capsule (Button is `whitespace-nowrap`) wider than 288 px widens its grid column and scrolls the page sideways. (`measure.mjs on neen: `/ n {"hscroll":true, … "colw":n}` — documentel`, seen 1× — premier-ecran; src/app, src/components)
