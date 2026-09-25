@@ -358,7 +358,11 @@ export async function suspendAccount(userId: string, admin: Person, now: Date): 
         suspendedAtExactly(userId, now),
       ),
     ]);
-    if (suspended.length === 0) return { ok: false, error: "dejaSuspendu" };
+    if (suspended.length === 0) {
+      // Another founder acted first: say what the account is now.
+      const current = await facts(userId);
+      return { ok: false, error: (current && suspendRefusal(current)) || "generique" };
+    }
     declined = declinedRows.map((row) => row.id);
   } catch (error) {
     console.error("[admin] account not suspended", { userId, error });
@@ -484,7 +488,12 @@ export async function deleteAccount(
         deleted,
       ),
     ]);
-    if (anonymised.length === 0) return { ok: false, error: "generique" };
+    if (anonymised.length === 0) {
+      // Something changed since the check (a garde booked, another founder): say what.
+      const again = await facts(userId);
+      const refusal = again ? deleteRefusal(again, (await upcomingGardes(userId)).length) : "introuvable";
+      return { ok: false, error: refusal ?? "generique" };
+    }
   } catch (error) {
     console.error("[admin] account not deleted", { userId, error });
     return { ok: false, error: "generique" };

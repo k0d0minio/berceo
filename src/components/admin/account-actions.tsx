@@ -228,6 +228,8 @@ function ContactDialog({
   const [errors, setErrors] = React.useState<Partial<Record<"subject" | "message", ContactError>>>({})
   const [failure, setFailure] = React.useState<string | null>(null)
   const [sending, start] = useTransition()
+  // One key per message: a second click, or a retry, never sends it twice.
+  const [sendId, setSendId] = React.useState(() => crypto.randomUUID())
 
   const send = (event: React.MouseEvent<HTMLButtonElement>) => {
     // The dialog stays open until the server says the e-mail left.
@@ -239,11 +241,13 @@ function ContactDialog({
     }
     setErrors({})
     start(async () => {
-      const result = await contactAction(userId, checked.value)
+      const result = await contactAction(userId, checked.value, sendId)
       if (result.ok) {
         setOpen(false)
         setSubject("")
         setMessage("")
+        setFailure(null)
+        setSendId(crypto.randomUUID())
         onSent()
       } else if ("errors" in result) {
         setErrors(result.errors)

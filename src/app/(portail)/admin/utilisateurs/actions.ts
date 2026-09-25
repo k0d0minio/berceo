@@ -1,7 +1,5 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
-
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 
@@ -83,13 +81,26 @@ export async function deleteAction(userId: string, lastName: string): Promise<De
   return result;
 }
 
-/** « Contacter l'utilisateur »: the e-mail leaves with the founder's own address to answer to. */
+/**
+ * « Contacter l'utilisateur »: the e-mail leaves with the founder's own address
+ * to answer to. `sendId` is made once per message in her dialog, so a second
+ * click or a retried request sends it once (Resend's idempotency key).
+ */
 export async function contactAction(
   userId: string,
   input: { subject: string; message: string },
+  sendId: string,
 ): Promise<ContactResult> {
   const user = await admin();
-  if (!user || typeof userId !== "string" || !UUID.test(userId) || !input || typeof input !== "object") {
+  if (
+    !user ||
+    typeof userId !== "string" ||
+    !UUID.test(userId) ||
+    typeof sendId !== "string" ||
+    !UUID.test(sendId) ||
+    !input ||
+    typeof input !== "object"
+  ) {
     return { ok: false, error: "introuvable" };
   }
 
@@ -98,7 +109,7 @@ export async function contactAction(
     { subject: input.subject, message: input.message },
     { id: user.id, name: fullName(user), email: user.email },
     await siteOrigin(),
-    randomUUID(),
+    sendId,
   );
   if (result.ok) refresh(userId);
   return result;
