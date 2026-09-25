@@ -3,6 +3,7 @@
 - lane: bug
 - found-by: demande-de-garde release review · 2026-09-25
 - complexity: medium
+- priority: P2
 
 ## Problem
 

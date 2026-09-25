@@ -3,6 +3,10 @@
 - lane: bug
 - found-by: verification-back-office release review · 2026-09-25
 - complexity: low
+- feature-slug: onboarding-double-photo-race
+- sequence: 2 of 3
+- depends-on: onboarding-upload-limit-race
+- priority: P2
 
 ## Problem
 
@@ -20,7 +24,8 @@ index and an upsert. Fix it with `onboarding-upload-limit-race` if both are take
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/onboarding-double-photo-race.md`, then make
+In the berceo repo, read `.icm/intake/onboarding-fichiers-concurrence/onboarding-double-photo-race.md`
+and the epic's `breakdown.md`, then make
 `confirmUpload` in `src/app/(portail)/espace/professionnelle/actions.ts` keep exactly one photo per
 profile under concurrent uploads (delete every other photo row and object after the insert, or a
 partial unique index with an upsert). Run it through `/pipeline bug onboarding-double-photo-race`.

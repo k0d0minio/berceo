@@ -3,6 +3,10 @@
 - lane: bug
 - found-by: comptes-neon-auth release review · 2026-09-24
 - complexity: medium
+- feature-slug: comptes-orphaned-auth-identity
+- sequence: 2 of 3
+- depends-on: comptes-auth-cleanups
+- priority: P1
 
 ## Problem
 
@@ -17,4 +21,4 @@ what is known (or delete the Neon identity when the batch fails), with a test fo
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/comptes-orphaned-auth-identity.md`. In `src/app/(auth)/actions.ts` signUp, a Neon Auth identity can exist without its `users` row when the Drizzle batch fails, and the address is then locked out. Make it recoverable (write the missing row on a retry or on the first sign-in, or remove the Neon identity when the batch fails), with a test per path. Run it through `/pipeline bug comptes-orphaned-auth-identity`.
+In the berceo repo, read `.icm/intake/comptes-auth-recuperation/comptes-orphaned-auth-identity.md` and the epic's `breakdown.md`. In `src/app/(auth)/actions.ts` signUp, a Neon Auth identity can exist without its `users` row when the Drizzle batch fails, and the address is then locked out. Make it recoverable (write the missing row on a retry or on the first sign-in, or remove the Neon identity when the batch fails), with a test per path. Run it through `/pipeline bug comptes-orphaned-auth-identity`.

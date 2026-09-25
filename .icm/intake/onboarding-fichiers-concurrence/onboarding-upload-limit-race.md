@@ -3,6 +3,10 @@
 - lane: bug
 - found-by: onboarding-professionnelle release · 2026-09-24
 - complexity: standard
+- feature-slug: onboarding-upload-limit-race
+- sequence: 1 of 3
+- depends-on: none
+- priority: P2
 
 ## Problem
 
@@ -21,7 +25,8 @@ the pure part; the statement proven on a run branch.
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/onboarding-upload-limit-race.md`, then make
+In the berceo repo, read `.icm/intake/onboarding-fichiers-concurrence/onboarding-upload-limit-race.md`
+and the epic's `breakdown.md`, then make
 `confirmUpload` in `src/app/(portail)/espace/professionnelle/actions.ts` hold the
 three-files-per-document limit atomically (one guarded insert, or an advisory lock), deleting the
 uploaded object when it refuses. Run it through `/pipeline bug onboarding-upload-limit-race`.

@@ -3,6 +3,10 @@
 - lane: bug
 - found-by: verification-back-office release review · 2026-09-25
 - complexity: standard
+- feature-slug: onboarding-orphaned-objects
+- sequence: 3 of 3
+- depends-on: none
+- priority: P1
 
 ## Problem
 
@@ -21,7 +25,8 @@ injected storage for both orders.
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/onboarding-orphaned-objects.md`, then make
+In the berceo repo, read `.icm/intake/onboarding-fichiers-concurrence/onboarding-orphaned-objects.md`
+and the epic's `breakdown.md`, then make
 `removeDocuments` and `removeFile` in `src/app/(portail)/espace/professionnelle/actions.ts`
 delete the bucket object before the row (the order `src/lib/admin/purge.ts` uses), keeping the row
 when the object delete fails. Run it through `/pipeline bug onboarding-orphaned-objects`.
