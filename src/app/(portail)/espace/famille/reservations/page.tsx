@@ -4,9 +4,13 @@ import Link from "next/link";
 import { GardeStateMark } from "@/components/gardes/garde-state";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { SpaceShell } from "@/components/shell/space-shell";
+import { avis } from "@/content/avis";
 import { words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { familyRatingPath } from "@/lib/avis/paths";
+import { ratingsGiven } from "@/lib/avis/ratings";
+import { canRate } from "@/lib/avis/rules";
 import { cardTitle, nightLine } from "@/lib/demandes/format";
 import { hasNightStarted } from "@/lib/demandes/rules";
 import { gardeState } from "@/lib/gardes/rules";
@@ -25,7 +29,17 @@ export const dynamic = "force-dynamic";
 
 const link = "w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4";
 
-function List({ title, items, now }: { title: string; items: FamilyBooking[]; now: Date }) {
+function List({
+  title,
+  items,
+  rated,
+  now,
+}: {
+  title: string;
+  items: FamilyBooking[];
+  rated: Set<string>;
+  now: Date;
+}) {
   if (items.length === 0) return null;
   return (
     <section className="flex flex-col gap-4">
@@ -49,6 +63,11 @@ function List({ title, items, now }: { title: string; items: FamilyBooking[]; no
               <Link href={familyBookingPath(id)} className={link}>
                 {t.reservationsFamille.voir}
               </Link>
+              {canRate({ status: garde.status, nightDate: request.nightDate, startTime: request.startTime }, rated.has(id), now) ? (
+                <Link href={familyRatingPath(id)} className={link}>
+                  {words(avis).lien}
+                </Link>
+              ) : null}
               <Link href={priorityPath(professional.profileId)} className={link}>
                 {t.reservationsFamille.recontacter}
               </Link>
@@ -64,7 +83,8 @@ function List({ title, items, now }: { title: string; items: FamilyBooking[]; no
  * « Mes réservations »: her bookings, coming nights first by date, then past
  * ones, latest first, each with its state (D-109). This is where she finds the professionals she already
  * booked and sends them a new request in priority (cahier des charges D-07,
- * « Contact récurrent »).
+ * « Contact récurrent »), and « Laisser un avis » on a terminée garde she has
+ * not rated, for 14 days (avis-etoiles, D-117).
  */
 export default async function ReservationsPage() {
   const user = await requireAccess(FAMILY_BOOKINGS_PATH);
@@ -73,13 +93,14 @@ export default async function ReservationsPage() {
   const started = (b: FamilyBooking) => hasNightStarted(b.request.nightDate, b.request.startTime, now);
   const coming = all.filter((b) => !started(b));
   const past = all.filter(started).reverse();
+  const rated = new Set((await ratingsGiven("famille", past.map((b) => b.id))).keys());
 
   return (
     <SpaceShell user={user} title={t.reservationsFamille.titre}>
       <p className="max-w-2xl text-intro text-encre-taupe">{t.reservationsFamille.intro}</p>
       {all.length === 0 ? <p className="max-w-2xl text-corps text-encre-taupe">{t.reservationsFamille.vide}</p> : null}
-      <List title={t.reservationsFamille.aVenir} items={coming} now={now} />
-      <List title={t.reservationsFamille.passees} items={past} now={now} />
+      <List title={t.reservationsFamille.aVenir} items={coming} rated={rated} now={now} />
+      <List title={t.reservationsFamille.passees} items={past} rated={rated} now={now} />
     </SpaceShell>
   );
 }

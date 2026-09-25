@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { NoteDisplay } from "@/components/avis/stars";
 import { ProchainesDisponibilites } from "@/components/disponibilites/prochaines-disponibilites";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
@@ -85,6 +86,7 @@ export default async function ProfilProfessionnellePage({
             <p className="text-legende font-semibold text-encre-taupe">{r.profil.verifie}</p>
           </div>
         </div>
+        <NoteDisplay note={profile.note} />
         {profile.nightRateEur ? (
           <p className="text-corps font-semibold text-encre-sauge">{rateLine(profile.nightRateEur)}</p>
         ) : null}

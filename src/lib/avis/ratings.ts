@@ -15,7 +15,6 @@ import {
   type RatingSide,
 } from "@/db";
 import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
-import { UUID } from "@/lib/demandes/requests";
 
 import { rateRefusal, WINDOW_DAYS, type RateRefusal, type Scores } from "./rules";
 
@@ -37,6 +36,9 @@ export function logError(what: string, context: Record<string, unknown>, error?:
     error: error instanceof Error ? error.name : error === undefined ? undefined : typeof error,
   });
 }
+
+/** A well-formed id; anything else reads as unknown. (Not imported from `src/lib/demandes/`, which reads this module.) */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Brussels wall-clock now, the form `night_date + start_time` compares with. */
 const localNow = sql`(now() AT TIME ZONE ${TIME_ZONE})`;

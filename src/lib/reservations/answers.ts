@@ -13,6 +13,7 @@ import {
   bookings,
   type Profession,
 } from "@/db";
+import { notesOfProfiles, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { nightAhead, professionalProfileOf, UUID } from "@/lib/demandes/requests";
 import { TIME_ZONE } from "@/lib/demandes/rules";
 import { withConversation } from "@/lib/messagerie/conversations";
@@ -169,6 +170,8 @@ export type Applicant = {
   nightRateEur: number;
   photoId: string | null;
   answeredAt: Date;
+  /** Her note and gardes count (avis-etoiles, D-119). */
+  note: Note;
 };
 
 /** Only answers still waiting, of professionals still validated, on her own request. */
@@ -186,7 +189,7 @@ function waitingOnHers(userId: string) {
  */
 export async function familyAnswers(userId: string, requestId: string): Promise<Applicant[]> {
   if (!UUID.test(requestId)) return [];
-  return db
+  const rows = await db
     .select({
       applicationId: careRequestApplications.id,
       profileId: professionalProfiles.id,
@@ -202,6 +205,8 @@ export async function familyAnswers(userId: string, requestId: string): Promise<
     .innerJoin(users, eq(users.id, professionalProfiles.userId))
     .where(and(eq(careRequestApplications.requestId, requestId), waitingOnHers(userId)))
     .orderBy(asc(careRequestApplications.answeredAt));
+  const notes = await notesOfProfiles(rows.map((row) => row.profileId));
+  return rows.map((row) => ({ ...row, note: notes.get(row.profileId) ?? NO_NOTE }));
 }
 
 /** How many answers wait on each of her requests (« 2 réponses »), by request id. */

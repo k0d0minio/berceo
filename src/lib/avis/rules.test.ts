@@ -144,8 +144,7 @@ describe("parseScores", () => {
   });
 
   it("refuses a missing score", () => {
-    const { score_4: _omitted, ...three } = valid;
-    expect(parseScores(form(three))).toBeNull();
+    expect(parseScores(form({ score_1: "5", score_2: "4", score_3: "3" }))).toBeNull();
   });
 
   it("refuses a score outside 1 to 5, or not a whole number", () => {

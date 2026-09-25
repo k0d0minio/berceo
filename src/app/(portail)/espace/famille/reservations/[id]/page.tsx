@@ -3,19 +3,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FormMessage } from "@/components/auth/field";
+import { criteriaLabels } from "@/components/avis/rating-screen";
+import { GivenRating } from "@/components/avis/stars";
 import { CancelGarde, ReportAbsence, RepublishGarde } from "@/components/gardes/garde-dialogs";
 import { GardeStateMark } from "@/components/gardes/garde-state";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
+import { avis } from "@/content/avis";
 import { gardes } from "@/content/gardes";
 import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { familyRatingPath } from "@/lib/avis/paths";
+import { ratingsGiven } from "@/lib/avis/ratings";
+import { canRate } from "@/lib/avis/rules";
 import { conversationOfBooking } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
-import { cardTitle } from "@/lib/demandes/format";
+import { cardTitle, formatDate } from "@/lib/demandes/format";
+import { brusselsNow } from "@/lib/demandes/rules";
 import { familyRequestPath } from "@/lib/demandes/paths";
 import { liveRequestOn } from "@/lib/demandes/requests";
 import { gardeFee } from "@/lib/gardes/gardes";
@@ -70,6 +77,9 @@ export const dynamic = "force-dynamic";
  * from it until 24 hours after the night (D-106); once cancelled, who and
  * when, the fee line (D-2), and « Republier ma demande » until the night
  * starts, or a link to her live request that night (D-107).
+ *
+ * The rating (avis-etoiles): « Laisser un avis » while she may rate it, then
+ * the stars she gave, never the professional's rating of her (D-117).
  */
 export default async function ReservationPage({
   params,
@@ -100,10 +110,12 @@ export default async function ReservationPage({
   const facts = { status: booking.garde.status, nightDate: request.nightDate, startTime: request.startTime };
   const state = gardeState(facts, now);
   const republishable = canRepublish(facts, now);
-  const [fee, liveRequest] = await Promise.all([
+  const [fee, liveRequest, given] = await Promise.all([
     booking.garde.status === "annulee" ? gardeFee(booking.id) : Promise.resolve(null),
     republishable ? liveRequestOn(user.id, request.nightDate) : Promise.resolve(null),
+    ratingsGiven("famille", [booking.id]),
   ]);
+  const myRating = given.get(booking.id) ?? null;
   const cancelled = cancelledLine(booking.garde, "famille", professional.firstName);
   const feeLine = feeText(booking.garde, fee?.status ?? null);
 
@@ -142,7 +154,20 @@ export default async function ReservationPage({
         {cancelled ? <p className="text-corps font-semibold text-encre-taupe">{cancelled}</p> : null}
         {feeLine ? <p className="text-corps text-encre-taupe">{feeLine}</p> : null}
       </article>
+      {myRating ? (
+        <GivenRating
+          labels={criteriaLabels("famille")}
+          scores={myRating.scores}
+          date={formatDate(brusselsNow(myRating.createdAt).date)}
+          className="max-w-2xl rounded-carte bg-perle px-6 py-8 md:px-10"
+        />
+      ) : null}
       <div className="flex flex-wrap gap-3">
+        {canRate(facts, myRating !== null, now) ? (
+          <Button asChild>
+            <Link href={familyRatingPath(booking.id)}>{words(avis).lien}</Link>
+          </Button>
+        ) : null}
         {republishable ? (
           liveRequest ? (
             <Button asChild>

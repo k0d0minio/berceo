@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { NoteDisplay } from "@/components/avis/stars";
 import { FormMessage } from "@/components/auth/field";
 import { CancelRequest } from "@/components/demandes/cancel-request";
 import { GardeStateMark } from "@/components/gardes/garde-state";
@@ -176,6 +177,7 @@ export default async function DemandePage({
                           <p className="text-corps text-encre-taupe">{professionLabel(answer.profession)}</p>
                         </div>
                       </div>
+                      <NoteDisplay note={answer.note} />
                       <p className="text-corps font-semibold text-encre-sauge">{rateLine(answer.nightRateEur)}</p>
                       <div className="flex flex-wrap items-center gap-3">
                         <Link

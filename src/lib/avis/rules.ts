@@ -63,6 +63,9 @@ export function rateRefusal(garde: GardeFacts, alreadyRated: boolean, now: Date)
   return null;
 }
 
+/** What the rating form shows after a refused send. */
+export type RatingState = { error?: "incomplet" | "generique" | RateRefusal };
+
 export function canRate(garde: GardeFacts, alreadyRated: boolean, now: Date): boolean {
   return rateRefusal(garde, alreadyRated, now) === null;
 }
