@@ -13,12 +13,12 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-25 — Define numbered its decisions D-9 to D-11, ids the scope's earlier runs had taken
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: Build found `encres-contraste` (D-9 to D-13) and `premier-ecran` (D-14 to D-16), both archived in `.icm/runs/_done/`, already using the ids this run's Define took for its three layout decisions.
+- why: Define read only the scope's Decisions table (D-1 to D-8) and skipped the learned rule on reading the highest `D-n` elsewhere before numbering; the sibling runs' ids live in their own `decisions.md`, not in `scope.md`.
+- fixed by: Build renumbered them D-17, D-18 and D-19 in `spec.md` and `decisions.md` (no criterion or body text changed, so the PR body and the Spec approved gate are unaffected).
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- Before Define numbers a decision, grep `.icm/runs/*/decisions.md` and `.icm/runs/_done/*/decisions.md` for the scope's highest `D-n`; the earlier runs of the same scope number theirs after `scope.md`'s table.
