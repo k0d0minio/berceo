@@ -30,4 +30,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Pages — both sides' lists and garde pages, the family's request page, dialogs in `src/components/gardes/` (515e7f0)
 - [x] `/admin/absences` + the admin home link (515e7f0)
 - [x] `/api/cron/gardes-rappel` + `.github/workflows/gardes-rappel.yml` (515e7f0)
-- [ ] README and AGENTS.md routing row — Release
+- [x] README and AGENTS.md routing row — Release

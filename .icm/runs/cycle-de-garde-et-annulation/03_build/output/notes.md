@@ -46,3 +46,15 @@
 - Decision-id collision with avis-etoiles (see decisions.md).
 
 Context budget: read `src/lib/demandes/requests.ts`, `src/lib/reservations/{bookings,answers,notices,notify}.ts`, `src/lib/email/templates.ts`, the admin pages and the digest workflow beyond the spec's `touches:` files, to reuse their patterns.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN — read after the last push (see the PR; the head that merged is the close-out commit)
+- reviews: code high (two rounds: the review, then the review of its fix) · security `security-check.sh --branch --audit`: OK + /security-review — no finding · readiness `env.sh audit --changed`: OK · /production-readiness n/a — no such skill ships in this repo or the session; its ground (DB, payments, env) is covered by the code review, the migration applied on the run's branch and the env audit
+- fixed in-ticket at Release: republishing a cancelled garde while that night is already booked again (`liveRequestOn`, open or booked), the family's cancellation e-mail saying « remboursés » before Stripe refunded (now « en cours » until then), the reminder calls moved inside the hour twice (08:00, 08:30, 09:00, 09:30 UTC, so a delayed GitHub run still lands 10:00–10:59 Brussels), each reminder claimed in turn and released on a failed send (was: the whole batch claimed first), reminder failures logged under `[gardes]` with ids only. Proved on the run's Neon fixture.
+- parked: gardes-refund-failure-unflagged.md (a failed refund after a professional's cancellation shows nowhere in /admin) · gardes-shared-helpers.md (hasNightEnded/otherSide, gardeNotice, the cron bearer check copied) · care-requests-read-ownership.md (src/lib/gardes/ reads care_requests; AGENTS says demandes owns them)
+- merge of main: twice — the finition-accueil vitrine changes, then the blocs-accueil wrap; no conflict, no migration from main
+- migrations: skip — check-migrations.sh reads Drizzle's journal as SKIP; 0010 after main's 0009, applied on the run's Neon branch
+- learned: skip — no error.log (FAILURE.md carries three learned rules for close-out)
+- docs: README « The garde's life » (plus the cron row, the conversation's closing, the refund reasons), AGENTS routing and data-model rows · announce: deferred to promotion
