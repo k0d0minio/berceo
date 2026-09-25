@@ -291,7 +291,7 @@ never touches the money for the night (D-1).
   reports failed reads `remboursement_echoue`.
 - **The founders' list (D-93):** `/admin/paiements`, every fee newest first, 50 per page, with
   « Rembourser les frais ». Families and professionals see no payment history.
-- **Configuration (D-100):** `STRIPE_SECRET_KEY` (test key on Preview and Development, live key on
+- **Configuration (D-100):** `STRIPE_SECRET_KEY` (test key on Preview, live key on
   Production only once the company's Stripe account exists) and `STRIPE_WEBHOOK_SECRET` (per
   environment). In Stripe's dashboard, per account: enable Bancontact, and add the endpoint
   `https://uat.berceo.be/api/webhooks/stripe` (test mode) or `https://www.berceo.be/api/webhooks/stripe`

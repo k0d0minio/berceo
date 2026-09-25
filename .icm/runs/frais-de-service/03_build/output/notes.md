@@ -43,3 +43,16 @@ The PR body's boxes are left for the operator (Learned rules: a session never ti
 - Review closely: `confirmPayment` (the claim, the refund on refusal, the put-back on a throw), `acceptAnswer`'s new first-statement condition, `refundFee`'s key and its race with the webhook (D-95).
 - Spec deviations recorded as Build decisions: D-95 (refund events), D-97 (row after session).
 - The migration adds an enum value (`frais_rembourses`) and uses it nowhere in the same migration (Learned rules).
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN — read after the last push (see the PR; the head that merged is the close-out commit)
+- reviews: code high (two rounds: the review, then the review of its fix) · security `security-check.sh --branch --audit`: OK + /security-review — no finding at confidence ≥ 8 · readiness `env.sh audit --changed`: OK after the operator dropped Development for STRIPE_SECRET_KEY (declaration narrowed to [production,preview])
+- fixed in-ticket at Release (D-104): a paid fee left neither booked nor refunded (the D-98 put-back), a second Checkout while a paid one was settling, a refused refund told as done, the admin refund and its journal line in two statements, a refund landing between the booking's statements (row lock), the return link losing `session_id` at sign-in, silent failures (logs), one session-id check shared
+- declined: confirming an earlier paid Checkout for another answer (she paid for that one; booking what was paid is right) · a refund racing a booking or a double admin click (theoretical; the idempotency key keeps it one refund) · the CTE's status list (commented against REFUNDABLE) · extra row reads on the return page (one indexed read each)
+- parked: frais-paiement-sans-reservation.md (a booking cascade-deleted with an account leaves a paid fee that is refunded as `reservation_impossible`)
+- merge of main: twice — « Legible ink » (#43: the fee's new surfaces moved to the encre inks) and messagerie (#44, merged first: this run's migration regenerated as 0009, byte-identical SQL; its D-87..D-91 renumbered D-99..D-103; the PR's Neon preview branch reset from its parent with the operator's OK)
+- migrations: skip — check-migrations.sh reads Drizzle's journal as SKIP; 0009 regenerated on the merged tree after main's 0008
+- learned: skip — no error.log (FAILURE.md carries two learned rules for close-out)
+- docs: README « The service fee », AGENTS routing and data-model rows · announce: deferred to promotion
