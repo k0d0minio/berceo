@@ -353,18 +353,21 @@ export function gardeCancelledByFamilyEmail(input: {
 }
 
 /**
- * The professional cancelled the garde: to the family, saying the fee is
- * refunded when she paid one (D-2), and that she can republish (D-107).
+ * The professional cancelled the garde: to the family, saying her fee is
+ * refunded, or being refunded while Stripe has not done it, when she paid one
+ * (D-2), and that she can republish (D-107).
  */
 export function gardeCancelledByProfessionalEmail(input: {
   siteUrl: string;
   prenom: string;
   professionnelle: string;
   date: string;
-  refunded: boolean;
+  /** The fee's state: refunded at Stripe, being refunded, or none paid. */
+  refund: "fait" | "enCours" | null;
   url: string;
 }): RenderedEmail {
   const r = t.annulationParProfessionnelle;
+  const refund = input.refund === "fait" ? [r.remboursement] : input.refund === "enCours" ? [r.remboursementEnCours] : [];
   return {
     subject: fill(r.objet, { date: input.date }),
     ...layout({
@@ -372,7 +375,7 @@ export function gardeCancelledByProfessionalEmail(input: {
       prenom: input.prenom,
       paragraphs: [
         fill(r.corps, { prenom: input.professionnelle, date: input.date }),
-        ...(input.refunded ? [r.remboursement] : []),
+        ...refund,
         r.suite,
       ],
       cta: { label: r.cta, href: input.url },

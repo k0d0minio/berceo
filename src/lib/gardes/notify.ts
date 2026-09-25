@@ -1,7 +1,6 @@
 import "server-only";
 
 import { formatDate, formatTime } from "@/lib/demandes/format";
-import { logFailures } from "@/lib/demandes/notify";
 import { sendEmail } from "@/lib/email/send";
 import {
   absenceReportedEmail,
@@ -43,9 +42,14 @@ export async function notifyCancellation(bookingId: string, siteUrl: string): Pr
         key,
       );
     } else {
-      // Refunded, or being refunded: any fee she paid comes back when the professional cancels (D-2).
+      // The refund was attempted before this e-mail: say it is done only once Stripe did it (D-2).
       const fee = (await bookingFees([bookingId])).get(bookingId);
-      const refunded = fee !== undefined && ["payee", "remboursee", "remboursement_echoue"].includes(fee.status);
+      const refund =
+        fee?.status === "remboursee"
+          ? "fait"
+          : fee?.status === "payee" || fee?.status === "remboursement_echoue"
+            ? "enCours"
+            : null;
       await sendEmail(
         notice.family.email,
         gardeCancelledByProfessionalEmail({
@@ -53,7 +57,7 @@ export async function notifyCancellation(bookingId: string, siteUrl: string): Pr
           prenom: notice.family.firstName,
           professionnelle: notice.professional.firstName,
           date,
-          refunded,
+          refund,
           url: `${siteUrl}${familyBookingPath(bookingId)}`,
         }),
         key,
@@ -91,50 +95,56 @@ export async function notifyAbsence(bookingId: string, siteUrl: string): Promise
 
 export type ReminderOutcome = { gardes: number; failed: number };
 
+/** Both reminders of one garde; returns how many of its two sends failed. */
+async function remind(bookingId: string, siteUrl: string): Promise<number> {
+  try {
+    const notice = await gardeNotice(bookingId);
+    if (!notice) return 0;
+    const date = formatDate(notice.nightDate);
+    const heure = formatTime(notice.startTime);
+    const results = await Promise.allSettled([
+      sendEmail(
+        notice.family.email,
+        reminderFamilyEmail({
+          siteUrl,
+          prenom: notice.family.firstName,
+          professionnelle: notice.professional.firstName,
+          date,
+          heure,
+          url: `${siteUrl}${familyBookingPath(bookingId)}`,
+        }),
+        `garde-rappel-${bookingId}-famille`,
+      ),
+      sendEmail(
+        notice.professional.email,
+        reminderProfessionalEmail({
+          siteUrl,
+          prenom: notice.professional.firstName,
+          prenomFamille: notice.family.firstName,
+          date,
+          heure,
+          url: `${siteUrl}${professionalBookingPath(bookingId)}`,
+        }),
+        `garde-rappel-${bookingId}-professionnelle`,
+      ),
+    ]);
+    const failures = results.filter((result) => result.status === "rejected");
+    for (const failure of failures) logError("reminder e-mail not sent", { bookingId }, failure.reason);
+    return failures.length;
+  } catch (error) {
+    logError("reminder e-mails failed", { bookingId }, error);
+    return 2;
+  }
+}
+
 /**
  * The reminder of the day before (D-108): claims tomorrow's confirmed gardes,
- * then sends each side one e-mail. The caller has checked the hour.
+ * then sends every garde's two e-mails at once rather than one garde after
+ * another, so a long list finishes inside the function's time. The caller has
+ * checked the hour.
  */
 export async function sendReminders(now: Date, siteUrl: string): Promise<ReminderOutcome> {
   const ids = await claimReminders(now);
-  let failed = 0;
-  for (const bookingId of ids) {
-    try {
-      const notice = await gardeNotice(bookingId);
-      if (!notice) continue;
-      const date = formatDate(notice.nightDate);
-      const heure = formatTime(notice.startTime);
-      const results = await Promise.allSettled([
-        sendEmail(
-          notice.family.email,
-          reminderFamilyEmail({
-            siteUrl,
-            prenom: notice.family.firstName,
-            professionnelle: notice.professional.firstName,
-            date,
-            heure,
-            url: `${siteUrl}${familyBookingPath(bookingId)}`,
-          }),
-          `garde-rappel-${bookingId}-famille`,
-        ),
-        sendEmail(
-          notice.professional.email,
-          reminderProfessionalEmail({
-            siteUrl,
-            prenom: notice.professional.firstName,
-            prenomFamille: notice.family.firstName,
-            date,
-            heure,
-            url: `${siteUrl}${professionalBookingPath(bookingId)}`,
-          }),
-          `garde-rappel-${bookingId}-professionnelle`,
-        ),
-      ]);
-      failed += logFailures("reminder e-mail", results, [bookingId, bookingId]);
-    } catch (error) {
-      failed += 2;
-      logError("reminder e-mails failed", { bookingId }, error);
-    }
-  }
-  return { gardes: ids.length, failed };
+  const failed = await Promise.all(ids.map((bookingId) => remind(bookingId, siteUrl)));
+  return { gardes: ids.length, failed: failed.reduce((sum, n) => sum + n, 0) };
 }

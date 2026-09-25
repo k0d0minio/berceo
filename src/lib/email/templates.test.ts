@@ -99,7 +99,7 @@ const all: [string, RenderedEmail][] = [
       prenom: "Julie",
       professionnelle: "Emma",
       date: "30/09/2026",
-      refunded: true,
+      refund: "fait",
       url: `${SITE}/b`,
     }),
   ],
@@ -359,14 +359,17 @@ describe("the garde's e-mails (cycle-de-garde-et-annulation)", () => {
     expect(email.text).toContain(`Voir mes gardes : ${SITE}/g`);
   });
 
-  it("tells the family the professional cancelled, with the refund only when a fee was paid", () => {
+  it("tells the family the professional cancelled, and the refund only as far as Stripe made it", () => {
     const input = { siteUrl: SITE, prenom: "Julie", professionnelle: "Emma", date: "30/09/2026", url: `${SITE}/b` };
-    const refunded = gardeCancelledByProfessionalEmail({ ...input, refunded: true });
+    const refunded = gardeCancelledByProfessionalEmail({ ...input, refund: "fait" });
     expect(refunded.subject).toBe("Votre garde du 30/09/2026 est annulée");
     expect(refunded.text).toContain("Emma a annulé la garde du 30/09/2026.");
     expect(refunded.text).toContain("Les frais de service de 3 % vous sont intégralement remboursés.");
     expect(refunded.text).toContain("republier votre demande");
-    expect(gardeCancelledByProfessionalEmail({ ...input, refunded: false }).text).not.toContain("remboursés");
+    const pending = gardeCancelledByProfessionalEmail({ ...input, refund: "enCours" }).text;
+    expect(pending).toContain("est en cours");
+    expect(pending).not.toContain("vous sont intégralement remboursés");
+    expect(gardeCancelledByProfessionalEmail({ ...input, refund: null }).text).not.toMatch(/rembours/);
   });
 
   it("tells the absent side who reported the absence, for which night", () => {

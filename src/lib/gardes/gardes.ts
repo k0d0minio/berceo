@@ -15,7 +15,7 @@ import {
 import { addDays, brusselsNow, NIGHT_HOURS, TIME_ZONE, URGENT_LAST_DAY } from "@/lib/demandes/rules";
 import {
   cancelBookedRequestStatement,
-  openRequestOn,
+  liveRequestOn,
   publishRequest,
   UUID,
   type PublishResult,
@@ -148,7 +148,8 @@ export type RepublishResult =
  * request for the same night, start, children and age, published like any
  * other (`publishRequest`: her profile's commune, D-63), urgent when the night
  * is tonight or tomorrow (D-60), sent to nobody in priority. Refused once the
- * night has started; an open request of hers that night is returned instead.
+ * night has started; a live request of hers that night (open, or booked again)
+ * is returned instead, so she never holds two for one night.
  */
 export async function republishGarde(userId: string, bookingId: string, now: Date): Promise<RepublishResult> {
   if (!UUID.test(bookingId)) return { ok: false, reason: "nonModifiable" };
@@ -166,6 +167,9 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
     .where(and(eq(bookings.id, bookingId), eq(bookings.familyUserId, userId)))
     .limit(1);
   if (!row || !canRepublish(row, now)) return { ok: false, reason: "nonModifiable" };
+  // Her night already has a live request (open, or booked again since): she lands on it.
+  const live = await liveRequestOn(userId, row.nightDate);
+  if (live) return { ok: false, reason: "doublon", existing: live };
 
   const values = {
     nightDate: row.nightDate,
@@ -178,7 +182,7 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
   const published: PublishResult = await publishRequest(userId, values, urgent, now);
   if (published.ok) return { ok: true, id: published.id, urgent };
   if (published.reason === "commune") return { ok: false, reason: "commune" };
-  return { ok: false, reason: "doublon", existing: await openRequestOn(userId, values.nightDate) };
+  return { ok: false, reason: "doublon", existing: await liveRequestOn(userId, values.nightDate) };
 }
 
 // ---------------------------------------------------------------------------

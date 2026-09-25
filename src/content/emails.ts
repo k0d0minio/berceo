@@ -144,8 +144,10 @@ export const emails = catalogue({
       objet: "Votre garde du {date} est annulée",
       /** @relecture Surya — corps. */
       corps: "{prenom} a annulé la garde du {date}.",
-      /** @relecture Surya — le remboursement, seulement quand des frais ont été payés. */
+      /** @relecture Surya — le remboursement, une fois fait chez Stripe. */
       remboursement: "Les frais de service de 3 % vous sont intégralement remboursés.",
+      /** @relecture Surya — le remboursement, pas encore confirmé chez Stripe. */
+      remboursementEnCours: "Le remboursement intégral de vos frais de service de 3 % est en cours.",
       /** @relecture Surya — la suite : republier (D-107). */
       suite: "Vous pouvez republier votre demande depuis votre réservation pour trouver une autre professionnelle.",
       /** @relecture Surya — bouton vers la réservation. */

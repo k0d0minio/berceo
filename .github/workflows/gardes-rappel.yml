@@ -2,9 +2,10 @@
 #
 # Vercel Cron runs only on production deployments, never on the `uat` custom
 # environment the founders test on, so the schedule lives here and calls the
-# route on both. It runs at 08:00 and 09:00 UTC: the route sends only between
-# 10:00 and 10:59 in Brussels (08:00 UTC in summer, 09:00 UTC in winter), and
-# each garde is claimed once, so the other call of the day sends nothing.
+# route on both. It runs at 08:00, 08:30, 09:00 and 09:30 UTC: the route sends
+# only between 10:00 and 10:59 in Brussels, so two calls land in that hour,
+# summer or winter, and a scheduled run GitHub delays by up to half an hour
+# still reaches it. Each garde is claimed once, so later calls send nothing.
 # It shares the digest's secret, CRON_SECRET (D-68): the same value is set on
 # each Vercel environment and as this repository's secret. While it is missing
 # the run is skipped with a warning, never a failure; so is a 404 from an
@@ -13,7 +14,7 @@ name: Gardes rappel
 
 on:
   schedule:
-    - cron: "0 8,9 * * *"
+    - cron: "0,30 8,9 * * *"
   workflow_dispatch:
 
 permissions: {}

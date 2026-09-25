@@ -281,8 +281,12 @@ export function cancelBookedRequestStatement(bookingId: string, at: string) {
   `;
 }
 
-/** Her open request for `nightDate`, if any (D-65: at most one): republishing a garde links to it instead. */
-export async function openRequestOn(userId: string, nightDate: string): Promise<string | null> {
+/**
+ * Her live request for `nightDate`, if any: open (D-65: at most one) or
+ * already booked again. Republishing a cancelled garde links to it instead,
+ * so a night never carries two requests that could each be booked.
+ */
+export async function liveRequestOn(userId: string, nightDate: string): Promise<string | null> {
   const [row] = await db
     .select({ id: careRequests.id })
     .from(careRequests)
@@ -290,7 +294,7 @@ export async function openRequestOn(userId: string, nightDate: string): Promise<
       and(
         eq(careRequests.familyUserId, userId),
         eq(careRequests.nightDate, nightDate),
-        eq(careRequests.status, "ouverte"),
+        inArray(careRequests.status, ["ouverte", "attribuee"]),
       ),
     )
     .limit(1);

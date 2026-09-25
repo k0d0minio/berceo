@@ -7,10 +7,11 @@ import { sendReminders } from "@/lib/gardes/notify";
 
 /*
  * The reminder of the day before (cycle-de-garde-et-annulation, D-108). Called
- * by .github/workflows/gardes-rappel.yml at 08:00 and 09:00 UTC on UAT and on
- * production (Vercel Cron never runs on the `uat` environment); it sends only
- * between 10:00 and 10:59 in Brussels, so one of the two calls sends, summer or
- * winter, and each garde is claimed once, so a second call sends nothing more.
+ * by .github/workflows/gardes-rappel.yml at 08:00, 08:30, 09:00 and 09:30 UTC
+ * on UAT and on production (Vercel Cron never runs on the `uat` environment);
+ * it sends only between 10:00 and 10:59 in Brussels, where two of the calls
+ * land, summer or winter, and each garde is claimed once, so a second call
+ * sends nothing more.
  * Refused without `CRON_SECRET` as a bearer token (the digest's secret, D-68),
  * and when no secret is set at all.
  */

@@ -103,8 +103,8 @@ export const gardes = catalogue({
       oui: "Oui, republier",
       /** @relecture Surya — réponse qui renonce (rouge, D-24). */
       non: "Non, pas maintenant",
-      /** @relecture Surya — une demande est déjà ouverte pour cette nuit (D-65). */
-      dejaOuverte: "Voir ma demande ouverte pour cette nuit",
+      /** @relecture Surya — une demande est déjà ouverte, ou de nouveau réservée, pour cette nuit. */
+      dejaOuverte: "Voir ma demande pour cette nuit",
     },
 
     erreurs: {

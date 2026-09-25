@@ -17,7 +17,7 @@ import { conversationOfBooking } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
 import { cardTitle } from "@/lib/demandes/format";
 import { familyRequestPath } from "@/lib/demandes/paths";
-import { openRequestOn } from "@/lib/demandes/requests";
+import { liveRequestOn } from "@/lib/demandes/requests";
 import { gardeFee } from "@/lib/gardes/gardes";
 import { cancelledLine, feeText } from "@/lib/gardes/format";
 import { canCancel, canReportAbsence, canRepublish, gardeState } from "@/lib/gardes/rules";
@@ -69,7 +69,7 @@ export const dynamic = "force-dynamic";
  * « Annuler la garde » until the start hour (D-105); « Signaler une absence »
  * from it until 24 hours after the night (D-106); once cancelled, who and
  * when, the fee line (D-2), and « Republier ma demande » until the night
- * starts, or a link to her open request that night (D-107).
+ * starts, or a link to her live request that night (D-107).
  */
 export default async function ReservationPage({
   params,
@@ -100,9 +100,9 @@ export default async function ReservationPage({
   const facts = { status: booking.garde.status, nightDate: request.nightDate, startTime: request.startTime };
   const state = gardeState(facts, now);
   const republishable = canRepublish(facts, now);
-  const [fee, openRequest] = await Promise.all([
+  const [fee, liveRequest] = await Promise.all([
     booking.garde.status === "annulee" ? gardeFee(booking.id) : Promise.resolve(null),
-    republishable ? openRequestOn(user.id, request.nightDate) : Promise.resolve(null),
+    republishable ? liveRequestOn(user.id, request.nightDate) : Promise.resolve(null),
   ]);
   const cancelled = cancelledLine(booking.garde, "famille", professional.firstName);
   const feeLine = feeText(booking.garde, fee?.status ?? null);
@@ -144,9 +144,9 @@ export default async function ReservationPage({
       </article>
       <div className="flex flex-wrap gap-3">
         {republishable ? (
-          openRequest ? (
+          liveRequest ? (
             <Button asChild>
-              <Link href={familyRequestPath(openRequest)}>{g.republication.dejaOuverte}</Link>
+              <Link href={familyRequestPath(liveRequest)}>{g.republication.dejaOuverte}</Link>
             </Button>
           ) : (
             <RepublishGarde onRepublish={republishGardeAction.bind(null, booking.id)} />
