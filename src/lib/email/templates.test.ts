@@ -6,6 +6,7 @@ import {
   complementRequestedEmail,
   escapeHtml,
   newAnswerEmail,
+  newMessageEmail,
   notRetainedEmail,
   priorityRequestEmail,
   profileRefusedEmail,
@@ -73,6 +74,10 @@ const all: [string, RenderedEmail][] = [
   ],
   ["not retained", notRetainedEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES })],
   ["priority request", priorityRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES })],
+  [
+    "new message",
+    newMessageEmail({ siteUrl: SITE, prenom: "Julie", auteur: "Emma", date: "30/09/2026", url: `${SITE}/espace/famille/messages/c1` }),
+  ],
 ];
 
 describe.each(all)("%s e-mail", (_name, email) => {
@@ -267,5 +272,18 @@ describe("the answer and the booking e-mails", () => {
     expect(email.subject).toBe("Une famille vous envoie sa demande en priorité");
     expect(email.text).toContain("Une famille de Ixelles vous a choisie pour la nuit du 30/09/2026 de 20h00 à 7h00. Un bébé de trois mois.");
     expect(email.text).toContain(`Voir la demande : ${LIST}`);
+  });
+});
+
+describe("the new-message e-mail (messagerie, D-90)", () => {
+  const url = `${SITE}/espace/professionnelle/messages/c1`;
+  const email = newMessageEmail({ siteUrl: SITE, prenom: "Emma", auteur: "Sophie", date: "30/09/2026", url });
+
+  it("names who wrote and the night, and links to the conversation", () => {
+    expect(email.subject).toBe("Sophie vous a écrit");
+    expect(email.text).toContain(
+      "Sophie vous a écrit au sujet de la garde du 30/09/2026. Vous pouvez lui répondre sur Berceo.",
+    );
+    expect(email.text).toContain(`Lire le message : ${url}`);
   });
 });

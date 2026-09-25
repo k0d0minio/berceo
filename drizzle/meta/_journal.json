@@ -57,6 +57,13 @@
       "when": 1790340283687,
       "tag": "0007_candidature_reservation",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790345869371,
+      "tag": "0008_messagerie",
+      "breakpoints": true
     }
   ]
 }

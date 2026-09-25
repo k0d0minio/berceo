@@ -12,7 +12,8 @@ import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
-import { words } from "@/content/locale";
+import { fill, words } from "@/content/locale";
+import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
 import { FAMILY_REQUESTS_PATH, familyRequestPath } from "@/lib/demandes/paths";
@@ -20,6 +21,8 @@ import { ownRequest } from "@/lib/demandes/requests";
 import { displayStatus, isChangeable, isEditable } from "@/lib/demandes/rules";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyHasAddress } from "@/lib/famille/profile";
+import { conversationsOfAnswers } from "@/lib/messagerie/conversations";
+import { conversationPath } from "@/lib/messagerie/paths";
 import { familyAnswers } from "@/lib/reservations/answers";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
 import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
@@ -31,6 +34,7 @@ import { acceptAnswerAction, cancelRequestAction, republishRequestAction } from 
 const t = words(demandes);
 const r = words(reservations);
 const c = words(comptes);
+const m = words(messagerie);
 
 export const metadata: Metadata = {
   title: t.meta.detail,
@@ -96,6 +100,7 @@ export default async function DemandePage({
     request.status === "attribuee" ? bookingOfRequest(user.id, request.id) : Promise.resolve(null),
   ]);
   const night = recapNight(request.nightDate, request.startTime);
+  const conversationIds = await conversationsOfAnswers(user.id, answers.map((answer) => answer.applicationId));
 
   return (
     <SpaceShell user={user} title={t.meta.detail}>
@@ -146,6 +151,15 @@ export default async function DemandePage({
                         >
                           {r.famille.voirProfil}
                         </Link>
+                        {conversationIds.has(answer.applicationId) ? (
+                          <Link
+                            href={conversationPath("famille", conversationIds.get(answer.applicationId)!)}
+                            prefetch={false}
+                            className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+                          >
+                            {fill(m.liens.ecrire, { prenom: answer.firstName })}
+                          </Link>
+                        ) : null}
                         {hasAddress ? (
                           <AcceptAnswer
                             recap={{

@@ -15,6 +15,7 @@ import {
 } from "@/db";
 import { nightAhead, professionalProfileOf, UUID } from "@/lib/demandes/requests";
 import { TIME_ZONE } from "@/lib/demandes/rules";
+import { withConversation } from "@/lib/messagerie/conversations";
 
 import { answerRefusal, type AnswerRefusal, type ApplicationStatus } from "./rules";
 
@@ -92,7 +93,8 @@ export async function answerRequest(userId: string, requestId: string, now: Date
   if (refusal) return { ok: false, reason: refusal };
 
   const at = now.toISOString();
-  const written = await db.execute<{ id: string; answer_count: number }>(sql`
+  // The answer and its conversation, with Berceo's amorce, in one statement (messagerie, D-87).
+  const written = await db.execute<{ id: string; answer_count: number }>(withConversation(sql`
     insert into care_request_applications
       (request_id, profile_id, night_rate_eur, answered_at, created_at, updated_at)
     select r.id, p.id, p.night_rate_eur, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
@@ -120,8 +122,8 @@ export async function answerRequest(userId: string, requestId: string, now: Date
           answer_count = care_request_applications.answer_count + 1,
           updated_at = excluded.updated_at
       where care_request_applications.status = 'retiree'
-    returning id, answer_count
-  `);
+    returning id, answer_count, request_id, profile_id
+  `, at));
   const [answer] = written.rows;
   // The request moved between the read and the write: booked, cancelled, answered twice.
   if (!answer) return { ok: false, reason: "fermee" };
