@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 
 import { profileStatusEnum, type ProfileStatus } from "@/db/schema";
 import { fullName } from "@/lib/admin/journal";
+import { ADMIN_FILES_PATH } from "@/lib/admin/paths";
 import { decide, type DecisionResult } from "@/lib/admin/review";
 import { isDecision } from "@/lib/admin/rules";
 import { currentUser } from "@/lib/auth/current-user";
@@ -40,7 +41,7 @@ export async function setStudents(value: boolean): Promise<SettingResult> {
     console.error("[admin] students switch not saved", { error });
     return { ok: false };
   }
-  revalidatePath(SPACES.admin);
+  revalidatePath(ADMIN_FILES_PATH);
   return { ok: true };
 }
 
@@ -85,6 +86,7 @@ export async function decideFile(request: DecisionRequest): Promise<DecisionResu
   );
   if (result.ok) {
     revalidatePath(SPACES.admin);
+    revalidatePath(ADMIN_FILES_PATH);
     revalidatePath(`${SPACES.admin}/dossiers/${profileId}`);
   }
   return result;

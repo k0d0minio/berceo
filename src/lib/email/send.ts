@@ -27,12 +27,23 @@ export async function sendEmail(
   to: string,
   email: RenderedEmail,
   idempotencyKey?: string,
+  options?: {
+    /** Where an answer goes: a founder's own address on her « Contacter l'utilisateur » (D-138). */
+    replyTo?: string;
+  },
 ): Promise<void> {
   const from = process.env.EMAIL_FROM;
   if (!from) throw new Error("EMAIL_FROM is not set — e-mail is unavailable. See .env.example.");
 
   const { error } = await resend().emails.send(
-    { from, to, subject: email.subject, html: email.html, text: email.text },
+    {
+      from,
+      to,
+      subject: email.subject,
+      html: email.html,
+      text: email.text,
+      ...(options?.replyTo ? { replyTo: options.replyTo } : {}),
+    },
     idempotencyKey ? { idempotencyKey } : undefined,
   );
   if (error) {

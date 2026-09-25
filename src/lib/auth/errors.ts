@@ -11,6 +11,7 @@ export type AuthOutcome =
   | "lienInvalide"
   | "motDePasseCourt"
   | "motDePasseLong"
+  | "suspendu"
   | "generique";
 
 const BY_CODE: Record<string, AuthOutcome> = {
@@ -26,6 +27,8 @@ const BY_CODE: Record<string, AuthOutcome> = {
   TOKEN_EXPIRED: "lienInvalide",
   PASSWORD_TOO_SHORT: "motDePasseCourt",
   PASSWORD_TOO_LONG: "motDePasseLong",
+  // Neon Auth's own ban, should it ever be set: the same answer as a suspension (D-134).
+  BANNED_USER: "suspendu",
 };
 
 export function authOutcome(error: { code?: string | null } | null | undefined): AuthOutcome {

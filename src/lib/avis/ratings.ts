@@ -276,6 +276,20 @@ export async function submitRating(
 export type DueInvitation = { bookingId: string; side: RatingSide };
 
 /**
+ * The rater of this side is not suspended (back-office-admin, D-134): a
+ * suspended account cannot sign in to rate, so it is not invited; reactivated
+ * inside the window, it is.
+ */
+function raterActive(side: SQL) {
+  return sql`not exists (
+    select 1 from users su
+    where su.suspended_at is not null
+      and su.id = case when ${side} = 'famille'::rating_side then ${bookings.familyUserId}
+        else (select p.user_id from professional_profiles p where p.id = ${bookings.profileId}) end
+  )`;
+}
+
+/**
  * The invitations owed now: for each terminée, non-annulée garde inside its
  * window, each side not yet invited and not yet rated. A garde whose window
  * closed before any pass saw it owes none.
@@ -288,6 +302,7 @@ export async function invitationsDue(): Promise<DueInvitation[]> {
     cross join (values ('famille'::rating_side), ('professionnelle'::rating_side)) as s(side)
     where ${isTerminee}
       and ${windowOpen}
+      and ${raterActive(sql`s.side`)}
       and not exists (select 1 from rating_invitations i where i.booking_id = ${bookings.id} and i.side = s.side)
       and not exists (select 1 from ratings r where r.booking_id = ${bookings.id} and r.rater_side = s.side)
     order by ${bookings.nightDate}, ${bookings.id}
@@ -308,6 +323,7 @@ export async function claimInvitation(bookingId: string, side: RatingSide, now: 
     where ${bookings.id} = ${bookingId}
       and ${isTerminee}
       and ${windowOpen}
+      and ${raterActive(sql`${side}::rating_side`)}
       and not exists (select 1 from ratings r where r.booking_id = ${bookings.id} and r.rater_side = ${side}::rating_side)
     on conflict (booking_id, side) do nothing
     returning booking_id

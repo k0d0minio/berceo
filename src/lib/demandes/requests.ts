@@ -12,6 +12,7 @@ import {
   users,
   type ApplicationStatus,
 } from "@/db";
+import { notSuspended, suspendedAtExactly } from "@/lib/auth/suspension";
 import { familyNotesOfRequests, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { familyCommune } from "@/lib/famille/profile";
 
@@ -264,6 +265,54 @@ export async function cancelRequest(
 }
 
 /**
+ * A suspension's part here (back-office-admin, D-134): her open requests
+ * ahead are cancelled as her own cancellation would, in the suspension's own
+ * batch and only if that batch suspended her at `at`. The next statement
+ * declines the answers that waited on them, so each professional is told.
+ */
+export function suspensionCancelsRequests(userId: string, at: Date) {
+  return db
+    .update(careRequests)
+    .set({ status: "annulee", cancelledAt: at, updatedAt: at })
+    .where(
+      and(
+        eq(careRequests.familyUserId, userId),
+        eq(careRequests.status, "ouverte"),
+        nightAhead,
+        suspendedAtExactly(userId, at),
+      ),
+    )
+    .returning({ id: careRequests.id });
+}
+
+/** The answers still waiting on the requests `suspensionCancelsRequests` cancelled at `at`, declined. */
+export function suspensionDeclinesAnswers(userId: string, at: Date) {
+  return db
+    .update(careRequestApplications)
+    .set({ status: "non_retenue", updatedAt: at })
+    .where(
+      and(
+        eq(careRequestApplications.status, "en_attente"),
+        inArray(
+          careRequestApplications.requestId,
+          db
+            .select({ id: careRequests.id })
+            .from(careRequests)
+            .where(
+              and(
+                eq(careRequests.familyUserId, userId),
+                eq(careRequests.status, "annulee"),
+                eq(careRequests.cancelledAt, at),
+              ),
+            ),
+        ),
+        suspendedAtExactly(userId, at),
+      ),
+    )
+    .returning({ id: careRequestApplications.id });
+}
+
+/**
  * The request side of a cancelled garde (D-110): its booked request becomes
  * `annulee` in the garde's own statement (`src/lib/gardes/`), only when the
  * garde `bookingId` was cancelled at `at` by that statement, so its
@@ -326,7 +375,13 @@ export async function setPriority(
           db
             .select({ id: professionalProfiles.id })
             .from(professionalProfiles)
-            .where(and(eq(professionalProfiles.id, profileId), eq(professionalProfiles.status, "valide"))),
+            .where(
+              and(
+                eq(professionalProfiles.id, profileId),
+                eq(professionalProfiles.status, "valide"),
+                notSuspended(professionalProfiles.userId),
+              ),
+            ),
         ),
         reachableBy(profileId),
       ),
@@ -488,7 +543,10 @@ export async function professionalRequests(userId: string): Promise<Professional
 
 export type Recipient = { profileId: string; email: string; firstName: string; communeIns: string };
 
-/** Every validated professional serving one of `communes`, once per commune she serves there. */
+/**
+ * Every validated professional serving one of `communes`, once per commune she
+ * serves there; never a suspended one, who can answer nothing (D-134).
+ */
 export async function professionalsServing(communes: string[]): Promise<Recipient[]> {
   if (communes.length === 0) return [];
   return db
@@ -502,7 +560,11 @@ export async function professionalsServing(communes: string[]): Promise<Recipien
     .innerJoin(users, eq(users.id, professionalProfiles.userId))
     .innerJoin(professionalCommunes, eq(professionalCommunes.profileId, professionalProfiles.id))
     .where(
-      and(eq(professionalProfiles.status, "valide"), inArray(professionalCommunes.communeIns, communes)),
+      and(
+        eq(professionalProfiles.status, "valide"),
+        isNull(users.suspendedAt),
+        inArray(professionalCommunes.communeIns, communes),
+      ),
     );
 }
 

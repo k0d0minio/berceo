@@ -377,7 +377,10 @@ export type MessageNotice = {
   senderFirstName: string;
 };
 
-/** A message one of the two people wrote, as its e-mail to the other needs it; null for Berceo's. */
+/**
+ * A message one of the two people wrote, as its e-mail to the other needs it;
+ * null for Berceo's, and when the other is suspended.
+ */
 export async function messageNotice(messageId: string): Promise<MessageNotice | null> {
   if (!UUID.test(messageId)) return null;
   const [row] = await db
@@ -385,8 +388,12 @@ export async function messageNotice(messageId: string): Promise<MessageNotice | 
       author: messages.author,
       conversationId: conversations.id,
       nightDate: careRequests.nightDate,
-      family: { email: familyUser.email, firstName: familyUser.firstName },
-      professional: { email: professionalUser.email, firstName: professionalUser.firstName },
+      family: { email: familyUser.email, firstName: familyUser.firstName, suspendedAt: familyUser.suspendedAt },
+      professional: {
+        email: professionalUser.email,
+        firstName: professionalUser.firstName,
+        suspendedAt: professionalUser.suspendedAt,
+      },
     })
     .from(messages)
     .innerJoin(conversations, eq(conversations.id, messages.conversationId))
@@ -399,7 +406,9 @@ export async function messageNotice(messageId: string): Promise<MessageNotice | 
   if (!row || row.author === "berceo") return null;
 
   const fromFamily = row.author === "famille";
-  const recipient = fromFamily ? row.professional : row.family;
+  const { suspendedAt, ...recipient } = fromFamily ? row.professional : row.family;
+  // A suspended account cannot sign in to read it (D-134): no e-mail.
+  if (suspendedAt) return null;
   return {
     conversationId: row.conversationId,
     nightDate: row.nightDate,

@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import { AdminShell } from "@/components/admin/admin-shell";
+import { FilterLinks, listHref, Pager } from "@/components/admin/list-controls";
 import { PaymentsTable } from "@/components/admin/payments-table";
-import { SpaceShell } from "@/components/shell/space-shell";
 import { admin } from "@/content/admin";
-import { fill, words } from "@/content/locale";
-import { journalPage } from "@/lib/admin/rules";
+import { words } from "@/content/locale";
+import { RECENT_PERIOD, journalPage, recentPaymentCutoff } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
-import { SPACES } from "@/lib/auth/routing";
 import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths";
 import { readPayments } from "@/lib/paiements/payments";
 
@@ -20,48 +19,44 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const link = "text-corps font-semibold text-encre-sauge underline underline-offset-4";
-
 /*
  * « Paiements des frais de service » (frais-de-service, D-93): every fee,
  * newest first, 50 per page like the journal, with « Rembourser les frais »
- * on a paid one (D-101). A 404 to anyone but an admin (D-33). Families and
- * professionals see no payment history anywhere (I-05 NON).
+ * on a paid one (D-101). `?periode=7j` keeps the fees paid in the last 7
+ * days: the overview's « Paiements récents » counts exactly those
+ * (back-office-admin, D-133). A 404 to anyone but an admin (D-33). Families
+ * and professionals see no payment history anywhere (I-05 NON).
  */
 export default async function PaiementsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; periode?: string }>;
 }) {
   const user = await requireAccess(ADMIN_PAYMENTS_PATH);
-  const page = journalPage((await searchParams).page);
-  const { rows, pages } = await readPayments(page);
+  const params = await searchParams;
+  const page = journalPage(params.page);
+  const recent = params.periode === RECENT_PERIOD;
+  const now = new Date();
+  const { rows, pages } = await readPayments(page, recent ? recentPaymentCutoff(now) : null);
+  const t = a.paiements;
+  const href = (n: number, periode = recent) =>
+    listHref(ADMIN_PAYMENTS_PATH, { periode: periode ? RECENT_PERIOD : null, page: n > 1 ? String(n) : null });
 
   return (
-    <SpaceShell user={user} title={a.paiements.titre}>
-      <Link href={SPACES.admin} className={`self-start ${link}`}>
-        {a.paiements.retour}
-      </Link>
+    <AdminShell user={user} title={t.titre} current="paiements">
+      <FilterLinks
+        label={t.colonnes.date}
+        options={[
+          { label: t.filtres.tous, href: href(1, false), current: !recent },
+          { label: t.filtres.recents, href: href(1, true), current: recent },
+        ]}
+      />
       {rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{a.paiements.vide}</p>
+        <p className="text-corps text-encre-taupe">{recent ? t.videRecents : t.vide}</p>
       ) : (
-        <PaymentsTable rows={rows} now={new Date()} />
+        <PaymentsTable rows={rows} now={now} />
       )}
-      {pages > 1 ? (
-        <nav className="flex flex-wrap items-center gap-6 text-corps text-encre-taupe">
-          {page > 1 ? (
-            <Link href={`${ADMIN_PAYMENTS_PATH}?page=${page - 1}`} className={link}>
-              {a.paiements.precedente}
-            </Link>
-          ) : null}
-          <span>{fill(a.paiements.page, { n: String(page) })}</span>
-          {page < pages ? (
-            <Link href={`${ADMIN_PAYMENTS_PATH}?page=${page + 1}`} className={link}>
-              {a.paiements.suivante}
-            </Link>
-          ) : null}
-        </nav>
-      ) : null}
-    </SpaceShell>
+      <Pager page={page} pages={pages} href={(n) => href(n)} />
+    </AdminShell>
   );
 }

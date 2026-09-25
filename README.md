@@ -25,7 +25,7 @@ npm run dev      # http://localhost:3000
 | [src/app/sitemap.ts](src/app/sitemap.ts), [robots.ts](src/app/robots.ts), [site.ts](src/app/site.ts) | The four indexable pages on `https://www.berceo.be`; crawling allowed on production only (`VERCEL_ENV`). |
 | [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
 | [src/lib/professionnelle/](src/lib/professionnelle/), [src/lib/documents/](src/lib/documents/) | The professional's file: its rules, the private document bucket and `/api/fichiers/[id]`. |
-| [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' review: the queue and decision rules, the admin journal, the purge of refused files. See **The founders' verification** below. |
+| [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' back-office: the review (queue and decision rules), the accounts (search, suspend, reactivate, delete, contact), the lists and their overview counts, the admin journal, the purge of refused and deleted accounts' files. See **The founders' verification** and **The back-office** below. |
 | [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`), the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`) and the hourly invitation to rate a finished garde (`.github/workflows/avis-invitations.yml`), all guarded by `CRON_SECRET`. |
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
 | [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
@@ -117,6 +117,9 @@ The platform's data starts here: one Neon Postgres database, read through
   The founders' review (0004): `review_reason` and `reviewed_at` on `professional_profiles`, and
   `admin_journal`, one row per admin action, which a trigger keeps append-only (no `UPDATE`,
   `DELETE` or `TRUNCATE`) and which names people by id and name without foreign keys.
+  The back-office (0012): `suspended_at`, `suspended_by`, `deleted_at` on `users` (a `CHECK`
+  keeps a deleted row suspended), `report_handled_at` and `report_handled_by` on `bookings`
+  (only on a cancelled garde), and five more journal actions.
   `care_requests` (0005): a family's night, its start, children, baby's age, the commune copied
   from her profile, the urgent flag, when the no-medical-condition box was ticked, and
   `digest_sent_at`; at most one open request per family and night.
@@ -283,8 +286,8 @@ in `src/lib/reservations/bookings.ts`.
   cancellation keeps the fee. The other side gets one e-mail.
 - **Reporting an absence (D-106):** from the start hour until 24 h after the night, either side
   reports the other absent; the garde is cancelled against the absent side (kind `absence`), who
-  gets one e-mail. Nothing is refunded: the founders read `/admin/absences` (linked with its count
-  from `/admin`) and refund from `/admin/paiements` if they judge it fair.
+  gets one e-mail. Nothing is refunded: the founders read it under `/admin/signalements` (with
+  every cancellation) and refund from `/admin/paiements` if they judge it fair.
 - **Republishing (D-107, D-112):** on a cancelled garde whose night has not started, « Republier
   ma demande » publishes a new request for the same night through `publishRequest` (the
   profile's commune, the urgent flag by the date window), or links to her live request that
@@ -334,7 +337,7 @@ SQL of the statement it governs. The garde's state is `src/lib/gardes/`'s, never
   production. Each side of each terminée garde inside its window, not yet invited and not yet
   rated, is claimed in `rating_invitations` just before its e-mail (the family's is the guide's
   « Demande d'avis post-garde », verbatim) and released if the send fails. No reminder.
-- **The founders' list (G-03, D-118):** `/admin/avis`, linked with its count from `/admin`, every
+- **The founders' list (G-03, D-118):** `/admin/avis`, in the back-office's navigation, every
   rating newest first, 50 a page, both full names, the four scores, the mean and whether it is
   published. Read-only.
 - **Words:** `src/content/avis.ts` (every entry `@relecture` but « Laisser un avis »), the
@@ -488,13 +491,13 @@ never touches the money for the night (D-1).
 - **Her zone (D-11)** is one to fifty communes from the shared commune list (below), stored as
   REFNIS codes in `professional_communes.commune_ins`, the key `family_profiles` carries too.
   `searchCommunes` in `src/lib/communes/` groups the list's localities by commune for the picker.
-- **The students switch (D-7)** is `etudiantes_admises` in `app_settings`, flipped on `/admin`.
+- **The students switch (D-7)** is `etudiantes_admises` in `app_settings`, flipped on `/admin/dossiers`.
 
 ## The founders' verification
 
-- **The queue:** `/admin` opens on "Dossiers en attente de vérification", every `en_attente` and
-  `complement_demande` file, oldest `submitted_at` first, then the students switch and a link to
-  the journal. `/admin/dossiers/[id]` shows one file whole (documents embedded through
+- **The queue:** `/admin/dossiers` lists "Dossiers en attente de vérification", every `en_attente`
+  and `complement_demande` file of an account that is not suspended, oldest `submitted_at` first,
+  then the students switch. `/admin/dossiers/[id]` shows one file whole (documents embedded through
   `/api/fichiers/[id]`, declarations, the file's journal history) and, while it waits, the three
   decisions: "Valider le profil", "Demander un complément", "Refuser le profil" (the last two with
   a reason of 1 to 1,000 characters). All three are 404 to anyone but an admin.
@@ -513,13 +516,55 @@ never touches the money for the night (D-1).
   state: the queue reads "Étudiantes non admises", validation is refused on the page and the
   server, and her space says why. Turning the switch on releases it at its place.
 - **The journal:** `/admin/journal`, newest first, 50 per page. Every admin action writes through
-  `src/lib/admin/journal.ts` (the decisions, the students switch, the purge, and stub 14's actions
-  to come); the module has no update or delete, and the database refuses both.
+  `src/lib/admin/journal.ts` (the decisions, the students switch, the purge, and the back-office's
+  acts below); the module has no update or delete, and the database refuses both.
 - **The purge (D-41, D-55):** `/api/cron/purge-dossiers-refuses`, scheduled daily in
   `vercel.json`, deletes every file (documents and photo) of a profile refused more than 30 days
-  ago, from the bucket and `professional_documents`, and journals "Documents supprimés". It answers
+  ago, and any file a deleted account still holds, from the bucket and `professional_documents`,
+  and journals "Documents supprimés". It answers
   404 without `Authorization: Bearer <CRON_SECRET>`. Vercel runs cron jobs on production only; on
   uat.berceo.be the route is called by hand with the environment's `CRON_SECRET`.
+
+## The back-office
+
+- **Navigation (D-132):** every `/admin` page goes through `AdminShell`
+  (`src/components/admin/admin-shell.tsx`): « Vue d'ensemble », Dossiers, Utilisateurs, Demandes,
+  Réservations, Signalements, Paiements, Avis, Journal. All 404 to anyone but an admin (D-33).
+  `/admin/absences` redirects permanently to `/admin/signalements`.
+- **« Vue d'ensemble » (D-133):** `/admin`, the guide's four blocks, each a number and a link:
+  the verification queue, `/admin/reservations?etat=en-cours` (confirmed gardes not ended),
+  `/admin/signalements` (cancelled gardes and absences not marked handled) and
+  `/admin/paiements?periode=7j` (fees paid in the last 7 days). Each number is counted with the
+  same exported condition its list filters on (`src/lib/admin/lists.ts`,
+  `paymentCountSince` in `src/lib/paiements/payments.ts`).
+- **Accounts:** `/admin/utilisateurs` searches first name, last name, full name and e-mail
+  (case and accents folded) and the phone by its digits in any notation; a deleted account is
+  never found. `/admin/utilisateurs/[id]` shows the account (a family's commune, never her
+  address), its activity with links to the lists filtered on it, its gardes still standing, the
+  actions and its journal. `src/lib/admin/accounts.ts` holds the reads and the acts.
+- **Suspending (D-134):** one batch: the account marked suspended, her waiting answers
+  `retiree`, her open requests `annulee` and the answers on them `non_retenue` (each professional
+  told), the journal entry. Confirmed gardes are left for the founders to handle; the dialog lists
+  them. `currentUser()` then returns `suspended`, so nothing opens; the guard sends the session to
+  `/connexion/suspendu`, which ends it; sign-in refuses it. Every reader that could show her to
+  someone, or put her in front of a new request, answer or booking, holds her out with
+  `notSuspended()` (`src/lib/auth/suspension.ts`); a Checkout completing after the suspension is
+  refunded `reservation_impossible`. Her Neon Auth sessions are deleted from `neon_auth.session`.
+- **Reactivating (D-135)** lifts it; nothing withdrawn is restored.
+- **Deleting (D-136, D-137):** only a suspended account with no garde ahead, confirmed by typing
+  her last name. One batch anonymises the row (« Compte supprimé », `supprime-<id>@invalid`, no
+  phone), deletes her family profile, clears her profile's personal fields, her communes and
+  nights, deletes her Neon Auth identity (`neon_auth."user"`, whose sessions and accounts
+  cascade) and journals it; then her files leave the bucket, leftovers finished by the purge.
+  Requests, bookings, payments, conversations and ratings stay under « Compte supprimé ».
+- **Contacting (D-138):** a subject and a message sent from `EMAIL_FROM` with Reply-To the
+  founder's own e-mail (`contactEmail`), one idempotency key per message; the journal keeps the
+  subject only, written once the e-mail left.
+- **Lists:** `/admin/demandes` and `/admin/reservations` (filters by state and by account),
+  `/admin/signalements` with « Marquer comme traité » (one statement: the marker and the journal
+  entry, D-139).
+- **Words:** `src/content/admin.ts` (the guide's « Le backoffice » lines verbatim), the suspended
+  message in `src/content/comptes.ts`, the contact frame in `src/content/emails.ts`.
 
 ## The vitrine
 

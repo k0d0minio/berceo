@@ -1,4 +1,4 @@
-import { and, eq, inArray, lt } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, lt, or } from "drizzle-orm";
 
 import { db, professionalDocuments, professionalProfiles, users } from "@/db";
 import { fullName, journalInsert } from "@/lib/admin/journal";
@@ -6,7 +6,8 @@ import { isCronRequest, purgeRefusedFiles, type DueProfile } from "@/lib/admin/p
 import { deleteObject } from "@/lib/documents/storage";
 
 /*
- * The daily purge of refused files (D-41, D-55), scheduled in vercel.json.
+ * The daily purge of refused files (D-41, D-55), scheduled in vercel.json, and
+ * of a deleted account's files the deletion left behind (back-office-admin).
  * Vercel's cron sends `Authorization: Bearer <CRON_SECRET>`; anything else gets
  * a 404, so the route never confirms it exists. Vercel runs cron jobs on the
  * production deployment only: on uat.berceo.be the route is called by hand
@@ -22,13 +23,20 @@ async function due(cutoff: Date): Promise<DueProfile[]> {
       userId: users.id,
       firstName: users.firstName,
       lastName: users.lastName,
+      deletedAt: users.deletedAt,
       fileId: professionalDocuments.id,
       storageKey: professionalDocuments.storageKey,
     })
     .from(professionalDocuments)
     .innerJoin(professionalProfiles, eq(professionalDocuments.profileId, professionalProfiles.id))
     .innerJoin(users, eq(professionalProfiles.userId, users.id))
-    .where(and(eq(professionalProfiles.status, "refuse"), lt(professionalProfiles.reviewedAt, cutoff)));
+    .where(
+      or(
+        and(eq(professionalProfiles.status, "refuse"), lt(professionalProfiles.reviewedAt, cutoff)),
+        // A deleted account's files the deletion could not remove at once (back-office-admin, D-137).
+        isNotNull(users.deletedAt),
+      ),
+    );
 
   const profiles = new Map<string, DueProfile>();
   for (const row of rows) {
@@ -36,6 +44,7 @@ async function due(cutoff: Date): Promise<DueProfile[]> {
       profileId: row.profileId,
       userId: row.userId,
       name: fullName(row),
+      reason: row.deletedAt ? "suppression" : "refus",
       files: [],
     };
     profile.files.push({ id: row.fileId, storageKey: row.storageKey });
@@ -59,6 +68,7 @@ async function forget(profile: DueProfile, at: Date): Promise<void> {
       action: "documents_supprimes",
       subject: { id: profile.userId, name: profile.name },
       admin: null,
+      detail: profile.reason === "suppression" ? "suppression" : null,
       at,
     }),
   ]);

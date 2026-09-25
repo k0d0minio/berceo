@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asc, count, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import {
   adminJournal,
@@ -58,7 +58,10 @@ export type QueueRow = {
   files: Partial<Record<DocumentKind, number>>;
 };
 
-/** Every waiting file and every file asked for a complément, oldest first. */
+/**
+ * Every waiting file and every file asked for a complément, oldest first;
+ * never one of a suspended or deleted account (back-office-admin, D-134).
+ */
 export async function loadQueue(): Promise<QueueRow[]> {
   const rows = await db
     .select({
@@ -72,7 +75,8 @@ export async function loadQueue(): Promise<QueueRow[]> {
     })
     .from(professionalProfiles)
     .innerJoin(users, eq(professionalProfiles.userId, users.id))
-    .where(inArray(professionalProfiles.status, [...REVIEWABLE]))
+    // A suspended or deleted account's file waits outside the queue (back-office-admin, D-134).
+    .where(and(inArray(professionalProfiles.status, [...REVIEWABLE]), isNull(users.suspendedAt)))
     .orderBy(asc(professionalProfiles.submittedAt));
   if (rows.length === 0) return [];
 
@@ -166,6 +170,7 @@ export async function decide(input: DecisionInput, admin: User, siteUrl: string)
         where id = ${profileId}::uuid
           and status = ${expected.status}::profile_status
           and reviewed_at is not distinct from ${expected.reviewedAt}::timestamptz
+          and not exists (select 1 from users su where su.id = user_id and su.suspended_at is not null)
           and (${decision}::text <> 'valider'
             or profession is distinct from 'etudiante_sage_femme'
             or exists (select 1 from ${appSettings} where key = ${STUDENTS_ADMITTED} and value = 'true'::jsonb))

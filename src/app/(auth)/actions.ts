@@ -32,6 +32,7 @@ export type FormMessage =
   | "nonVerifie"
   | "lienInvalide"
   | "compteIndisponible"
+  | "suspendu"
   | "generique"
   | "renvoye"
   | "confirmation";
@@ -132,6 +133,7 @@ export async function signIn(
     const outcome = authOutcome(error);
     if (outcome === "nonVerifie") return { message: "nonVerifie", email };
     if (outcome === "identifiants") return { message: "identifiants", email };
+    if (outcome === "suspendu") return { message: "suspendu", email };
     console.error("[comptes] sign-in failed", { code: error.code, status: error.status });
     return { message: "generique", email };
   }
@@ -143,6 +145,11 @@ export async function signIn(
   if (!row) {
     console.error("[comptes] signed-in identity has no users row", { authUserId });
     return { message: "compteIndisponible", email };
+  }
+  if (row.suspendedAt) {
+    // A suspended account signs in to nothing (D-134): its new session ends at once.
+    await getAuth().signOut();
+    return { message: "suspendu", email };
   }
 
   redirect(landingFor(row.role, retour));

@@ -37,9 +37,18 @@ type LayoutInput = {
   siteUrl: string;
   prenom: string | null;
   paragraphs: readonly string[];
-  cta: { label: string; href: string };
+  /** The one action; a founder's own message (D-138) carries none. */
+  cta?: { label: string; href: string };
   note?: string;
 };
+
+/** The capsule button and, under it, the link spelled out. */
+function button(cta: { label: string; href: string }): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="border-radius:999px;background:${SAUGE};border:1px solid ${SAUGE};">
+<a href="${escapeHtml(cta.href)}" style="display:inline-block;padding:14px 28px;font-size:16px;font-weight:600;color:${BLANC};text-decoration:none;border-radius:999px;">${escapeHtml(cta.label)}</a>
+</td></tr></table>
+<p style="margin:0 0 24px;font-size:14px;line-height:1.5;color:${TAUPE};">${escapeHtml(t.layout.lienTexte)}<br><a href="${escapeHtml(cta.href)}" style="color:${SAUGE};word-break:break-all;">${escapeHtml(cta.href)}</a></p>`;
+}
 
 function layout({ siteUrl, prenom, paragraphs, cta, note }: LayoutInput) {
   const logo = `${siteUrl}/emails/logotype-sauge.png`;
@@ -57,10 +66,7 @@ function layout({ siteUrl, prenom, paragraphs, cta, note }: LayoutInput) {
 <tr><td>
 ${para(greeting(prenom))}
 ${paragraphs.map(para).join("\n")}
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="border-radius:999px;background:${SAUGE};border:1px solid ${SAUGE};">
-<a href="${escapeHtml(cta.href)}" style="display:inline-block;padding:14px 28px;font-size:16px;font-weight:600;color:${BLANC};text-decoration:none;border-radius:999px;">${escapeHtml(cta.label)}</a>
-</td></tr></table>
-<p style="margin:0 0 24px;font-size:14px;line-height:1.5;color:${TAUPE};">${escapeHtml(t.layout.lienTexte)}<br><a href="${escapeHtml(cta.href)}" style="color:${SAUGE};word-break:break-all;">${escapeHtml(cta.href)}</a></p>
+${cta ? button(cta) : ""}
 ${note ? para(note) : ""}
 ${para(t.layout.signature)}
 </td></tr>
@@ -75,8 +81,7 @@ ${para(t.layout.signature)}
     greeting(prenom),
     "",
     ...paragraphs.flatMap((p) => [p, ""]),
-    `${cta.label} : ${cta.href}`,
-    "",
+    ...(cta ? [`${cta.label} : ${cta.href}`, ""] : []),
     ...(note ? [note, ""] : []),
     t.layout.signature,
     "",
@@ -545,5 +550,33 @@ export function newMessageEmail(input: {
       paragraphs: [fill(r.corps, { prenom: input.auteur, date: input.date })],
       cta: { label: r.cta, href: input.url },
     }),
+  };
+}
+
+/**
+ * « Contacter l'utilisateur » (back-office-admin, D-138): a founder's own
+ * subject and message, as she typed them, in Berceo's frame with no button.
+ * A single line break inside a paragraph stays one in both versions; an answer
+ * goes to her own address (the Reply-To the caller sets).
+ */
+export function contactEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  subject: string;
+  paragraphs: readonly string[];
+}): RenderedEmail {
+  const rendered = layout({
+    siteUrl: input.siteUrl,
+    prenom: input.prenom,
+    paragraphs: input.paragraphs,
+    note: t.contact.repondre,
+  });
+  return {
+    subject: input.subject,
+    // escapeHtml has run on each paragraph; its line breaks become <br> in the HTML only.
+    html: rendered.html.replace(/(<p [^>]*>)([^<]*)(<\/p>)/g, (_m, open: string, body: string, close: string) =>
+      `${open}${body.replace(/\n/g, "<br>")}${close}`,
+    ),
+    text: rendered.text,
   };
 }

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import {
   db,
@@ -48,14 +48,23 @@ export type PublicProfile = {
   note: Note;
 };
 
-/** A validated professional's profile, or null: any other status reads as unknown (D-75). */
+/**
+ * A validated professional's profile, or null: any other status, or a
+ * suspended account, reads as unknown (D-75, D-134).
+ */
 export async function publicProfile(profileId: string): Promise<PublicProfile | null> {
   if (!UUID.test(profileId)) return null;
   const [row] = await db
     .select(profileColumns)
     .from(professionalProfiles)
     .innerJoin(users, eq(users.id, professionalProfiles.userId))
-    .where(and(eq(professionalProfiles.id, profileId), eq(professionalProfiles.status, "valide")))
+    .where(
+      and(
+        eq(professionalProfiles.id, profileId),
+        eq(professionalProfiles.status, "valide"),
+        isNull(users.suspendedAt),
+      ),
+    )
     .limit(1);
   if (!row) return null;
 

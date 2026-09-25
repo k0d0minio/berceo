@@ -51,6 +51,13 @@ describe("only a validated profile is read (D-75)", () => {
     expect(params).toContain("21009");
   });
 
+  it("the search by commune and the public page leave a suspended account out (D-134)", async () => {
+    const { servingQuery, shortIdQuery } = await import("./professionals");
+    for (const query of [servingQuery(["21009"]), shortIdQuery("3f0c9a52")]) {
+      expect(query.toSQL().sql).toMatch(/not exists \(select 1 from users as su where su\.id = "professional_profiles"\."user_id" and su\.suspended_at is not null\)/);
+    }
+  });
+
   it("the public page's lookup by short id holds the status to valide and reads two rows at most", async () => {
     const { shortIdQuery } = await import("./professionals");
     const { sql, params } = shortIdQuery("3f0c9a52").toSQL();

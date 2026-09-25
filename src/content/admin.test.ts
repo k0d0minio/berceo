@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { adminActionEnum, paymentStatusEnum, refundReasonEnum } from "@/db/schema";
+import { adminActionEnum, bookingSideEnum, cancellationKindEnum, paymentStatusEnum, refundReasonEnum } from "@/db/schema";
+import { BOOKING_FILTERS, REQUEST_FILTERS } from "@/lib/admin/rules";
 
 import { admin } from "./admin";
 import { words } from "./locale";
@@ -56,7 +57,53 @@ describe("the guide's lines, verbatim", () => {
   });
 });
 
+describe("the back-office's lines, verbatim (back-office-admin, D-19)", () => {
+  it("keeps the overview's title and its four blocks", () => {
+    expect(a.vueEnsemble.titre).toBe("Vue d'ensemble");
+    expect(Object.values(a.vueEnsemble.blocs)).toEqual([
+      "Dossiers en attente de validation",
+      "Réservations en cours",
+      "Signalements à traiter",
+      "Paiements récents",
+    ]);
+  });
+
+  it("keeps the search box and the actions on an account", () => {
+    expect(a.utilisateurs.recherche).toBe("Rechercher un utilisateur par nom, e-mail ou téléphone");
+    expect([
+      a.utilisateurs.voirProfil,
+      a.actionsCompte.suspendre,
+      a.actionsCompte.reactiver,
+      a.actionsCompte.contacter,
+      a.actionsCompte.supprimer,
+    ]).toEqual([
+      "Voir le profil",
+      "Suspendre le compte",
+      "Réactiver le compte",
+      "Contacter l'utilisateur",
+      "Supprimer le compte",
+    ]);
+  });
+
+  it("shows the person's name in every confirmation of an act on an account", () => {
+    const c = a.actionsCompte.confirmation;
+    for (const title of [c.suspendreTitre, c.reactiverTitre, c.supprimerTitre]) expect(title).toContain("{nom}");
+    expect(a.actionsCompte.contact.titre).toContain("{nom}");
+  });
+});
+
 describe("the catalogue covers every key the rules use", () => {
+  it("names every filter, report and refusal of the back-office (back-office-admin)", () => {
+    for (const filter of BOOKING_FILTERS) expect(a.reservations.filtres[filter]).toBeTruthy();
+    for (const filter of REQUEST_FILTERS) expect(a.demandes.filtres[filter]).toBeTruthy();
+    for (const kind of cancellationKindEnum.enumValues) {
+      for (const side of bookingSideEnum.enumValues) expect(a.signalements.types[kind][side]).toBeTruthy();
+    }
+    for (const error of ["admin", "supprime", "dejaSuspendu", "nonSuspendu", "gardesAVenir", "nomDifferent", "introuvable", "envoi", "generique"] as const) {
+      expect(a.actionsCompte.erreurs[error]).toBeTruthy();
+    }
+  });
+
   it("names every journal action", () => {
     for (const action of adminActionEnum.enumValues) expect(a.journal.actions[action]).toBeTruthy();
   });

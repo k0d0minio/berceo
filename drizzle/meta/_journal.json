@@ -85,6 +85,13 @@
       "when": 1790357723279,
       "tag": "0011_avis",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790369609770,
+      "tag": "0012_back_office_admin",
+      "breakpoints": true
     }
   ]
 }
