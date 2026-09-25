@@ -228,6 +228,8 @@ export const reservations = catalogue({
       voir: "Voir la garde",
       /** @relecture Surya — la famille. */
       famille: "La famille",
+      /** @relecture Surya — son nom. */
+      nom: "Nom",
       /** @relecture Surya — l'adresse. */
       adresse: "Adresse",
       /** @relecture Surya — boîte. */

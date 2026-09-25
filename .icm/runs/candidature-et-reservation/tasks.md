@@ -44,7 +44,7 @@ step, so a resuming session can pick up the first unticked line.
 - [x] 3. Data: `src/lib/reservations/` (answer, withdraw, answers, accept batch, republish, bookings, full profile), `src/lib/demandes/` (list, priority, cancel), `src/lib/famille/` (booking address reader) + column tests
 - [x] 4. E-mails: five new templates, the urgent key's republish count, template tests
 - [x] 5. Words: `src/content/reservations.ts`, `demandes.ts` additions, catalogue tests
-- [ ] 6. Professional pages: list card actions, « Mes gardes » and a booking, nav, home link
+- [x] 6. Professional pages: list card actions, « Mes gardes » and a booking, nav, home link
 - [ ] 7. Family pages: answers, accept, republish, full profile, priority, « Mes réservations », file route, nav, routing test
 - [ ] 8. Docs: README section, AGENTS.md row
 - [ ] 9. Notes, pre-flip check, merge main, flip ready, full verdict

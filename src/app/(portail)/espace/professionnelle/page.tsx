@@ -9,10 +9,12 @@ import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
 import { professionnelle } from "@/content/professionnelle";
+import { reservations } from "@/content/reservations";
 import { isHeldStudent } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
+import { PROFESSIONAL_BOOKINGS_PATH } from "@/lib/reservations/paths";
 import { loadFile } from "@/lib/professionnelle/file";
 import { firstIncompleteStep } from "@/lib/professionnelle/rules";
 import { studentsAdmitted } from "@/lib/settings";
@@ -22,6 +24,7 @@ import { ONBOARDING } from "./inscription/step";
 const t = words(comptes);
 const p = words(professionnelle);
 const d = words(demandes);
+const r = words(reservations);
 
 export const metadata: Metadata = {
   title: t.meta.espace,
@@ -38,7 +41,8 @@ export const dynamic = "force-dynamic";
  * decision shows here too (verification-back-office): the guide's line once
  * validated, the reason of a complément or a refusal, and why a student file
  * waits while students are not admitted. Once validated, it also links to the
- * requests in her communes (demande-de-garde).
+ * requests in her communes (demande-de-garde) and to her gardes
+ * (candidature-et-reservation).
  */
 export default async function EspaceProfessionnellePage({
   searchParams,
@@ -77,9 +81,14 @@ export default async function EspaceProfessionnellePage({
       ) : null}
       <div className="flex flex-wrap gap-3">
         {status === "valide" ? (
-          <Button asChild>
-            <Link href={PROFESSIONAL_REQUESTS_PATH}>{d.professionnelle.lien}</Link>
-          </Button>
+          <>
+            <Button asChild>
+              <Link href={PROFESSIONAL_REQUESTS_PATH}>{d.professionnelle.lien}</Link>
+            </Button>
+            <Button asChild variant="raye">
+              <Link href={PROFESSIONAL_BOOKINGS_PATH}>{r.professionnelle.lienGardes}</Link>
+            </Button>
+          </>
         ) : null}
         {status !== "refuse" ? (
           <Button asChild variant={status === "valide" ? "raye" : "blanc"}>

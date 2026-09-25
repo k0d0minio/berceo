@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { after } from "next/server";
 
 import { requireAccess } from "@/lib/auth/guard";
+import { siteOrigin } from "@/lib/site-origin";
 import { SPACES } from "@/lib/auth/routing";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { notifyUrgentRequest } from "@/lib/demandes/notify";
@@ -40,19 +40,6 @@ export type RequestState = {
   /** What was typed, so a refused form keeps it. */
   values?: RequestInput;
 };
-
-/**
- * This deployment's own address, so the e-mails of a UAT request point at UAT.
- * Read from the host the request reached (set by Vercel's proxy), never from
- * the client's `Origin`, whose scheme and path a caller chooses: these links
- * go to other people.
- */
-async function siteOrigin(): Promise<string> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
-  const proto = h.get("x-forwarded-proto") === "http" ? "http" : "https";
-  return new URL(`${proto}://${host}`).origin;
-}
 
 export async function publishRequestAction(
   _previous: RequestState,
