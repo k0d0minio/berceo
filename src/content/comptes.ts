@@ -198,6 +198,8 @@ export const comptes = catalogue({
       navReservations: "Mes réservations",
       /** @relecture Surya — entrée de navigation vers les gardes de la professionnelle. */
       navGardes: "Mes gardes",
+      /** @relecture Surya — entrée de navigation vers le calendrier de la professionnelle ; le titre du guide. */
+      navDisponibilites: "Mes disponibilités",
       professionnelle: {
         enAttente:
           "Votre compte est en attente de validation. Nous vous contacterons dès que votre profil sera activé.",

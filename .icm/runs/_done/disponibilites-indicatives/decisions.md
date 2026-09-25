@@ -1,4 +1,4 @@
-# Decisions: candidature-et-reservation
+# Decisions: disponibilites-indicatives
 
 The `D-n` ids this run rests on, mirrored from the scope's Decisions table
 (`_shared/scope-template.md` → `D-n` ids are permanent), plus any the run itself had to make.
@@ -38,20 +38,8 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-*Numbered from D-70: verification-back-office holds D-50 to D-59, demande-de-garde D-60 to D-68.*
-
-- D-70 — « Republier » on an open request with pending answers declines every one of them (each professional e-mailed « not retained », none may answer it again) and re-announces the request: the urgent e-mail again at once for an urgent one, the next digest for a normal one. Reads cahier des charges « Réouverture annonce ». Operator, Define, 2026-09-25.
-- D-71 — A priority request has no head start: the chosen professional is e-mailed at once and sees it first on her list marked « Demande prioritaire », even outside her communes; everyone else sees and is notified of it as for any request. One priority professional per request, set once. Operator (no head start), Define (outside her communes, one per request), 2026-09-25.
-- D-72 — Once a booking is confirmed, each side sees the other's phone: the family the professional's, the professional the family's full name, address and phone. Operator, Define, 2026-09-25.
-- D-73 — A professional may withdraw her answer while the request is open, silently, and answer again. When she is booked for a night, her other pending answers for that night are withdrawn silently and she cannot answer another request for it; the database refuses a second booking for her that night. Operator, Define, 2026-09-25.
-- D-74 — The rate is frozen on the answer: the family compares the rates the professionals answered at, and the booking carries the rate of the answer it was made from. Define, 2026-09-25.
-- D-75 — Families read a professional's full profile at `/espace/famille/professionnelles/[id]`: any signed-in family, any `valide` profile (D-3). Her photo becomes readable by parents for a `valide` profile; documents stay owner and admins only. Never her surname, e-mail, phone, INAMI or documents before a booking. Define, 2026-09-25.
-- D-76 — A request with a pending answer cannot be edited (what the professionals agreed to would move under them); republishing clears the answers and editing opens again. Cancelling stays possible and e-mails the pending professionals « not retained ». Define, 2026-09-25.
-- D-77 — Accepting an answer requires the family's street and house number in her profile. The professional reads the address live from the profile through `src/lib/famille/`, never a copy in the booking. Define, 2026-09-25.
-- D-78 — The guide's booking e-mails are quoted verbatim except the family's insurance sentence (D-8) and the professional's « Bonne nuit ! », which becomes « Bonne nuit. » (the catalogue allows no `!`; `@relecture Surya`). Define, 2026-09-25.
-- D-82 — `care_requests.republished_at` added beside `republish_count`: the digest claims a normal request whose `republished_at` is later than its `digest_sent_at`, so republishing never clears `digest_sent_at` and « one digest a day » (`digestSentOn`) keeps reading the day's sends. A spec gap (the spec said « `digest_sent_at` back to null »); Build, 2026-09-25.
-- D-83 — The priority check is « no professional, or a moment » (`priority_profile_id IS NULL OR priority_sent_at IS NOT NULL`), not « both or neither »: deleting the professional sets her id null and keeps the moment, and `setPriority` refuses once a moment exists, so the priority stays set once. A spec gap; Build, 2026-09-25.
-- D-84 — The card's price line lives in `src/content/reservations.ts`, not `demandes.ts`: the request catalogue's test forbids `€`, and the reservations catalogue allows it in that one line only. The professional's card shows her current rate; the family sees and books the rate frozen at the answer (D-74). Build, 2026-09-25.
-- D-85 — A family's pending-answer count, the edit lock and the answers list count only validated professionals' waiting answers, the ones she can see and accept; republishing and cancelling decline every waiting answer. Build, 2026-09-25.
-- Renumbered at the merge of main, 2026-09-25: disponibilites-indicatives (#41) holds D-79 to D-81, so this run's Build decisions, first numbered D-79 to D-82, are D-82 to D-85. No decision changed.
-- D-86 — The full profile mounts « Prochaines disponibilités » (`nextAvailableNights`, the block disponibilites-indicatives built), as that run's D-69 on `main` asks, though this run's spec had listed the block as out of scope. Operator, Build, 2026-09-25, at the merge of main.
+- D-69 — This run builds the « Prochaines disponibilités » block, its read and a preview on the professional's own page; candidature-et-reservation and recherche-et-fiches-publiques mount it on the family-facing full profile and cards. No family-facing page exists yet. Operator, Define, 2026-09-25.
+- D-79 — A professional marks nights from tonight to today + 56 days (Brussels), the last day of a normal care request. Operator, Define, 2026-09-25.
+- D-80 — « Prochaines disponibilités » shows the next five marked nights from tonight; with none, a line saying none is indicated and a request can still be sent. Operator, Define, 2026-09-25.
+- D-81 — A night is two-state: marked available or not. « Indisponible » clears the mark; only available nights are stored. Operator, Define, 2026-09-25.
+- Renumbered in Build, 2026-09-25: Define numbered the last three D-70, D-71 and D-72, which candidature-et-reservation (defined in parallel, `claude/kind-faraday-8m50tu`) had also taken (its D-70 to D-78). This run's are now D-79, D-80 and D-81; D-69 stands. No decision changed.

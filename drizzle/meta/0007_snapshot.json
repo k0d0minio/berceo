@@ -1,6 +1,6 @@
 {
-  "id": "e4dc0b8f-2baf-463e-b73c-d1721383ae6a",
-  "prevId": "2a7f7051-8d71-42d2-9013-ad33143b295b",
+  "id": "82f3e3d5-ba3d-4c98-b39c-789bc869c62c",
+  "prevId": "e4dc0b8f-2baf-463e-b73c-d1721383ae6a",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -151,6 +151,357 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.bookings": {
+      "name": "bookings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "application_id": {
+          "name": "application_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "family_user_id": {
+          "name": "family_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "night_date": {
+          "name": "night_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "night_rate_eur": {
+          "name": "night_rate_eur",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "confirmed_at": {
+          "name": "confirmed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "bookings_profile_night_key": {
+          "name": "bookings_profile_night_key",
+          "columns": [
+            {
+              "expression": "profile_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "night_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "bookings_family_night_idx": {
+          "name": "bookings_family_night_idx",
+          "columns": [
+            {
+              "expression": "family_user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "night_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "bookings_request_id_care_requests_id_fk": {
+          "name": "bookings_request_id_care_requests_id_fk",
+          "tableFrom": "bookings",
+          "tableTo": "care_requests",
+          "columnsFrom": [
+            "request_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "bookings_application_id_care_request_applications_id_fk": {
+          "name": "bookings_application_id_care_request_applications_id_fk",
+          "tableFrom": "bookings",
+          "tableTo": "care_request_applications",
+          "columnsFrom": [
+            "application_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "bookings_profile_id_professional_profiles_id_fk": {
+          "name": "bookings_profile_id_professional_profiles_id_fk",
+          "tableFrom": "bookings",
+          "tableTo": "professional_profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "bookings_family_user_id_users_id_fk": {
+          "name": "bookings_family_user_id_users_id_fk",
+          "tableFrom": "bookings",
+          "tableTo": "users",
+          "columnsFrom": [
+            "family_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "bookings_request_id_unique": {
+          "name": "bookings_request_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "request_id"
+          ]
+        },
+        "bookings_application_id_unique": {
+          "name": "bookings_application_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "application_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "bookings_night_rate_range": {
+          "name": "bookings_night_rate_range",
+          "value": "\"bookings\".\"night_rate_eur\" BETWEEN 100 AND 300"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.care_request_applications": {
+      "name": "care_request_applications",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "application_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'en_attente'"
+        },
+        "night_rate_eur": {
+          "name": "night_rate_eur",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "answered_at": {
+          "name": "answered_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "answer_count": {
+          "name": "answer_count",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "care_request_applications_request_profile_key": {
+          "name": "care_request_applications_request_profile_key",
+          "columns": [
+            {
+              "expression": "request_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "profile_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "care_request_applications_profile_status_idx": {
+          "name": "care_request_applications_profile_status_idx",
+          "columns": [
+            {
+              "expression": "profile_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "care_request_applications_one_retenue": {
+          "name": "care_request_applications_one_retenue",
+          "columns": [
+            {
+              "expression": "request_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"care_request_applications\".\"status\" = 'retenue'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "care_request_applications_request_id_care_requests_id_fk": {
+          "name": "care_request_applications_request_id_care_requests_id_fk",
+          "tableFrom": "care_request_applications",
+          "tableTo": "care_requests",
+          "columnsFrom": [
+            "request_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "care_request_applications_profile_id_professional_profiles_id_fk": {
+          "name": "care_request_applications_profile_id_professional_profiles_id_fk",
+          "tableFrom": "care_request_applications",
+          "tableTo": "professional_profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "care_request_applications_night_rate_range": {
+          "name": "care_request_applications_night_rate_range",
+          "value": "\"care_request_applications\".\"night_rate_eur\" BETWEEN 100 AND 300"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "public.care_requests": {
       "name": "care_requests",
       "schema": "",
@@ -250,6 +601,31 @@
           "primaryKey": false,
           "notNull": false
         },
+        "priority_profile_id": {
+          "name": "priority_profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "priority_sent_at": {
+          "name": "priority_sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "republished_at": {
+          "name": "republished_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "republish_count": {
+          "name": "republish_count",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -266,6 +642,21 @@
         }
       },
       "indexes": {
+        "care_requests_priority_profile_id_idx": {
+          "name": "care_requests_priority_profile_id_idx",
+          "columns": [
+            {
+              "expression": "priority_profile_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "care_requests_commune_status_night_idx": {
           "name": "care_requests_commune_status_night_idx",
           "columns": [
@@ -360,6 +751,19 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "care_requests_priority_profile_id_professional_profiles_id_fk": {
+          "name": "care_requests_priority_profile_id_professional_profiles_id_fk",
+          "tableFrom": "care_requests",
+          "tableTo": "professional_profiles",
+          "columnsFrom": [
+            "priority_profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -377,6 +781,10 @@
         "care_requests_cancelled_at": {
           "name": "care_requests_cancelled_at",
           "value": "(\"care_requests\".\"status\" = 'annulee') = (\"care_requests\".\"cancelled_at\" IS NOT NULL)"
+        },
+        "care_requests_priority_sent_at": {
+          "name": "care_requests_priority_sent_at",
+          "value": "\"care_requests\".\"priority_profile_id\" IS NULL OR \"care_requests\".\"priority_sent_at\" IS NOT NULL"
         }
       },
       "isRLSEnabled": false
@@ -1107,6 +1515,16 @@
         "documents_supprimes"
       ]
     },
+    "public.application_status": {
+      "name": "application_status",
+      "schema": "public",
+      "values": [
+        "en_attente",
+        "retenue",
+        "non_retenue",
+        "retiree"
+      ]
+    },
     "public.baby_age_unit": {
       "name": "baby_age_unit",
       "schema": "public",
@@ -1128,7 +1546,8 @@
       "schema": "public",
       "values": [
         "ouverte",
-        "annulee"
+        "annulee",
+        "attribuee"
       ]
     },
     "public.consent_document": {

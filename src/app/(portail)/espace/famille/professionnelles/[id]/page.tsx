@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ProchainesDisponibilites } from "@/components/disponibilites/prochaines-disponibilites";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { SpaceShell } from "@/components/shell/space-shell";
@@ -14,6 +15,7 @@ import { communeName } from "@/lib/communes";
 import { familyRequestPath } from "@/lib/demandes/paths";
 import { ownRequest } from "@/lib/demandes/requests";
 import { isChangeable } from "@/lib/demandes/rules";
+import { nextAvailableNights } from "@/lib/disponibilites/nights";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyHasAddress } from "@/lib/famille/profile";
 import { isSpecialisation } from "@/lib/professionnelle/rules";
@@ -39,7 +41,8 @@ export const dynamic = "force-dynamic";
  * signed-in family, any validated profile; any other status, like an unknown
  * id, is not found. The DA's profile card (photo, first name, profession,
  * « Profil vérifié par Berceo », her communes) and the rest of her file:
- * spécialisations, experience, presentation, rate. Never her surname, e-mail,
+ * spécialisations, experience, presentation, rate, and « Prochaines
+ * disponibilités » (D-69, D-80). Never her surname, e-mail,
  * phone, INAMI number or documents. « Lui envoyer ma demande en priorité »
  * always (D-71); « Accepter et réserver » when opened from one of the family's
  * open requests on which her answer waits (`?demande=`).
@@ -62,7 +65,10 @@ export default async function ProfilProfessionnellePage({
   const request = demande ? await ownRequest(user.id, demande) : null;
   const answer =
     request && isChangeable(request, now) ? await waitingAnswerOf(user.id, request.id, profile.id) : null;
-  const hasAddress = answer ? await familyHasAddress(user.id) : false;
+  const [hasAddress, nights] = await Promise.all([
+    answer ? familyHasAddress(user.id) : Promise.resolve(false),
+    nextAvailableNights(profile.id, now),
+  ]);
 
   const specialisations = profile.specialisations.filter(isSpecialisation).map((s) => p.specialisations[s]);
   const communes = profile.communes.map((ins) => communeName(ins) ?? ins).sort((a, b) => a.localeCompare(b, "fr"));
@@ -106,6 +112,10 @@ export default async function ProfilProfessionnellePage({
           ) : null}
         </dl>
       </article>
+
+      <div className="max-w-2xl">
+        <ProchainesDisponibilites nights={nights} />
+      </div>
 
       {answer && request && !hasAddress ? (
         <div className="flex max-w-2xl flex-col gap-3">

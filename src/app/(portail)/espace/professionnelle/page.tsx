@@ -14,6 +14,7 @@ import { isHeldStudent } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
+import { AVAILABILITY_PATH } from "@/lib/disponibilites/paths";
 import { PROFESSIONAL_BOOKINGS_PATH } from "@/lib/reservations/paths";
 import { loadFile } from "@/lib/professionnelle/file";
 import { firstIncompleteStep } from "@/lib/professionnelle/rules";
@@ -41,8 +42,8 @@ export const dynamic = "force-dynamic";
  * decision shows here too (verification-back-office): the guide's line once
  * validated, the reason of a complément or a refusal, and why a student file
  * waits while students are not admitted. Once validated, it also links to the
- * requests in her communes (demande-de-garde) and to her gardes
- * (candidature-et-reservation).
+ * requests in her communes (demande-de-garde), to « Mes disponibilités »
+ * (disponibilites-indicatives) and to her gardes (candidature-et-reservation).
  */
 export default async function EspaceProfessionnellePage({
   searchParams,
@@ -87,6 +88,9 @@ export default async function EspaceProfessionnellePage({
             </Button>
             <Button asChild variant="raye">
               <Link href={PROFESSIONAL_BOOKINGS_PATH}>{r.professionnelle.lienGardes}</Link>
+            </Button>
+            <Button asChild variant="raye">
+              <Link href={AVAILABILITY_PATH}>{t.espaces.navDisponibilites}</Link>
             </Button>
           </>
         ) : null}

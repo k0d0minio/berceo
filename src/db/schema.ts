@@ -17,6 +17,9 @@
  * A professional answers it (`care_request_applications`) and the family books
  * one answer (`bookings`, candidature-et-reservation); the address still stays
  * in `family_profiles`, read live for her booking only (D-77).
+ *
+ * A professional's indicative availability (disponibilites-indicatives) is the
+ * nights she marked available; nothing about a care request reads it (D-12).
  */
 import { sql } from "drizzle-orm";
 import {
@@ -311,6 +314,26 @@ export const professionalDeclarations = pgTable(
   (table) => [index("professional_declarations_profile_id_idx").on(table.profileId)],
 );
 
+/**
+ * The nights a professional says she is likely free (disponibilites-indicatives,
+ * D-12): one row per night marked « Disponible », named by the date of its
+ * evening, like a care request's `night_date`. Two states only (D-81): an
+ * unmarked night has no row, and « Indisponible » deletes it. Indicative:
+ * nothing in the care requests reads this table.
+ */
+export const professionalAvailability = pgTable(
+  "professional_availability",
+  {
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => professionalProfiles.id, { onDelete: "cascade" }),
+    nightDate: date("night_date").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  // Also the index of the « Prochaines disponibilités » read.
+  (table) => [primaryKey({ columns: [table.profileId, table.nightDate] })],
+);
+
 // ---------------------------------------------------------------------------
 // Care requests
 // ---------------------------------------------------------------------------
@@ -581,6 +604,7 @@ export type AdminAction = (typeof adminActionEnum.enumValues)[number];
 export type AdminJournalEntry = typeof adminJournal.$inferSelect;
 export type Declaration = (typeof declarationEnum.enumValues)[number];
 export type ProfessionalDocument = typeof professionalDocuments.$inferSelect;
+export type ProfessionalAvailability = typeof professionalAvailability.$inferSelect;
 export type CareRequest = typeof careRequests.$inferSelect;
 export type CareRequestStatus = (typeof careRequestStatusEnum.enumValues)[number];
 export type CareRequestChildren = (typeof careRequestChildrenEnum.enumValues)[number];

@@ -29,6 +29,7 @@ npm run dev      # http://localhost:3000
 | [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`) and the daily digest of new requests (`.github/workflows/demandes-digest.yml`), both guarded by `CRON_SECRET`. |
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
 | [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
+| [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
 | [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
@@ -108,7 +109,7 @@ The platform's data starts here: one Neon Postgres database, read through
   `care_requests` (0005): a family's night, its start, children, baby's age, the commune copied
   from her profile, the urgent flag, when the no-medical-condition box was ticked, and
   `digest_sent_at`; at most one open request per family and night.
-  Answers and bookings (0006): `care_request_status` gains `attribuee`; `care_requests` gains
+  Answers and bookings (0007): `care_request_status` gains `attribuee`; `care_requests` gains
   its priority professional (`priority_profile_id`, `priority_sent_at`, set once) and
   `republished_at` / `republish_count`; `care_request_applications` is one answer per
   professional and request (`application_status`: `en_attente`, `retenue`, `non_retenue`,
@@ -234,7 +235,8 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   one). Cancelling declines the waiting answers too.
 - **The full profile (D-75):** `/espace/famille/professionnelles/[id]`, any signed-in family, any
   `valide` profile; `profileColumns` in `profiles.ts` is all that leaves (a test holds it). Her
-  photo is served to parents by `/api/fichiers/[id]`; her documents never are.
+  photo is served to parents by `/api/fichiers/[id]`; her documents never are. It mounts
+  « Prochaines disponibilités » (D-69, D-86).
 - **The priority request (D-71):** `/espace/famille/professionnelles/[id]/priorite` sends one of
   the family's open requests, or a new one (`/nouvelle?pour=<id>`), to her « en priorité »: set
   once, she is e-mailed at once and sees it first even outside her communes; nobody else waits.
@@ -244,6 +246,28 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   professional only on her own booking's page; the address is read live through
   `bookingAddress` in `src/lib/famille/profile.ts`, still the only reader of `family_profiles`.
 - **Words:** `src/content/reservations.ts`; e-mails in `src/content/emails.ts`.
+
+## The professional's availability
+
+- **« Mes disponibilités » (D-12):** `/espace/professionnelle/disponibilites`, for a `valide`
+  profile only (any other sees one line). The nights from tonight to today + 56 days in
+  Brussels (D-79), one block per month in Monday-to-Sunday rows; she taps nights, then « Disponible » or « Indisponible » saves
+  the selection (`actions.ts` beside the page). A night is named by its evening's date, like a
+  care request's `night_date`.
+- **Two states (D-81):** `professional_availability` holds one row per night marked available,
+  `(profile_id, night_date)`, cascading with the profile. « Indisponible » deletes the row;
+  nights that fell behind today are ignored by every read, never purged.
+- **Indicative only:** nothing about a care request (list, e-mails, digest) reads the table, and
+  `src/lib/disponibilites/isolation.test.ts` holds that.
+- **The block families see (D-69, D-80):** `ProchainesDisponibilites`
+  (`src/components/disponibilites/`) shows the next five nights from `nextAvailableNights`
+  (none for a profile that is not `valide`) with the guide's caveat, or one line when none is
+  marked. She sees it under her calendar; `/design-system/portail` shows both states. The
+  family-facing full profile (candidature-et-reservation) and the search cards
+  (recherche-et-fiches-publiques) mount it.
+- **Where:** rules in `src/lib/disponibilites/rules.ts` (window, month blocks, what a save may
+  carry), wording in `format.ts` (« Nuit du lundi 12 au mardi 13 octobre »), reads and writes in
+  `nights.ts`; words in `src/content/disponibilites.ts`.
 
 ## The professional's onboarding and documents
 
