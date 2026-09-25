@@ -28,6 +28,7 @@ npm run dev      # http://localhost:3000
 | [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' review: the queue and decision rules, the admin journal, the purge of refused files. See **The founders' verification** below. |
 | [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`) and the daily digest of new requests (`.github/workflows/demandes-digest.yml`), both guarded by `CRON_SECRET`. |
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
+| [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
 | [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
@@ -203,6 +204,28 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   17:00 UTC (and on demand), with the repository secret `CRON_SECRET`; Vercel Cron is not
   used because it never runs on the `uat` environment. One value serves both environments
   (D-68): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets.
+
+## The professional's availability
+
+- **« Mes disponibilités » (D-12):** `/espace/professionnelle/disponibilites`, for a `valide`
+  profile only (any other sees one line). The nights from tonight to today + 56 days in
+  Brussels (D-79), one block per month in Monday-to-Sunday rows; she taps nights, then « Disponible » or « Indisponible » saves
+  the selection (`actions.ts` beside the page). A night is named by its evening's date, like a
+  care request's `night_date`.
+- **Two states (D-81):** `professional_availability` holds one row per night marked available,
+  `(profile_id, night_date)`, cascading with the profile. « Indisponible » deletes the row;
+  nights that fell behind today are ignored by every read, never purged.
+- **Indicative only:** nothing about a care request (list, e-mails, digest) reads the table, and
+  `src/lib/disponibilites/isolation.test.ts` holds that.
+- **The block families see (D-69, D-80):** `ProchainesDisponibilites`
+  (`src/components/disponibilites/`) shows the next five nights from `nextAvailableNights`
+  (none for a profile that is not `valide`) with the guide's caveat, or one line when none is
+  marked. She sees it under her calendar; `/design-system/portail` shows both states. The
+  family-facing full profile (candidature-et-reservation) and the search cards
+  (recherche-et-fiches-publiques) mount it.
+- **Where:** rules in `src/lib/disponibilites/rules.ts` (window, month blocks, what a save may
+  carry), wording in `format.ts` (« Nuit du lundi 12 au mardi 13 octobre »), reads and writes in
+  `nights.ts`; words in `src/content/disponibilites.ts`.
 
 ## The professional's onboarding and documents
 

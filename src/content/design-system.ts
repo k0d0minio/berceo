@@ -120,6 +120,12 @@ export const designSystem = catalogue({
       title: "Mon espace",
       /** @relecture Surya — explication interne. */
       text: "Les écrans de l'espace connecté prendront place ici.",
+      disponibilites: {
+        /** @relecture Surya — page interne, non indexée. */
+        title: "Prochaines disponibilités",
+        /** @relecture Surya — explication interne (D-69). */
+        text: "Le bloc vu par les familles sur le profil d'une professionnelle, avec des nuits indiquées puis sans aucune.",
+      },
     },
   },
 });

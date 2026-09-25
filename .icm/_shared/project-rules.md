@@ -217,3 +217,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - When an edit re-checks a value against a rule that depends on today (a date window), accept the stored value unchanged; only a new value is held to today's rule. (`FAILURE.md` — demande-de-garde)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - Build a link sent to other people (an e-mail) from the host the request reached, never from the client's `Origin` header, whose scheme and path the caller chooses. (`FAILURE.md` — demande-de-garde)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Test calendar or date-grid layout from several start weekdays, including one where a month begins in the first row, and head each month's own block rather than a week row. (`FAILURE.md` — disponibilites-indicatives)
