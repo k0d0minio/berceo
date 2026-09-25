@@ -50,7 +50,7 @@ describe("the guide's lines, verbatim", () => {
     );
   });
 
-  it("never tells a family she is unavailable (D-71)", () => {
+  it("never tells a family she is unavailable (D-80)", () => {
     expect(t.famille.vide.toLowerCase()).not.toMatch(/indisponible|pas disponible/);
   });
 

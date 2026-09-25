@@ -11,13 +11,13 @@ import { NORMAL_LAST_DAY, addDays, brusselsNow, isIsoDate } from "@/lib/demandes
  * same date a care request carries: the night of the 12th runs to the 13th.
  */
 
-/** The last night she may mark: the last day of a normal care request (D-70). */
+/** The last night she may mark: the last day of a normal care request (D-79). */
 export const LAST_DAY = NORMAL_LAST_DAY;
 
 /** Tonight to today + 56 days: 57 nights, and the most a save may carry. */
 export const NIGHTS_IN_WINDOW = LAST_DAY + 1;
 
-/** « Prochaines disponibilités » shows this many nights at most (D-71). */
+/** « Prochaines disponibilités » shows this many nights at most (D-80). */
 export const SHOWN_TO_FAMILIES = 5;
 
 export type NightWindow = { first: string; last: string };

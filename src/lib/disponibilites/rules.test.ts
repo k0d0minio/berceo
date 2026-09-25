@@ -10,7 +10,7 @@ import {
 } from "./rules";
 
 /**
- * Spec (disponibilites-indicatives, D-70, D-71, D-72): the window runs from
+ * Spec (disponibilites-indicatives, D-79, D-80, D-81): the window runs from
  * tonight to today + 56 days in Brussels time, around midnight and across a
  * daylight-saving change; the calendar is Monday-first week rows with month
  * headings and padding; a save carries 1 to 57 dates inside the window or is

@@ -209,15 +209,15 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
 
 - **« Mes disponibilités » (D-12):** `/espace/professionnelle/disponibilites`, for a `valide`
   profile only (any other sees one line). The nights from tonight to today + 56 days in
-  Brussels (D-70) as week rows; she taps nights, then « Disponible » or « Indisponible » saves
+  Brussels (D-79) as week rows; she taps nights, then « Disponible » or « Indisponible » saves
   the selection (`actions.ts` beside the page). A night is named by its evening's date, like a
   care request's `night_date`.
-- **Two states (D-72):** `professional_availability` holds one row per night marked available,
+- **Two states (D-81):** `professional_availability` holds one row per night marked available,
   `(profile_id, night_date)`, cascading with the profile. « Indisponible » deletes the row;
   nights that fell behind today are ignored by every read, never purged.
 - **Indicative only:** nothing about a care request (list, e-mails, digest) reads the table, and
   `src/lib/disponibilites/isolation.test.ts` holds that.
-- **The block families see (D-69, D-71):** `ProchainesDisponibilites`
+- **The block families see (D-69, D-80):** `ProchainesDisponibilites`
   (`src/components/disponibilites/`) shows the next five nights from `nextAvailableNights`
   (none for a profile that is not `valide`) with the guide's caveat, or one line when none is
   marked. She sees it under her calendar; `/design-system/portail` shows both states. The

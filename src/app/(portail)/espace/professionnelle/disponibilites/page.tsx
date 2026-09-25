@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 
 /*
  * « Mes disponibilités » (D-12): the nights she is likely free, from tonight
- * to today + 56 days in Brussels (D-70), in the guide's words. Indicative
+ * to today + 56 days in Brussels (D-79), in the guide's words. Indicative
  * only: nothing about a care request reads them. Only a validated profile has
  * a calendar, the only kind a family can ever see (D-21); any other sees one
  * line. Under the help message, the « Prochaines disponibilités » block as

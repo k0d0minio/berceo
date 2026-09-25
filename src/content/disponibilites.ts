@@ -60,7 +60,7 @@ export const disponibilites = catalogue({
       titre: "Prochaines disponibilités",
       avertissement:
         "Ces disponibilités sont indicatives. La professionnelle confirmera lors de l'acceptation de votre demande.",
-      /** @relecture Surya — aucune nuit indiquée ; ne dit jamais qu'elle est indisponible (D-71). */
+      /** @relecture Surya — aucune nuit indiquée ; ne dit jamais qu'elle est indisponible (D-80). */
       vide: "Cette professionnelle n'a pas encore indiqué de disponibilités. Vous pouvez tout de même lui adresser votre demande.",
     },
 

@@ -314,7 +314,7 @@ export const professionalDeclarations = pgTable(
 /**
  * The nights a professional says she is likely free (disponibilites-indicatives,
  * D-12): one row per night marked « Disponible », named by the date of its
- * evening, like a care request's `night_date`. Two states only (D-72): an
+ * evening, like a care request's `night_date`. Two states only (D-81): an
  * unmarked night has no row, and « Indisponible » deletes it. Indicative:
  * nothing in the care requests reads this table.
  */

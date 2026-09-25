@@ -12,7 +12,7 @@ import type { CalendarWeek } from "@/lib/disponibilites/rules"
 import { cn } from "@/lib/utils"
 
 /*
- * « Mes disponibilités » on a phone (D-12, D-70, D-72): the window as week
+ * « Mes disponibilités » on a phone (D-12, D-79, D-81): the window as week
  * rows, Monday to Sunday, one 44 px tap target per night. Tapping selects a
  * night (tapping again deselects it); « Disponible » or « Indisponible » saves
  * the whole selection in one action, then the selection empties. A marked

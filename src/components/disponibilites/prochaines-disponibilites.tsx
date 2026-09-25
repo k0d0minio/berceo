@@ -4,7 +4,7 @@ import { nightName } from "@/lib/disponibilites/format"
 
 /*
  * « Prochaines disponibilités », the block a family reads on a professional's
- * profile (D-12, D-71): her next marked nights, each as « Nuit du … au … »,
+ * profile (D-12, D-80): her next marked nights, each as « Nuit du … au … »,
  * then the guide's caveat. With none marked, one line that she has not
  * indicated any night yet and can still be asked; the block never says she is
  * unavailable. It takes the dates from `nextAvailableNights`; the family-facing
