@@ -49,3 +49,10 @@ decision made mid-run has one home.
 - D-53 — A refusal is final: the file stays locked, the account stays, she reads the reason; no founder reversal in this run. Operator, Define.
 - D-54 — `admin_journal` is immutable by a database trigger refusing `UPDATE` and `DELETE`, and keeps the account and the administrator as ids plus name snapshots without foreign keys, so a later account deletion never rewrites it. The students switch and the purge write to it too. Define.
 - D-55 — The 30-day purge of a refused file (D-41) is a daily Vercel cron calling a route guarded by `CRON_SECRET`; it deletes every file, photo included, and keeps the profile, declarations and journal. Cron runs on production only, so uat proves it by a direct call. Define.
+
+## Made in Build (2026-09-25)
+
+- D-56 — A decision applies only if the file's status **and** its `reviewed_at` are still what the founder's page showed (not the status alone), so a stale page is refused even when the state name happens to match again. Build; the spec named the outcome ("a stale page changes nothing"), not the token.
+- D-57 — The journal's trigger also refuses `TRUNCATE` (statement-level), beyond the spec's UPDATE and DELETE. Build.
+- D-58 — `confirm-dialog.tsx` gains a `children` slot and a preventable `onSelect`, so the reason field lives inside the one component allowed the confirmation colours (D-24). Build.
+- D-59 — The purge answers 500 with its counts when a profile could not be purged (its rows are kept for the next run), so the failure shows in Vercel's cron log. Build.
