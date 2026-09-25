@@ -6,11 +6,13 @@ import { FormMessage } from "@/components/auth/field";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { comptes } from "@/content/comptes";
+import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
 import { professionnelle } from "@/content/professionnelle";
 import { isHeldStudent } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
+import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
 import { loadFile } from "@/lib/professionnelle/file";
 import { firstIncompleteStep } from "@/lib/professionnelle/rules";
 import { studentsAdmitted } from "@/lib/settings";
@@ -19,6 +21,7 @@ import { ONBOARDING } from "./inscription/step";
 
 const t = words(comptes);
 const p = words(professionnelle);
+const d = words(demandes);
 
 export const metadata: Metadata = {
   title: t.meta.espace,
@@ -34,7 +37,8 @@ export const dynamic = "force-dynamic";
  * first when she has just sent it, and links to her file. The founders'
  * decision shows here too (verification-back-office): the guide's line once
  * validated, the reason of a complément or a refusal, and why a student file
- * waits while students are not admitted.
+ * waits while students are not admitted. Once validated, it also links to the
+ * requests in her communes (demande-de-garde).
  */
 export default async function EspaceProfessionnellePage({
   searchParams,
@@ -71,11 +75,18 @@ export default async function EspaceProfessionnellePage({
       {showReason ? (
         <p className="max-w-2xl text-corps text-taupe">{fill(p.messages.motif, { motif: showReason })}</p>
       ) : null}
-      {status !== "refuse" ? (
-        <Button asChild className="self-start">
-          <Link href={`${SPACES.professionnel}/profil`}>{p.messages.modifierDossier}</Link>
-        </Button>
-      ) : null}
+      <div className="flex flex-wrap gap-3">
+        {status === "valide" ? (
+          <Button asChild>
+            <Link href={PROFESSIONAL_REQUESTS_PATH}>{d.professionnelle.lien}</Link>
+          </Button>
+        ) : null}
+        {status !== "refuse" ? (
+          <Button asChild variant={status === "valide" ? "raye" : "blanc"}>
+            <Link href={`${SPACES.professionnel}/profil`}>{p.messages.modifierDossier}</Link>
+          </Button>
+        ) : null}
+      </div>
     </SpaceShell>
   );
 }

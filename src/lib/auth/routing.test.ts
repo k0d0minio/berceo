@@ -67,6 +67,31 @@ describe("each role lands on its own space (spec)", () => {
     });
   });
 
+  it.each([
+    "/espace/famille/demandes",
+    "/espace/famille/demandes/nouvelle",
+    "/espace/famille/demandes/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10/modifier",
+  ])("opens the family's requests to a parent only: %s", (path) => {
+    expect(accessFor("parent", path)).toEqual({ kind: "allow" });
+    expect(accessFor("professionnel", path)).toEqual({ kind: "redirect", to: "/espace/professionnelle" });
+    expect(accessFor("admin", path)).toEqual({ kind: "redirect", to: "/admin" });
+    expect(accessFor(null, path)).toEqual({
+      kind: "redirect",
+      to: `/connexion?retour=${encodeURIComponent(path)}`,
+    });
+  });
+
+  it("opens the requests of a professional's zone to a professional only", () => {
+    const path = "/espace/professionnelle/demandes";
+    expect(accessFor("professionnel", path)).toEqual({ kind: "allow" });
+    expect(accessFor("parent", path)).toEqual({ kind: "redirect", to: "/espace/famille" });
+    expect(accessFor("admin", path)).toEqual({ kind: "redirect", to: "/admin" });
+    expect(accessFor(null, path)).toEqual({
+      kind: "redirect",
+      to: "/connexion?retour=%2Fespace%2Fprofessionnelle%2Fdemandes",
+    });
+  });
+
   it("does not mistake a lookalike path for a space", () => {
     expect(accessFor("admin", "/administration")).toEqual({
       kind: "redirect",

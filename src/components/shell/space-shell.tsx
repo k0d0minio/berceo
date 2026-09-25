@@ -7,12 +7,14 @@ import { comptes } from "@/content/comptes"
 import { fill, words } from "@/content/locale"
 import type { User } from "@/db"
 import { homeFor } from "@/lib/auth/routing"
+import { FAMILY_REQUESTS_PATH, PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths"
 import { PROFILE_PATH } from "@/lib/famille/paths"
 
 /*
  * A signed-in space: the portal shell with the role's home and the role's own
- * entries (a parent's profile), the sign-out dialog wired to the session, and
- * the greeting by first name. Each feature stub adds its own navigation entries.
+ * entries (a parent's requests and profile, a professional's requests), the
+ * sign-out dialog wired to the session, and the greeting by first name. Each
+ * feature stub adds its own navigation entries.
  */
 function SpaceShell({
   user,
@@ -32,7 +34,15 @@ function SpaceShell({
     <PortalShell
       nav={[
         { label: t.navAccueil, href: home },
-        ...(user.role === "parent" ? [{ label: t.navProfil, href: PROFILE_PATH }] : []),
+        ...(user.role === "parent"
+          ? [
+              { label: t.navDemandesFamille, href: FAMILY_REQUESTS_PATH },
+              { label: t.navProfil, href: PROFILE_PATH },
+            ]
+          : []),
+        ...(user.role === "professionnel"
+          ? [{ label: t.navDemandesProfessionnelle, href: PROFESSIONAL_REQUESTS_PATH }]
+          : []),
       ]}
       home={home}
       actions={<SignOutDialog onSignOut={signOut} />}

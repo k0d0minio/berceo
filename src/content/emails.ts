@@ -60,6 +60,30 @@ export const emails = catalogue({
       cta: "Voir mon espace",
     },
 
+    demandeUrgente: {
+      /** @relecture Surya — objet de l'e-mail d'une demande urgente, envoyé tout de suite (D-61). */
+      objet: "Demande urgente à {commune} pour le {date}",
+      /** @relecture Surya — corps : la nuit et les enfants. */
+      corps: "Une famille de {commune} cherche une professionnelle pour la nuit du {nuit}. {enfants}.",
+      /** @relecture Surya — l'invitation à répondre vite. */
+      appel: "Si vous êtes disponible, consultez la demande dès que possible.",
+      cta: "Voir les demandes disponibles",
+    },
+
+    resumeDemandes: {
+      /** @relecture Surya — objet du résumé quotidien, une seule demande (D-61). */
+      objetUne: "Une nouvelle demande de garde dans votre zone",
+      /** @relecture Surya — objet du résumé quotidien, plusieurs demandes. */
+      objet: "{n} nouvelles demandes de garde dans votre zone",
+      /** @relecture Surya — introduction, une seule demande. */
+      introUne: "Une nouvelle demande a été publiée dans les communes où vous intervenez.",
+      /** @relecture Surya — introduction, plusieurs demandes. */
+      intro: "{n} nouvelles demandes ont été publiées dans les communes où vous intervenez.",
+      /** @relecture Surya — une ligne par demande. */
+      ligne: "{commune}, nuit du {nuit}. {enfants}.",
+      cta: "Voir les demandes disponibles",
+    },
+
     verification: {
       /** @relecture Surya — objet de l'e-mail de vérification. */
       objet: "Confirmez votre adresse e-mail",
