@@ -13,9 +13,13 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Berceo never takes money for the night (D-1); only the fee, 3 % all-in (D-2, D-87). No subscriptions, promo codes, gift cards (D-3).
+- The click never books; Stripe's report does (D-90). Every rule of `acceptAnswer` stays held in its transaction.
+- Keys and the webhook secret live in the environment only; load `.icm/skills/security-audit/` before the first push; `security-check.sh` before every commit.
+- One forward migration (`.icm/skills/database-migration/`), generated on the merged tree.
+- Every word in `src/content/`, to Surya's guide (D-19); red and green only in the confirmation dialogs (D-24).
+- Cancelling a booking is stub 11's: this run only exports `refundFee` (D-94).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `src/lib/reservations/bookings.ts`, the accept action, `accept-answer.tsx`, the schema's booking and journal tables, `.env.example`, `src/proxy.ts` and the admin journal page, to place the payment exactly where candidature-et-reservation left the seam.

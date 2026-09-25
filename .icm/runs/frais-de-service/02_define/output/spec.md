@@ -213,6 +213,7 @@ and no receipt (I-05 NON).
 - The fee amount in the confirmation e-mails.
 - The back office's wider views (overview, search, suspension): stub 14 (back-office-admin), which builds on `/admin/paiements`.
 - Opening the Stripe account, its verification, the live keys, the webhook registration, the statement descriptor: the operator's, in Stripe's dashboard and Vercel.
+- Scope decisions this run neither builds nor changes: D-5, D-6, D-7, D-9 (the DA, already in the components), D-10, D-11, D-12, D-13, D-14, D-15 (the address still reveals at the booking, now made by the payment), D-16, D-17 (disputes go to the founders' e-mail; the admin button of D-89 is how they refund one), D-18, D-20, D-21, D-22, D-23, D-25, D-26, D-27.
 
 ## Open questions
 

@@ -38,5 +38,13 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+*Numbered from D-87: candidature-et-reservation holds up to D-86.*
+
+- D-87 — The fee is 3 % of the chosen answer's frozen rate (D-74), in cents as rate × 3, exact, 3,00 € to 9,00 €; no floor (Stripe's euro minimum is 0,50 €). The 3 % is all-in, VAT included; Stripe Tax is off; the VAT bookkeeping is the accountant's. Operator, Define, 2026-09-25.
+- D-88 — No Stripe account exists yet. UAT and previews run on a test-mode account the operator opens; Production gets live keys only once the company's account exists and is verified, and has none until then. Operator, Define, 2026-09-25.
+- D-89 — The founders refund a paid fee from `/admin/paiements` with a button, a mandatory reason and a confirmation dialog; each refund writes one admin-journal entry `frais_rembourses`. A refund made in Stripe's dashboard is synced into the record by the webhook. Operator, Define, 2026-09-25.
+- D-90 — The booking is made by the payment, never by the click: one idempotent `confirmPayment`, called by the verified webhook and by the return page after reading the session from Stripe's API; a conditional update lets exactly one caller book, and only that caller sends the e-mails. Define, 2026-09-25.
+- D-91 — A paid fee whose booking can no longer be made (the request booked, the professional booked that night, the answer withdrawn, the request cancelled, the professional no longer validated, the night started) is refunded in full at once, reason `reservation_impossible`, and the family is told on the return page and by e-mail. Define, 2026-09-25.
+- D-92 — One open checkout per request (partial unique index); a new one expires the previous at Stripe. A checkout lasts 30 minutes; a row `en_attente` past its `expires_at` is read as expired without a cron. Abandoning leaves the request and the answers untouched. Define, 2026-09-25.
+- D-93 — `payments` holds one row per checkout opened, linked to its booking once made, read only by admins at `/admin/paiements`; families and professionals see no payment history and no receipt (I-05 NON). Define, 2026-09-25.
+- D-94 — `refundFee(paymentId, reason, by?)` is the one refund path: the full fee only, a `payee` row only, one Stripe idempotency key per payment; reasons `annulation_professionnelle` (stub 11 calls it), `reservation_impossible`, `berceo`, `stripe`. It never touches the booking. Define, 2026-09-25.
