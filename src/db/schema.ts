@@ -10,7 +10,7 @@
  * A professional's file (onboarding-professionnelle) is her profile, the
  * communes she serves, the documents she uploaded and the declarations she
  * accepted, each append-only where the history matters. `app_settings` holds
- * the founders' switches.
+ * the founders' switches, and `admin_journal` every admin action, immutable.
  */
 import { sql } from "drizzle-orm";
 import {
@@ -213,6 +213,14 @@ export const professionalProfiles = pgTable(
     inamiNumber: text("inami_number"),
     /** Set when she submits, and again when a change sends a validated file back to review. */
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    /**
+     * The founders' last word on the file (verification-back-office): the reason
+     * of a complément or a refusal, which she reads in her e-mail and her space,
+     * cleared on validation; and when the last decision was taken. A refused
+     * file's documents are purged thirty days after `reviewed_at`.
+     */
+    reviewReason: text("review_reason"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -307,6 +315,45 @@ export const appSettings = pgTable("app_settings", {
   updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
 });
 
+// ---------------------------------------------------------------------------
+// The admin journal
+// ---------------------------------------------------------------------------
+
+/** What an admin did (the guide's "Journal des actions administratives"). */
+export const adminActionEnum = pgEnum("admin_action", [
+  "profil_valide",
+  "complement_demande",
+  "profil_refuse",
+  "reglage_etudiantes",
+  "documents_supprimes",
+]);
+
+/**
+ * One row per admin action, never changed: a trigger in the migration refuses
+ * any UPDATE, DELETE or TRUNCATE, and the code has no path to either. The
+ * account concerned and the administrator are ids with their names as they
+ * were, without foreign keys, so deleting an account later never rewrites an
+ * entry. No administrator means Berceo did it (the purge).
+ */
+export const adminJournal = pgTable(
+  "admin_journal",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+    action: adminActionEnum("action").notNull(),
+    subjectUserId: uuid("subject_user_id"),
+    subjectName: text("subject_name"),
+    adminUserId: uuid("admin_user_id"),
+    adminName: text("admin_name"),
+    /** The reason given, or the switch's new value. */
+    detail: text("detail"),
+  },
+  (table) => [
+    index("admin_journal_occurred_at_idx").on(table.occurredAt),
+    index("admin_journal_subject_user_id_idx").on(table.subjectUserId),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type UserRole = (typeof userRoleEnum.enumValues)[number];
@@ -318,5 +365,7 @@ export type ProfileStatus = (typeof profileStatusEnum.enumValues)[number];
 export type Profession = (typeof professionEnum.enumValues)[number];
 export type Experience = (typeof experienceEnum.enumValues)[number];
 export type DocumentKind = (typeof documentKindEnum.enumValues)[number];
+export type AdminAction = (typeof adminActionEnum.enumValues)[number];
+export type AdminJournalEntry = typeof adminJournal.$inferSelect;
 export type Declaration = (typeof declarationEnum.enumValues)[number];
 export type ProfessionalDocument = typeof professionalDocuments.$inferSelect;

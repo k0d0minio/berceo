@@ -138,3 +138,64 @@ export function welcomeFamilyEmail(input: {
     }),
   };
 }
+
+/** A founder's reason inside a sentence that closes with its own full stop. */
+function motif(reason: string): string {
+  return reason.trim().replace(/[\s.]+$/, "");
+}
+
+/** The guide's validation e-mail, verbatim (verification-back-office; D-8, no insurance). */
+export function profileValidatedEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  url: string;
+}): RenderedEmail {
+  const v = t.profilValide;
+  return {
+    subject: v.objet,
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [v.corps],
+      cta: { label: v.cta, href: input.url },
+    }),
+  };
+}
+
+/** The complément asked, with the founders' reason and no contact address (D-51). */
+export function complementRequestedEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  reason: string;
+  url: string;
+}): RenderedEmail {
+  const c = t.complementDemande;
+  return {
+    subject: c.objet,
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(c.corps, { motif: motif(input.reason) }), c.suite],
+      cta: { label: c.cta, href: input.url },
+    }),
+  };
+}
+
+/** The refusal, with the founders' reason and no contact sentence (D-51). */
+export function profileRefusedEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  reason: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.profilRefuse;
+  return {
+    subject: r.objet,
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { motif: motif(input.reason) })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
