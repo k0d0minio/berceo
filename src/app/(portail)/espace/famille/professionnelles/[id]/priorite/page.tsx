@@ -59,12 +59,12 @@ export default async function PrioritePage({
         <FormMessage>{fill(r.priorite.envoyee, { prenom: profile.firstName })}</FormMessage>
       ) : null}
       {notice.erreur ? <FormMessage>{r.priorite.erreur}</FormMessage> : null}
-      <p className="max-w-2xl text-intro text-taupe">{fill(r.priorite.message, { prenom: profile.firstName })}</p>
+      <p className="max-w-2xl text-intro text-encre-taupe">{fill(r.priorite.message, { prenom: profile.firstName })}</p>
 
       <section className="flex max-w-4xl flex-col gap-4">
-        <h2 className="font-display text-h2 text-sauge">{r.priorite.choisir}</h2>
+        <h2 className="font-display text-h2 text-encre-sauge">{r.priorite.choisir}</h2>
         {candidates.length === 0 ? (
-          <p className="max-w-2xl text-corps text-taupe">{r.priorite.aucune}</p>
+          <p className="max-w-2xl text-corps text-encre-taupe">{r.priorite.aucune}</p>
         ) : (
           <ul className="grid gap-6 md:grid-cols-2">
             {candidates.map((request) => (
@@ -84,7 +84,7 @@ export default async function PrioritePage({
       </section>
 
       <section className="flex max-w-4xl flex-col gap-4">
-        <h2 className="font-display text-h2 text-sauge">{r.priorite.nouvelle}</h2>
+        <h2 className="font-display text-h2 text-encre-sauge">{r.priorite.nouvelle}</h2>
         <div className="flex flex-wrap gap-3">
           <Button asChild>
             <Link href={`${NEW_REQUEST_PATH}?${pour}`}>{d.boutons.publier}</Link>

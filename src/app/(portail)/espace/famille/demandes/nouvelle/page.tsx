@@ -49,7 +49,7 @@ export default async function NouvelleDemandePage({
 
   return (
     <SpaceShell user={user} title={urgent ? t.formulaire.titreUrgent : t.formulaire.titre}>
-      <p className="max-w-2xl text-intro text-taupe">
+      <p className="max-w-2xl text-intro text-encre-taupe">
         {urgent ? t.formulaire.introUrgente : t.formulaire.sousTitre}
       </p>
       <RequestForm

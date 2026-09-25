@@ -31,7 +31,7 @@ export default function AccueilPage() {
     <>
       <section className="mx-auto grid max-w-6xl gap-10 px-4 pt-8 pb-14 md:grid-cols-2 md:items-center md:px-8 md:pt-14 md:pb-20">
         <div className="flex flex-col gap-6">
-          <h1 className="font-display text-h1 text-sauge">{t.hero.title}</h1>
+          <h1 className="font-display text-h1 text-encre-sauge">{t.hero.title}</h1>
           <p className="text-intro">{t.hero.message}</p>
           {/* The message above names health professionals, so the family door may say "gardienne de la nuit" (D-25). */}
           <CtaPair
@@ -44,7 +44,7 @@ export default function AccueilPage() {
               href: c.pages.inscriptionProfessionnelle.href,
             }}
           />
-          <p className="flex items-start gap-3 font-semibold text-sauge">
+          <p className="flex items-start gap-3 font-semibold text-encre-sauge">
             <ShieldCheckIcon aria-hidden className="mt-0.5 size-6 shrink-0" />
             {t.hero.reassurance}
           </p>
@@ -58,7 +58,7 @@ export default function AccueilPage() {
           <li>
             <Link
               href={c.pages.commentCaMarche.href}
-              className="font-semibold text-sauge underline underline-offset-4"
+              className="font-semibold text-encre-sauge underline underline-offset-4"
             >
               {t.etapes.liens.commentCaMarche}
             </Link>
@@ -66,7 +66,7 @@ export default function AccueilPage() {
           <li>
             <Link
               href={c.pages.tarifs.href}
-              className="font-semibold text-sauge underline underline-offset-4"
+              className="font-semibold text-encre-sauge underline underline-offset-4"
             >
               {t.etapes.liens.tarifs}
             </Link>

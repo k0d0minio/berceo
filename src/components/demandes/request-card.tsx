@@ -28,7 +28,7 @@ function Mark({ children, className }: { children: React.ReactNode; className?: 
   return (
     <span
       className={cn(
-        "inline-flex w-fit items-center rounded-capsule px-3 py-1 text-legende font-semibold text-taupe",
+        "inline-flex w-fit items-center rounded-capsule px-3 py-1 text-legende font-semibold text-encre-taupe",
         className
       )}
     >
@@ -78,25 +78,25 @@ function RequestCard({
           <Mark className="border border-solid border-taupe bg-blanc">{t.statuts[status]}</Mark>
         ) : null}
       </div>
-      <h2 className="font-display text-h3 text-sauge uppercase">
+      <h2 className="font-display text-h3 text-encre-sauge uppercase">
         {cardTitle(request.communeIns, request.locality)}
       </h2>
-      <p className="text-corps text-taupe">{placeLine(request.postcode, request.locality)}</p>
-      <p className="text-corps font-semibold text-taupe">
+      <p className="text-corps text-encre-taupe">{placeLine(request.postcode, request.locality)}</p>
+      <p className="text-corps font-semibold text-encre-taupe">
         {nightLine(request.nightDate, request.startTime)}
       </p>
-      <p className="text-corps text-taupe">
+      <p className="text-corps text-encre-taupe">
         {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
       </p>
-      {rate ? <p className="text-corps font-semibold text-sauge">{rateLine(rate)}</p> : null}
+      {rate ? <p className="text-corps font-semibold text-encre-sauge">{rateLine(rate)}</p> : null}
       {showPublished ? (
-        <p className="text-legende text-taupe">{fill(t.carte.publiee, { date: published })}</p>
+        <p className="text-legende text-encre-taupe">{fill(t.carte.publiee, { date: published })}</p>
       ) : null}
-      {note ? <p className="text-corps font-semibold text-taupe">{note}</p> : null}
+      {note ? <p className="text-corps font-semibold text-encre-taupe">{note}</p> : null}
       {href ? (
         <Link
           href={href}
-          className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+          className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
         >
           {t.boutons.voir}
         </Link>

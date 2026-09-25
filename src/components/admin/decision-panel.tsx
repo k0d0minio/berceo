@@ -52,10 +52,10 @@ function DecisionPanel({
     <div className="flex flex-col gap-4">
       {message ? <FormMessage>{message}</FormMessage> : null}
       {!isReviewable(status) ? (
-        <p className="text-corps text-taupe">{t.dossier.sansDecision}</p>
+        <p className="text-corps text-encre-taupe">{t.dossier.sansDecision}</p>
       ) : (
         <>
-          {held ? <p className="max-w-2xl text-corps text-taupe">{t.dossier.etudiantesRetenue}</p> : null}
+          {held ? <p className="max-w-2xl text-corps text-encre-taupe">{t.dossier.etudiantesRetenue}</p> : null}
           <div className="flex flex-wrap gap-4">
             <ConfirmDialog
               trigger={
@@ -142,7 +142,7 @@ function ReasonDialog({
       cancel={{ label: d.confirmation.non, tone: tone === "sensible" ? "confirmation" : "sensible" }}
     >
       <div className="flex flex-col gap-2">
-        <label htmlFor={`${id}-motif`} className="text-corps font-semibold text-taupe">
+        <label htmlFor={`${id}-motif`} className="text-corps font-semibold text-encre-taupe">
           {d.confirmation.motif}
         </label>
         <textarea
@@ -153,13 +153,13 @@ function ReasonDialog({
           onChange={(event) => setReason(event.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={[`${id}-aide`, error ? `${id}-erreur` : ""].filter(Boolean).join(" ")}
-          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge aria-invalid:border-destructive"
+          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge aria-invalid:border-destructive"
         />
-        <p id={`${id}-aide`} className="px-6 text-legende text-taupe">
+        <p id={`${id}-aide`} className="px-6 text-legende text-encre-taupe">
           {d.confirmation.motifAide}
         </p>
         {error ? (
-          <p id={`${id}-erreur`} role="alert" className="px-6 text-legende font-semibold text-taupe">
+          <p id={`${id}-erreur`} role="alert" className="px-6 text-legende font-semibold text-encre-taupe">
             {error}
           </p>
         ) : null}

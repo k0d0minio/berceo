@@ -39,10 +39,10 @@ function MobileMenu({
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 voile-perle" />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed inset-x-4 top-4 z-50 flex max-h-[calc(100dvh-2rem)] flex-col gap-6 overflow-y-auto rounded-carte bg-blanc p-6 text-taupe"
+          className="fixed inset-x-4 top-4 z-50 flex max-h-[calc(100dvh-2rem)] flex-col gap-6 overflow-y-auto rounded-carte bg-blanc p-6 text-encre-taupe"
         >
           <div className="flex items-center justify-between">
-            <DialogPrimitive.Title className="font-display text-nav text-sauge">
+            <DialogPrimitive.Title className="font-display text-nav text-encre-sauge">
               {labels.title}
             </DialogPrimitive.Title>
             <DialogPrimitive.Close asChild>
@@ -58,7 +58,7 @@ function MobileMenu({
                   <Link
                     href={link.href}
                     onClick={() => setOpen(false)}
-                    className="block rounded-capsule px-4 py-3 font-display text-nav text-sauge transition-colors duration-200 ease-out hover:bg-beurre"
+                    className="block rounded-capsule px-4 py-3 font-display text-nav text-encre-sauge transition-colors duration-200 ease-out hover:bg-beurre"
                   >
                     {link.label}
                   </Link>

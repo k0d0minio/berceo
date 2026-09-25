@@ -34,7 +34,7 @@ function PortalShell({
           <Link
             href={home}
             aria-label={t.header.homeLabel}
-            className="shrink-0 rounded-md text-sauge"
+            className="shrink-0 rounded-md text-encre-sauge"
           >
             <BerceoLogomark className="h-12 w-auto" />
           </Link>
@@ -45,7 +45,7 @@ function PortalShell({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="block rounded-capsule px-4 py-2 font-display text-nav text-sauge transition-colors duration-200 ease-out hover:bg-beurre"
+                    className="block rounded-capsule px-4 py-2 font-display text-nav text-encre-sauge transition-colors duration-200 ease-out hover:bg-beurre"
                   >
                     {item.label}
                   </Link>

@@ -69,20 +69,20 @@ export default async function ReservationPage({
       <article className="flex max-w-2xl flex-col gap-6 rounded-carte bg-perle px-6 py-8 md:px-10">
         <div className="flex items-center gap-4">
           <ProfessionalPhoto photoId={professional.photoId} prenom={professional.firstName} className="size-16" />
-          <h2 className="font-display text-h3 text-sauge uppercase">
+          <h2 className="font-display text-h3 text-encre-sauge uppercase">
             {cardTitle(request.communeIns, request.locality)}
           </h2>
         </div>
         <dl className="flex flex-col gap-3">
           {rows.map(([label, value]) => (
             <div key={label} className="flex flex-wrap justify-between gap-x-4">
-              <dt className="text-corps font-semibold text-taupe">{label}</dt>
-              <dd className="text-corps text-taupe">{value}</dd>
+              <dt className="text-corps font-semibold text-encre-taupe">{label}</dt>
+              <dd className="text-corps text-encre-taupe">{value}</dd>
             </div>
           ))}
           <div className="flex flex-wrap justify-between gap-x-4">
-            <dt className="text-corps font-semibold text-taupe">{l.telephone}</dt>
-            <dd className="text-corps text-taupe">
+            <dt className="text-corps font-semibold text-encre-taupe">{l.telephone}</dt>
+            <dd className="text-corps text-encre-taupe">
               {booking.phone ? (
                 <a href={`tel:${booking.phone}`} className="underline underline-offset-4">
                   {booking.phone}
@@ -93,7 +93,7 @@ export default async function ReservationPage({
             </dd>
           </div>
         </dl>
-        <p className="text-corps text-taupe">{t.recapitulatif.paiement}</p>
+        <p className="text-corps text-encre-taupe">{t.recapitulatif.paiement}</p>
       </article>
       <div className="flex flex-wrap gap-3">
         <Button asChild>

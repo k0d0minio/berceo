@@ -40,7 +40,7 @@ export default function FaqPage() {
                       href={
                         c.pages[item.link.page as keyof typeof c.pages].href
                       }
-                      className="self-start font-semibold text-sauge underline underline-offset-4"
+                      className="self-start font-semibold text-encre-sauge underline underline-offset-4"
                     >
                       {item.link.label}
                     </Link>

@@ -21,13 +21,13 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const link = "w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4";
+const link = "w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4";
 
 function List({ title, items }: { title: string; items: FamilyBooking[] }) {
   if (items.length === 0) return null;
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-display text-h2 text-sauge">{title}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{title}</h2>
       <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
         {items.map(({ id, request, professional }) => (
           <li key={id}>
@@ -35,12 +35,12 @@ function List({ title, items }: { title: string; items: FamilyBooking[] }) {
               <div className="flex items-center gap-4">
                 <ProfessionalPhoto photoId={professional.photoId} prenom={professional.firstName} className="size-14" />
                 <div className="flex flex-col gap-1">
-                  <h3 className="font-display text-h3 text-sauge uppercase">{professional.firstName}</h3>
-                  <p className="text-corps text-taupe">{professionLabel(professional.profession)}</p>
+                  <h3 className="font-display text-h3 text-encre-sauge uppercase">{professional.firstName}</h3>
+                  <p className="text-corps text-encre-taupe">{professionLabel(professional.profession)}</p>
                 </div>
               </div>
-              <p className="text-corps text-taupe">{cardTitle(request.communeIns, request.locality)}</p>
-              <p className="text-corps font-semibold text-taupe">{nightLine(request.nightDate, request.startTime)}</p>
+              <p className="text-corps text-encre-taupe">{cardTitle(request.communeIns, request.locality)}</p>
+              <p className="text-corps font-semibold text-encre-taupe">{nightLine(request.nightDate, request.startTime)}</p>
               <Link href={familyBookingPath(id)} className={link}>
                 {t.reservationsFamille.voir}
               </Link>
@@ -71,8 +71,8 @@ export default async function ReservationsPage() {
 
   return (
     <SpaceShell user={user} title={t.reservationsFamille.titre}>
-      <p className="max-w-2xl text-intro text-taupe">{t.reservationsFamille.intro}</p>
-      {all.length === 0 ? <p className="max-w-2xl text-corps text-taupe">{t.reservationsFamille.vide}</p> : null}
+      <p className="max-w-2xl text-intro text-encre-taupe">{t.reservationsFamille.intro}</p>
+      {all.length === 0 ? <p className="max-w-2xl text-corps text-encre-taupe">{t.reservationsFamille.vide}</p> : null}
       <List title={t.reservationsFamille.aVenir} items={coming} />
       <List title={t.reservationsFamille.passees} items={past} />
     </SpaceShell>

@@ -18,19 +18,19 @@ const t = words(disponibilites).famille
 function ProchainesDisponibilites({ nights }: { nights: readonly string[] }) {
   return (
     <section className="flex flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-      <h3 className="font-display text-h3 text-sauge">{t.titre}</h3>
+      <h3 className="font-display text-h3 text-encre-sauge">{t.titre}</h3>
       {nights.length === 0 ? (
-        <p className="text-corps text-taupe">{t.vide}</p>
+        <p className="text-corps text-encre-taupe">{t.vide}</p>
       ) : (
         <>
           <ul className="flex flex-col gap-1">
             {nights.map((night) => (
-              <li key={night} className="text-corps font-semibold text-taupe">
+              <li key={night} className="text-corps font-semibold text-encre-taupe">
                 {nightName(night)}
               </li>
             ))}
           </ul>
-          <p className="text-legende text-taupe">{t.avertissement}</p>
+          <p className="text-legende text-encre-taupe">{t.avertissement}</p>
         </>
       )}
     </section>
