@@ -22,6 +22,7 @@ import { displayStatus, isChangeable, isEditable } from "@/lib/demandes/rules";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyHasAddress } from "@/lib/famille/profile";
 import { feeLine } from "@/lib/paiements/format";
+import { PAYMENT_RETURN_PATH } from "@/lib/paiements/paths";
 import { familyAnswers } from "@/lib/reservations/answers";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
 import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
@@ -52,7 +53,11 @@ type Notice = {
   refus?: string;
   /** Back from Stripe's page, or it could not open (frais-de-service). */
   paiement?: string;
+  /** The Checkout still being settled, for « Actualiser la page ». */
+  session?: string;
 };
+
+const SESSION_ID = /^cs_(test|live)_[A-Za-z0-9]+$/;
 
 const PAYMENT_NOTICES = ["enCours", "rembourse", "abandonne", "erreur"] as const;
 
@@ -112,7 +117,11 @@ export default async function DemandePage({
       {notice ? <FormMessage>{notice}</FormMessage> : null}
       {query.paiement === "enCours" ? (
         <Link
-          href={familyRequestPath(request.id)}
+          href={
+            query.session && SESSION_ID.test(query.session)
+              ? `${PAYMENT_RETURN_PATH}?session_id=${query.session}`
+              : familyRequestPath(request.id)
+          }
           className="w-fit text-corps font-semibold text-encre-sauge underline underline-offset-4"
         >
           {p.retour.actualiser}

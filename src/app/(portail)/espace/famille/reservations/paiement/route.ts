@@ -18,14 +18,17 @@ import { siteOrigin } from "@/lib/site-origin";
 
 export const dynamic = "force-dynamic";
 
-function destination(result: ConfirmResult): string {
+function destination(result: ConfirmResult, sessionId: string): string {
   const request = (requestId: string | null, notice: string) =>
     requestId ? `${familyRequestPath(requestId)}?paiement=${notice}` : FAMILY_REQUESTS_PATH;
   switch (result.kind) {
     case "reservee":
       return `${familyBookingPath(result.bookingId)}?confirmee=1`;
     case "enCours":
-      return request(result.requestId, "enCours");
+      // « Actualiser la page » comes back here with the session, to settle it again.
+      return result.requestId
+        ? `${request(result.requestId, "enCours")}&session=${encodeURIComponent(sessionId)}`
+        : FAMILY_REQUESTS_PATH;
     case "remboursee":
       return request(result.requestId, "rembourse");
     case "nonPayee":
@@ -36,8 +39,9 @@ function destination(result: ConfirmResult): string {
 }
 
 export async function GET(request: Request): Promise<Response> {
-  const user = await requireAccess(PAYMENT_RETURN_PATH);
   const sessionId = new URL(request.url).searchParams.get("session_id") ?? "";
+  // The way back keeps the session, so a family asked to sign in again still lands here with it.
+  const user = await requireAccess(`${PAYMENT_RETURN_PATH}?session_id=${encodeURIComponent(sessionId)}`);
   const owner = await paymentOwner(sessionId);
   if (!owner || owner.familyUserId !== user.id) notFound();
 
@@ -50,5 +54,5 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   revalidatePath(SPACES.parent, "layout");
-  redirect(destination(result));
+  redirect(destination(result, sessionId));
 }

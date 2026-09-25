@@ -2,7 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
-import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { after } from "next/server";
 import type Stripe from "stripe";
@@ -20,7 +20,7 @@ import {
   type PaymentStatus,
   type RefundReason,
 } from "@/db";
-import { journalInsert, type Person } from "@/lib/admin/journal";
+import type { Person } from "@/lib/admin/journal";
 import { formatDate } from "@/lib/demandes/format";
 import { isUniqueViolation, UUID } from "@/lib/demandes/requests";
 import { acceptAnswer, acceptCheck } from "@/lib/reservations/bookings";
@@ -62,7 +62,10 @@ function logError(what: string, context: Record<string, unknown>, error?: unknow
       ? {}
       : {
           error: error instanceof Error ? error.name : typeof error,
-          code: (error as { code?: unknown } | null)?.code,
+          // Drizzle wraps Postgres' error: its code (23505, 23514) is on the cause.
+          code:
+            (error as { code?: unknown } | null)?.code ??
+            (error as { cause?: { code?: unknown } } | null)?.cause?.code,
         }),
   });
 }
@@ -96,6 +99,15 @@ export async function startCheckout(input: {
   const { user, requestId, applicationId, siteUrl, now } = input;
   const check = await acceptCheck(user.id, requestId, applicationId, now);
   if (!check.ok) return { kind: "refus", reason: check.reason };
+
+  // A fee already paid for this request and still being settled: confirm it,
+  // never charge a second one.
+  const [inFlight] = await db
+    .select({ stripeSessionId: payments.stripeSessionId })
+    .from(payments)
+    .where(and(eq(payments.requestId, requestId), eq(payments.status, "payee"), isNull(payments.bookingId)))
+    .limit(1);
+  if (inFlight) return { kind: "dejaPaye", sessionId: inFlight.stripeSessionId };
 
   // One open Checkout per request (D-92): the last one is closed first.
   const open = await db
@@ -219,8 +231,10 @@ function outcome(row: Pick<Payment, "status" | "bookingId" | "requestId">): Conf
     case "payee":
       return row.bookingId ? { kind: "reservee", bookingId: row.bookingId, requestId } : { kind: "enCours", requestId };
     case "remboursee":
-    case "remboursement_echoue":
       return row.bookingId ? { kind: "reservee", bookingId: row.bookingId, requestId } : { kind: "remboursee", requestId };
+    // A refund Stripe refused is not a refund: the founders see it on /admin/paiements.
+    case "remboursement_echoue":
+      return row.bookingId ? { kind: "reservee", bookingId: row.bookingId, requestId } : { kind: "enCours", requestId };
     default:
       return { kind: "nonPayee", requestId };
   }
@@ -238,17 +252,19 @@ function paymentIntentId(value: string | { id: string } | null): string | null {
 
 /**
  * The booking a paid Checkout makes, once (D-90, D-91). The session is read
- * from Stripe, never from the caller; a conditional update lets exactly one
- * caller take the payment `en_attente → payee`, and only that one books and
- * sends the e-mails. When the booking can no longer be made, the fee is
- * refunded in full at once and the family told. If anything throws after the
- * payment was taken, it is put back (`expiree`, so a new Checkout may be open
- * beside it), so Stripe's retry of the webhook can finish the job.
+ * from Stripe, never from the caller; a conditional update takes the payment
+ * `en_attente → payee`. A paid payment with no booking yet is settled by
+ * whoever comes: the webhook, the return page, its « Actualiser » link, or
+ * Stripe's retry after a failure of ours. Settling is safe to repeat: the
+ * booking holds its rules in SQL (one booking per request, only against this
+ * paid row), the e-mails leave from the caller that made the booking, and the
+ * refund has one Stripe idempotency key.
  */
 export async function confirmPayment(sessionId: string, siteUrl: string, now: Date): Promise<ConfirmResult> {
   if (!SESSION_ID.test(sessionId)) return { kind: "inconnue" };
   const row = await paymentBySession(sessionId);
   if (!row) return { kind: "inconnue" };
+  if (row.status === "payee" && !row.bookingId) return settle(row, siteUrl, now);
   if (row.status !== "en_attente" && row.status !== "expiree") return outcome(row);
 
   const session = await stripe().checkout.sessions.retrieve(sessionId);
@@ -273,41 +289,42 @@ export async function confirmPayment(sessionId: string, siteUrl: string, now: Da
     .returning();
   if (!taken) {
     const again = await paymentBySession(sessionId);
+    if (again?.status === "payee" && !again.bookingId) return settle(again, siteUrl, now);
     return again ? outcome(again) : { kind: "inconnue" };
   }
+  return settle(taken, siteUrl, now);
+}
 
-  try {
-    const { requestId, applicationId, familyUserId } = taken;
-    const booked =
-      requestId && applicationId && familyUserId
-        ? await acceptAnswer(familyUserId, requestId, applicationId, taken.id, now)
-        : ({ ok: false, reason: "introuvable" } as const);
+/**
+ * A paid fee without a booking: book it, or refund it when the booking can no
+ * longer be made (D-91). A refusal is read again before refunding: another
+ * caller may have just booked it, and a booked fee is never refunded here.
+ */
+async function settle(payment: Payment, siteUrl: string, now: Date): Promise<ConfirmResult> {
+  const { requestId, applicationId, familyUserId } = payment;
+  const booked =
+    requestId && applicationId && familyUserId
+      ? await acceptAnswer(familyUserId, requestId, applicationId, payment.id, now)
+      : ({ ok: false, reason: "introuvable" } as const);
 
-    if (booked.ok) {
-      const { bookingId, declined } = booked;
-      after(() => notifyBooking(bookingId, declined, siteUrl));
-      return { kind: "reservee", bookingId, requestId };
-    }
-
-    const refund = await refundFee(taken.id, "reservation_impossible", now);
-    if (!refund.ok) throw new Error(`refund refused: ${refund.reason}`);
-    after(() => notifyRefund(taken.id, siteUrl));
-    return { kind: "remboursee", requestId };
-  } catch (error) {
-    await db
-      .update(payments)
-      .set({ status: "expiree", paidAt: null, updatedAt: new Date() })
-      .where(
-        and(
-          eq(payments.id, taken.id),
-          eq(payments.status, "payee"),
-          isNull(payments.bookingId),
-          isNull(payments.refundedAt),
-        ),
-      );
-    logError("paid checkout not settled", { paymentId: taken.id }, error);
-    throw error;
+  if (booked.ok) {
+    const { bookingId, declined } = booked;
+    after(() => notifyBooking(bookingId, declined, siteUrl));
+    return { kind: "reservee", bookingId, requestId };
   }
+
+  const [current] = await db.select().from(payments).where(eq(payments.id, payment.id)).limit(1);
+  if (!current) return { kind: "inconnue" };
+  if (current.bookingId || current.status !== "payee") return outcome(current);
+
+  const refund = await refundFee(payment.id, "reservation_impossible", now);
+  if (!refund.ok) {
+    const [again] = await db.select().from(payments).where(eq(payments.id, payment.id)).limit(1);
+    return again ? outcome(again) : { kind: "inconnue" };
+  }
+  if (refund.status !== "remboursee") return { kind: "enCours", requestId };
+  if (refund.recorded) after(() => notifyRefund(payment.id, siteUrl));
+  return { kind: "remboursee", requestId };
 }
 
 /** The webhook's word on a Checkout that closed unpaid: `expiree` or `echouee`, only from `en_attente`. */
@@ -347,7 +364,12 @@ export async function abandonCheckout(paymentId: string, userId: string): Promis
 // ---------------------------------------------------------------------------
 
 export type RefundResult =
-  | { ok: true; status: Extract<PaymentStatus, "remboursee" | "remboursement_echoue"> }
+  | {
+      ok: true;
+      status: Extract<PaymentStatus, "remboursee" | "remboursement_echoue">;
+      /** False when another caller had already recorded this same refund. */
+      recorded: boolean;
+    }
   | { ok: false; reason: "introuvable" | "statut" };
 
 /** Who asked for a refund from the back office, for the journal (D-89). */
@@ -357,10 +379,12 @@ export type RefundBy = { admin: Person; motif: string };
  * The one refund (D-94): the whole fee, a `payee` payment only (or one whose
  * refund failed, to try again), one Stripe idempotency key per payment and
  * attempt, so however many callers ask, Stripe refunds once. It records the
- * refund's id, moment and reason; a refund asked from the back office also
- * writes one `frais_rembourses` line in the journal. It never touches the
- * booking: cancelling one is cycle-de-garde-et-annulation's, which calls this
- * with `annulation_professionnelle`.
+ * refund's id, moment and reason; a refund asked from the back office writes
+ * its `frais_rembourses` journal line in the same statement as the record, so
+ * one is never without the other. A caller that finds this same refund already
+ * recorded by another answers ok, and records nothing twice. It never touches
+ * the booking: cancelling one is cycle-de-garde-et-annulation's, which calls
+ * this with `annulation_professionnelle`.
  */
 export async function refundFee(
   paymentId: string,
@@ -387,27 +411,51 @@ export async function refundFee(
     { idempotencyKey: refundKey(payment.id, previous) },
   );
   const status = refundFailed(refund.status) ? "remboursement_echoue" : "remboursee";
-
-  const [updated] = await db
-    .update(payments)
-    .set({ status, stripeRefundId: refund.id, refundedAt: now, refundReason: reason, updatedAt: now })
-    .where(and(eq(payments.id, payment.id), inArray(payments.status, [...REFUNDABLE])))
-    .returning({ id: payments.id });
-  // Another caller recorded this same refund first (the key made it one).
-  if (!updated) return { ok: false, reason: "statut" };
-
   if (status === "remboursement_echoue") logError("refund failed at Stripe", { paymentId: payment.id });
+
+  let recorded: boolean;
   if (by) {
     const family = row.family;
-    await journalInsert({
-      action: "frais_rembourses",
-      subject: family ? { id: family.id, name: `${family.firstName} ${family.lastName}`.trim() } : null,
-      admin: by.admin,
-      detail: fill(words(admin).paiements.detailJournal, { montant: eurosFromCents(payment.amountCents), motif: by.motif }),
-      at: now,
+    const at = now.toISOString();
+    const detail = fill(words(admin).paiements.detailJournal, {
+      montant: eurosFromCents(payment.amountCents),
+      motif: by.motif,
     });
+    const written = await db.execute<{ id: string }>(sql`
+      with done as (
+        update payments
+        set status = ${status}::payment_status, stripe_refund_id = ${refund.id}, refunded_at = ${at}::timestamptz,
+            refund_reason = ${reason}::refund_reason, updated_at = ${at}::timestamptz
+        where id = ${payment.id} and status in ('payee', 'remboursement_echoue')
+        returning id
+      )
+      insert into admin_journal (occurred_at, action, subject_user_id, subject_name, admin_user_id, admin_name, detail)
+      select ${at}::timestamptz, 'frais_rembourses'::admin_action, ${family?.id ?? null}::uuid,
+             ${family ? `${family.firstName} ${family.lastName}`.trim() : null}, ${by.admin.id}::uuid,
+             ${by.admin.name}, ${detail}
+      from done
+      returning id
+    `);
+    recorded = written.rows.length > 0;
+  } else {
+    const updated = await db
+      .update(payments)
+      .set({ status, stripeRefundId: refund.id, refundedAt: now, refundReason: reason, updatedAt: now })
+      .where(and(eq(payments.id, payment.id), inArray(payments.status, [...REFUNDABLE])))
+      .returning({ id: payments.id });
+    recorded = updated.length > 0;
   }
-  return { ok: true, status };
+
+  if (!recorded) {
+    // Another caller got there first: fine if it recorded this very refund.
+    const [again] = await db
+      .select({ stripeRefundId: payments.stripeRefundId })
+      .from(payments)
+      .where(eq(payments.id, payment.id))
+      .limit(1);
+    if (again?.stripeRefundId !== refund.id) return { ok: false, reason: "statut" };
+  }
+  return { ok: true, status, recorded };
 }
 
 /**

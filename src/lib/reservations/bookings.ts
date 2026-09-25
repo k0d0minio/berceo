@@ -86,7 +86,7 @@ export type AcceptResult =
 /**
  * The booking a paid fee makes (D-90). The rules are read first for a precise
  * answer, then the batch holds them again, statement by statement, in one
- * transaction:
+ * transaction, the payment row locked first:
  *
  * 1. the chosen answer becomes `retenue`, only if it still waits, its
  *    professional is still validated, the request is hers, open and ahead,
@@ -118,7 +118,10 @@ export async function acceptAnswer(
   const at = now.toISOString();
 
   try {
-    const [, made, , declined] = await db.batch([
+    const [, , made, , declined] = await db.batch([
+      // Holds the payment row until the booking commits, so a refund cannot
+      // land between the check below and the link in the last statement.
+      db.execute(sql`select id from payments where id = ${paymentId} for update`),
       db
         .update(careRequestApplications)
         .set({ status: "retenue", updatedAt: now })
