@@ -13,9 +13,14 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- No word changes: `src/content/` untouched, the H1 included (D-5).
+- No colour changes: the tokens encres-contraste set stay; `contrast.test.ts` stays green.
+- The fix lives in the shared components (header, hero, `PageHeader`, `Photo`), not a homepage fork (D-4).
+- H1 within the DA's scale: 56–64 px from md, 38–44 px below; ≤ 4 lines at 1280 and 1440; never overflowing 320–1920 (D-6).
+- Full nav from xl (1280 px), menu panel below; photo fills the text block's height from lg (operator, 2026-09-25).
+- The bands below the hero are blocs-accueil's; keep `page.tsx` edits to the hero section.
+- Never run build/lint/typecheck/dev locally beyond the session's `format.sh`/`lint.sh` (AGENTS.md: CI is the source of truth).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `src/components/shell/public-header.tsx`, `src/components/vitrine/page-header.tsx`, `cta-pair.tsx`, `photo.tsx`, the hero section and the type tokens in `globals.css` to settle the header breakpoint with a width estimate — targeted reads, within the contract's allowance.
