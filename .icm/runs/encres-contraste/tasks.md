@@ -20,4 +20,6 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] The contrast test and the tokens (`src/app/contrast.test.ts`, `src/app/globals.css`) — 2473f09
+- [x] The rename, the surfaces and controls, the design system page, the e-mail stub parked — ab11feb
+- [ ] The ready flip and the full verdict (`ci-status.sh`), then the preview smoke at 390 and 1440 px

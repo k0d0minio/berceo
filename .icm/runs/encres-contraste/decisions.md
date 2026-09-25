@@ -19,5 +19,20 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-9 — One sage ink, `#3c584b`, everywhere, deeper than the scope's « about #48685a »: #48685a
+  reaches only 2.57:1 on the light sage band, where the ink heading, the focus ring and the
+  filled button sit; `#3c584b` reaches 3.25:1 there and 7.81:1 on white. Define, the operator's
+  choice (2026-09-25).
+- D-10 — The "Trouver une professionnelle" button on the light sage band stays on the `sauge`
+  row: deep sage filled, white text. Define, the operator's choice (2026-09-25).
+- D-11 — The confirmation dialog passes AA too: `--rouge-confirmation` darkens on its own hue
+  from `#ed5957` to `#bc312f` (white on it 3.40 → 5.80:1), and the green answer's text is the
+  sage ink (4.88:1; the taupe ink was 3.84). D-24's rule is unchanged, only the red's value.
+  Build, the operator's choice (2026-09-25) — a spec gap: the spec's pair list covered it, its
+  proposed change did not.
+- D-12 — The translucent block's text is the sage ink, not the taupe ink: the pearl veil lets
+  its backdrop through, and over the sage band the taupe ink is 3.99:1 where the sage ink is
+  5.07:1. Build — a spec gap (the veil was not in the spec's list of surfaces).
+- D-13 — The calendar's selected-night outline is butter on a marked (sage-ink) night and the
+  taupe ink on an unmarked (butter) one, so the outline reads against the cell it sits on.
+  Build, within the spec's "the selected night's outline takes the inks".
