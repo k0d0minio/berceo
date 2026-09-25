@@ -4,7 +4,7 @@ Where the run is, in five lines. Updated at every stage start and stop, and when
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: build
-- step: 12 (full verdict on the post-flip head)
-- ci: not read (draft)
+- step: done
+- ci: GREEN (full gate on 2025867: Vercel pass, Quality (advisory) pass)
 - blocked: no
 - updated: 2026-09-25
