@@ -246,3 +246,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - A path that reopens or republishes something for a slot (a night, a date) checks for any live record of that slot (open or already booked again), not only the open one a partial unique index covers. (`FAILURE.md` — cycle-de-garde-et-annulation)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - When a job sends one e-mail per claimed row, claim each row just before its send and release the claim when the send fails; never claim the whole batch first. (`FAILURE.md` — cycle-de-garde-et-annulation)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When Define specifies a run ahead of the stub it depends on, it names the facts it will read from that stub and lets Build re-read that stub's merged rules for any later transition (a window that changes the state after the fact) before writing code. (`FAILURE.md` — avis-etoiles)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- A run defined ahead of its dependency numbers its decisions only at Build, after that dependency has merged; until then its spec uses the numbers provisionally and says so. (`FAILURE.md` — avis-etoiles)
