@@ -1,7 +1,7 @@
 # Build notes: blocs-accueil
 
 - commits: 8265e0a (the four bands), 1a18f61 (short titles keep 12 px, the full-row card within 75 characters, the stripes' H2 at 26 px on phones; parks a triage stub), then the run files
-- ci: pending — the ready flip settles it (see below)
+- ci: GREEN on ace5510, full gate after the ready flip (Vercel pass); Quality (advisory) passed on ace5510. The later commits touch `.icm/` only
 
 ## What changed
 
@@ -24,7 +24,7 @@ Measured on the branch preview of 1a18f61 in headless Chromium with the site's o
 - [x] Gardiennes — 17 px (16 px below md, the body token); text column 0.71 × the photo at 1440.
 - [x] Stripes — H2 2 lines at 390 (26 px there, D-20; 3 lines at 320), paragraph 74 characters a line at 1440.
 - [x] Other pages — no sideways scroll on `/comment-ca-marche`, `/tarifs` and `/faq` at any width; the design-system striped demo is left-aligned. `/design-system` scrolls at 320 px on the base too (parked).
-- [ ] No word or colour changes — `src/content/` and `globals.css` untouched in the diff; `vitrine.test.ts` and `contrast.test.ts` are read on the advisory quality job after the flip.
+- [x] No word or colour changes — `src/content/` and `globals.css` untouched in the diff; `vitrine.test.ts` and `contrast.test.ts` green in Quality (advisory) on ace5510.
 
 ## Notes for Release
 

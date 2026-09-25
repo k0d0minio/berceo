@@ -16,7 +16,7 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Both Gardiennes paragraphs render at the body size, and at 1440 px the Gardiennes text column is no taller than 1.3 times its photo.
 - [x] The stripes' H2 takes at most 2 lines at 390 px, and the block's paragraph runs 60–75 characters a line at 1440 px.
 - [x] `/comment-ca-marche`, `/tarifs` and `/faq` render the shared blocks with no overflow, no horizontal scroll and no overlap at 390 and 1440 px, and the design-system page's striped demo renders left-aligned.
-- [ ] No word, colour or photograph changes: `src/content/` and the colour tokens in `src/app/globals.css` are untouched, and `vitrine.test.ts` and `contrast.test.ts` stay green.
+- [x] No word, colour or photograph changes: `src/content/` and the colour tokens in `src/app/globals.css` are untouched, and `vitrine.test.ts` and `contrast.test.ts` stay green.
 
 ## Queue
 
@@ -25,4 +25,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Gardiennes paragraphs at body size (`page.tsx`) — 8265e0a
 - [x] Stripes' block left-aligned, tighter on phones (`striped-section.tsx`), its H2 at 26 px below md (D-20, `page.tsx`) — 8265e0a, 1a18f61
 - [x] Measure the preview at 320–1920 px on five pages (`03_build/output/measure.mjs`, `measurements.txt`) — 1a18f61
-- [ ] Merge main, flip ready, settle the full gate
+- [x] Merge main, flip ready, settle the full gate — ace5510
