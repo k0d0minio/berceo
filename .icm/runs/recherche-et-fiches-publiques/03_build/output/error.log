@@ -1,0 +1,6 @@
+## 2026-09-25T21:10:00Z ci Vercel — pnpm install failed on the post-flip head 36a8dd4 (main red too)
+Detected `pnpm-lock.yaml` 9 … Skipping build cache since Package Manager changed from "npm" to "pnpm"
+ERR_PNPM_OUTDATED_LOCKFILE  Cannot install with "frozen-lockfile" because pnpm-lock.yaml is not up to date with <ROOT>/package.json
+* 1 dependencies were added: stripe@^22.6.2
+- resolved: a stray pnpm-lock.yaml committed to main (5877c2e) beside package-lock.json made Vercel install with pnpm from a stale lockfile; the operator chose to delete it in this PR, so the build is back on npm (package-lock.json).
+- rule: this repo installs with npm only (package-lock.json); a pnpm-lock.yaml or yarn.lock in the tree switches Vercel's package manager and breaks every build.
