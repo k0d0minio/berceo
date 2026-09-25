@@ -39,6 +39,8 @@ export const admin = catalogue({
       lienJournal: "Journal des actions administratives",
       /** @relecture Surya — lien vers les paiements (frais-de-service). */
       lienPaiements: "Paiements des frais de service",
+      /** @relecture Surya — lien vers les absences signalées, avec leur nombre (cycle-de-garde-et-annulation). */
+      lienAbsences: "Absences signalées ({n})",
     },
 
     /** La page d'un dossier. */
@@ -213,6 +215,36 @@ export const admin = catalogue({
       },
       /** @relecture Surya — échec de l'enregistrement. */
       erreur: "Le réglage n'a pas pu être enregistré. Réessayez dans un instant.",
+    },
+
+    /** Les absences signalées sur une garde (cycle-de-garde-et-annulation, D-106), en lecture seule. */
+    absences: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Absences signalées",
+      /** @relecture Surya — ce que la page permet, et où rembourser. */
+      intro:
+        "Chaque absence signalée par une famille ou une professionnelle, la plus récente en premier. La garde est enregistrée comme annulée. Les frais ne sont jamais remboursés d'office : le remboursement se fait depuis la page des paiements.",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        signalee: "Signalée le",
+        nuit: "Nuit",
+        famille: "Famille",
+        professionnelle: "Professionnelle",
+        absente: "Absente",
+        frais: "Frais",
+      },
+      /** @relecture Surya — qui est déclarée absente. */
+      cote: {
+        famille: "La famille",
+        professionnelle: "La professionnelle",
+      },
+      /** @relecture Surya — pas de frais payés (réservation antérieure aux frais). */
+      sansFrais: "Aucun",
+      /** @relecture Surya — lien vers les paiements. */
+      lienPaiements: "Voir les paiements",
+      /** @relecture Surya — liste vide, retour. */
+      vide: "Aucune absence n'a été signalée.",
+      retour: "Revenir aux dossiers en attente",
     },
 
     /** Les frais de service payés par les familles (frais-de-service, D-101, D-93). */
