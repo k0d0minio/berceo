@@ -38,5 +38,14 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+*Numbered from D-70: verification-back-office holds D-50 to D-59, demande-de-garde D-60 to D-68.*
+
+- D-70 — « Republier » on an open request with pending answers declines every one of them (each professional e-mailed « not retained », none may answer it again) and re-announces the request: the urgent e-mail again at once for an urgent one, the next digest for a normal one. Reads cahier des charges « Réouverture annonce ». Operator, Define, 2026-09-25.
+- D-71 — A priority request has no head start: the chosen professional is e-mailed at once and sees it first on her list marked « Demande prioritaire », even outside her communes; everyone else sees and is notified of it as for any request. One priority professional per request, set once. Operator (no head start), Define (outside her communes, one per request), 2026-09-25.
+- D-72 — Once a booking is confirmed, each side sees the other's phone: the family the professional's, the professional the family's full name, address and phone. Operator, Define, 2026-09-25.
+- D-73 — A professional may withdraw her answer while the request is open, silently, and answer again. When she is booked for a night, her other pending answers for that night are withdrawn silently and she cannot answer another request for it; the database refuses a second booking for her that night. Operator, Define, 2026-09-25.
+- D-74 — The rate is frozen on the answer: the family compares the rates the professionals answered at, and the booking carries the rate of the answer it was made from. Define, 2026-09-25.
+- D-75 — Families read a professional's full profile at `/espace/famille/professionnelles/[id]`: any signed-in family, any `valide` profile (D-3). Her photo becomes readable by parents for a `valide` profile; documents stay owner and admins only. Never her surname, e-mail, phone, INAMI or documents before a booking. Define, 2026-09-25.
+- D-76 — A request with a pending answer cannot be edited (what the professionals agreed to would move under them); republishing clears the answers and editing opens again. Cancelling stays possible and e-mails the pending professionals « not retained ». Define, 2026-09-25.
+- D-77 — Accepting an answer requires the family's street and house number in her profile. The professional reads the address live from the profile through `src/lib/famille/`, never a copy in the booking. Define, 2026-09-25.
+- D-78 — The guide's booking e-mails are quoted verbatim except the family's insurance sentence (D-8) and the professional's « Bonne nuit ! », which becomes « Bonne nuit. » (the catalogue allows no `!`; `@relecture Surya`). Define, 2026-09-25.
