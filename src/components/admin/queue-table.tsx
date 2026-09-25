@@ -20,11 +20,11 @@ function QueueTable({ rows, studentsAdmitted }: { rows: QueueRow[]; studentsAdmi
   const t = words(admin).file
   const p = words(professionnelle)
 
-  if (rows.length === 0) return <p className="text-corps text-taupe">{t.vide}</p>
+  if (rows.length === 0) return <p className="text-corps text-encre-taupe">{t.vide}</p>
 
   return (
     <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
-      <Table className="text-corps text-taupe">
+      <Table className="text-corps text-encre-taupe">
         <TableHeader>
           <TableRow>
             <TableHead>{t.colonnes.nom}</TableHead>
@@ -40,7 +40,7 @@ function QueueTable({ rows, studentsAdmitted }: { rows: QueueRow[]; studentsAdmi
               <TableCell>
                 <Link
                   href={`/admin/dossiers/${row.profileId}`}
-                  className="font-semibold text-sauge underline underline-offset-4"
+                  className="font-semibold text-encre-sauge underline underline-offset-4"
                 >
                   {row.firstName} {row.lastName}
                 </Link>

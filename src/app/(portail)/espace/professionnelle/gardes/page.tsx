@@ -23,7 +23,7 @@ function List({ title, items }: { title: string; items: ProfessionalBooking[] })
   if (items.length === 0) return null;
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-display text-h2 text-sauge">{title}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{title}</h2>
       <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
         {items.map((booking) => (
           <li key={booking.id}>
@@ -33,7 +33,7 @@ function List({ title, items }: { title: string; items: ProfessionalBooking[] })
               footer={
                 <Link
                   href={professionalBookingPath(booking.id)}
-                  className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+                  className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
                 >
                   {t.gardes.voir}
                 </Link>
@@ -61,8 +61,8 @@ export default async function GardesPage() {
 
   return (
     <SpaceShell user={user} title={t.gardes.titre}>
-      <p className="max-w-2xl text-intro text-taupe">{t.gardes.intro}</p>
-      {all.length === 0 ? <p className="max-w-2xl text-corps text-taupe">{t.gardes.vide}</p> : null}
+      <p className="max-w-2xl text-intro text-encre-taupe">{t.gardes.intro}</p>
+      {all.length === 0 ? <p className="max-w-2xl text-corps text-encre-taupe">{t.gardes.vide}</p> : null}
       <List title={t.gardes.aVenir} items={coming} />
       <List title={t.gardes.passees} items={past} />
     </SpaceShell>
