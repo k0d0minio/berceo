@@ -6,18 +6,16 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Once **Spec approved** is ticked on https://github.com/k0d0minio/berceo/pull/43, run
+   `/pipeline build encres-contraste` and follow `plan.md` pass by pass (the test first).
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/43
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not tick the gate, and do not start Build before it is ticked.
+- Do not change the five DA values, any word on a public page, or any layout: premier-ecran and
+  blocs-accueil own the layout and branch from this run once it has merged.
+- Do not subscribe to PR activity on #43 (`_shared/github.md` → PR events).

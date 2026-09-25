@@ -13,9 +13,17 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- No word on a public page changes (D-5); the only new words are the two swatch names on the
+  noindex `/design-system`, flagged `@relecture`.
+- The five DA values stay as they are (D-1); colour values live in `src/app/globals.css` only.
+- No layout or size change: that is premier-ecran and blocs-accueil (D-4, D-6).
+- The signed-in spaces receive the tokens and the rename, and are checked, not redesigned (D-3).
+- Red and green stay in `confirm-dialog.tsx` only (D-24).
+- The sage ink is `#3c584b`, one token, and the sage band's button is deep sage filled: both the
+  operator's choices on 2026-09-25, recorded in the spec.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read the button, card, striped section, section, footer, reason grid, parts of the step
+  header, the availability calendar, the design system catalogue and the homepage beyond its
+  Inputs, to fix the button rows and every white-on-light pair.
