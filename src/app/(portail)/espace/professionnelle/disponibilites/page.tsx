@@ -37,7 +37,7 @@ export default async function DisponibilitesPage() {
   if (!profile || profile.status !== "valide") {
     return (
       <SpaceShell user={user} title={p.titre}>
-        <p className="max-w-2xl text-intro text-taupe">{p.nonValide}</p>
+        <p className="max-w-2xl text-intro text-encre-taupe">{p.nonValide}</p>
       </SpaceShell>
     );
   }
@@ -51,11 +51,11 @@ export default async function DisponibilitesPage() {
 
   return (
     <SpaceShell user={user} title={p.titre}>
-      <p className="max-w-2xl text-intro text-taupe">{p.instructions}</p>
+      <p className="max-w-2xl text-intro text-encre-taupe">{p.instructions}</p>
       <AvailabilityCalendar months={calendarMonths(range)} marked={marked} action={saveNightsAction} />
-      <p className="max-w-2xl text-corps text-taupe">{p.aide}</p>
+      <p className="max-w-2xl text-corps text-encre-taupe">{p.aide}</p>
 
-      <h2 className="font-display text-h2 text-sauge">{p.apercu}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{p.apercu}</h2>
       <div className="max-w-md">
         <ProchainesDisponibilites nights={preview} />
       </div>

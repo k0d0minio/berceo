@@ -53,9 +53,9 @@ function ConversationView({ side, thread }: { side: Side; thread: ThreadData }) 
     <>
       <div className="flex flex-col gap-1">
         {thread.profession ? (
-          <p className="text-corps text-taupe">{professionLabel(thread.profession)}</p>
+          <p className="text-corps text-encre-taupe">{professionLabel(thread.profession)}</p>
         ) : null}
-        <p className="text-corps font-semibold text-taupe">{conversationNight(thread.nightDate, thread.startTime)}</p>
+        <p className="text-corps font-semibold text-encre-taupe">{conversationNight(thread.nightDate, thread.startTime)}</p>
       </div>
       <div className="flex flex-wrap gap-3">
         <Button asChild variant="raye">
@@ -76,7 +76,7 @@ function ConversationView({ side, thread }: { side: Side; thread: ThreadData }) 
         {open ? (
           <Composer action={sendMessageAction.bind(null, side, thread.id)} />
         ) : (
-          <p className="rounded-carte bg-perle px-6 py-4 text-corps text-taupe">{t.conversation.fermee}</p>
+          <p className="rounded-carte bg-perle px-6 py-4 text-corps text-encre-taupe">{t.conversation.fermee}</p>
         )}
       </div>
     </>

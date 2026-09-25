@@ -24,7 +24,7 @@ function Mark({ children, className }: { children: ReactNode; className?: string
   return (
     <span
       className={cn(
-        "inline-flex w-fit items-center rounded-capsule px-3 py-1 text-legende font-semibold text-taupe",
+        "inline-flex w-fit items-center rounded-capsule px-3 py-1 text-legende font-semibold text-encre-taupe",
         className
       )}
     >
@@ -39,11 +39,11 @@ async function ConversationList({ userId, side }: { userId: string; side: Side }
 
   return (
     <>
-      <p className="max-w-2xl text-intro text-taupe">
+      <p className="max-w-2xl text-intro text-encre-taupe">
         {side === "famille" ? t.liste.introFamille : t.liste.introProfessionnelle}
       </p>
       {rows.length === 0 ? (
-        <p className="max-w-2xl text-corps text-taupe">{t.liste.vide}</p>
+        <p className="max-w-2xl text-corps text-encre-taupe">{t.liste.vide}</p>
       ) : (
         <ul className="flex max-w-3xl flex-col gap-4">
           {rows.map((row) => (
@@ -54,17 +54,17 @@ async function ConversationList({ userId, side }: { userId: string; side: Side }
                 className="flex flex-col gap-2 rounded-carte bg-perle px-6 py-5 transition-colors duration-200 ease-out hover:bg-beurre md:px-8"
               >
                 <span className="flex flex-wrap items-center gap-2">
-                  <span className="font-display text-h3 text-sauge uppercase">{row.firstName}</span>
+                  <span className="font-display text-h3 text-encre-sauge uppercase">{row.firstName}</span>
                   {row.unread ? <Mark className="bg-beurre">{t.liste.nonLu}</Mark> : null}
                   {!isConversationOpen(row, now) ? (
                     <Mark className="border border-solid border-taupe bg-blanc">{t.liste.fermee}</Mark>
                   ) : null}
                 </span>
                 {row.profession ? (
-                  <span className="text-corps text-taupe">{professionLabel(row.profession)}</span>
+                  <span className="text-corps text-encre-taupe">{professionLabel(row.profession)}</span>
                 ) : null}
-                <span className="text-corps font-semibold text-taupe">{listNight(row.nightDate)}</span>
-                <span className={cn("truncate text-corps text-taupe", row.unread && "font-semibold")}>
+                <span className="text-corps font-semibold text-encre-taupe">{listNight(row.nightDate)}</span>
+                <span className={cn("truncate text-corps text-encre-taupe", row.unread && "font-semibold")}>
                   {preview(row.last)}
                 </span>
               </Link>

@@ -20,7 +20,7 @@ function PlaceholderPage({
 }) {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-16 md:px-8 md:py-24">
-      <h1 className="font-display text-h1 text-sauge">{title}</h1>
+      <h1 className="font-display text-h1 text-encre-sauge">{title}</h1>
       <p className="text-intro">{text}</p>
       {closing ? <p>{closing}</p> : null}
       {cta ? (

@@ -26,7 +26,7 @@ function PageHeader({
       )}
     >
       <div className="flex max-w-2xl flex-col gap-5">
-        <h1 className="font-display text-h1 text-sauge">{title}</h1>
+        <h1 className="font-display text-h1 text-encre-sauge">{title}</h1>
         {intro ? <p className="text-intro">{intro}</p> : null}
       </div>
       {aside}

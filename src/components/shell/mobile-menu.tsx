@@ -21,7 +21,7 @@ type MenuLink = { label: string; href: string; badge?: { count: number; label: s
 /** The count beside a link: butter yellow, like the other marks; its words for screen readers. */
 function Badge({ count, label }: { count: number; label: string }) {
   return (
-    <span className="inline-flex min-w-6 items-center justify-center rounded-capsule bg-beurre px-2 font-sans text-legende font-semibold text-taupe">
+    <span className="inline-flex min-w-6 items-center justify-center rounded-capsule bg-beurre px-2 font-sans text-legende font-semibold text-encre-taupe">
       <span aria-hidden>{count}</span>
       <span className="sr-only">{label}</span>
     </span>
@@ -54,7 +54,7 @@ function MobileMenu({
           {total > 0 ? (
             <span
               aria-hidden
-              className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-capsule bg-beurre px-1.5 font-sans text-legende font-semibold text-taupe"
+              className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-capsule bg-beurre px-1.5 font-sans text-legende font-semibold text-encre-taupe"
             >
               {total}
             </span>
@@ -65,10 +65,10 @@ function MobileMenu({
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 voile-perle" />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed inset-x-4 top-4 z-50 flex max-h-[calc(100dvh-2rem)] flex-col gap-6 overflow-y-auto rounded-carte bg-blanc p-6 text-taupe"
+          className="fixed inset-x-4 top-4 z-50 flex max-h-[calc(100dvh-2rem)] flex-col gap-6 overflow-y-auto rounded-carte bg-blanc p-6 text-encre-taupe"
         >
           <div className="flex items-center justify-between">
-            <DialogPrimitive.Title className="font-display text-nav text-sauge">
+            <DialogPrimitive.Title className="font-display text-nav text-encre-sauge">
               {labels.title}
             </DialogPrimitive.Title>
             <DialogPrimitive.Close asChild>
@@ -84,7 +84,7 @@ function MobileMenu({
                   <Link
                     href={link.href}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-2 rounded-capsule px-4 py-3 font-display text-nav text-sauge transition-colors duration-200 ease-out hover:bg-beurre"
+                    className="flex items-center gap-2 rounded-capsule px-4 py-3 font-display text-nav text-encre-sauge transition-colors duration-200 ease-out hover:bg-beurre"
                   >
                     {link.label}
                     {link.badge && link.badge.count > 0 ? <Badge {...link.badge} /> : null}

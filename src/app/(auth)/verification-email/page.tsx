@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function VerificationEmailPage() {
   return (
     <AuthPage title={t.verification.title} intro={[t.verification.texte]}>
-      <p className="text-corps text-taupe">{t.verification.aide}</p>
+      <p className="text-corps text-encre-taupe">{t.verification.aide}</p>
     </AuthPage>
   );
 }

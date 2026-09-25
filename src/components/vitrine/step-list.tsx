@@ -18,7 +18,7 @@ function StepList({
         <li key={step.title} className="flex flex-col gap-3">
           <span
             aria-hidden
-            className="flex size-12 items-center justify-center rounded-capsule border border-sauge font-display text-nav text-sauge"
+            className="flex size-12 items-center justify-center rounded-capsule border border-sauge font-display text-nav text-encre-sauge"
           >
             {index + 1}
           </span>

@@ -37,12 +37,14 @@ const swatchClass: Record<string, string> = {
   taupe: "bg-taupe",
   perle: "bg-perle",
   beurre: "bg-beurre",
+  "encre-sauge": "bg-encre-sauge",
+  "encre-taupe": "bg-encre-taupe",
 };
 
 const levelClass: Record<string, string> = {
-  h1: "font-display text-h1 text-sauge",
-  h2: "font-display text-h2 text-sauge",
-  nav: "font-display text-nav text-sauge",
+  h1: "font-display text-h1 text-encre-sauge",
+  h2: "font-display text-h2 text-encre-sauge",
+  nav: "font-display text-nav text-encre-sauge",
   h3: "font-sans text-h3 font-bold",
   intro: "text-intro",
   corps: "text-corps",
@@ -56,22 +58,23 @@ const backgrounds = [
   {
     variant: "blanc",
     band: "bg-blanc border border-perle",
-    hover: "border-sauge bg-sauge text-blanc [transform:scale(1.03)]",
+    hover: "border-encre-sauge bg-encre-sauge text-blanc [transform:scale(1.03)]",
   },
   {
     variant: "raye",
     band: "motif-raye",
-    hover: "border-beurre bg-beurre text-taupe [transform:scale(1.03)]",
+    hover: "border-beurre bg-beurre text-encre-taupe [transform:scale(1.03)]",
   },
   {
     variant: "sauge",
     band: "bg-sauge",
-    hover: "border-beurre bg-beurre text-sauge [transform:scale(1.03)]",
+    hover: "border-beurre bg-beurre text-encre-sauge [transform:scale(1.03)]",
   },
   {
+    /* The taupe row now sits in the white block on the stripes (finition-accueil D-2). */
     variant: "taupe",
-    band: "bg-taupe",
-    hover: "border-beurre bg-beurre text-taupe [transform:scale(1.03)]",
+    band: "bg-blanc border border-perle",
+    hover: "border-beurre bg-beurre text-encre-taupe [transform:scale(1.03)]",
   },
 ] as const;
 
@@ -84,7 +87,7 @@ function Section({
 }) {
   return (
     <section className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 md:px-8 md:py-16">
-      <h2 className="font-display text-h2 text-sauge">{title}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{title}</h2>
       {children}
     </section>
   );
@@ -94,7 +97,7 @@ export default function DesignSystemPage() {
   return (
     <>
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 pt-12 md:px-8 md:pt-20">
-        <h1 className="font-display text-h1 text-sauge">{t.meta.title}</h1>
+        <h1 className="font-display text-h1 text-encre-sauge">{t.meta.title}</h1>
         <p className="max-w-2xl text-intro">{t.intro}</p>
       </div>
 
@@ -109,7 +112,7 @@ export default function DesignSystemPage() {
               <div>
                 <p className="font-bold">{swatch.name}</p>
                 <p className="text-legende">
-                  {swatch.role} · {swatch.share}
+                  {swatch.share ? `${swatch.role} · ${swatch.share}` : swatch.role}
                 </p>
               </div>
             </li>
@@ -188,7 +191,7 @@ export default function DesignSystemPage() {
       </Section>
 
       <div className="mx-auto max-w-6xl px-4 pt-12 md:px-8 md:pt-16">
-        <h2 className="font-display text-h2 text-sauge">{t.striped.title}</h2>
+        <h2 className="font-display text-h2 text-encre-sauge">{t.striped.title}</h2>
       </div>
       <div className="py-8">
         <StripedSection>

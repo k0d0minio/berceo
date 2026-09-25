@@ -53,31 +53,31 @@ function Thread({
         return (
           <React.Fragment key={message.id}>
             {newDay ? (
-              <li className="self-center text-legende text-taupe">{day}</li>
+              <li className="self-center text-legende text-encre-taupe">{day}</li>
             ) : null}
             <li className={cn("flex max-w-[85%] flex-col gap-1", own ? "self-end items-end" : "self-start")}>
               <div
                 className={cn(
-                  "flex flex-col gap-2 rounded-carte px-6 py-4 text-taupe",
+                  "flex flex-col gap-2 rounded-carte px-6 py-4 text-encre-taupe",
                   berceo && "bg-perle",
                   own && "bg-beurre",
                   !berceo && !own && "border border-solid border-perle bg-blanc"
                 )}
               >
-                <p className={cn("text-legende font-semibold", berceo ? "font-display text-sauge" : own && "sr-only")}>
+                <p className={cn("text-legende font-semibold", berceo ? "font-display text-encre-sauge" : own && "sr-only")}>
                   {author}
                 </p>
                 <p className="text-corps break-words whitespace-pre-line">
                   {message.berceoKey ? berceoText[message.berceoKey] : message.body}
                 </p>
               </div>
-              <p className="px-2 text-legende text-taupe">
+              <p className="px-2 text-legende text-encre-taupe">
                 <time dateTime={message.createdAt.toISOString()}>{messageTime(message.createdAt)}</time>
-                {i === receipt ? <span className="font-semibold text-sauge"> · {t.conversation.lu}</span> : null}
+                {i === receipt ? <span className="font-semibold text-encre-sauge"> · {t.conversation.lu}</span> : null}
               </p>
             </li>
             {reminders.has(i) ? (
-              <li role="note" className="self-center rounded-capsule border border-solid border-taupe px-4 py-2 text-legende text-taupe">
+              <li role="note" className="self-center rounded-capsule border border-solid border-taupe px-4 py-2 text-legende text-encre-taupe">
                 {t.conversation.rappel}
               </li>
             ) : null}

@@ -65,12 +65,12 @@ export default async function DemandesProfessionnellePage({
     <SpaceShell user={user} title={t.professionnelle.titre}>
       {notice ? <FormMessage>{notice}</FormMessage> : null}
       {!view.validated ? (
-        <p className="max-w-2xl text-intro text-taupe">{t.professionnelle.nonValide}</p>
+        <p className="max-w-2xl text-intro text-encre-taupe">{t.professionnelle.nonValide}</p>
       ) : (
         <>
-          <p className="max-w-2xl text-intro text-taupe">{t.professionnelle.intro}</p>
+          <p className="max-w-2xl text-intro text-encre-taupe">{t.professionnelle.intro}</p>
           {view.requests.length === 0 ? (
-            <p className="max-w-2xl text-corps text-taupe">{t.professionnelle.vide}</p>
+            <p className="max-w-2xl text-corps text-encre-taupe">{t.professionnelle.vide}</p>
           ) : (
             <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
               {view.requests.map((request) => {

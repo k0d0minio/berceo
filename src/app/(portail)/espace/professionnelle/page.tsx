@@ -76,9 +76,9 @@ export default async function EspaceProfessionnellePage({
     <SpaceShell user={user}>
       {justSent && status === "en_attente" ? <FormMessage>{p.messages.envoye}</FormMessage> : null}
       {justResent && status === "en_attente" ? <FormMessage>{p.renvoi.envoye}</FormMessage> : null}
-      <p className="max-w-2xl text-intro text-taupe">{line}</p>
+      <p className="max-w-2xl text-intro text-encre-taupe">{line}</p>
       {showReason ? (
-        <p className="max-w-2xl text-corps text-taupe">{fill(p.messages.motif, { motif: showReason })}</p>
+        <p className="max-w-2xl text-corps text-encre-taupe">{fill(p.messages.motif, { motif: showReason })}</p>
       ) : null}
       <div className="flex flex-wrap gap-3">
         {status === "valide" ? (

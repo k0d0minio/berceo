@@ -44,7 +44,7 @@ function errorText(error: ProfileError | undefined): string | undefined {
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="font-display text-h3 text-sauge">{children}</h2>
+  return <h2 className="font-display text-h3 text-encre-sauge">{children}</h2>
 }
 
 function ProfileForm({
@@ -88,7 +88,7 @@ function ProfileForm({
         </div>
         {/* Not a form field: the server never reads an e-mail from this form. */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="champ-email" className="text-corps font-semibold text-taupe">
+          <label htmlFor="champ-email" className="text-corps font-semibold text-encre-taupe">
             {c.champs.email}
           </label>
           <Input
@@ -100,7 +100,7 @@ function ProfileForm({
             aria-describedby="champ-email-aide"
             className="bg-perle"
           />
-          <p id="champ-email-aide" className="px-6 text-legende text-taupe">
+          <p id="champ-email-aide" className="px-6 text-legende text-encre-taupe">
             {t.aides.email}
           </p>
         </div>
@@ -130,7 +130,7 @@ function ProfileForm({
           defaultValue={locality}
           defaultText={v && !locality ? v.commune : undefined}
         />
-        <p className="text-corps text-taupe">{t.aides.adresse}</p>
+        <p className="text-corps text-encre-taupe">{t.aides.adresse}</p>
         <div className="grid gap-6 md:grid-cols-[1fr_8rem_8rem]">
           <Field
             name="rue"
@@ -157,7 +157,7 @@ function ProfileForm({
       <section className="flex flex-col gap-6">
         <SectionTitle>{t.sections.famille}</SectionTitle>
         <div className="flex flex-col gap-2">
-          <label htmlFor="champ-contexte" className="text-corps font-semibold text-taupe">
+          <label htmlFor="champ-contexte" className="text-corps font-semibold text-encre-taupe">
             {t.champs.contexte}
           </label>
           <textarea
@@ -170,20 +170,20 @@ function ProfileForm({
             aria-describedby={["champ-contexte-aide", e.contexte ? "champ-contexte-erreur" : ""]
               .filter(Boolean)
               .join(" ")}
-            className="w-full min-w-0 rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge focus-visible:outline-none aria-invalid:border-destructive"
+            className="w-full min-w-0 rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge focus-visible:outline-none aria-invalid:border-destructive"
           />
-          <p id="champ-contexte-aide" className="px-6 text-legende text-taupe">
+          <p id="champ-contexte-aide" className="px-6 text-legende text-encre-taupe">
             {t.aides.contexte}{" "}
             <span aria-live="polite">
               {fill(t.aides.compteur, { n: String(characterCount(contexte.trim())) })}
             </span>
           </p>
           {e.contexte ? (
-            <p id="champ-contexte-erreur" className="px-6 text-legende font-semibold text-taupe">
+            <p id="champ-contexte-erreur" className="px-6 text-legende font-semibold text-encre-taupe">
               {errorText(e.contexte)}
             </p>
           ) : characterCount(contexte.trim()) > CONTEXT_MAX ? (
-            <p className="px-6 text-legende font-semibold text-taupe">{t.erreurs.contexteLong}</p>
+            <p className="px-6 text-legende font-semibold text-encre-taupe">{t.erreurs.contexteLong}</p>
           ) : null}
         </div>
       </section>

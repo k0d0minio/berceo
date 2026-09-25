@@ -47,22 +47,29 @@ footer. It and `/design-system/portail` are `noindex, nofollow` and linked from 
 
 ## The design system
 
-Surya's *Direction artistique web* (D-9), applied literally — including its text and button
-colours, which fall below WCAG AA contrast on white (an operator decision, to be raised with
-Surya).
+Surya's *Direction artistique web* (D-9), with every text and control held to WCAG AA
+(finition-accueil D-1, D-2): the DA's five colours stay surfaces, borders and accents, and text
+is set in two inks darkened from sage and taupe on their own hue.
 
 - **Colours** are Tailwind tokens named as the DA names them: `blanc`, `sauge`, `taupe`,
-  `perle`, `beurre`. Tailwind's default palette is switched off, so no other colour exists.
+  `perle`, `beurre`, plus the two inks, `encre-sauge` (`#3c584b`: headings, links, filled
+  buttons, the footer, the focus ring) and `encre-taupe` (`#646254`: body text, field borders).
+  Text is never `text-sauge` or `text-taupe`, and white text sits only on an ink.
+  `src/app/contrast.test.ts` holds every text and surface pair to AA and refuses the light
+  text classes. Tailwind's default palette is switched off, so no other colour exists.
   `rouge-confirmation` and `vert-confirmation` are used by `confirm-dialog.tsx` alone (D-24).
+  The inks and the darkened red carry `@relecture` for Surya.
 - **Type**: `font-display` (Comodo's slot, Fraunces until Surya delivers Comodo) for H1, H2
   and navigation; Nunito for everything else. The DA's hierarchy is `text-h1`, `text-h2`,
   `text-nav`, `text-h3`, `text-intro`, `text-corps`, `text-bouton`, `text-champ`,
   `text-legende`, each switching from its mobile to its desktop size at `md`.
 - **Shapes**: `rounded-carte` (32 px) for cards and blocks, `rounded-capsule` for buttons and
   fields. No shadow anywhere; focus is an outline.
-- **Buttons** take the background they sit on as their variant: `blanc`, `raye`, `sauge`,
-  `taupe`, with the DA's hover colours and a 1.03 scale in 200 ms (none under reduced motion).
-- **Surfaces**: `motif-raye` (text only in a solid block over it — use `StripedSection`) and
+- **Buttons** take the background they sit on as their variant: `blanc`, `raye`, `sauge`
+  (the light sage band) and `taupe` (the white block on the stripes). Outlines and fills are
+  the inks, the hover is butter with the row's ink (the sage-ink fill for `blanc`), with a
+  1.03 scale in 200 ms (none under reduced motion).
+- **Surfaces**: `motif-raye` (text only in the white block over it — use `StripedSection`) and
   `voile-perle` (pearl at 75 % — use `TranslucentBlock`, never over the stripes).
 - **What the DA rules out** stays out: gendered pink and blue, naïve illustrations, shadows,
   gadget animations.

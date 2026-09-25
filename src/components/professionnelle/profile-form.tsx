@@ -30,8 +30,8 @@ export type ProfileValues = {
   bio: string | null
 }
 
-const legend = "text-corps font-semibold text-taupe"
-const errorText = "px-6 text-legende font-semibold text-taupe"
+const legend = "text-corps font-semibold text-encre-taupe"
+const errorText = "px-6 text-legende font-semibold text-encre-taupe"
 
 function ProfileForm({
   saved,
@@ -84,7 +84,7 @@ function ProfileForm({
       >
         <legend className={legend}>{t.champs.profession}</legend>
         {professions.map((key) => (
-          <label key={key} className="flex items-center gap-3 text-corps text-taupe">
+          <label key={key} className="flex items-center gap-3 text-corps text-encre-taupe">
             <input
               type="radio"
               name="profession"
@@ -104,10 +104,10 @@ function ProfileForm({
 
       <fieldset className="flex flex-col gap-3">
         <legend className={legend}>{t.champs.specialisations}</legend>
-        <p className="px-6 text-legende text-taupe">{t.aides.specialisations}</p>
+        <p className="px-6 text-legende text-encre-taupe">{t.aides.specialisations}</p>
         <div className="grid gap-3 md:grid-cols-2">
           {SPECIALISATIONS.map((key) => (
-            <label key={key} className="flex items-center gap-3 text-corps text-taupe">
+            <label key={key} className="flex items-center gap-3 text-corps text-encre-taupe">
               <input
                 type="checkbox"
                 name="specialisations"
@@ -132,7 +132,7 @@ function ProfileForm({
           describedBy={["champ-zone-aide", e.communes ? "champ-zone-erreur" : ""].filter(Boolean).join(" ")}
           invalid={Boolean(e.communes)}
         />
-        <p id="champ-zone-aide" className="px-6 text-legende text-taupe">
+        <p id="champ-zone-aide" className="px-6 text-legende text-encre-taupe">
           {t.aides.zone}
         </p>
         {e.communes ? (
@@ -159,7 +159,7 @@ function ProfileForm({
       <fieldset className="flex flex-col gap-3">
         <legend className={legend}>{t.champs.experience}</legend>
         {EXPERIENCES.map((key) => (
-          <label key={key} className="flex items-center gap-3 text-corps text-taupe">
+          <label key={key} className="flex items-center gap-3 text-corps text-encre-taupe">
             <input
               type="radio"
               name="experience"
@@ -187,12 +187,12 @@ function ProfileForm({
           aria-describedby={["champ-bio-aide", "champ-bio-compteur", e.bio ? "champ-bio-erreur" : ""]
             .filter(Boolean)
             .join(" ")}
-          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge aria-invalid:border-destructive"
+          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge aria-invalid:border-destructive"
         />
-        <p id="champ-bio-aide" className="px-6 text-legende text-taupe">
+        <p id="champ-bio-aide" className="px-6 text-legende text-encre-taupe">
           {t.aides.bio}
         </p>
-        <p id="champ-bio-compteur" aria-live="polite" className="px-6 text-legende text-taupe">
+        <p id="champ-bio-compteur" aria-live="polite" className="px-6 text-legende text-encre-taupe">
           {fill(t.aides.bioRestant, { n: String(BIO_MAX - bio.trim().length) })}
         </p>
         {e.bio ? (

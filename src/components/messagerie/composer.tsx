@@ -45,7 +45,7 @@ function Composer({ action }: { action: (state: SendState, form: FormData) => Pr
   return (
     <form action={send} noValidate className="flex flex-col gap-3">
       {error ? <FormMessage>{error}</FormMessage> : null}
-      <label htmlFor="champ-message" className="text-corps font-semibold text-taupe">
+      <label htmlFor="champ-message" className="text-corps font-semibold text-encre-taupe">
         {t.conversation.champ}
       </label>
       <textarea
@@ -56,7 +56,7 @@ function Composer({ action }: { action: (state: SendState, form: FormData) => Pr
         value={text}
         onChange={(event) => setText(event.target.value)}
         aria-invalid={state.error === "vide" || state.error === "tropLong" ? true : undefined}
-        className="w-full min-w-0 rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge focus-visible:outline-none aria-invalid:border-destructive"
+        className="w-full min-w-0 rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge focus-visible:outline-none aria-invalid:border-destructive"
       />
       <Button type="submit" disabled={pending} className="w-fit">
         {t.conversation.envoyer}
