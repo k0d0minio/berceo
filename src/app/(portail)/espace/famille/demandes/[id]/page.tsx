@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
 import { words } from "@/content/locale";
+import { paiement } from "@/content/paiement";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
 import { FAMILY_REQUESTS_PATH, familyRequestPath } from "@/lib/demandes/paths";
@@ -20,6 +21,7 @@ import { ownRequest } from "@/lib/demandes/requests";
 import { displayStatus, isChangeable, isEditable } from "@/lib/demandes/rules";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyHasAddress } from "@/lib/famille/profile";
+import { feeLine } from "@/lib/paiements/format";
 import { familyAnswers } from "@/lib/reservations/answers";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
 import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
@@ -31,6 +33,7 @@ import { acceptAnswerAction, cancelRequestAction, republishRequestAction } from 
 const t = words(demandes);
 const r = words(reservations);
 const c = words(comptes);
+const p = words(paiement);
 
 export const metadata: Metadata = {
   title: t.meta.detail,
@@ -47,7 +50,11 @@ type Notice = {
   erreur?: string;
   /** A refused booking or republication: `src/content/reservations.ts`'s own words. */
   refus?: string;
+  /** Back from Stripe's page, or it could not open (frais-de-service). */
+  paiement?: string;
 };
+
+const PAYMENT_NOTICES = ["enCours", "rembourse", "abandonne", "erreur"] as const;
 
 function message(notice: Notice): string | null {
   if (notice.publiee === "urgente") return t.confirmations.publieeUrgente;
@@ -55,6 +62,8 @@ function message(notice: Notice): string | null {
   if (notice.modifiee === "1") return t.confirmations.modifiee;
   if (notice.annulee === "1") return t.confirmations.annulee;
   if (notice.republiee === "1") return r.republication.faite;
+  const payment = PAYMENT_NOTICES.find((key) => key === notice.paiement);
+  if (payment) return p.retour[payment];
   const refusal = notice.refus;
   if (refusal && Object.hasOwn(r.famille.erreurs, refusal)) {
     return r.famille.erreurs[refusal as keyof typeof r.famille.erreurs];
@@ -87,7 +96,8 @@ export default async function DemandePage({
   if (!request) notFound();
 
   const now = new Date();
-  const notice = message(await searchParams);
+  const query = await searchParams;
+  const notice = message(query);
   const open = isChangeable(request, now);
   const facts = { ...request, priorityProfileId: null };
   const [answers, hasAddress, bookingId] = await Promise.all([
@@ -100,6 +110,14 @@ export default async function DemandePage({
   return (
     <SpaceShell user={user} title={t.meta.detail}>
       {notice ? <FormMessage>{notice}</FormMessage> : null}
+      {query.paiement === "enCours" ? (
+        <Link
+          href={familyRequestPath(request.id)}
+          className="w-fit text-corps font-semibold text-sauge underline underline-offset-4"
+        >
+          {p.retour.actualiser}
+        </Link>
+      ) : null}
       <div className="max-w-2xl">
         <RequestCard request={request} status={displayStatus(request, now)} />
       </div>
@@ -153,6 +171,7 @@ export default async function DemandePage({
                               prenom: answer.firstName,
                               profession: professionLabel(answer.profession),
                               tarif: rateLine(answer.nightRateEur),
+                              frais: feeLine(answer.nightRateEur),
                             }}
                             onAccept={acceptAnswerAction.bind(null, request.id, answer.applicationId)}
                           />
