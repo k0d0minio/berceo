@@ -6,15 +6,12 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. The operator smoke-tests the preview (https://berceo-git-claude-magical-babbage-sqwory-kodominio.vercel.app): `/` at phone and desktop widths, `/comment-ca-marche`, `/tarifs`, `/faq`.
-2. Once **Ready to merge** is ticked on k0d0minio/berceo#47: `/pipeline release blocs-accueil`.
+1. Merged and archived; nothing to pick up. The run reaches production with the next promoted UAT batch (`promote status`).
 
 ## Blockers
 
-- blocked on operator: smoke the preview and tick **Ready to merge** in the body of https://github.com/k0d0minio/berceo/pull/47
+- none
 
 ## Do not
 
-- Do not change a word in `src/content/` or a colour token (D-5).
-- Do not fix the parked `vitrine-mesures-hors-accueil` overruns here; they are the base's, and a bug lane owns them.
-- Do not tick a gate box or an acceptance-criteria box in the PR body; each criterion's status is in `03_build/output/notes.md`.
+- Do not reopen this run; a follow-up is a lane (`vitrine-mesures-hors-accueil` is parked for the bug lane).

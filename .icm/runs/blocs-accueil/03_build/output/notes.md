@@ -32,3 +32,13 @@ Measured on the branch preview of 1a18f61 in headless Chromium with the site's o
 - **Decision ids renumbered.** Define took D-9 to D-11, which encres-contraste and premier-ecran already held; Build renumbered them D-17 to D-19 (`FAILURE.md`). No criterion text changed.
 - Subgrid (`grid-template-rows: subgrid`) is baseline in every current browser; an older browser without it falls back to plain flex columns (titles and texts not row-aligned, nothing broken).
 - The measurement probe trusts the session proxy's CA by its key (`--ignore-certificate-errors-spki-list`), since the Chromium in the cloud session does not read the NSS store for it.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 5f0555d (ci-status.sh, full gate) before the record; re-read after the last push
+- reviews: code medium (/code-review against origin/main — no findings: the two-column grid on both five-card pages, the 12 px title-to-text rhythm, the tailwind-merge resolution of the card's gap, the three-step lists, the 26 px phone heading's line height, the striped block's alignment on its two callers) · security security-check.sh --branch --audit: OK (npm audit: no high/critical) · /security-review n/a (no auth, payments, PII or route policy touched) · /production-readiness n/a (no DB, auth, payments or env var touched) · readiness env.sh audit --changed: OK
+- parked: vitrine-mesures-hors-accueil.md (from Build: `/design-system` scrolls sideways at 320 px, a `/tarifs` line runs 85 characters at 768 px; both on the base too)
+- migrations: skip — none of this run's own
+- learned: skip — no error.log (FAILURE.md's rule on numbering decisions follows through close-out.sh)
+- docs: no docs impact · announce: deferred to promotion
