@@ -37,6 +37,7 @@ The PR body's boxes are left for the operator (Learned rules: a session never ti
 ## Notes for Release
 
 - **Decision ids collide with the sibling run messagerie** (branch `claude/tender-albattani-vje2w4`): both runs use D-87 to D-91. Whichever merges second renumbers its own ids in its spec, decisions, notes and code comments (this run's Build ids start at D-95 and are clear of both).
+- **Both runs also add a migration numbered 0008** (`0008_frais_de_service`, `0008_messagerie`): the one that merges second regenerates its migration on the merged tree (`npm run db:generate`, never a hand-edited `idx`), and resets its preview branch per Learned rules.
 - **env.sh audit --changed → GAPS 2**: `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` are declared but not yet set in Vercel. The values are the operator's (D-88): a Stripe test account for Preview/Development; Production stays empty until the company's live account exists. Until the Preview key exists, « Confirmer et régler les frais de service » shows the generic payment error on previews and UAT, so the smoke of the payment itself waits on it.
 - Stripe's dashboard, per account: enable **Bancontact**, register the webhook endpoint and its seven events (README « The service fee »); a Checkout asking for `bancontact` on an account without it fails at creation.
 - Review closely: `confirmPayment` (the claim, the refund on refusal, the put-back on a throw), `acceptAnswer`'s new first-statement condition, `refundFee`'s key and its race with the webhook (D-95).
