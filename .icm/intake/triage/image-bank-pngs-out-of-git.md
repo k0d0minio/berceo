@@ -3,6 +3,7 @@
 - lane: chore
 - found-by: finition-accueil scope (D-7) · 2026-09-25
 - complexity: low
+- priority: P2
 
 ## Problem
 
@@ -11,3 +12,7 @@
 ## Proposed change
 
 Confirm the four PNGs are in the brand Drive, `git rm` them, and add a `.gitignore` rule so images dropped in `.icm/raw/` stay local. History rewrite is not part of this chore; it is the operator's call.
+
+## Prompt
+
+In the berceo repo, read `.icm/intake/triage/image-bank-pngs-out-of-git.md`. Confirm with the operator that `.icm/raw/Banque d_image/1.png`, `4.png`, `5.png`, `8.png` are held in the brand Drive, then `git rm` them and add a `.gitignore` rule keeping future `.icm/raw/` images local. No history rewrite. Run it through `/pipeline chore image-bank-pngs-out-of-git`.

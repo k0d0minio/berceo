@@ -1,8 +1,9 @@
-# Stub: Onboarding cleanups the release review found
+# Stub: Drop the onboarding's redundant HEAD request and duplicated path/filter constants
 
 - lane: chore
 - found-by: onboarding-professionnelle release · 2026-09-24
 - complexity: trivial
+- priority: P2
 
 ## Problem
 

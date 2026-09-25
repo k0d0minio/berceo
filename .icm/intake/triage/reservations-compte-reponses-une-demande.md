@@ -3,6 +3,7 @@
 - lane: chore
 - found-by: candidature-et-reservation release review · 2026-09-25
 - complexity: low
+- priority: P2
 
 ## Problem
 

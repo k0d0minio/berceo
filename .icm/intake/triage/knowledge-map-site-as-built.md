@@ -3,6 +3,7 @@
 - lane: chore
 - found-by: vitrine-publique release · 2026-09-24
 - complexity: low
+- priority: P2
 
 ## Problem
 

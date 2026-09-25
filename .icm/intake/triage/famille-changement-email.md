@@ -3,6 +3,8 @@
 - lane: chore
 - found-by: profil-famille define · 2026-09-24
 - complexity: standard
+- priority: P2
+- blocked: Neon Auth does not support changing an account's e-mail (its user-management guide says so, and its webhook has no change-email event); check neon.com/docs/auth/guides/user-management before picking this up
 
 ## Problem
 

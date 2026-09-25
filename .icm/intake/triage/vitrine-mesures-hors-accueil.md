@@ -1,8 +1,9 @@
-# Stub: Two vitrine layout overruns outside the homepage — the design-system cards at 320 px, a /tarifs line at 768 px
+# Stub: Two vitrine layout overruns outside the homepage
 
 - lane: bug
 - found-by: blocs-accueil build measurement · 2026-09-25
 - complexity: low
+- priority: P2
 
 ## Problem
 

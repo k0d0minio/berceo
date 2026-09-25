@@ -3,6 +3,10 @@
 - lane: bug
 - found-by: comptes-neon-auth release review · 2026-09-24
 - complexity: low
+- feature-slug: comptes-welcome-email-no-retry
+- sequence: 3 of 3
+- depends-on: comptes-auth-cleanups
+- priority: P2
 
 ## Problem
 
@@ -19,4 +23,4 @@ cookies. Guard it. The welcome could also move behind `after()` in the confirmer
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/comptes-welcome-email-no-retry.md`. `sendWelcomeIfDue` (`src/lib/auth/welcome.ts`) is only called on the verification confirmer's first click, so a failed welcome e-mail is never retried. Add a later retry point (the family space guard) or drop the claim release, and consider sending it after the redirect with `after()`. Run it through `/pipeline bug comptes-welcome-email-no-retry`.
+In the berceo repo, read `.icm/intake/comptes-auth-recuperation/comptes-welcome-email-no-retry.md`. `sendWelcomeIfDue` (`src/lib/auth/welcome.ts`) is only called on the verification confirmer's first click, so a failed welcome e-mail is never retried. Add a later retry point (the family space guard) or drop the claim release, and consider sending it after the redirect with `after()`. Run it through `/pipeline bug comptes-welcome-email-no-retry`.
