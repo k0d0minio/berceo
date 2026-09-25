@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "./route";
 
 /**
- * Spec (demande-de-garde, D-51): the digest route answers 401 and sends nothing
+ * Spec (demande-de-garde, D-61): the digest route answers 401 and sends nothing
  * without the right bearer secret, and hands the clock and its own origin to
  * the digest otherwise. The digest itself is covered in src/lib/demandes.
  */

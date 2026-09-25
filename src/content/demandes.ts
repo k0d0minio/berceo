@@ -46,7 +46,7 @@ export const demandes = catalogue({
       titreUrgent: "Publier une demande urgente",
       sousTitre:
         "Plus votre demande est précise, plus vite vous trouverez la professionnelle qui vous correspond.",
-      /** @relecture Surya — ce que couvre une demande urgente (D-50). */
+      /** @relecture Surya — ce que couvre une demande urgente (D-60). */
       introUrgente:
         "Une demande urgente concerne une garde ce soir ou demain soir. Les professionnelles de votre zone sont prévenues tout de suite.",
       /** @relecture Surya — première option de la liste des heures. */
@@ -70,13 +70,13 @@ export const demandes = catalogue({
         heure: "La garde de nuit standard est de 11 heures.",
         commune:
           "L'adresse exacte sera communiquée uniquement après confirmation de la réservation.",
-        /** @relecture Surya — la fenêtre d'une demande normale (D-50). */
+        /** @relecture Surya — la fenêtre d'une demande normale (D-60). */
         date: "Une date entre le {min} et le {max}. Pour ce soir ou demain soir, publiez une demande urgente.",
-        /** @relecture Surya — la fenêtre d'une demande urgente (D-50). */
+        /** @relecture Surya — la fenêtre d'une demande urgente (D-60). */
         dateUrgente: "Ce soir ou demain soir.",
-        /** @relecture Surya — l'âge en semaines puis en mois (D-54). */
+        /** @relecture Surya — l'âge en semaines puis en mois (D-64). */
         age: "En semaines jusqu'à 12 semaines, puis en mois jusqu'à 24 mois.",
-        /** @relecture Surya — la commune vient du profil (D-53). */
+        /** @relecture Surya — la commune vient du profil (D-63). */
         lienProfil: "Modifier ma commune dans mon profil",
         /** @relecture Surya — ce qui ne se modifie pas après la publication. */
         nonModifiable:
@@ -101,7 +101,7 @@ export const demandes = catalogue({
     },
 
     erreurs: {
-      /** @relecture Surya — date hors de la fenêtre (D-50). */
+      /** @relecture Surya — date hors de la fenêtre (D-60). */
       date: "Choisissez une date entre le {min} et le {max}.",
       /** @relecture Surya — heure déjà passée pour une garde ce soir. */
       heurePassee: "Cette heure est déjà passée. Choisissez une heure plus tardive ou demain soir.",
@@ -109,11 +109,11 @@ export const demandes = catalogue({
       heure: "Choisissez une heure dans la liste.",
       /** @relecture Surya — ni bébé ni jumeaux. */
       enfants: "Indiquez s'il s'agit d'un bébé ou de jumeaux.",
-      /** @relecture Surya — âge hors des bornes (D-54). */
+      /** @relecture Surya — âge hors des bornes (D-64). */
       age: "Indiquez un âge entre 0 et 12 semaines, ou entre 1 et 24 mois.",
       /** @relecture Surya — case non cochée (D-20). */
       confirmation: "Cochez cette case pour publier votre demande.",
-      /** @relecture Surya — une seule demande ouverte par nuit (D-55). */
+      /** @relecture Surya — une seule demande ouverte par nuit (D-65). */
       doublon: "Vous avez déjà une demande ouverte pour cette nuit.",
       /** @relecture Surya — demande annulée ou nuit commencée entre-temps. */
       nonModifiable: "Cette demande ne peut plus être modifiée.",

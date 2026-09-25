@@ -87,7 +87,7 @@ export type PublishResult =
 
 /**
  * Publishes a request for the family `userId`. The commune is her profile's,
- * copied now (D-53); without one there is nothing to publish.
+ * copied now (D-63); without one there is nothing to publish.
  */
 export async function publishRequest(
   userId: string,

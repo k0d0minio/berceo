@@ -19,9 +19,9 @@ import { cn } from "@/lib/utils"
 /*
  * The request form (the guide, "Les annonces"): the date, the start time with
  * the 11-hour note, the number of children, the baby's age, the commune from
- * her profile (read-only, D-53) with the address note, and the mandatory
+ * her profile (read-only, D-63) with the address note, and the mandatory
  * checkbox (D-20). Three modes: a normal request, an urgent one (tonight or
- * tomorrow night, D-50), and an edit, which never shows the checkbox again nor
+ * tomorrow night, D-60), and an edit, which never shows the checkbox again nor
  * changes the commune or the urgency. Validation is the server's; a refused
  * form keeps what was typed.
  */
@@ -204,7 +204,7 @@ function RequestForm({
         ) : null}
       </fieldset>
 
-      {/* Not a form field: the commune is the profile's, never read from this form (D-53). */}
+      {/* Not a form field: the commune is the profile's, never read from this form (D-63). */}
       <div className="flex flex-col gap-2">
         <label htmlFor="champ-commune" className={legend}>
           {t.formulaire.champs.commune}

@@ -5,8 +5,8 @@ import { validateRequest, type RequestInput } from "./validation";
 /**
  * Spec (demande-de-garde): the checkbox is required to publish (D-20); a
  * normal request is for the day after tomorrow up to day 56, an urgent one for
- * tonight or tomorrow night and never a start already past (D-50); the start
- * time, the children and the age are checked against their lists (D-54, D-55).
+ * tonight or tomorrow night and never a start already past (D-60); the start
+ * time, the children and the age are checked against their lists (D-64, D-65).
  */
 
 // 25 September 2026, 12:00 in Brussels.

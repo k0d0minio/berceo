@@ -26,7 +26,7 @@ export const dynamic = "force-dynamic";
 
 /*
  * The parent's space. Until her commune is saved it asks her to complete her
- * profile. The two ways to publish (D-50) and her requests are one tap away.
+ * profile. The two ways to publish (D-60) and her requests are one tap away.
  */
 export default async function EspaceFamillePage() {
   const user = await requireAccess(SPACES.parent);

@@ -17,7 +17,7 @@ import {
 } from "./rules";
 
 /**
- * Spec (demande-de-garde, D-50, D-51, D-54, D-55): the two date windows in
+ * Spec (demande-de-garde, D-60, D-61, D-64, D-65): the two date windows in
  * Brussels time, the start-time slots, the age ranges, the end of the night
  * (start + 11 h) and the digest's 18:00 gate in summer and winter time.
  * Written from the acceptance criteria, not from the implementation.

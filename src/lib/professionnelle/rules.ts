@@ -337,6 +337,16 @@ export function canSubmit(file: FileState, ticked: readonly string[]): boolean {
   );
 }
 
+/**
+ * "Renvoyer mon dossier" (verification-back-office, D-50): once she has
+ * answered a complément, her complete file goes back to the founders. It keeps
+ * its `submitted_at`, so its place in the queue, and she does not tick the
+ * declarations again.
+ */
+export function canResend(file: FileState): boolean {
+  return file.status === "complement_demande" && isProfileComplete(file) && areDocumentsComplete(file);
+}
+
 /** Whether she may change her file at all in this state. */
 export function isEditable(status: ProfileStatus): boolean {
   return status !== "refuse";

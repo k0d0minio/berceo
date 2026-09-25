@@ -5,7 +5,7 @@
 
 ## What changed
 
-- `src/db/schema.ts`, `drizzle/0004_care_requests.sql`: `care_requests` with `care_request_status`, `care_request_children`, `baby_age_unit`; checks on the start-time slots, the age ranges and `cancelled_at`; a partial unique index for one open request per family and night; the digest's partial index.
+- `src/db/schema.ts`, `drizzle/0005_care_requests.sql` (was 0004 before the merge of main): `care_requests` with `care_request_status`, `care_request_children`, `baby_age_unit`; checks on the start-time slots, the age ranges and `cancelled_at`; a partial unique index for one open request per family and night; the digest's partial index.
 - `src/lib/demandes/rules.ts`: the pure rules in Brussels time (date windows, start times, age ranges, a night started, end = start + 11 h, the digest's 18:00 gate, the family's derived « passée »).
 - `src/lib/demandes/validation.ts`, `format.ts`: the form's checks; the card's wording (age in words, « d' » before un/une).
 - `src/lib/demandes/requests.ts`: every read and write of `care_requests`; the family's functions scoped to her own rows; `cardColumns` is all a professional's query selects; the commune is copied through `familyCommune()` so `src/lib/famille/` stays the only reader of `family_profiles`.
@@ -46,10 +46,12 @@
 
 ## Notes for Release
 
-- **D-56 is a spec gap:** the digest's idempotency key adds a hash of the request ids to the spec's `digest-<professional>-<day>`, and requests are claimed before sending (a failed send is not retried). Reviewers should check the claim-then-send trade-off.
+- **Merged main after #39 (verification-back-office):** its migration took `0004`, so this run's migration was regenerated on the merged tree as `drizzle/0005_care_requests.sql` (same SQL). Its decisions D-50 to D-59 collided with this run's, now D-60 to D-68. Main already declares `CRON_SECRET` for its purge cron; both routes read the one value (D-68), and `.env.example` declares it once.
+
+- **D-66 is a spec gap:** the digest's idempotency key adds a hash of the request ids to the spec's `digest-<professional>-<day>`, and requests are claimed before sending (a failed send is not retried). Reviewers should check the claim-then-send trade-off.
 - Editing a normal request re-applies its window from the day of the edit, as the spec says: a request made for the day after tomorrow cannot be edited the next day without moving its date later. Flag it to the founders if they find it odd.
-- `CRON_SECRET` is missing on Vercel (`env.sh audit --changed` → GAPS 1): the route answers 401 until the operator sets it on each environment, and the workflow skips both calls until the repository secret `CRON_SECRET` exists in GitHub, one value for all (D-58). Nothing else depends on it.
-- **D-58 is a change after approval:** the spec's Proposed change and its workflow criterion still name `CRON_SECRET_UAT` / `CRON_SECRET_PRODUCTION`; the operator chose one shared `CRON_SECRET` after Build. The code, workflow, README and `.env.example` follow D-58.
+- `CRON_SECRET` is missing on Vercel (`env.sh audit --changed` → GAPS 1): the route answers 401 until the operator sets it on each environment, and the workflow skips both calls until the repository secret `CRON_SECRET` exists in GitHub, one value for all (D-68). Nothing else depends on it.
+- **D-68 is a change after approval:** the spec's Proposed change and its workflow criterion still name `CRON_SECRET_UAT` / `CRON_SECRET_PRODUCTION`; the operator chose one shared `CRON_SECRET` after Build. The code, workflow, README and `.env.example` follow D-68.
 - The professional's list can only be smoke-tested with a profile set to `valide` by hand on the preview's Neon branch, until verification-back-office merges.
 - `format.sh` and `lint.sh` are not wired in this repo (SKIP): the post-flip advisory quality job is the first lint/typecheck/test read of this code.
 - Context budget: read the family-profile and onboarding code (forms, shell, guard, templates, tests) as patterns, beyond `touches:`.

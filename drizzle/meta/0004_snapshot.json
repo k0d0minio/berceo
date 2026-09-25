@@ -1,9 +1,104 @@
 {
-  "id": "ef082b95-f01c-467b-982a-07430cd0c7ab",
+  "id": "e06475e3-5964-4a05-8ff2-31f0218a47f7",
   "prevId": "ce351a6f-5a53-41b3-807d-4639c6bba36d",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.admin_journal": {
+      "name": "admin_journal",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "action": {
+          "name": "action",
+          "type": "admin_action",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject_user_id": {
+          "name": "subject_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subject_name": {
+          "name": "subject_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "admin_user_id": {
+          "name": "admin_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "admin_name": {
+          "name": "admin_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "detail": {
+          "name": "detail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "admin_journal_occurred_at_idx": {
+          "name": "admin_journal_occurred_at_idx",
+          "columns": [
+            {
+              "expression": "occurred_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "admin_journal_subject_user_id_idx": {
+          "name": "admin_journal_subject_user_id_idx",
+          "columns": [
+            {
+              "expression": "subject_user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.app_settings": {
       "name": "app_settings",
       "schema": "",
@@ -54,236 +149,6 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.care_requests": {
-      "name": "care_requests",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "family_user_id": {
-          "name": "family_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "care_request_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'ouverte'"
-        },
-        "urgent": {
-          "name": "urgent",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "night_date": {
-          "name": "night_date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "start_time": {
-          "name": "start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "children": {
-          "name": "children",
-          "type": "care_request_children",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "baby_age_value": {
-          "name": "baby_age_value",
-          "type": "smallint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "baby_age_unit": {
-          "name": "baby_age_unit",
-          "type": "baby_age_unit",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "commune_ins": {
-          "name": "commune_ins",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "postcode": {
-          "name": "postcode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "locality": {
-          "name": "locality",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "no_medical_condition_at": {
-          "name": "no_medical_condition_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "digest_sent_at": {
-          "name": "digest_sent_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cancelled_at": {
-          "name": "cancelled_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "care_requests_commune_status_night_idx": {
-          "name": "care_requests_commune_status_night_idx",
-          "columns": [
-            {
-              "expression": "commune_ins",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "night_date",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "care_requests_family_user_id_idx": {
-          "name": "care_requests_family_user_id_idx",
-          "columns": [
-            {
-              "expression": "family_user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "care_requests_one_open_per_night": {
-          "name": "care_requests_one_open_per_night",
-          "columns": [
-            {
-              "expression": "family_user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "night_date",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "where": "\"care_requests\".\"status\" = 'ouverte'",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "care_requests_digest_pending_idx": {
-          "name": "care_requests_digest_pending_idx",
-          "columns": [
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "where": "\"care_requests\".\"digest_sent_at\" IS NULL AND NOT \"care_requests\".\"urgent\"",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "care_requests_family_user_id_users_id_fk": {
-          "name": "care_requests_family_user_id_users_id_fk",
-          "tableFrom": "care_requests",
-          "tableTo": "users",
-          "columnsFrom": [
-            "family_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "care_requests_start_time_slot": {
-          "name": "care_requests_start_time_slot",
-          "value": "\"care_requests\".\"start_time\" BETWEEN '18:00' AND '23:00' AND date_part('minute', \"care_requests\".\"start_time\") IN (0, 30) AND date_part('second', \"care_requests\".\"start_time\") = 0"
-        },
-        "care_requests_baby_age_range": {
-          "name": "care_requests_baby_age_range",
-          "value": "(\"care_requests\".\"baby_age_unit\" = 'semaines' AND \"care_requests\".\"baby_age_value\" BETWEEN 0 AND 12) OR (\"care_requests\".\"baby_age_unit\" = 'mois' AND \"care_requests\".\"baby_age_value\" BETWEEN 1 AND 24)"
-        },
-        "care_requests_cancelled_at": {
-          "name": "care_requests_cancelled_at",
-          "value": "(\"care_requests\".\"status\" = 'annulee') = (\"care_requests\".\"cancelled_at\" IS NOT NULL)"
-        }
-      },
       "isRLSEnabled": false
     },
     "public.family_profiles": {
@@ -707,6 +572,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "review_reason": {
+          "name": "review_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reviewed_at": {
+          "name": "reviewed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -935,28 +812,15 @@
     }
   },
   "enums": {
-    "public.baby_age_unit": {
-      "name": "baby_age_unit",
+    "public.admin_action": {
+      "name": "admin_action",
       "schema": "public",
       "values": [
-        "semaines",
-        "mois"
-      ]
-    },
-    "public.care_request_children": {
-      "name": "care_request_children",
-      "schema": "public",
-      "values": [
-        "un_bebe",
-        "jumeaux"
-      ]
-    },
-    "public.care_request_status": {
-      "name": "care_request_status",
-      "schema": "public",
-      "values": [
-        "ouverte",
-        "annulee"
+        "profil_valide",
+        "complement_demande",
+        "profil_refuse",
+        "reglage_etudiantes",
+        "documents_supprimes"
       ]
     },
     "public.consent_document": {

@@ -15,20 +15,20 @@ export const TIME_ZONE = "Europe/Brussels";
 /** A standard night is 11 hours (the guide, "Les annonces"). */
 export const NIGHT_HOURS = 11;
 
-/** A normal request: from the day after tomorrow up to 8 weeks ahead (D-50). */
+/** A normal request: from the day after tomorrow up to 8 weeks ahead (D-60). */
 export const NORMAL_FIRST_DAY = 2;
 export const NORMAL_LAST_DAY = 56;
 
-/** An urgent request: tonight or tomorrow night (D-50). */
+/** An urgent request: tonight or tomorrow night (D-60). */
 export const URGENT_LAST_DAY = 1;
 
-/** Start times: every half hour from 18:00 to 23:00 (D-55). */
+/** Start times: every half hour from 18:00 to 23:00 (D-65). */
 export const START_TIMES: readonly string[] = Array.from({ length: 11 }, (_, i) => {
   const minutes = 18 * 60 + i * 30;
   return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
 });
 
-/** The baby's age, in whole weeks or months (D-54). */
+/** The baby's age, in whole weeks or months (D-64). */
 export const AGE_UNITS = ["semaines", "mois"] as const;
 export type AgeUnit = (typeof AGE_UNITS)[number];
 export const AGE_RANGES: Readonly<Record<AgeUnit, { min: number; max: number }>> = {
@@ -39,7 +39,7 @@ export const AGE_RANGES: Readonly<Record<AgeUnit, { min: number; max: number }>>
 export const CHILDREN = ["un_bebe", "jumeaux"] as const;
 export type Children = (typeof CHILDREN)[number];
 
-/** The daily digest leaves at 18:00 in Brussels, or at the first call after (D-51). */
+/** The daily digest leaves at 18:00 in Brussels, or at the first call after (D-61). */
 export const DIGEST_HOUR = 18;
 
 function pad(n: number): string {

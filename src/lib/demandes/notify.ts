@@ -23,7 +23,7 @@ import { brusselsNow, isDigestTime } from "./rules";
 
 /**
  * The two e-mails a professional receives about requests in her communes
- * (D-51): an urgent request at once, the normal ones in one digest a day at
+ * (D-61): an urgent request at once, the normal ones in one digest a day at
  * 18:00 in Brussels. Links point at the deployment that sent them, so a UAT
  * e-mail opens UAT. A failed send is logged with ids only and never undoes a
  * request.

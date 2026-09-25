@@ -4,7 +4,7 @@ import { notifyUrgentRequest, sendRequestDigest } from "./notify";
 import type { Recipient, RequestCard } from "./requests";
 
 /**
- * Spec (demande-de-garde, D-51): the digest leaves at 18:00 Brussels or later,
+ * Spec (demande-de-garde, D-61): the digest leaves at 18:00 Brussels or later,
  * sends each matching validated professional one e-mail listing her new normal
  * requests, and nothing to a professional with none; the urgent e-mail goes at
  * once to every validated professional serving the commune, and a failed send

@@ -1,11 +1,11 @@
-# The daily digest of new care requests (demande-de-garde, D-51, D-52).
+# The daily digest of new care requests (demande-de-garde, D-61, D-62).
 #
 # Vercel Cron runs only on production deployments, never on the `uat` custom
 # environment the founders test on, so the schedule lives here and calls the
 # route on both. It runs at 16:00 and 17:00 UTC: the route sends only from
 # 18:00 in Brussels (16:00 UTC in summer, 17:00 UTC in winter) and puts each
 # request in one digest at most, so the other call of the day sends nothing.
-# One secret, CRON_SECRET, is shared by both environments (D-58): the same
+# One secret, CRON_SECRET, is shared by both environments (D-68): the same
 # value is set on each Vercel environment and as this repository's secret.
 # While it is missing the run is skipped with a warning, never a failure.
 name: Demandes digest
