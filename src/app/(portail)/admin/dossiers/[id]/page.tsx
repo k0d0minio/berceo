@@ -81,13 +81,13 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
     <SpaceShell user={user} title={fill(a.dossier.titre, { nom: name })}>
       <Link
         href={SPACES.admin}
-        className="self-start text-corps font-semibold text-sauge underline underline-offset-4"
+        className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
       >
         {a.dossier.retour}
       </Link>
 
-      <h2 className="font-display text-h2 text-sauge">{a.dossier.sections.identite}</h2>
-      <dl className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-8 text-corps text-taupe">
+      <h2 className="font-display text-h2 text-encre-sauge">{a.dossier.sections.identite}</h2>
+      <dl className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-8 text-corps text-encre-taupe">
         <Row label={a.dossier.champs.email}>{owner.email}</Row>
         <Row label={a.dossier.champs.telephone}>{owner.phone ?? unset}</Row>
         <Row label={a.dossier.champs.compteCree}>{dateTime.format(owner.createdAt)}</Row>
@@ -98,8 +98,8 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         {profile.reviewReason ? <Row label={a.dossier.champs.motif}>{profile.reviewReason}</Row> : null}
       </dl>
 
-      <h2 className="font-display text-h2 text-sauge">{a.dossier.sections.profil}</h2>
-      <dl className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-8 text-corps text-taupe">
+      <h2 className="font-display text-h2 text-encre-sauge">{a.dossier.sections.profil}</h2>
+      <dl className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-8 text-corps text-encre-taupe">
         <Row label={a.dossier.champs.profession}>
           {profile.profession ? p.professions[profile.profession] : unset}
         </Row>
@@ -135,9 +135,9 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         </div>
       ) : null}
 
-      <h2 className="font-display text-h2 text-sauge">{a.dossier.sections.justificatifs}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{a.dossier.sections.justificatifs}</h2>
       {qualifications.length === 0 ? (
-        <p className="text-corps text-taupe">{a.dossier.aucunDocument}</p>
+        <p className="text-corps text-encre-taupe">{a.dossier.aucunDocument}</p>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           {qualifications.map((doc) => (
@@ -152,13 +152,13 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
-      <h2 className="font-display text-h2 text-sauge">{a.dossier.sections.declarations}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{a.dossier.sections.declarations}</h2>
       {file.declarations.length === 0 ? (
-        <p className="text-corps text-taupe">{a.dossier.aucune}</p>
+        <p className="text-corps text-encre-taupe">{a.dossier.aucune}</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {file.declarations.map((d, i) => (
-            <li key={i} className="flex flex-col gap-1 rounded-carte bg-perle px-6 py-4 text-corps text-taupe">
+            <li key={i} className="flex flex-col gap-1 rounded-carte bg-perle px-6 py-4 text-corps text-encre-taupe">
               <span>{p.declarations.textes[d.declaration as keyof typeof p.declarations.textes]}</span>
               <span className="text-legende">
                 {fill(a.dossier.accepteeLe, { date: dateTime.format(d.acceptedAt), version: d.version })}
@@ -168,14 +168,14 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         </ul>
       )}
 
-      <h2 className="font-display text-h2 text-sauge">{a.dossier.sections.historique}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{a.dossier.sections.historique}</h2>
       {history.length === 0 ? (
-        <p className="text-corps text-taupe">{a.dossier.aucunHistorique}</p>
+        <p className="text-corps text-encre-taupe">{a.dossier.aucunHistorique}</p>
       ) : (
         <JournalTable entries={history} />
       )}
 
-      <h2 className="font-display text-h2 text-sauge">{a.dossier.sections.decision}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{a.dossier.sections.decision}</h2>
       <DecisionPanel
         profileId={profile.id}
         name={name}

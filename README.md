@@ -26,7 +26,14 @@ npm run dev      # http://localhost:3000
 | [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
 | [src/lib/professionnelle/](src/lib/professionnelle/), [src/lib/documents/](src/lib/documents/) | The professional's file: its rules, the private document bucket and `/api/fichiers/[id]`. |
 | [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' review: the queue and decision rules, the admin journal, the purge of refused files. See **The founders' verification** below. |
-| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files, guarded by `CRON_SECRET`. |
+| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`), the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`) and the hourly invitation to rate a finished garde (`.github/workflows/avis-invitations.yml`), all guarded by `CRON_SECRET`. |
+| [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
+| [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
+| [src/lib/gardes/](src/lib/gardes/), [src/components/gardes/](src/components/gardes/) | The garde's life after its booking: its state by the clock, cancelling, reporting an absence, republishing, the reminder of the day before, the founders' list of absences. See **The garde's life** below. |
+| [src/lib/avis/](src/lib/avis/), [src/components/avis/](src/components/avis/) | The stars after a garde: the rating form of each side, the note and gardes count wherever they show, the invitation e-mail, the founders' list. See **The ratings** below. |
+| [src/lib/messagerie/](src/lib/messagerie/), [src/components/messagerie/](src/components/messagerie/) | The conversation per answer: its rules, reads and writes, the send action, the new-message e-mail. See **The conversation** below. |
+| [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
+| [src/lib/paiements/](src/lib/paiements/), [src/app/api/webhooks/stripe/](src/app/api/webhooks/stripe/) | The 3 % service fee through Stripe: the Checkout, the webhook, refunds, the founders' list. See **The service fee** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
 | [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
@@ -43,22 +50,29 @@ footer. It and `/design-system/portail` are `noindex, nofollow` and linked from 
 
 ## The design system
 
-Surya's *Direction artistique web* (D-9), applied literally — including its text and button
-colours, which fall below WCAG AA contrast on white (an operator decision, to be raised with
-Surya).
+Surya's *Direction artistique web* (D-9), with every text and control held to WCAG AA
+(finition-accueil D-1, D-2): the DA's five colours stay surfaces, borders and accents, and text
+is set in two inks darkened from sage and taupe on their own hue.
 
 - **Colours** are Tailwind tokens named as the DA names them: `blanc`, `sauge`, `taupe`,
-  `perle`, `beurre`. Tailwind's default palette is switched off, so no other colour exists.
+  `perle`, `beurre`, plus the two inks, `encre-sauge` (`#3c584b`: headings, links, filled
+  buttons, the footer, the focus ring) and `encre-taupe` (`#646254`: body text, field borders).
+  Text is never `text-sauge` or `text-taupe`, and white text sits only on an ink.
+  `src/app/contrast.test.ts` holds every text and surface pair to AA and refuses the light
+  text classes. Tailwind's default palette is switched off, so no other colour exists.
   `rouge-confirmation` and `vert-confirmation` are used by `confirm-dialog.tsx` alone (D-24).
+  The inks and the darkened red carry `@relecture` for Surya.
 - **Type**: `font-display` (Comodo's slot, Fraunces until Surya delivers Comodo) for H1, H2
   and navigation; Nunito for everything else. The DA's hierarchy is `text-h1`, `text-h2`,
   `text-nav`, `text-h3`, `text-intro`, `text-corps`, `text-bouton`, `text-champ`,
   `text-legende`, each switching from its mobile to its desktop size at `md`.
 - **Shapes**: `rounded-carte` (32 px) for cards and blocks, `rounded-capsule` for buttons and
   fields. No shadow anywhere; focus is an outline.
-- **Buttons** take the background they sit on as their variant: `blanc`, `raye`, `sauge`,
-  `taupe`, with the DA's hover colours and a 1.03 scale in 200 ms (none under reduced motion).
-- **Surfaces**: `motif-raye` (text only in a solid block over it — use `StripedSection`) and
+- **Buttons** take the background they sit on as their variant: `blanc`, `raye`, `sauge`
+  (the light sage band) and `taupe` (the white block on the stripes). Outlines and fills are
+  the inks, the hover is butter with the row's ink (the sage-ink fill for `blanc`), with a
+  1.03 scale in 200 ms (none under reduced motion).
+- **Surfaces**: `motif-raye` (text only in the white block over it — use `StripedSection`) and
   `voile-perle` (pearl at 75 % — use `TranslucentBlock`, never over the stripes).
 - **What the DA rules out** stays out: gendered pink and blue, naïve illustrations, shadows,
   gadget animations.
@@ -103,6 +117,19 @@ The platform's data starts here: one Neon Postgres database, read through
   The founders' review (0004): `review_reason` and `reviewed_at` on `professional_profiles`, and
   `admin_journal`, one row per admin action, which a trigger keeps append-only (no `UPDATE`,
   `DELETE` or `TRUNCATE`) and which names people by id and name without foreign keys.
+  `care_requests` (0005): a family's night, its start, children, baby's age, the commune copied
+  from her profile, the urgent flag, when the no-medical-condition box was ticked, and
+  `digest_sent_at`; at most one open request per family and night.
+  Answers and bookings (0007): `care_request_status` gains `attribuee`; `care_requests` gains
+  its priority professional (`priority_profile_id`, `priority_sent_at`, set once) and
+  `republished_at` / `republish_count`; `care_request_applications` is one answer per
+  professional and request (`application_status`: `en_attente`, `retenue`, `non_retenue`,
+  `retiree`), with the rate she answered at; `bookings` is one per request and one per
+  professional and night, with that rate, and no address.
+  Conversations (0008): `conversations` is one per answer (the family, the professional, each
+  side's read marker, `last_message_at`); `messages` holds the people's text (1 to 2 000
+  characters, the browser's id as key) or one of Berceo's two keys (`amorce`, `bonne_garde`, at
+  most one each). The migration backfilled a conversation for every earlier answer and booking.
   Identity itself lives in Neon Auth's `neon_auth` schema, which Neon manages and Drizzle never
   declares.
 - **Client:** `src/db/index.ts` — a lazily-initialized Drizzle client on Neon's serverless HTTP
@@ -173,6 +200,235 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   list and Eurostat's LAU list for Belgium, plus the 2025 mergers' codes listed in the script;
   its header records the sources and the date. Regenerate it by hand when bpost or Statbel
   publish a change; never edit it.
+
+## The care request
+
+- **The family's pages:** `/espace/famille/demandes` (« Mes demandes »), `/nouvelle` (the
+  guide's form) and `/nouvelle?urgente=1` (« Publier une demande urgente »), `/[id]` (one request,
+  cancel through the confirmation dialog) and `/[id]/modifier`. Both publish buttons also sit on
+  `/espace/famille`. A normal request is for the day after tomorrow up to day 56, an urgent one
+  for tonight or tomorrow night (D-60), in Brussels time; the urgency and the commune are fixed
+  at publication. Without a commune in her profile she is sent to `/espace/famille/profil?completer=1`.
+- **The professional's list:** `/espace/professionnelle/demandes` — open requests whose night
+  has not started, in the communes she serves, urgent first then newest; a profile that is not
+  `valide` sees a line instead. The card (`src/components/demandes/request-card.tsx`) shows the
+  commune, the night (start + 11 h) and the children, never the family: `cardColumns` in
+  `src/lib/demandes/requests.ts` is what a professional's query selects, and a test holds it.
+- **The rules:** `src/lib/demandes/rules.ts` (pure: date windows, start times 18:00 to 23:00 by
+  half hour, age 0–12 semaines or 1–24 mois, a night started, the digest's 18:00 gate),
+  `validation.ts` (the form), `format.ts` (« Un bébé de trois mois », « 30/09/2026 de 20h00 à
+  7h00 »). Words in `src/content/demandes.ts`; e-mails in `src/content/emails.ts`.
+- **E-mails (D-61):** an urgent request e-mails every validated professional serving its commune
+  right after publication (`after()`, `notifyUrgentRequest`). Normal requests go out in one
+  digest a day: `POST /api/cron/demandes-digest`, bearer `CRON_SECRET`, sends from 18:00 in
+  Brussels only, once a day at most, and puts each request in one digest at most. **Scheduling (D-62):**
+  `.github/workflows/demandes-digest.yml` calls the route on UAT and production at 16:00 and
+  17:00 UTC (and on demand), with the repository secret `CRON_SECRET`; Vercel Cron is not
+  used because it never runs on the `uat` environment. One value serves both environments
+  (D-68): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets.
+
+## The answer and the booking
+
+- **The professional answers** on `/espace/professionnelle/demandes`: each card carries her rate
+  (« 150 € pour la garde de nuit ») and « Je suis disponible pour cette garde »; once answered,
+  « Retirer ma disponibilité » (D-73). Her list holds the open requests ahead in her communes
+  and those sent to her in priority wherever they are, priority first; never one she was
+  declined on nor one on a night she is booked. `answerRequest` in
+  `src/lib/reservations/answers.ts` checks the rules (`rules.ts`) and the INSERT holds them
+  again. The rate is frozen on the answer (D-74). Each answer e-mails the family.
+- **The family chooses** on `/espace/famille/demandes/[id]`: « Les professionnelles qui ont
+  répondu à votre demande », each with « Voir le profil complet » and « Accepter et réserver »,
+  which opens « Récapitulatif de votre garde ». `acceptAnswer` in `bookings.ts` is one
+  transaction (`db.batch`): the answer `retenue`, the booking, the request `attribuee`, the other
+  waiting answers `non_retenue`, her other answers that night `retiree`; the unique indexes turn
+  two clicks racing into one booking and a « conflit ». Accepting needs the family's street and
+  number (D-77). Both sides get the guide's confirmation, the others « not retained ».
+  The click only opens the fee's Checkout; `acceptAnswer` runs when the payment lands, and its
+  first statement requires that payment, paid (**The service fee**, D-102).
+- **Republish and edit (D-70, D-76):** a request with a waiting answer cannot be edited;
+  « Republier ma demande » declines the waiting answers and sends the request out again (the
+  urgent e-mail at once, or the next digest, which carries a request republished since its last
+  one). Cancelling declines the waiting answers too.
+- **The full profile (D-75):** `/espace/famille/professionnelles/[id]`, any signed-in family, any
+  `valide` profile; `profileColumns` in `profiles.ts` is all that leaves (a test holds it). Her
+  photo is served to parents by `/api/fichiers/[id]`; her documents never are. It mounts
+  « Prochaines disponibilités » (D-69, D-86).
+- **The priority request (D-71):** `/espace/famille/professionnelles/[id]/priorite` sends one of
+  the family's open requests, or a new one (`/nouvelle?pour=<id>`), to her « en priorité »: set
+  once, she is e-mailed at once and sees it first even outside her communes; nobody else waits.
+- **The bookings:** « Mes réservations » (`/espace/famille/reservations`, the récapitulatif, the
+  professional's phone, re-contact in priority) and « Mes gardes »
+  (`/espace/professionnelle/gardes`). The family's name, address and phone reach the
+  professional only on her own booking's page; the address is read live through
+  `bookingAddress` in `src/lib/famille/profile.ts`, still the only reader of `family_profiles`.
+- **Words:** `src/content/reservations.ts`; e-mails in `src/content/emails.ts`.
+
+## The garde's life
+
+A confirmed booking, from the payment to the morning after (cycle-de-garde-et-annulation, D-17,
+D-105 to D-113). `src/lib/gardes/` holds the rules (`rules.ts`, pure and tested) and the only
+writes of a booking's status columns (`gardes.ts`); creating a booking and both sides' reads stay
+in `src/lib/reservations/bookings.ts`.
+
+- **The state, by the clock (D-109):** a booking stores only `confirmee` or `annulee`. « À venir »
+  before the start hour, « En cours » until start + 11 h, « Terminée » after, all Brussels time,
+  are read by `gardeState` at display time; no job changes a state. Both lists, both garde pages
+  and the family's request page show it.
+- **Cancelling (D-105, D-2):** either side, from its garde page, until the start hour, through
+  the red confirmation dialog. One statement cancels the garde (who is responsible, who clicked,
+  when) and its request (`cancelBookedRequestStatement` in `src/lib/demandes/`), which closes its
+  conversations and frees the professional's night (`bookings_profile_night_key` counts
+  confirmed gardes only). A professional's cancellation then refunds the fee through `refundFee`;
+  a failure leaves the garde cancelled and the fee `payee`, for the founders' button. A family's
+  cancellation keeps the fee. The other side gets one e-mail.
+- **Reporting an absence (D-106):** from the start hour until 24 h after the night, either side
+  reports the other absent; the garde is cancelled against the absent side (kind `absence`), who
+  gets one e-mail. Nothing is refunded: the founders read `/admin/absences` (linked with its count
+  from `/admin`) and refund from `/admin/paiements` if they judge it fair.
+- **Republishing (D-107, D-112):** on a cancelled garde whose night has not started, « Republier
+  ma demande » publishes a new request for the same night through `publishRequest` (the
+  profile's commune, the urgent flag by the date window), or links to her live request that
+  night if she already has one.
+- **The address (D-110):** `bookingAddress` returns it only on a confirmed garde whose night has
+  not ended.
+- **The reminder of the day before (D-108, D-113):** `.github/workflows/gardes-rappel.yml` calls
+  `POST /api/cron/gardes-rappel` (bearer `CRON_SECRET`) at 08:00, 08:30, 09:00 and 09:30 UTC on
+  UAT and production; the route sends only between 10:00 and 10:59 Brussels. Each of tomorrow's
+  confirmed gardes is claimed, then both sides are e-mailed; a failed send releases the claim for
+  the next call. A 404 (the route not yet promoted) is a skipped call.
+- **The platform line (D-111):** one sentence (`cadre` in `src/content/emails.ts`) under the
+  button of both confirmations and both reminders.
+- **Words:** `src/content/gardes.ts` (every entry `@relecture`), the e-mails in
+  `src/content/emails.ts`, the admin list in `src/content/admin.ts`.
+
+## The ratings
+
+After a garde each side rates the other with stars, never a word of text (avis-etoiles, D-18,
+D-115 to D-122). `src/lib/avis/` holds the rules (`rules.ts`, pure and tested) and the only reads
+and writes of `ratings` and `rating_invitations` (`ratings.ts`); every rule is held again in the
+SQL of the statement it governs. The garde's state is `src/lib/gardes/`'s, never re-derived.
+
+- **Who rates what (D-115):** the family rates the professional on Ponctualité, Communication,
+  Soin and Confiance; the professional rates the family on Accueil, Communication, Clarté des
+  consignes and Respect du cadre. 1 to 5 whole stars each, all four required, stored as
+  `score_1` … `score_4` in the order `CRITERIA` fixes. The table has no text column.
+- **When (D-117, D-122):** once per side, from the moment the garde is terminée until 14 days
+  after the night's end, never on an annulée garde, never edited. The insert holds all of it
+  (`on conflict do nothing` on the unique garde and side). An absence reported after the end
+  cancels the garde: its ratings stay stored, show on `/admin/avis` as not counting, and count
+  nowhere.
+- **Double-blind (D-116):** a rating counts once the other side has rated too, or once the 14
+  days are over, computed at read time. Nobody but the founders ever reads a single rating; each
+  side sees only the stars it gave.
+- **The note and the gardes count (D-119):** `notesOfUsers` returns the mean of every published
+  criterion score to one decimal (« 4,6 », `NoteDisplay`), or « Pas encore de note », and the
+  person's terminée, non-annulée gardes, hidden at zero. Shown on the full profile and the answer
+  cards (`PublicProfile.note`, `Applicant.note`), on the professional's request cards and garde
+  page as the family's (`ProfessionalRequest.family`, keyed by request so the family's id never
+  leaves, D-118), and on each side's own home (D-121).
+- **The form:** `/espace/famille/reservations/[id]/avis` and `/espace/professionnelle/gardes/[id]/avis`,
+  reached by « Laisser un avis » on both lists and both garde pages and from the e-mail. The side
+  is the route's, the user the session's; only four whole numbers are read from the form.
+- **The invitation (D-120):** `.github/workflows/avis-invitations.yml` calls
+  `POST /api/cron/avis-invitations` (bearer `CRON_SECRET`) every hour at :17 on UAT and
+  production. Each side of each terminée garde inside its window, not yet invited and not yet
+  rated, is claimed in `rating_invitations` just before its e-mail (the family's is the guide's
+  « Demande d'avis post-garde », verbatim) and released if the send fails. No reminder.
+- **The founders' list (G-03, D-118):** `/admin/avis`, linked with its count from `/admin`, every
+  rating newest first, 50 a page, both full names, the four scores, the mean and whether it is
+  published. Read-only.
+- **Words:** `src/content/avis.ts` (every entry `@relecture` but « Laisser un avis »), the
+  e-mails in `src/content/emails.ts`, the admin list in `src/content/admin.ts`.
+
+## The service fee
+
+The 3 % fee (D-2), through Stripe Checkout, Bancontact and cards (frais-de-service). Berceo
+never touches the money for the night (D-1).
+
+- **The amount (D-99):** 3 % of the chosen answer's frozen rate, computed on the server as
+  `rate × 3` cents (3,00 € to 9,00 €), all-in, VAT included; Stripe Tax is off. The summary
+  shows it with the Tarifs page's two sentences (`src/content/paiement.ts`).
+- **Paying (D-102, D-92):** « Confirmer et régler les frais de service » runs the booking rules,
+  closes the request's open Checkout if any (one per request, a partial unique index), opens a
+  30-minute Checkout and records it in `payments` as `en_attente`. Nothing about the request or
+  its answers changes while the family is on Stripe.
+- **The booking is made by the payment (D-102, D-103):** `confirmPayment` in
+  `src/lib/paiements/payments.ts` reads the session from Stripe, takes the row
+  `en_attente → payee` with one conditional update, then runs `acceptAnswer`, which books only
+  against that paid row. Two paths call it: the webhook `POST /api/webhooks/stripe` and the
+  return page `/espace/famille/reservations/paiement` (so previews, which Stripe cannot reach,
+  still book). Whichever wins sends the e-mails. A payment whose booking can no longer be made
+  is refunded in full at once and the family told (page and e-mail).
+- **Abandoning:** « Retour » on Stripe goes to `/espace/famille/reservations/paiement/abandon`,
+  which expires the Checkout; an unpaid one expires on its own after 30 minutes, and a row
+  `en_attente` past `expires_at` reads as expired without a cron.
+- **Refunds (D-101, D-94):** `refundFee(paymentId, reason, now, by?)` is the one refund: the whole
+  fee, a `payee` row only (or a failed refund, to retry), one Stripe idempotency key per payment
+  and attempt. Reasons: `annulation_professionnelle` (a professional's cancellation, **The garde's life**),
+  `reservation_impossible`, `berceo` (the founders' button, one `frais_rembourses` journal
+  line), `stripe` (a refund made in Stripe's dashboard, synced by the webhook). A refund Stripe
+  reports failed reads `remboursement_echoue`.
+- **The founders' list (D-93):** `/admin/paiements`, every fee newest first, 50 per page, with
+  « Rembourser les frais ». Families and professionals see no payment history.
+- **Configuration (D-100):** `STRIPE_SECRET_KEY` (test key on Preview, live key on
+  Production only once the company's Stripe account exists) and `STRIPE_WEBHOOK_SECRET` (per
+  environment). In Stripe's dashboard, per account: enable Bancontact, and add the endpoint
+  `https://uat.berceo.be/api/webhooks/stripe` (test mode) or `https://www.berceo.be/api/webhooks/stripe`
+  (live) with the events `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
+  `checkout.session.async_payment_failed`, `checkout.session.expired`, `refund.created`,
+  `refund.updated`, `refund.failed`; its signing secret is that environment's
+  `STRIPE_WEBHOOK_SECRET`. The client pins the API version `2026-08-26.dahlia`.
+- **Words:** `src/content/paiement.ts`; the admin page in `src/content/admin.ts`; the refund
+  e-mail in `src/content/emails.ts`.
+
+## The conversation
+
+- **One per answer (D-16, D-91):** `withConversation` in `src/lib/messagerie/conversations.ts`
+  wraps the answer's INSERT, so the answer, its conversation and Berceo's amorce land in one
+  statement; a re-answer finds the same conversation. Only the family who owns the request and
+  the professional who answered read it; anyone else's id is not found. Nothing else creates one.
+- **Berceo's two messages (D-87):** the guide's amorce when she answers, the cahier des charges'
+  « excellente garde » in the booked conversation when the family confirms
+  (`bonneGardeStatement`, a statement of `acceptAnswer`'s batch). Stored as keys, rendered from
+  `src/content/messagerie.ts`; neither sends an e-mail.
+- **Where:** « Messages » in each space (`/espace/famille/messages`,
+  `/espace/professionnelle/messages`, a conversation at `…/[id]`), with the number of
+  conversations holding an unread message beside it, on the menu button too below md.
+  « Écrire à [Prénom] » on the family's answers and booking, « Voir la conversation » on the
+  professional's answered requests and garde.
+- **Reading and sending:** opening a conversation moves the viewer's read marker; « Lu » sits
+  under her last message once the other side opened it after. `sendMessageAction`
+  (`src/lib/messagerie/actions.ts`) sends 1 to 2 000 characters of plain text with the id the
+  browser gave it: a retry inserts once. Each inserted message e-mails the other side once,
+  without its text (`notify.ts`, key `message-<id>`, D-90). A reminder line follows every third
+  message of the two people outside the booked conversation (D-88).
+- **Closing (D-89):** a conversation accepts messages until the night ends (start + 11 h,
+  Brussels), whatever its answer's state; a cancelled request closes it at once. Closed, it stays
+  readable. `isConversationOpen` in `rules.ts` is the one rule; `sendMessage` holds it again in
+  SQL. A cancelled garde cancels its request (D-110), so its conversations close at once too.
+- **Words:** `src/content/messagerie.ts`; the e-mail in `src/content/emails.ts`.
+
+## The professional's availability
+
+- **« Mes disponibilités » (D-12):** `/espace/professionnelle/disponibilites`, for a `valide`
+  profile only (any other sees one line). The nights from tonight to today + 56 days in
+  Brussels (D-79), one block per month in Monday-to-Sunday rows; she taps nights, then « Disponible » or « Indisponible » saves
+  the selection (`actions.ts` beside the page). A night is named by its evening's date, like a
+  care request's `night_date`.
+- **Two states (D-81):** `professional_availability` holds one row per night marked available,
+  `(profile_id, night_date)`, cascading with the profile. « Indisponible » deletes the row;
+  nights that fell behind today are ignored by every read, never purged.
+- **Indicative only:** nothing about a care request (list, e-mails, digest) reads the table, and
+  `src/lib/disponibilites/isolation.test.ts` holds that.
+- **The block families see (D-69, D-80):** `ProchainesDisponibilites`
+  (`src/components/disponibilites/`) shows the next five nights from `nextAvailableNights`
+  (none for a profile that is not `valide`) with the guide's caveat, or one line when none is
+  marked. She sees it under her calendar; `/design-system/portail` shows both states. The
+  family-facing full profile (candidature-et-reservation) and the search cards
+  (recherche-et-fiches-publiques) mount it.
+- **Where:** rules in `src/lib/disponibilites/rules.ts` (window, month blocks, what a save may
+  carry), wording in `format.ts` (« Nuit du lundi 12 au mardi 13 octobre »), reads and writes in
+  `nights.ts`; words in `src/content/disponibilites.ts`.
 
 ## The professional's onboarding and documents
 

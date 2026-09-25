@@ -2,15 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { OwnNote } from "@/components/avis/stars";
 import { FormMessage } from "@/components/auth/field";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { comptes } from "@/content/comptes";
+import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
 import { professionnelle } from "@/content/professionnelle";
+import { reservations } from "@/content/reservations";
 import { isHeldStudent } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
+import { noteOfUser } from "@/lib/avis/ratings";
+import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
+import { AVAILABILITY_PATH } from "@/lib/disponibilites/paths";
+import { PROFESSIONAL_BOOKINGS_PATH } from "@/lib/reservations/paths";
 import { loadFile } from "@/lib/professionnelle/file";
 import { firstIncompleteStep } from "@/lib/professionnelle/rules";
 import { studentsAdmitted } from "@/lib/settings";
@@ -19,6 +26,8 @@ import { ONBOARDING } from "./inscription/step";
 
 const t = words(comptes);
 const p = words(professionnelle);
+const d = words(demandes);
+const r = words(reservations);
 
 export const metadata: Metadata = {
   title: t.meta.espace,
@@ -34,7 +43,10 @@ export const dynamic = "force-dynamic";
  * first when she has just sent it, and links to her file. The founders'
  * decision shows here too (verification-back-office): the guide's line once
  * validated, the reason of a complément or a refusal, and why a student file
- * waits while students are not admitted.
+ * waits while students are not admitted. Once validated, it also links to the
+ * requests in her communes (demande-de-garde), to « Mes disponibilités »
+ * (disponibilites-indicatives) and to her gardes (candidature-et-reservation),
+ * and shows her own note and gardes count (avis-etoiles, D-121).
  */
 export default async function EspaceProfessionnellePage({
   searchParams,
@@ -62,20 +74,37 @@ export default async function EspaceProfessionnellePage({
             ? p.messages.etudiantes
             : t.espaces.professionnelle.enAttente;
   const showReason = (status === "refuse" || status === "complement_demande") && reviewReason;
+  const note = status === "valide" ? await noteOfUser(user.id) : null;
 
   return (
     <SpaceShell user={user}>
       {justSent && status === "en_attente" ? <FormMessage>{p.messages.envoye}</FormMessage> : null}
       {justResent && status === "en_attente" ? <FormMessage>{p.renvoi.envoye}</FormMessage> : null}
-      <p className="max-w-2xl text-intro text-taupe">{line}</p>
+      <p className="max-w-2xl text-intro text-encre-taupe">{line}</p>
       {showReason ? (
-        <p className="max-w-2xl text-corps text-taupe">{fill(p.messages.motif, { motif: showReason })}</p>
+        <p className="max-w-2xl text-corps text-encre-taupe">{fill(p.messages.motif, { motif: showReason })}</p>
       ) : null}
-      {status !== "refuse" ? (
-        <Button asChild className="self-start">
-          <Link href={`${SPACES.professionnel}/profil`}>{p.messages.modifierDossier}</Link>
-        </Button>
-      ) : null}
+      <div className="flex flex-wrap gap-3">
+        {status === "valide" ? (
+          <>
+            <Button asChild>
+              <Link href={PROFESSIONAL_REQUESTS_PATH}>{d.professionnelle.lien}</Link>
+            </Button>
+            <Button asChild variant="raye">
+              <Link href={PROFESSIONAL_BOOKINGS_PATH}>{r.professionnelle.lienGardes}</Link>
+            </Button>
+            <Button asChild variant="raye">
+              <Link href={AVAILABILITY_PATH}>{t.espaces.navDisponibilites}</Link>
+            </Button>
+          </>
+        ) : null}
+        {status !== "refuse" ? (
+          <Button asChild variant={status === "valide" ? "raye" : "blanc"}>
+            <Link href={`${SPACES.professionnel}/profil`}>{p.messages.modifierDossier}</Link>
+          </Button>
+        ) : null}
+      </div>
+      {note ? <OwnNote note={note} /> : null}
     </SpaceShell>
   );
 }

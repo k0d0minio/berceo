@@ -11,18 +11,43 @@
  * communes she serves, the documents she uploaded and the declarations she
  * accepted, each append-only where the history matters. `app_settings` holds
  * the founders' switches, and `admin_journal` every admin action, immutable.
+ *
+ * A care request (demande-de-garde) is a family's night: its date, start time,
+ * children and commune, never its address or anything about health (D-20).
+ * A professional answers it (`care_request_applications`) and the family books
+ * one answer (`bookings`, candidature-et-reservation); the address still stays
+ * in `family_profiles`, read live for her booking only (D-77).
+ *
+ * A professional's indicative availability (disponibilites-indicatives) is the
+ * nights she marked available; nothing about a care request reads it (D-12).
+ *
+ * Each answer carries one conversation between the family and the
+ * professional (`conversations`, `messages`, messagerie), open until the
+ * night ends (D-89).
+ *
+ * The service fee (frais-de-service) is one `payments` row per Stripe
+ * Checkout opened, linked to the booking its payment made (D-102, D-93).
+ *
+ * After a garde each side rates the other with stars (avis-etoiles, D-18):
+ * `ratings`, four whole scores and no text, and `rating_invitations`, the
+ * e-mail that asked for them, once per garde and side.
  */
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
+  date,
   index,
   integer,
   jsonb,
   pgEnum,
   pgTable,
   primaryKey,
+  smallint,
   text,
+  time,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -300,6 +325,504 @@ export const professionalDeclarations = pgTable(
   (table) => [index("professional_declarations_profile_id_idx").on(table.profileId)],
 );
 
+/**
+ * The nights a professional says she is likely free (disponibilites-indicatives,
+ * D-12): one row per night marked « Disponible », named by the date of its
+ * evening, like a care request's `night_date`. Two states only (D-81): an
+ * unmarked night has no row, and « Indisponible » deletes it. Indicative:
+ * nothing in the care requests reads this table.
+ */
+export const professionalAvailability = pgTable(
+  "professional_availability",
+  {
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => professionalProfiles.id, { onDelete: "cascade" }),
+    nightDate: date("night_date").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  // Also the index of the « Prochaines disponibilités » read.
+  (table) => [primaryKey({ columns: [table.profileId, table.nightDate] })],
+);
+
+// ---------------------------------------------------------------------------
+// Care requests
+// ---------------------------------------------------------------------------
+
+/**
+ * `ouverte` until the family cancels it or books an answer (`attribuee`,
+ * candidature-et-reservation). The time-driven statuses come with
+ * cycle-de-garde-et-annulation (D-17).
+ */
+export const careRequestStatusEnum = pgEnum("care_request_status", [
+  "ouverte",
+  "annulee",
+  "attribuee",
+]);
+
+/** The guide's two options: « Un bébé », « Jumeaux ». */
+export const careRequestChildrenEnum = pgEnum("care_request_children", ["un_bebe", "jumeaux"]);
+
+export const babyAgeUnitEnum = pgEnum("baby_age_unit", ["semaines", "mois"]);
+
+/**
+ * One night a family asks for (D-20). The commune is copied from her profile
+ * when she publishes (D-63), so a later change of profile never moves it, and
+ * no address column exists here: a professional only ever learns the commune
+ * (D-15). The rules that depend on today (the date windows, a night already
+ * started) live in `src/lib/demandes/rules.ts`; the checks below hold the rest.
+ * The end of the night is start + 11 hours, never stored.
+ */
+export const careRequests = pgTable(
+  "care_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    familyUserId: uuid("family_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: careRequestStatusEnum("status").notNull().default("ouverte"),
+    /** Fixed at publication (D-60): tonight or tomorrow night. */
+    urgent: boolean("urgent").notNull(),
+    nightDate: date("night_date").notNull(),
+    /** A half hour from 18:00 to 23:00, stored as `HH:MM:SS`. */
+    startTime: time("start_time").notNull(),
+    children: careRequestChildrenEnum("children").notNull(),
+    babyAgeValue: smallint("baby_age_value").notNull(),
+    babyAgeUnit: babyAgeUnitEnum("baby_age_unit").notNull(),
+    communeIns: text("commune_ins").notNull(),
+    postcode: text("postcode").notNull(),
+    locality: text("locality").notNull(),
+    /** When the family ticked « Mon enfant n'a pas de condition médicale particulière… ». */
+    noMedicalConditionAt: timestamp("no_medical_condition_at", { withTimezone: true }).notNull(),
+    /** Set when a daily digest carried it (normal requests only); null until then. */
+    digestSentAt: timestamp("digest_sent_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    /**
+     * The professional the family sent it to « en priorité » (D-71): set once,
+     * never changed. She sees it whatever her communes; nobody else waits.
+     */
+    priorityProfileId: uuid("priority_profile_id").references(() => professionalProfiles.id, {
+      onDelete: "set null",
+    }),
+    prioritySentAt: timestamp("priority_sent_at", { withTimezone: true }),
+    /**
+     * When the family last republished it, and how many times (D-70): a normal
+     * one republished after its digest is carried by the next one, and the
+     * count keys the urgent e-mail again.
+     */
+    republishedAt: timestamp("republished_at", { withTimezone: true }),
+    republishCount: smallint("republish_count").notNull().default(0),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("care_requests_priority_profile_id_idx").on(table.priorityProfileId),
+    index("care_requests_commune_status_night_idx").on(
+      table.communeIns,
+      table.status,
+      table.nightDate,
+    ),
+    index("care_requests_family_user_id_idx").on(table.familyUserId),
+    // A family holds at most one open request per night (D-65).
+    uniqueIndex("care_requests_one_open_per_night")
+      .on(table.familyUserId, table.nightDate)
+      .where(sql`${table.status} = 'ouverte'`),
+    // What the next digest has to carry.
+    index("care_requests_digest_pending_idx")
+      .on(table.createdAt)
+      .where(sql`${table.digestSentAt} IS NULL AND NOT ${table.urgent}`),
+    check(
+      "care_requests_start_time_slot",
+      sql`${table.startTime} BETWEEN '18:00' AND '23:00' AND date_part('minute', ${table.startTime}) IN (0, 30) AND date_part('second', ${table.startTime}) = 0`,
+    ),
+    check(
+      "care_requests_baby_age_range",
+      sql`(${table.babyAgeUnit} = 'semaines' AND ${table.babyAgeValue} BETWEEN 0 AND 12) OR (${table.babyAgeUnit} = 'mois' AND ${table.babyAgeValue} BETWEEN 1 AND 24)`,
+    ),
+    check(
+      "care_requests_cancelled_at",
+      sql`(${table.status} = 'annulee') = (${table.cancelledAt} IS NOT NULL)`,
+    ),
+    // A profile deleted later clears the id and leaves the moment: only a set id needs one.
+    check(
+      "care_requests_priority_sent_at",
+      sql`${table.priorityProfileId} IS NULL OR ${table.prioritySentAt} IS NOT NULL`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Answers and bookings
+// ---------------------------------------------------------------------------
+
+/**
+ * An answer's life: `en_attente` while the family chooses; `retenue` when she
+ * books it; `non_retenue` when she books another, republishes or cancels
+ * (D-70, D-76), never to answer that request again; `retiree` when the
+ * professional withdraws it, or when she is booked elsewhere that night (D-73).
+ */
+export const applicationStatusEnum = pgEnum("application_status", [
+  "en_attente",
+  "retenue",
+  "non_retenue",
+  "retiree",
+]);
+
+/**
+ * « Je suis disponible pour cette garde »: one row per professional per
+ * request, re-answering after a withdrawal updates it. The rate is hers at
+ * the moment she answered (D-74): what the family compares and what a booking
+ * carries.
+ */
+export const careRequestApplications = pgTable(
+  "care_request_applications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => careRequests.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => professionalProfiles.id, { onDelete: "cascade" }),
+    status: applicationStatusEnum("status").notNull().default("en_attente"),
+    nightRateEur: integer("night_rate_eur").notNull(),
+    /** Her latest « Je suis disponible », a re-answer included. */
+    answeredAt: timestamp("answered_at", { withTimezone: true }).notNull().defaultNow(),
+    /** How many times she answered; keys the family's e-mail per answer. */
+    answerCount: smallint("answer_count").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("care_request_applications_request_profile_key").on(table.requestId, table.profileId),
+    index("care_request_applications_profile_status_idx").on(table.profileId, table.status),
+    // One booked answer per request, whatever races.
+    uniqueIndex("care_request_applications_one_retenue")
+      .on(table.requestId)
+      .where(sql`${table.status} = 'retenue'`),
+    check(
+      "care_request_applications_night_rate_range",
+      sql`${table.nightRateEur} BETWEEN 100 AND 300`,
+    ),
+  ],
+);
+
+/**
+ * A garde's stored status (D-109): `confirmee` from the payment, `annulee` once
+ * either side cancels it or reports the other absent. À venir, en cours and
+ * terminée are read from the night and the clock (`src/lib/gardes/rules.ts`),
+ * never stored.
+ */
+export const bookingStatusEnum = pgEnum("booking_status", ["confirmee", "annulee"]);
+
+/** One side of a garde: the side a cancellation is recorded against (D-105, D-106). */
+export const bookingSideEnum = pgEnum("booking_side", ["famille", "professionnelle"]);
+
+/** How a garde ended early: cancelled before its start, or an absence reported after it (D-106). */
+export const cancellationKindEnum = pgEnum("cancellation_kind", ["annulation", "absence"]);
+
+/**
+ * The night two people agreed on. Made from one answer, for one request, and
+ * one confirmed garde per professional per night (D-73). It carries no
+ * address: the professional reads the family's through `src/lib/famille/`
+ * (D-77). `src/lib/gardes/` writes its cancellation: `cancelled_by` is the side
+ * responsible (the absent one for an absence), `cancelled_by_user_id` who
+ * clicked (D-105, D-106).
+ */
+export const bookings = pgTable(
+  "bookings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requestId: uuid("request_id")
+      .notNull()
+      .unique()
+      .references(() => careRequests.id, { onDelete: "cascade" }),
+    applicationId: uuid("application_id")
+      .notNull()
+      .unique()
+      .references(() => careRequestApplications.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => professionalProfiles.id, { onDelete: "cascade" }),
+    familyUserId: uuid("family_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** The request's night, copied so the index below can hold one garde a night. */
+    nightDate: date("night_date").notNull(),
+    nightRateEur: integer("night_rate_eur").notNull(),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull().defaultNow(),
+    status: bookingStatusEnum("status").notNull().default("confirmee"),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    cancelledBy: bookingSideEnum("cancelled_by"),
+    cancelledByUserId: uuid("cancelled_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    cancellationKind: cancellationKindEnum("cancellation_kind"),
+    /** When the reminder of the day before claimed it (D-108); null until then. */
+    reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    // One confirmed garde per professional per night: a cancelled one frees it.
+    uniqueIndex("bookings_profile_night_key")
+      .on(table.profileId, table.nightDate)
+      .where(sql`${table.status} = 'confirmee'`),
+    index("bookings_family_night_idx").on(table.familyUserId, table.nightDate),
+    // What the next reminder has to carry.
+    index("bookings_reminder_pending_idx")
+      .on(table.nightDate)
+      .where(sql`${table.status} = 'confirmee' AND ${table.reminderSentAt} IS NULL`),
+    // The founders' list of reported absences.
+    index("bookings_absence_idx")
+      .on(table.cancelledAt)
+      .where(sql`${table.cancellationKind} = 'absence'`),
+    check("bookings_night_rate_range", sql`${table.nightRateEur} BETWEEN 100 AND 300`),
+    check("bookings_cancelled_at", sql`(${table.status} = 'annulee') = (${table.cancelledAt} IS NOT NULL)`),
+    check(
+      "bookings_cancellation",
+      sql`(${table.cancelledAt} IS NULL) = (${table.cancelledBy} IS NULL) AND (${table.cancelledAt} IS NULL) = (${table.cancellationKind} IS NULL)`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Conversations
+// ---------------------------------------------------------------------------
+
+/** Who wrote a message: one of the two people, or Berceo's own two (D-87). */
+export const messageAuthorEnum = pgEnum("message_author", ["berceo", "famille", "professionnelle"]);
+
+/**
+ * Berceo's two messages (D-87), stored as keys and rendered from
+ * `src/content/messagerie.ts`, so a revision of the words reaches every
+ * conversation: the guide's amorce when she answers, the cahier des charges'
+ * « excellente garde » when the family books her.
+ */
+export const berceoMessageEnum = pgEnum("berceo_message", ["amorce", "bonne_garde"]);
+
+/**
+ * One conversation per answer (D-16, D-91): the family who owns the request
+ * and the professional who answered it, nobody else. It is made with the
+ * answer, and a re-answer after a withdrawal finds the same one. The request,
+ * the profile and the family are copied from the answer for the list queries.
+ * Each side's read marker is the last time it opened the conversation; whether
+ * it still accepts messages is read from the request (D-89), never stored.
+ */
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    applicationId: uuid("application_id")
+      .notNull()
+      .unique()
+      .references(() => careRequestApplications.id, { onDelete: "cascade" }),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => careRequests.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => professionalProfiles.id, { onDelete: "cascade" }),
+    familyUserId: uuid("family_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    familyLastReadAt: timestamp("family_last_read_at", { withTimezone: true }),
+    professionalLastReadAt: timestamp("professional_last_read_at", { withTimezone: true }),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("conversations_family_last_message_idx").on(table.familyUserId, table.lastMessageAt),
+    index("conversations_profile_last_message_idx").on(table.profileId, table.lastMessageAt),
+    index("conversations_request_id_idx").on(table.requestId),
+  ],
+);
+
+/**
+ * A message: the people's carry their text (1 to 2 000 characters, plain) and
+ * the id their browser gave it, so a retried send inserts once; Berceo's carry
+ * a key and no text, at most one of each per conversation.
+ */
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    author: messageAuthorEnum("author").notNull(),
+    body: text("body"),
+    berceoKey: berceoMessageEnum("berceo_key"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("messages_conversation_created_idx").on(table.conversationId, table.createdAt),
+    uniqueIndex("messages_one_berceo_key")
+      .on(table.conversationId, table.berceoKey)
+      .where(sql`${table.berceoKey} IS NOT NULL`),
+    check(
+      "messages_berceo_key",
+      sql`(${table.author} = 'berceo') = (${table.berceoKey} IS NOT NULL)`,
+    ),
+    check("messages_body_or_key", sql`(${table.body} IS NULL) = (${table.berceoKey} IS NOT NULL)`),
+    check(
+      "messages_body_length",
+      sql`${table.body} IS NULL OR char_length(${table.body}) BETWEEN 1 AND 2000`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// The service fee
+// ---------------------------------------------------------------------------
+
+/**
+ * A fee's life (D-102, D-103, D-92 to D-94): `en_attente` while its Checkout is open (read as
+ * expired once `expires_at` passes, D-92); `payee` once Stripe reports it paid;
+ * `expiree` when abandoned or expired; `echouee` when an asynchronous payment
+ * failed; `remboursee` once refunded; `remboursement_echoue` when Stripe
+ * reported the refund failed.
+ */
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "en_attente",
+  "payee",
+  "expiree",
+  "echouee",
+  "remboursee",
+  "remboursement_echoue",
+]);
+
+/**
+ * Why a fee was refunded (D-94): the professional cancelled (stub 11), the
+ * booking could no longer be made (D-103), the founders' button (D-101), or a
+ * refund made in Stripe's dashboard.
+ */
+export const refundReasonEnum = pgEnum("refund_reason", [
+  "annulation_professionnelle",
+  "reservation_impossible",
+  "berceo",
+  "stripe",
+]);
+
+/**
+ * One row per Stripe Checkout opened for the 3 % fee (D-99, D-93). The fee is
+ * a money record: every link is set null, never cascaded, so deleting an
+ * account never deletes what was paid, and the night and the rate are kept
+ * on the row. `src/lib/paiements/` reads and writes it; `acceptAnswer` alone
+ * sets `booking_id`, in the booking's own transaction.
+ */
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requestId: uuid("request_id").references(() => careRequests.id, { onDelete: "set null" }),
+    applicationId: uuid("application_id").references(() => careRequestApplications.id, {
+      onDelete: "set null",
+    }),
+    familyUserId: uuid("family_user_id").references(() => users.id, { onDelete: "set null" }),
+    /** The booking this payment made, once made (D-102). */
+    bookingId: uuid("booking_id")
+      .unique()
+      .references(() => bookings.id, { onDelete: "set null" }),
+    nightDate: date("night_date").notNull(),
+    /** The answer's rate the fee was computed from (D-74). */
+    nightRateEur: integer("night_rate_eur").notNull(),
+    /** 3 % of the rate, in cents: rate × 3 (D-99). */
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency").notNull().default("eur"),
+    status: paymentStatusEnum("status").notNull().default("en_attente"),
+    stripeSessionId: text("stripe_session_id").notNull().unique(),
+    stripePaymentIntentId: text("stripe_payment_intent_id"),
+    stripeRefundId: text("stripe_refund_id"),
+    /** When the Checkout closes on its own (30 minutes, D-92). */
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    refundedAt: timestamp("refunded_at", { withTimezone: true }),
+    refundReason: refundReasonEnum("refund_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    // One open Checkout per request (D-92).
+    uniqueIndex("payments_one_open_per_request")
+      .on(table.requestId)
+      .where(sql`${table.status} = 'en_attente'`),
+    index("payments_created_at_idx").on(table.createdAt),
+    index("payments_payment_intent_idx").on(table.stripePaymentIntentId),
+    check("payments_amount_range", sql`${table.amountCents} BETWEEN 300 AND 900`),
+    check("payments_currency", sql`${table.currency} = 'eur'`),
+    check(
+      "payments_paid_at",
+      sql`(${table.status} IN ('payee', 'remboursee', 'remboursement_echoue')) = (${table.paidAt} IS NOT NULL)`,
+    ),
+    check("payments_refund_pair", sql`(${table.refundedAt} IS NULL) = (${table.refundReason} IS NULL)`),
+    check(
+      "payments_refunded",
+      sql`${table.status} NOT IN ('remboursee', 'remboursement_echoue') OR ${table.refundedAt} IS NOT NULL`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Ratings
+// ---------------------------------------------------------------------------
+
+/** The side of the person who rates: the family rates the professional, and the other way round. */
+export const ratingSideEnum = pgEnum("rating_side", ["famille", "professionnelle"]);
+
+/**
+ * One side's stars on one garde (D-18, D-115): four criteria, each 1 to 5, in
+ * the order `src/lib/avis/rules.ts` fixes for the side; never any text. One
+ * per side per garde, never edited (D-117). It counts in the rated person's
+ * note once both sides have rated or 14 days after the night ends (D-116),
+ * read at query time. `src/lib/avis/` is its only reader and writer.
+ */
+export const ratings = pgTable(
+  "ratings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    raterSide: ratingSideEnum("rater_side").notNull(),
+    raterUserId: uuid("rater_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ratedUserId: uuid("rated_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    score1: smallint("score_1").notNull(),
+    score2: smallint("score_2").notNull(),
+    score3: smallint("score_3").notNull(),
+    score4: smallint("score_4").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("ratings_booking_side_key").on(table.bookingId, table.raterSide),
+    index("ratings_rated_user_idx").on(table.ratedUserId),
+    index("ratings_created_idx").on(table.createdAt),
+    check("ratings_score_1", sql`${table.score1} BETWEEN 1 AND 5`),
+    check("ratings_score_2", sql`${table.score2} BETWEEN 1 AND 5`),
+    check("ratings_score_3", sql`${table.score3} BETWEEN 1 AND 5`),
+    check("ratings_score_4", sql`${table.score4} BETWEEN 1 AND 5`),
+  ],
+);
+
+/**
+ * The invitation to rate a garde, once per garde and side (D-120): the row is
+ * the claim, taken just before the send and removed when the send fails.
+ */
+export const ratingInvitations = pgTable(
+  "rating_invitations",
+  {
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    side: ratingSideEnum("side").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.bookingId, table.side] })],
+);
+
 // ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------
@@ -326,6 +849,7 @@ export const adminActionEnum = pgEnum("admin_action", [
   "profil_refuse",
   "reglage_etudiantes",
   "documents_supprimes",
+  "frais_rembourses",
 ]);
 
 /**
@@ -369,3 +893,23 @@ export type AdminAction = (typeof adminActionEnum.enumValues)[number];
 export type AdminJournalEntry = typeof adminJournal.$inferSelect;
 export type Declaration = (typeof declarationEnum.enumValues)[number];
 export type ProfessionalDocument = typeof professionalDocuments.$inferSelect;
+export type ProfessionalAvailability = typeof professionalAvailability.$inferSelect;
+export type CareRequest = typeof careRequests.$inferSelect;
+export type CareRequestStatus = (typeof careRequestStatusEnum.enumValues)[number];
+export type CareRequestChildren = (typeof careRequestChildrenEnum.enumValues)[number];
+export type BabyAgeUnit = (typeof babyAgeUnitEnum.enumValues)[number];
+export type CareRequestApplication = typeof careRequestApplications.$inferSelect;
+export type ApplicationStatus = (typeof applicationStatusEnum.enumValues)[number];
+export type Booking = typeof bookings.$inferSelect;
+export type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
+export type BookingSide = (typeof bookingSideEnum.enumValues)[number];
+export type CancellationKind = (typeof cancellationKindEnum.enumValues)[number];
+export type Conversation = typeof conversations.$inferSelect;
+export type Message = typeof messages.$inferSelect;
+export type MessageAuthor = (typeof messageAuthorEnum.enumValues)[number];
+export type BerceoMessage = (typeof berceoMessageEnum.enumValues)[number];
+export type Payment = typeof payments.$inferSelect;
+export type PaymentStatus = (typeof paymentStatusEnum.enumValues)[number];
+export type RefundReason = (typeof refundReasonEnum.enumValues)[number];
+export type Rating = typeof ratings.$inferSelect;
+export type RatingSide = (typeof ratingSideEnum.enumValues)[number];

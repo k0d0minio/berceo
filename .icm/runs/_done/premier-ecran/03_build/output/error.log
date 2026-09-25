@@ -1,0 +1,5 @@
+## 2026-09-25T15:55:00Z session — the preview scrolls sideways at 320 px on `/`
+measure.mjs on 7022ee1: `/ 320 {"hScroll":true, … "colW":309}` — documentElement.scrollWidth 325 > clientWidth 320;
+the overflowing chain ends at the family door `A.inline-flex min-h-12 shrink-0 … whitespace-nowrap` (« Trouver votre gardienne de la nuit »), r=325. Same on uat.berceo.be (main).
+- resolved: a `whitespace-nowrap` capsule sets the min-content width of its grid column, so at 320 px the 293 px family door widened the 288 px column; `CtaPair` now drops the doors' side padding to px-5 below sm, and the page no longer scrolls at 320.
+- rule: before shipping a vitrine layout change, measure it at 320 px as well as 390: a no-wrap capsule (Button is `whitespace-nowrap`) wider than 288 px widens its grid column and scrolls the page sideways.

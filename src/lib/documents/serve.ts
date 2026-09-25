@@ -1,8 +1,10 @@
+import type { DocumentKind, ProfileStatus } from "@/db/schema";
 import { canReadFile } from "@/lib/professionnelle/rules";
 
 /**
  * `/api/fichiers/[id]`: a professional's document or photo, streamed to its
- * owner or to an admin, and a 404 to anyone else, signed in or not, so the
+ * owner or to an admin, her photo also to a signed-in family once her profile
+ * is validated (D-75), and a 404 to anyone else, signed in or not, so the
  * route never confirms that a file exists. The logic lives here, with its
  * collaborators passed in, so the tests hold it to the spec without a
  * database or a bucket; the route file wires the real ones.
@@ -12,6 +14,9 @@ export type Viewer = { id: string; role: "parent" | "professionnel" | "admin" } 
 
 export type StoredFile = {
   ownerUserId: string;
+  kind: DocumentKind;
+  /** The owner's profile status: a family reads only a validated one's photo. */
+  profileStatus: ProfileStatus;
   storageKey: string;
   contentType: string;
   fileName: string;
@@ -50,16 +55,21 @@ export async function serveFile(id: string, deps: ServeDeps): Promise<Response> 
   if (!viewer) return notFound();
 
   const file = await deps.findFile(id);
-  if (!file || !canReadFile(file.ownerUserId, viewer)) return notFound();
+  if (!file || !canReadFile(file.ownerUserId, viewer, file)) return notFound();
 
   const body = await deps.read(file.storageKey);
   if (!body) return notFound();
+
+  // A family reads her photo, never the name she gave the file: it may carry her
+  // surname, which a family does not learn before a booking (D-75).
+  const owner = viewer.role === "admin" || viewer.id === file.ownerUserId;
+  const fileName = owner ? file.fileName : "photo";
 
   return new Response(body, {
     status: 200,
     headers: {
       "content-type": file.contentType,
-      "content-disposition": disposition(file.fileName),
+      "content-disposition": disposition(fileName),
       // Private to this session: never stored by a shared cache.
       "cache-control": "private, no-store",
       "x-content-type-options": "nosniff",

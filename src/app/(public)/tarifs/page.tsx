@@ -34,7 +34,7 @@ export default function TarifsPage() {
       <PageHeader
         title={t.title}
         intro={t.intro}
-        aside={<Photo photo={p.oursBerceau} preload />}
+        aside={<Photo photo={p.oursBerceau} preload fillHeight />}
       />
 
       <VitrineSection tone="perle">
@@ -42,7 +42,7 @@ export default function TarifsPage() {
           {blocks.map((block) => (
             <Card key={block.title}>
               <CardHeader>
-                <h2 className="font-display text-h3 text-sauge">
+                <h2 className="font-display text-h3 text-encre-sauge">
                   {block.title}
                 </h2>
               </CardHeader>
@@ -62,7 +62,7 @@ export default function TarifsPage() {
           </Button>
           <Link
             href={c.pages.faq.href}
-            className="font-semibold text-sauge underline underline-offset-4"
+            className="font-semibold text-encre-sauge underline underline-offset-4"
           >
             {t.faq}
           </Link>

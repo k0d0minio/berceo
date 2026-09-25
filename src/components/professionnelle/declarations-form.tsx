@@ -25,12 +25,12 @@ function DeclarationsForm() {
         <FormMessage>{t.erreurs[state.message]}</FormMessage>
       ) : null}
 
-      <p className="text-corps text-taupe">{t.declarations.intro}</p>
+      <p className="text-corps text-encre-taupe">{t.declarations.intro}</p>
 
       <fieldset className="flex flex-col gap-4">
         <legend className="sr-only">{t.etapes.titres.declarations}</legend>
         {DECLARATIONS.map((key) => (
-          <label key={key} className="flex items-start gap-3 text-corps text-taupe">
+          <label key={key} className="flex items-start gap-3 text-corps text-encre-taupe">
             <input
               type="checkbox"
               name="declarations"

@@ -31,7 +31,7 @@ export default async function JustificatifsStepPage() {
   return (
     <SpaceShell user={user} title={t.etapes.titres.justificatifs}>
       <StepsHeader current="justificatifs" done={done} />
-      <p className="max-w-2xl text-corps text-taupe">{t.justificatifs.intro}</p>
+      <p className="max-w-2xl text-corps text-encre-taupe">{t.justificatifs.intro}</p>
       <DocumentsForm
         mode="onboarding"
         profession={profession}

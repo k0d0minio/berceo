@@ -190,10 +190,16 @@ export const comptes = catalogue({
       navAccueil: "Mon espace",
       /** @relecture Surya — entrée de navigation vers le profil de la famille. */
       navProfil: "Mon profil",
-      famille: {
-        /** @relecture Surya — espace famille avant la publication des demandes. */
-        vide: "Votre espace est prêt. Vous pourrez bientôt y publier vos demandes de garde.",
-      },
+      /** @relecture Surya — entrée de navigation vers les demandes de la famille. */
+      navDemandesFamille: "Mes demandes",
+      /** @relecture Surya — entrée de navigation vers les demandes de la zone de la professionnelle. */
+      navDemandesProfessionnelle: "Demandes",
+      /** @relecture Surya — entrée de navigation vers les réservations de la famille. */
+      navReservations: "Mes réservations",
+      /** @relecture Surya — entrée de navigation vers les gardes de la professionnelle. */
+      navGardes: "Mes gardes",
+      /** @relecture Surya — entrée de navigation vers le calendrier de la professionnelle ; le titre du guide. */
+      navDisponibilites: "Mes disponibilités",
       professionnelle: {
         enAttente:
           "Votre compte est en attente de validation. Nous vous contacterons dès que votre profil sera activé.",

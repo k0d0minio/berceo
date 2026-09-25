@@ -211,3 +211,42 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - Before `/security-review` in a cloud session, run `git remote set-head origin main`; the skill diffs against `origin/HEAD`, which a fresh clone lacks. (`FAILURE.md` — verification-back-office)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - To prove server code against the run's Neon branch, run a throwaway `scripts/.probe-*.mts` with `npx tsx --conditions=react-server` (`.mts` for top-level await; `users` rows need an `auth_user_id`), then delete it before committing. (`FAILURE.md` — verification-back-office)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Before Define numbers a new decision, read the highest `D-n` on `main` and on every open run's branch, not only `main` and the archive: sibling runs defined the same day otherwise take the same ids. (`FAILURE.md` — demande-de-garde)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When an edit re-checks a value against a rule that depends on today (a date window), accept the stored value unchanged; only a new value is held to today's rule. (`FAILURE.md` — demande-de-garde)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Build a link sent to other people (an e-mail) from the host the request reached, never from the client's `Origin` header, whose scheme and path the caller chooses. (`FAILURE.md` — demande-de-garde)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Test calendar or date-grid layout from several start weekdays, including one where a month begins in the first row, and head each month's own block rather than a week row. (`FAILURE.md` — disponibilites-indicatives)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Before Build numbers a decision, read the highest `D-n` on `main` and on every open run's branch, the same as Define does. (`FAILURE.md` — candidature-et-reservation)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- A rule a pure module states must be held again in the SQL of every write it governs (an UPDATE's WHERE, not a read before it); review each write path against the rules list before the flip. (`FAILURE.md` — candidature-et-reservation)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Never use an enum value added by `ALTER TYPE … ADD VALUE` in a check, index or default of the same Drizzle migration; Postgres refuses it in that transaction, so put that use in the next migration. (`FAILURE.md` — candidature-et-reservation)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When a spec changes colours platform-wide, Define lists every text and surface pair from every component under `src/components/ui/` that sets its own background (the confirmation dialog, the translucent veil included), and measures each proposed value on every surface the change moves text onto. (`FAILURE.md` — encres-contraste)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- After merging `main` at Release, grep the branch's new files for every pattern a repo-wide source test on `main` refuses (for example `src/app/contrast.test.ts`), since the advisory job only reads it after the push. (`FAILURE.md` — messagerie)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Before Define numbers a decision, list every remote branch (`git branch -r`) and grep each for its highest `D-n`; a same-day sibling's branch counts even before it has a PR. (`FAILURE.md` — frais-de-service)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When a payment is taken before the work it pays for, design for the holder of the lock failing: whatever state it leaves must be one the next caller (webhook retry, return page, refresh) can finish, never one only a retry that may not come can. (`FAILURE.md` — frais-de-service)
+
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- before shipping a vitrine layout change, measure it at 320 px as well as 390: a no-wrap capsule (Button is `whitespace-nowrap`) wider than 288 px widens its grid column and scrolls the page sideways. (`measure.mjs on neen: `/ n {"hscroll":true, … "colw":n}` — documentel`, seen 1× — premier-ecran; src/app, src/components)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When a spec names a narrowest width and a type floor for a heading, Define measures the heading's longest word at that floor against the column that width leaves (after gutters), and settles the conflict before approval. (`FAILURE.md` — premier-ecran)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Before Define numbers a decision, grep `.icm/runs/*/decisions.md` and `.icm/runs/_done/*/decisions.md` for the scope's highest `D-n`; the earlier runs of the same scope number theirs after `scope.md`'s table. (`FAILURE.md` — blocs-accueil)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Right before Define commits its decisions, re-read the highest `D-n` on every remote branch again, not only when numbering them: a sibling Define an hour earlier or later takes the same ids otherwise. (`FAILURE.md` — cycle-de-garde-et-annulation)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- A path that reopens or republishes something for a slot (a night, a date) checks for any live record of that slot (open or already booked again), not only the open one a partial unique index covers. (`FAILURE.md` — cycle-de-garde-et-annulation)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When a job sends one e-mail per claimed row, claim each row just before its send and release the claim when the send fails; never claim the whole batch first. (`FAILURE.md` — cycle-de-garde-et-annulation)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When Define specifies a run ahead of the stub it depends on, it names the facts it will read from that stub and lets Build re-read that stub's merged rules for any later transition (a window that changes the state after the fact) before writing code. (`FAILURE.md` — avis-etoiles)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- A run defined ahead of its dependency numbers its decisions only at Build, after that dependency has merged; until then its spec uses the numbers provisionally and says so. (`FAILURE.md` — avis-etoiles)
