@@ -1,7 +1,7 @@
 # Build notes: encres-contraste
 
 - commits: 2473f09 (the inks, the contract, the contrast test), ab11feb (the rename, the surfaces and controls, the design system page)
-- ci: pending — the draft head owes nothing; the full verdict settles after the ready flip
+- ci: GREEN on 5d30df8 — the Vercel preview and Quality (advisory) (lint, typecheck, vitest with the contrast test) both passed
 
 ## What changed
 
