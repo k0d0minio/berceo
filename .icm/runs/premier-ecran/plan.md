@@ -41,6 +41,12 @@ reality disagrees with it — never left describing a plan that was abandoned.
    screen. The measurements go into the PR body's test notes. Done when: every
    definition-of-done line in `tasks.md` is met on the preview.
 
+## As built
+
+- Passes 1–4 landed as planned, with the photo column fixed at 22rem (text 696 px from 1280; the H1 needs 682 px for 4 lines at 60 px, measured before editing). `--taille-h1` and the container did not move.
+- Added after the first measurement: the doors' side padding below sm (`cta-pair.tsx`) and, by the operator's choice, the hero's 12 px gutter and 38 px H1 below 360 px (D-16). The 320 px case had not been measured in Define (`FAILURE.md`).
+- The hero crop's focal point moved from 20 % to 30 % after the 1024 px screenshot.
+
 ## Risks
 
 - The 88-character H1 may not reach 4 lines at 60 px in a text column that still leaves the
