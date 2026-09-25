@@ -101,6 +101,15 @@ export const emails = catalogue({
       cta: "Voir les détails de ma réservation",
     },
 
+    /** @relecture Surya — la garde payée n'a pas pu être réservée, les frais sont remboursés (frais-de-service, D-91). */
+    remboursementFamille: {
+      objet: "Votre garde du {date} n'a pas pu être confirmée",
+      corps:
+        "Votre paiement est arrivé alors que la demande ou la réponse de la professionnelle avait changé. La garde du {date} n'a donc pas pu être réservée.",
+      remboursement: "Les frais de service de {montant} vous sont intégralement remboursés.",
+      cta: "Voir ma demande",
+    },
+
     /** Confirmation de réservation (professionnelle), le guide ; « Bonne nuit ! » perd son point d'exclamation (D-78). */
     reservationProfessionnelle: {
       objet: "Garde confirmée : {date} chez {prenomFamille}",

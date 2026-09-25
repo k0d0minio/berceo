@@ -574,7 +574,8 @@ export const refundReasonEnum = pgEnum("refund_reason", [
  * One row per Stripe Checkout opened for the 3 % fee (D-87, D-93). The fee is
  * a money record: every link is set null, never cascaded, so deleting an
  * account never deletes what was paid, and the night and the rate are kept
- * on the row. Only `src/lib/paiements/` reads and writes it.
+ * on the row. `src/lib/paiements/` reads and writes it; `acceptAnswer` alone
+ * sets `booking_id`, in the booking's own transaction.
  */
 export const payments = pgTable(
   "payments",

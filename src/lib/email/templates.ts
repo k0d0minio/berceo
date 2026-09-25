@@ -289,6 +289,27 @@ export function bookingFamilyEmail(input: {
   };
 }
 
+/** A paid fee whose booking could no longer be made: the fee is refunded in full (frais-de-service, D-91). */
+export function refundFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  date: string;
+  /** « 4,11 € ». */
+  montant: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.remboursementFamille;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { date: input.date }), fill(r.remboursement, { montant: input.montant })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
 /** Her garde is confirmed; the family's address waits on her booking page (D-72). */
 export function bookingProfessionalEmail(input: {
   siteUrl: string;
