@@ -1,9 +1,10 @@
 import "server-only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
-import { bookings, db, familyProfiles, professionalProfiles, users } from "@/db";
+import { bookings, careRequests, db, familyProfiles, professionalProfiles, users } from "@/db";
 import { findLocality, type Locality } from "@/lib/communes";
+import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
 import { hasAddress } from "@/lib/reservations/rules";
 
 import type { ProfileValues } from "./validation";
@@ -99,8 +100,10 @@ export const bookingAddressColumns = {
 
 /**
  * The family's address for the booking `bookingId`, only when the professional
- * whose user id is `professionalUserId` is the one booked. Anyone else, and an
- * unknown booking, reads null: the booking's own ownership is the gate.
+ * whose user id is `professionalUserId` is the one booked, and only on a
+ * confirmed garde whose night has not ended (D-110, `isAddressVisible` in
+ * `src/lib/gardes/rules.ts`). Anyone else, a cancelled or finished garde, and
+ * an unknown booking read null: the booking's own ownership is the gate.
  */
 export async function bookingAddress(
   bookingId: string,
@@ -111,7 +114,15 @@ export async function bookingAddress(
     .from(bookings)
     .innerJoin(professionalProfiles, eq(professionalProfiles.id, bookings.profileId))
     .innerJoin(familyProfiles, eq(familyProfiles.userId, bookings.familyUserId))
-    .where(and(eq(bookings.id, bookingId), eq(professionalProfiles.userId, professionalUserId)))
+    .innerJoin(careRequests, eq(careRequests.id, bookings.requestId))
+    .where(
+      and(
+        eq(bookings.id, bookingId),
+        eq(professionalProfiles.userId, professionalUserId),
+        eq(bookings.status, "confirmee"),
+        sql`(${careRequests.nightDate} + ${careRequests.startTime} + make_interval(hours => ${NIGHT_HOURS}::int)) > (now() AT TIME ZONE ${TIME_ZONE})`,
+      ),
+    )
     .limit(1);
   return row ?? null;
 }

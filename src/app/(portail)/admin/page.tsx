@@ -7,11 +7,13 @@ import { StudentsSwitch } from "@/components/admin/students-switch";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { admin } from "@/content/admin";
 import { comptes } from "@/content/comptes";
-import { words } from "@/content/locale";
+import { fill, words } from "@/content/locale";
 import { db, users } from "@/db";
 import { loadQueue } from "@/lib/admin/review";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
+import { absenceCount } from "@/lib/gardes/gardes";
+import { ADMIN_ABSENCES_PATH } from "@/lib/gardes/paths";
 import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths";
 import { studentsSetting } from "@/lib/settings";
 
@@ -34,13 +36,14 @@ const dateTime = new Intl.DateTimeFormat("fr-BE", {
 /*
  * The founders' back-office. Anyone but an admin, signed in or not, gets a 404
  * (D-33). It opens on the verification queue (verification-back-office), then
- * the settings (the students switch, D-7), the journal and the service fees
- * (frais-de-service); the dashboard and the rest arrive with stub 14.
+ * the settings (the students switch, D-7), the journal, the service fees
+ * (frais-de-service) and the reported absences (cycle-de-garde-et-annulation,
+ * D-106); the dashboard and the rest arrive with stub 14.
  */
 export default async function AdminPage() {
   const user = await requireAccess(SPACES.admin);
 
-  const [setting, queue] = await Promise.all([studentsSetting(), loadQueue()]);
+  const [setting, queue, absences] = await Promise.all([studentsSetting(), loadQueue(), absenceCount()]);
   const [author] = setting.updatedBy
     ? await db
         .select({ firstName: users.firstName, lastName: users.lastName })
@@ -72,6 +75,12 @@ export default async function AdminPage() {
         className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
       >
         {a.file.lienPaiements}
+      </Link>
+      <Link
+        href={ADMIN_ABSENCES_PATH}
+        className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
+      >
+        {fill(a.file.lienAbsences, { n: String(absences) })}
       </Link>
     </SpaceShell>
   );

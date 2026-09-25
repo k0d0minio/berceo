@@ -215,7 +215,7 @@ export const reservations = catalogue({
       /** @relecture Surya — titre. */
       titre: "Mes gardes",
       /** @relecture Surya — introduction. */
-      intro: "Vos gardes confirmées. L'adresse de la famille figure sur chaque garde.",
+      intro: "Vos gardes. L'adresse de la famille figure sur chaque garde confirmée, jusqu'à la fin de la nuit.",
       /** @relecture Surya — aucune garde. */
       vide: "Vous n'avez pas encore de garde confirmée.",
       /** @relecture Surya — gardes à venir. */

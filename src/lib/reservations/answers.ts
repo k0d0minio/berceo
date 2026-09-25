@@ -65,6 +65,7 @@ export async function answerRequest(userId: string, requestId: string, now: Date
       bookedThatNight: sql<boolean>`exists (
         select 1 from ${bookings}
         where ${bookings.profileId} = ${profile.id} and ${bookings.nightDate} = ${careRequests.nightDate}
+          and ${bookings.status} = 'confirmee'
       )`,
       answer: careRequestApplications.status,
     })
@@ -113,7 +114,8 @@ export async function answerRequest(userId: string, requestId: string, now: Date
         )
       )
       and not exists (
-        select 1 from bookings b where b.profile_id = p.id and b.night_date = r.night_date
+        select 1 from bookings b
+        where b.profile_id = p.id and b.night_date = r.night_date and b.status = 'confirmee'
       )
     on conflict (request_id, profile_id) do update
       set status = 'en_attente',

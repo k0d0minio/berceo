@@ -3,20 +3,40 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { FormMessage } from "@/components/auth/field";
 import { RequestCard } from "@/components/demandes/request-card";
+import { CancelGarde, ReportAbsence } from "@/components/gardes/garde-dialogs";
+import { GardeStateMark } from "@/components/gardes/garde-state";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
+import { gardes } from "@/content/gardes";
 import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
 import { conversationOfBooking } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
+import { cancelledLine } from "@/lib/gardes/format";
+import { canCancel, canReportAbsence, gardeState, isAddressVisible } from "@/lib/gardes/rules";
 import { professionalBooking } from "@/lib/reservations/bookings";
 import { PROFESSIONAL_BOOKINGS_PATH, professionalBookingPath } from "@/lib/reservations/paths";
 
+import { cancelGardeAction, reportAbsenceAction } from "../actions";
+
 const t = words(reservations);
 const m = words(messagerie);
+const g = words(gardes);
+
+type Notice = { annulee?: string; absence?: string; erreur?: string };
+
+/** The line a redirect back here asks for: after a cancellation, a report, or a refusal. */
+function noticeText(notice: Notice): string | null {
+  if (notice.annulee === "1") return g.annulation.faite;
+  if (notice.absence === "1") return g.absence.faite;
+  const erreur = notice.erreur;
+  if (erreur === "annulation" || erreur === "absence" || erreur === "generique") return g.erreurs[erreur];
+  return null;
+}
 
 export const metadata: Metadata = {
   title: t.meta.garde,
@@ -38,10 +58,21 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
  * One of her gardes: the night, the children, the booked rate, and, only here
  * and only on her own booking, the family's names, full address and phone
  * (D-15, D-72). The address is read live from the family's profile through
- * src/lib/famille/. Another professional's booking, like an unknown one, is
- * not found.
+ * src/lib/famille/, only while the garde is confirmed and its night not
+ * ended (D-110). Another professional's booking, like an unknown one, is not
+ * found.
+ *
+ * The garde's life (cycle-de-garde-et-annulation): its state (D-109);
+ * « Annuler la garde » until the start hour (D-105); « Signaler une absence »
+ * from it until 24 hours after the night (D-106); once cancelled, who and when.
  */
-export default async function GardePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function GardePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Notice>;
+}) {
   const { id } = await params;
   const user = await requireAccess(professionalBookingPath(id));
   const booking = await professionalBooking(user.id, id);
@@ -50,11 +81,18 @@ export default async function GardePage({ params }: { params: Promise<{ id: stri
   const { family } = booking;
   const conversationId = await conversationOfBooking(user.id, "professionnelle", id);
   const address = family.address;
+  const notice = noticeText(await searchParams);
+  const now = new Date();
+  const facts = { status: booking.garde.status, nightDate: booking.request.nightDate, startTime: booking.request.startTime };
+  const cancelled = cancelledLine(booking.garde, "professionnelle", family.firstName);
 
   return (
     <SpaceShell user={user} title={t.meta.garde}>
-      <div className="max-w-2xl">
+      {notice ? <FormMessage>{notice}</FormMessage> : null}
+      <div className="flex max-w-2xl flex-col gap-3">
+        <GardeStateMark state={gardeState(facts, now)} />
         <RequestCard request={booking.request} rate={booking.nightRateEur} />
+        {cancelled ? <p className="text-corps font-semibold text-encre-taupe">{cancelled}</p> : null}
       </div>
       <section className="flex max-w-2xl flex-col gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">
         <h2 className="font-display text-h3 text-encre-sauge uppercase">{t.gardes.famille}</h2>
@@ -68,8 +106,10 @@ export default async function GardePage({ params }: { params: Promise<{ id: stri
                 <br />
                 {`${address.postcode} ${address.locality}`}
               </>
-            ) : (
+            ) : isAddressVisible(facts, now) ? (
               t.gardes.nonRenseigne
+            ) : (
+              g.adresseMasquee
             )}
           </Row>
           <Row label={t.recapitulatif.libelles.telephone}>
@@ -94,6 +134,18 @@ export default async function GardePage({ params }: { params: Promise<{ id: stri
         <Button asChild variant="raye">
           <Link href={PROFESSIONAL_BOOKINGS_PATH}>{t.gardes.retour}</Link>
         </Button>
+        {canCancel(facts, now) ? (
+          <CancelGarde
+            description={g.annulation.descriptionProfessionnelle}
+            onCancel={cancelGardeAction.bind(null, booking.id)}
+          />
+        ) : null}
+        {canReportAbsence(facts, now) ? (
+          <ReportAbsence
+            description={g.absence.descriptionProfessionnelle}
+            onReport={reportAbsenceAction.bind(null, booking.id)}
+          />
+        ) : null}
       </div>
     </SpaceShell>
   );
