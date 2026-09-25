@@ -12,6 +12,7 @@ import { db, users } from "@/db";
 import { loadQueue } from "@/lib/admin/review";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
+import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths";
 import { studentsSetting } from "@/lib/settings";
 
 const t = words(comptes);
@@ -33,8 +34,8 @@ const dateTime = new Intl.DateTimeFormat("fr-BE", {
 /*
  * The founders' back-office. Anyone but an admin, signed in or not, gets a 404
  * (D-33). It opens on the verification queue (verification-back-office), then
- * the settings (the students switch, D-7) and the journal; the dashboard and
- * the rest arrive with stub 14.
+ * the settings (the students switch, D-7), the journal and the service fees
+ * (frais-de-service); the dashboard and the rest arrive with stub 14.
  */
 export default async function AdminPage() {
   const user = await requireAccess(SPACES.admin);
@@ -65,6 +66,12 @@ export default async function AdminPage() {
         className="self-start text-corps font-semibold text-sauge underline underline-offset-4"
       >
         {a.file.lienJournal}
+      </Link>
+      <Link
+        href={ADMIN_PAYMENTS_PATH}
+        className="self-start text-corps font-semibold text-sauge underline underline-offset-4"
+      >
+        {a.file.lienPaiements}
       </Link>
     </SpaceShell>
   );
