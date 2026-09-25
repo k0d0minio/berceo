@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AdminShell } from "@/components/admin/admin-shell";
 import { RatingsTable } from "@/components/avis/ratings-table";
-import { SpaceShell } from "@/components/shell/space-shell";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { requireAccess } from "@/lib/auth/guard";
-import { SPACES } from "@/lib/auth/routing";
 import { ADMIN_RATINGS_PATH } from "@/lib/avis/paths";
 import { ADMIN_PAGE_SIZE, adminRatingCount, adminRatings } from "@/lib/avis/ratings";
 
@@ -24,7 +23,7 @@ const link = "self-start text-corps font-semibold text-encre-sauge underline und
 /*
  * « Avis après les gardes » (avis-etoiles, G-03, D-118): every rating, published
  * or not, newest first, 50 a page. Read-only: it writes and journals nothing;
- * back-office-admin folds it into the « Vue d'ensemble ». A 404 to anyone but
+ * back-office-admin reaches it from the back-office's navigation. A 404 to anyone but
  * an admin (D-33).
  */
 export default async function AvisPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
@@ -37,10 +36,7 @@ export default async function AvisPage({ searchParams }: { searchParams: Promise
   const rows = await adminRatings(page);
 
   return (
-    <SpaceShell user={user} title={a.avis.titre}>
-      <Link href={SPACES.admin} className={link}>
-        {a.avis.retour}
-      </Link>
+    <AdminShell user={user} title={a.avis.titre} current="avis">
       <p className="max-w-3xl text-corps text-encre-taupe">{a.avis.intro}</p>
       {rows.length === 0 ? (
         <p className="text-corps text-encre-taupe">{a.avis.vide}</p>
@@ -62,6 +58,6 @@ export default async function AvisPage({ searchParams }: { searchParams: Promise
           ) : null}
         </nav>
       ) : null}
-    </SpaceShell>
+    </AdminShell>
   );
 }

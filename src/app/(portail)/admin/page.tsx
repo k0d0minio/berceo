@@ -1,100 +1,74 @@
-import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { QueueTable } from "@/components/admin/queue-table";
-import { StudentsSwitch } from "@/components/admin/students-switch";
-import { SpaceShell } from "@/components/shell/space-shell";
+import { AdminShell } from "@/components/admin/admin-shell";
+import { listHref } from "@/components/admin/list-controls";
 import { admin } from "@/content/admin";
 import { comptes } from "@/content/comptes";
-import { fill, words } from "@/content/locale";
-import { db, users } from "@/db";
+import { words } from "@/content/locale";
+import { bookingCount, reportCount } from "@/lib/admin/lists";
+import { ADMIN_BOOKINGS_PATH, ADMIN_FILES_PATH, ADMIN_REPORTS_PATH } from "@/lib/admin/paths";
 import { loadQueue } from "@/lib/admin/review";
+import { RECENT_PERIOD, recentPaymentCutoff } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
-import { ADMIN_RATINGS_PATH } from "@/lib/avis/paths";
-import { adminRatingCount } from "@/lib/avis/ratings";
-import { absenceCount } from "@/lib/gardes/gardes";
-import { ADMIN_ABSENCES_PATH } from "@/lib/gardes/paths";
 import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths";
-import { studentsSetting } from "@/lib/settings";
+import { paymentCountSince } from "@/lib/paiements/payments";
 
-const t = words(comptes);
 const a = words(admin);
 
 export const metadata: Metadata = {
-  title: t.espaces.admin.title,
+  title: words(comptes).espaces.admin.title,
   robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
 
-const dateTime = new Intl.DateTimeFormat("fr-BE", {
-  dateStyle: "long",
-  timeStyle: "short",
-  timeZone: "Europe/Brussels",
-});
-
 /*
- * The founders' back-office. Anyone but an admin, signed in or not, gets a 404
- * (D-33). It opens on the verification queue (verification-back-office), then
- * the settings (the students switch, D-7), the journal, the service fees
- * (frais-de-service) and the reported absences (cycle-de-garde-et-annulation,
- * D-106), and the ratings (avis-etoiles); the dashboard and the rest arrive with stub 14.
+ * « Vue d'ensemble » (the guide, « Le backoffice »; back-office-admin, D-133):
+ * four blocks, each a number and a link to the full list. Each number is
+ * counted by the same condition its list filters on, so the two never
+ * disagree. Anyone but an admin, signed in or not, gets a 404 (D-33).
  */
 export default async function AdminPage() {
   const user = await requireAccess(SPACES.admin);
+  const now = new Date();
 
-  const [setting, queue, absences, ratingCount] = await Promise.all([
-    studentsSetting(),
+  const [queue, bookings, reports, payments] = await Promise.all([
     loadQueue(),
-    absenceCount(),
-    adminRatingCount(),
+    bookingCount("en-cours"),
+    reportCount(),
+    paymentCountSince(recentPaymentCutoff(now)),
   ]);
-  const [author] = setting.updatedBy
-    ? await db
-        .select({ firstName: users.firstName, lastName: users.lastName })
-        .from(users)
-        .where(eq(users.id, setting.updatedBy))
-        .limit(1)
-    : [];
-  const changed = setting.updatedAt
-    ? {
-        date: dateTime.format(setting.updatedAt),
-        name: author ? `${author.firstName} ${author.lastName}` : "",
-      }
-    : null;
+
+  const blocks = [
+    { key: "dossiers", n: queue.length, href: ADMIN_FILES_PATH },
+    { key: "reservations", n: bookings, href: listHref(ADMIN_BOOKINGS_PATH, { etat: "en-cours" }) },
+    { key: "signalements", n: reports, href: ADMIN_REPORTS_PATH },
+    { key: "paiements", n: payments, href: listHref(ADMIN_PAYMENTS_PATH, { periode: RECENT_PERIOD }) },
+  ] as const;
 
   return (
-    <SpaceShell user={user} title={t.espaces.admin.title}>
-      <h2 className="font-display text-h2 text-encre-sauge">{a.file.titre}</h2>
-      <QueueTable rows={queue} studentsAdmitted={setting.value} />
-      <h2 className="font-display text-h2 text-encre-sauge">{a.reglages.titre}</h2>
-      <StudentsSwitch value={setting.value} changed={changed} />
-      <Link
-        href={`${SPACES.admin}/journal`}
-        className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
-      >
-        {a.file.lienJournal}
-      </Link>
-      <Link
-        href={ADMIN_PAYMENTS_PATH}
-        className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
-      >
-        {a.file.lienPaiements}
-      </Link>
-      <Link
-        href={ADMIN_ABSENCES_PATH}
-        className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
-      >
-        {fill(a.file.lienAbsences, { n: String(absences) })}
-      </Link>
-      <Link
-        href={ADMIN_RATINGS_PATH}
-        className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
-      >
-        {fill(a.file.lienAvis, { n: String(ratingCount) })}
-      </Link>
-    </SpaceShell>
+    <AdminShell user={user} title={a.vueEnsemble.titre} current="vueEnsemble">
+      <ul className="grid gap-6 sm:grid-cols-2">
+        {blocks.map((block) => (
+          <li
+            key={block.key}
+            className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-8"
+          >
+            <h2 className="font-display text-h3 text-encre-sauge">{a.vueEnsemble.blocs[block.key]}</h2>
+            <p className="font-display text-h1 text-encre-sauge">{block.n}</p>
+            <p className="text-corps text-encre-taupe">{a.vueEnsemble.precisions[block.key]}</p>
+            <Link
+              href={block.href}
+              className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
+            >
+              {a.vueEnsemble.voir}
+              <span className="sr-only">{` : ${a.vueEnsemble.blocs[block.key]}`}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </AdminShell>
   );
 }

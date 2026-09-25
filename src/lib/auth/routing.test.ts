@@ -134,6 +134,27 @@ describe("each role lands on its own space (spec)", () => {
     }
   });
 
+  // Spec (back-office-admin, D-132): every back-office page is an admin's; a 404 to anyone else (D-33).
+  it("answers 404 on every back-office page to anyone but an admin", () => {
+    const account = "/admin/utilisateurs/3f0c9a52-6f2e-4a8b-9d7e-1c2b3a4d5e6f";
+    for (const path of [
+      "/admin",
+      "/admin/dossiers",
+      "/admin/utilisateurs",
+      account,
+      "/admin/demandes",
+      "/admin/reservations",
+      "/admin/signalements",
+      "/admin/paiements",
+      "/admin/absences",
+    ]) {
+      expect(accessFor("admin", path)).toEqual({ kind: "allow" });
+      for (const role of ["parent", "professionnel", null] as const) {
+        expect(accessFor(role, path)).toEqual({ kind: "not-found" });
+      }
+    }
+  });
+
   it("opens « Mes disponibilités » to a professional only", () => {
     const path = "/espace/professionnelle/disponibilites";
     expect(accessFor("professionnel", path)).toEqual({ kind: "allow" });

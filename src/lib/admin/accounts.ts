@@ -255,7 +255,7 @@ export async function accountView(userId: string): Promise<AccountView | null> {
           .select({ ins: professionalCommunes.communeIns })
           .from(professionalCommunes)
           .where(eq(professionalCommunes.profileId, profile.profileId))
-      : Promise.resolve([]),
+      : Promise.resolve([] as { ins: string }[]),
     profile ? noteOfUser(userId) : Promise.resolve(null),
     db.select({ n: count() }).from(careRequests).where(eq(careRequests.familyUserId, userId)),
     profile

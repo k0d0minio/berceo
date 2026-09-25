@@ -5,6 +5,7 @@ import {
   bookingFamilyEmail,
   bookingProfessionalEmail,
   complementRequestedEmail,
+  contactEmail,
   escapeHtml,
   gardeCancelledByFamilyEmail,
   gardeCancelledByProfessionalEmail,
@@ -427,5 +428,32 @@ describe("the invitation to rate (avis-etoiles, D-120)", () => {
     expect(email.text.startsWith("Bonjour Emma,")).toBe(true);
     expect(email.text).toContain("Votre garde du 30/09/2026 chez Sophie s'est terminée.");
     expect(email.text).toContain(`Laisser un avis : ${SITE}/g/avis`);
+  });
+});
+
+describe("the founders' message (back-office-admin, D-138)", () => {
+  const email = contactEmail({
+    siteUrl: SITE,
+    prenom: "Julie",
+    subject: "Votre garde du 12 octobre",
+    paragraphs: ["Bonjour de la part de l'équipe.\nUne seconde ligne <b>ici</b>.", "Un second paragraphe."],
+  });
+
+  it("keeps the founder's subject and greets by first name", () => {
+    expect(email.subject).toBe("Votre garde du 12 octobre");
+    expect(email.text.startsWith("Bonjour Julie,")).toBe(true);
+  });
+
+  it("carries her paragraphs, escaped, a line break kept inside one, and no button", () => {
+    expect(email.html).toContain("Une seconde ligne &lt;b&gt;ici&lt;/b&gt;.");
+    expect(email.html).toContain("de la part de l&#39;équipe.<br>Une seconde ligne");
+    expect(email.html).not.toContain("<b>ici</b>");
+    expect(email.html).not.toContain("border-radius:999px;background");
+    expect(email.text).toContain("Un second paragraphe.");
+  });
+
+  it("says an answer reaches the team, and signs as the team", () => {
+    expect(email.text).toContain("Pour nous répondre, répondez simplement à cet e-mail.");
+    expect(email.text).toContain("L'équipe Berceo");
   });
 });

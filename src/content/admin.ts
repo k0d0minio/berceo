@@ -35,14 +35,6 @@ export const admin = catalogue({
         attestation_inscription: "attestation d'inscription",
         photo: "photo",
       },
-      /** @relecture Surya — lien vers le journal. */
-      lienJournal: "Journal des actions administratives",
-      /** @relecture Surya — lien vers les paiements (frais-de-service). */
-      lienPaiements: "Paiements des frais de service",
-      /** @relecture Surya — lien vers les absences signalées, avec leur nombre (cycle-de-garde-et-annulation). */
-      lienAbsences: "Absences signalées ({n})",
-      /** @relecture Surya — lien vers les avis, avec leur nombre (avis-etoiles). */
-      lienAvis: "Avis après les gardes ({n})",
     },
 
     /** La page d'un dossier. */
@@ -166,12 +158,20 @@ export const admin = catalogue({
         reglage_etudiantes: "Réglage : étudiantes sages-femmes",
         documents_supprimes: "Documents supprimés",
         frais_rembourses: "Frais de service remboursés",
+        compte_suspendu: "Compte suspendu",
+        compte_reactive: "Compte réactivé",
+        compte_supprime: "Compte supprimé",
+        utilisateur_contacte: "Utilisateur contacté",
+        signalement_traite: "Signalement traité",
       },
-      /** @relecture Surya — détail du réglage et de la purge. */
+      /** @relecture Surya — détail du réglage, de la purge, du message et du signalement. */
       details: {
         etudiantesAdmises: "étudiantes admises",
         etudiantesNonAdmises: "étudiantes non admises",
         purge: "30 jours après le refus",
+        suppression: "après la suppression du compte",
+        objet: "Objet : {objet}",
+        garde: "Garde du {date}",
       },
       /** @relecture Surya — l'auteur d'une action automatique. */
       automatique: "Berceo (automatique)",
@@ -180,8 +180,6 @@ export const admin = catalogue({
       precedente: "Page précédente",
       suivante: "Page suivante",
       page: "Page {n}",
-      /** @relecture Surya — retour à la file. */
-      retour: "Revenir aux dossiers en attente",
     },
 
     reglages: {
@@ -261,38 +259,6 @@ export const admin = catalogue({
         suivante: "Page suivante",
         position: "Page {page}",
       },
-      /** @relecture Surya — retour à l'accueil de l'administration. */
-      retour: "Revenir à l'administration",
-    },
-
-    /** Les absences signalées sur une garde (cycle-de-garde-et-annulation, D-106), en lecture seule. */
-    absences: {
-      /** @relecture Surya — titre de la page. */
-      titre: "Absences signalées",
-      /** @relecture Surya — ce que la page permet, et où rembourser. */
-      intro:
-        "Chaque absence signalée par une famille ou une professionnelle, la plus récente en premier. La garde est enregistrée comme annulée. Les frais ne sont jamais remboursés d'office : le remboursement se fait depuis la page des paiements.",
-      /** @relecture Surya — colonnes. */
-      colonnes: {
-        signalee: "Signalée le",
-        nuit: "Nuit",
-        famille: "Famille",
-        professionnelle: "Professionnelle",
-        absente: "Absente",
-        frais: "Frais",
-      },
-      /** @relecture Surya — qui est déclarée absente. */
-      cote: {
-        famille: "La famille",
-        professionnelle: "La professionnelle",
-      },
-      /** @relecture Surya — pas de frais payés (réservation antérieure aux frais). */
-      sansFrais: "Aucun",
-      /** @relecture Surya — lien vers les paiements. */
-      lienPaiements: "Voir les paiements",
-      /** @relecture Surya — liste vide, retour. */
-      vide: "Aucune absence n'a été signalée.",
-      retour: "Revenir aux dossiers en attente",
     },
 
     /** Les frais de service payés par les familles (frais-de-service, D-101, D-93). */
@@ -352,12 +318,338 @@ export const admin = catalogue({
         statut: "Ces frais ne peuvent pas être remboursés.",
         generique: "Le remboursement n'a pas pu être fait. Réessayez dans un instant.",
       },
-      /** @relecture Surya — liste vide, pagination, retour. */
+      /** @relecture Surya — liste vide et pagination. */
       vide: "Aucun paiement enregistré.",
       precedente: "Page précédente",
       suivante: "Page suivante",
       page: "Page {n}",
-      retour: "Revenir aux dossiers en attente",
+      /** @relecture Surya — le filtre des paiements récents (back-office-admin, D-133). */
+      filtres: {
+        recents: "Payés ces 7 derniers jours",
+        tous: "Tous les paiements",
+      },
+      /** @relecture Surya — aucun paiement récent. */
+      videRecents: "Aucun frais payé ces 7 derniers jours.",
+    },
+
+    /** La navigation de chaque page de l'administration (back-office-admin, D-132). */
+    nav: {
+      /** @relecture Surya — nom de la navigation pour les lecteurs d'écran. */
+      libelle: "Navigation de l'administration",
+      vueEnsemble: "Vue d'ensemble",
+      /** @relecture Surya — entrées de la navigation. */
+      dossiers: "Dossiers",
+      utilisateurs: "Utilisateurs",
+      demandes: "Demandes",
+      reservations: "Réservations",
+      signalements: "Signalements",
+      paiements: "Paiements",
+      avis: "Avis",
+      journal: "Journal",
+    },
+
+    /** Le tableau de bord (le guide, « Le backoffice »). */
+    vueEnsemble: {
+      titre: "Vue d'ensemble",
+      blocs: {
+        dossiers: "Dossiers en attente de validation",
+        reservations: "Réservations en cours",
+        signalements: "Signalements à traiter",
+        paiements: "Paiements récents",
+      },
+      /** @relecture Surya — ce que chaque chiffre compte (D-133). */
+      precisions: {
+        dossiers: "Dossiers envoyés ou en attente d'un complément",
+        reservations: "Gardes confirmées à venir ou en cours",
+        signalements: "Gardes annulées et absences signalées, pas encore traitées",
+        paiements: "Frais de service payés ces 7 derniers jours",
+      },
+      /** @relecture Surya — le lien de chaque bloc. */
+      voir: "Voir la liste complète",
+    },
+
+    /** La page des dossiers : la file et le réglage des étudiantes, déplacés de l'accueil (D-132). */
+    dossiers: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Dossiers",
+    },
+
+    /** La gestion des utilisateurs (le guide, « Le backoffice »). */
+    utilisateurs: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Utilisateurs",
+      recherche: "Rechercher un utilisateur par nom, e-mail ou téléphone",
+      /** @relecture Surya — boutons de la recherche. */
+      rechercher: "Rechercher",
+      effacer: "Effacer la recherche",
+      /** @relecture Surya — ce que la liste montre. */
+      recents: "Les comptes les plus récents, du plus récent au plus ancien.",
+      resultats: "Comptes trouvés pour « {q} »",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        nom: "Nom",
+        role: "Rôle",
+        email: "E-mail",
+        telephone: "Téléphone",
+        etat: "État",
+        inscription: "Inscription",
+      },
+      /** @relecture Surya — les rôles ; « Pro » est admis dans le back-office seulement. */
+      roles: {
+        parent: "Famille",
+        professionnel: "Pro",
+        admin: "Admin",
+      },
+      /** @relecture Surya — l'état d'un compte. */
+      etats: {
+        actif: "Actif",
+        suspendu: "Suspendu",
+        supprime: "Supprimé",
+      },
+      voirProfil: "Voir le profil",
+      /** @relecture Surya — aucun résultat. */
+      vide: "Aucun compte ne correspond à cette recherche.",
+    },
+
+    /** La fiche d'un compte (« Voir le profil »). */
+    compte: {
+      /** @relecture Surya — titres des sections. */
+      sections: {
+        identite: "Identité",
+        activite: "Activité",
+        gardes: "Gardes à venir ou en cours",
+        actions: "Actions",
+        historique: "Historique du compte",
+      },
+      /** @relecture Surya — libellés. */
+      champs: {
+        role: "Rôle",
+        email: "E-mail",
+        telephone: "Téléphone",
+        inscription: "Compte créé le",
+        etat: "État",
+        commune: "Commune",
+        dossier: "Dossier",
+        profession: "Profession",
+        communes: "Communes desservies",
+        tarif: "Tarif de nuit",
+        note: "Note",
+      },
+      /** @relecture Surya — l'état avec sa date. */
+      suspenduLe: "Suspendu depuis le {date}",
+      supprimeLe: "Supprimé le {date}",
+      /** @relecture Surya — la note et le nombre de gardes. */
+      note: "{note} sur 5, {n} gardes",
+      sansNote: "Pas encore de note",
+      nonRenseigne: "Non renseigné",
+      aucune: "Aucune",
+      /** @relecture Surya — les compteurs et leurs liens. */
+      compteurs: {
+        demandes: "Demandes publiées : {n}",
+        reponses: "Réponses données : {n}",
+        gardes: "Gardes réservées : {n}",
+      },
+      liens: {
+        demandes: "Voir ses demandes",
+        gardes: "Voir ses réservations",
+        dossier: "Ouvrir son dossier",
+      },
+      /** @relecture Surya — une garde à venir, l'autre personne et son téléphone. */
+      garde: "{date} à {heure}, avec {nom} ({telephone})",
+      aucuneGarde: "Aucune garde à venir ou en cours.",
+      /** @relecture Surya — pas d'action possible. */
+      sansActionAdmin: "Aucune action n'est possible sur un compte administrateur.",
+      sansActionSupprime: "Ce compte est supprimé. Aucune action n'est plus possible.",
+      /** @relecture Surya — historique vide. */
+      aucunHistorique: "Aucune action sur ce compte pour le moment.",
+    },
+
+    /** Les actions sur un compte (le guide, « Le backoffice »), et leurs confirmations. */
+    actionsCompte: {
+      contacter: "Contacter l'utilisateur",
+      suspendre: "Suspendre le compte",
+      reactiver: "Réactiver le compte",
+      supprimer: "Supprimer le compte",
+      /** @relecture Surya — chaque confirmation affiche le nom de la personne (le guide). */
+      confirmation: {
+        suspendreTitre: "Suspendre le compte de {nom} ?",
+        suspendre:
+          "{nom} ne pourra plus se connecter et n'apparaîtra plus sur Berceo. Ses réponses en attente sont retirées et ses demandes ouvertes annulées.",
+        suspendreGardes:
+          "Ces gardes ne sont pas annulées. Prévenez vous-même les personnes concernées :",
+        reactiverTitre: "Réactiver le compte de {nom} ?",
+        reactiver:
+          "{nom} pourra de nouveau se connecter. Ce qui a été retiré ou annulé pendant la suspension n'est pas rétabli.",
+        supprimerTitre: "Supprimer le compte de {nom} ?",
+        supprimer:
+          "Cette action est irréversible. Ses coordonnées, son profil et ses documents sont effacés. Ses demandes, gardes, paiements et avis restent enregistrés sous « Compte supprimé ».",
+        nom: "Pour confirmer, saisissez son nom de famille : {nom}",
+        oui: "Oui, confirmer",
+        non: "Non, ne rien changer",
+      },
+      /** @relecture Surya — pourquoi la suppression n'est pas proposée. */
+      indisponible: {
+        nonSuspendu: "Suspendez d'abord le compte.",
+        gardesAVenir: "Des gardes sont à venir.",
+      },
+      /** @relecture Surya — résultats. */
+      resultats: {
+        suspendu: "Le compte est suspendu.",
+        reactive: "Le compte est réactivé.",
+        supprime: "Le compte est supprimé.",
+        contacte: "Votre message est envoyé.",
+      },
+      /** @relecture Surya — erreurs. */
+      erreurs: {
+        admin: "Un compte administrateur ne peut pas être modifié ici.",
+        supprime: "Ce compte est supprimé.",
+        dejaSuspendu: "Ce compte est déjà suspendu. Rechargez la page.",
+        nonSuspendu: "Ce compte n'est pas suspendu. Rechargez la page.",
+        gardesAVenir: "Des gardes sont à venir sur ce compte. Il ne peut pas être supprimé.",
+        nomDifferent: "Le nom saisi ne correspond pas.",
+        introuvable: "Ce compte n'existe pas.",
+        envoi: "Le message n'a pas pu partir. Réessayez dans un instant.",
+        generique: "Une erreur est survenue. Réessayez dans un instant.",
+      },
+      /** @relecture Surya — le message envoyé depuis l'administration (D-138). */
+      contact: {
+        titre: "Écrire à {nom}",
+        description:
+          "Le message part de l'adresse de Berceo. Sa réponse arrivera à l'adresse e-mail de votre compte.",
+        objet: "Objet",
+        message: "Message",
+        messageAide: "5 000 caractères au plus. Une ligne vide sépare deux paragraphes.",
+        envoyer: "Envoyer le message",
+        annuler: "Annuler",
+        erreurs: {
+          objetRequis: "Indiquez un objet.",
+          objetLong: "L'objet dépasse 150 caractères.",
+          messageRequis: "Écrivez un message.",
+          messageLong: "Le message dépasse 5 000 caractères.",
+        },
+      },
+    },
+
+    /** Toutes les demandes de garde. */
+    demandes: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Demandes",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        nuit: "Nuit",
+        commune: "Commune",
+        famille: "Famille",
+        reponses: "Réponses",
+        etat: "État",
+      },
+      /** @relecture Surya — filtres. */
+      filtres: {
+        toutes: "Toutes",
+        ouverte: "Ouvertes",
+        passee: "Passées",
+        attribuee: "Attribuées",
+        annulee: "Annulées",
+      },
+      /** @relecture Surya — la nuit, l'urgence. */
+      nuit: "{date} à {heure}",
+      urgente: "Urgente",
+      /** @relecture Surya — le filtre sur une famille. */
+      deCompte: "Les demandes de {nom}",
+      toutesLesDemandes: "Voir toutes les demandes",
+      /** @relecture Surya — liste vide. */
+      vide: "Aucune demande.",
+    },
+
+    /** Toutes les réservations. */
+    reservations: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Réservations",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        nuit: "Nuit",
+        famille: "Famille",
+        professionnelle: "Professionnelle",
+        tarif: "Tarif",
+        frais: "Frais",
+        etat: "État",
+      },
+      /** @relecture Surya — filtres ; « En cours » compte les gardes à venir et celles de cette nuit. */
+      filtres: {
+        toutes: "Toutes",
+        "en-cours": "En cours",
+        "a-venir": "À venir",
+        commencee: "Cette nuit",
+        terminee: "Terminées",
+        annulee: "Annulées",
+      },
+      /** @relecture Surya — compte suspendu, frais absents. */
+      suspendu: "Suspendu",
+      sansFrais: "Aucun",
+      /** @relecture Surya — le filtre sur un compte. */
+      deCompte: "Les réservations de {nom}",
+      toutesLesReservations: "Voir toutes les réservations",
+      /** @relecture Surya — liste vide. */
+      vide: "Aucune réservation.",
+    },
+
+    /** Les signalements : gardes annulées et absences signalées (D-139). */
+    signalements: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Signalements",
+      /** @relecture Surya — ce que la page montre, et où rembourser. */
+      intro:
+        "Chaque garde annulée par une famille ou une professionnelle, et chaque absence signalée, la plus récente en premier. Les litiges arrivent par e-mail. Les frais ne sont jamais remboursés d'office : le remboursement se fait depuis la page des paiements.",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        date: "Signalé le",
+        nuit: "Nuit",
+        famille: "Famille",
+        professionnelle: "Professionnelle",
+        signalement: "Signalement",
+        frais: "Frais",
+        suivi: "Suivi",
+      },
+      /** @relecture Surya — filtres. */
+      filtres: {
+        "a-traiter": "À traiter",
+        tous: "Tous",
+      },
+      /** @relecture Surya — ce qui s'est passé. */
+      types: {
+        annulation: {
+          famille: "Annulée par la famille",
+          professionnelle: "Annulée par la professionnelle",
+        },
+        absence: {
+          famille: "Absence de la famille signalée",
+          professionnelle: "Absence de la professionnelle signalée",
+        },
+      },
+      /** @relecture Surya — le suivi. */
+      marquer: "Marquer comme traité",
+      traite: "Traité le {date} par {nom}",
+      confirmation: {
+        titre: "Marquer ce signalement comme traité ?",
+        description:
+          "Il quittera la liste des signalements à traiter. L'action est inscrite au journal et ne peut pas être annulée.",
+        oui: "Oui, marquer comme traité",
+        non: "Non, ne rien changer",
+      },
+      /** @relecture Surya — déjà traité par une autre personne. */
+      erreur: "Ce signalement est déjà traité. Rechargez la page.",
+      /** @relecture Surya — lien vers les paiements. */
+      lienPaiements: "Voir les paiements",
+      /** @relecture Surya — listes vides. */
+      vide: "Aucun signalement à traiter.",
+      videTous: "Aucun signalement.",
+    },
+
+    /** La pagination des listes de l'administration. */
+    pages: {
+      /** @relecture Surya — pagination. */
+      precedente: "Page précédente",
+      suivante: "Page suivante",
+      position: "Page {n}",
     },
   },
 });
