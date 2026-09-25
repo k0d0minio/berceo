@@ -13,9 +13,12 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Only the two parties read or write a conversation; the founders do not (back-office-admin).
+- No insurance wording anywhere (D-8); no `!`, `…` or `—` (D-19); every word in `src/content/`.
+- The e-mail never carries the message text (D-90) and leaves once per message.
+- No live updates, attachments or phone detection (the stub's Out of scope).
+- One migration, generated on the tree as merged; no other open run may hold a migration at the same time.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `src/db/schema.ts` (the answer and booking tables), `src/lib/reservations/paths.ts`, `src/lib/email/send.ts`, `src/lib/demandes/rules.ts` (exports only) and the guide's « La messagerie » in `.icm/processed/`, to fix the data shape, the routes and the Berceo messages' wording; targeted reads, no wider codebase.

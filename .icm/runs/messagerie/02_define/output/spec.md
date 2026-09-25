@@ -24,7 +24,7 @@ cahier des charges or the guide say so; every other entry carries `@relecture Su
 no `!`, `…` or `—`, no insurance wording (D-8). A new `src/content/messagerie.test.ts` holds the
 file to the same mechanical rules as the other catalogue tests.
 
-### 1. One conversation per answer (D-16, E-01)
+### 1. One conversation per answer (D-16, D-91, E-01)
 
 A conversation belongs to one answer (`care_request_applications` row): one family, one
 professional, one request. It is created in the same transaction that first records her
@@ -36,7 +36,7 @@ Only the two parties read it: the family who owns the request and the profession
 answer. Any other signed-in user, a founder included, gets the not-found page (the founders'
 access, if any, belongs to back-office-admin).
 
-### 2. Berceo's two messages (D-16, the cahier des charges E, the guide « La messagerie »)
+### 2. Berceo's two messages (D-16, D-87, the cahier des charges E, the guide « La messagerie »)
 
 Berceo posts two messages, shown to both sides under the author « L'équipe Berceo », set apart
 from the two people's messages (pearl card, no avatar). Each is stored as a key, not as text, and
@@ -56,7 +56,7 @@ rendered from the catalogue, so a revision by Surya reaches every conversation.
 Neither sends an e-mail: the family already receives « [Prénom] a répondu à votre demande » and
 both sides the booking confirmation. Both count as unread (§4) until the conversation is opened.
 
-### 3. Writing and reading
+### 3. Writing and reading (D-91)
 
 **Where.** Each space gains « Messages » (`@relecture`) in its navigation:
 `/espace/famille/messages` and `/espace/professionnelle/messages` list the viewer's
@@ -84,13 +84,13 @@ trimming; the server refuses an empty or longer one with a plain message. The bu
 while a send is in flight, and the client gives every message its id: a retried or double-clicked
 send inserts once. No attachments.
 
-**The banner, reworded** (the guide's « Rappel discret », minus the insurance claim, D-8). In a
+**The banner, reworded** (D-88: the guide's « Rappel discret », minus the insurance claim, D-8). In a
 conversation whose answer is not the booked one (`retenue`), after every third message written by
 the two people (the 3rd, the 6th, …; Berceo's are not counted), a discreet line in the flow:
 « Une garde est réservée une fois confirmée sur Berceo. » `@relecture`. Fixed positions, never
 random; never shown in the booked conversation.
 
-### 4. Read state and the unread count (E-04)
+### 4. Read state and the unread count (D-91, E-04)
 
 Each side has a read marker per conversation: opening the conversation page moves the viewer's
 marker to now. A message is unread for a viewer when someone other than the viewer (the other
@@ -99,7 +99,7 @@ viewer's conversations holding at least one unread message; it sits next to « M
 header navigation and, below md, on the menu button, and is hidden at zero. It is read on each
 page load; no live update, a refresh shows new messages.
 
-### 5. The e-mail on a new message (E-03)
+### 5. The e-mail on a new message (D-90, E-03)
 
 Every message one of the two people sends e-mails the other party, once, with no message text
 (the conversation stays on Berceo), in the guide's e-mail structure:
@@ -114,7 +114,7 @@ e-mail), with idempotency key `message-<message id>`: a retry never sends twice 
 refreshing a page never sends anything. A failed send is logged and never undoes the message.
 Berceo's messages send none (§2).
 
-### 6. When a conversation closes (D-16, E-02)
+### 6. When a conversation closes (D-16, D-89, E-02)
 
 A conversation accepts messages until the night ends (the request's night date and start time,
 Europe/Brussels, plus 11 hours), whatever its answer's state: pending, booked, not retained or
@@ -169,4 +169,4 @@ action's server side); `answers.ts` and `bookings.ts` call it inside their trans
 
 ## Open questions
 
-- none — Surya reviews every `@relecture` entry, the two edited Berceo messages and the reworded banner included; a changed wording is a catalogue edit, not a spec change.
+- none. The operator's answers in this Define session, 2026-09-25, are D-87 to D-90; D-91 is Define's (routes under each space rather than the stub's `/messages`, one conversation per answer, per-side read markers); `revise` changes them. Surya reviews every `@relecture` entry, the two edited Berceo messages and the reworded banner included; a changed wording is a catalogue edit, not a spec change.

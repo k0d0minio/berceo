@@ -38,5 +38,10 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+*Numbered from D-87: candidature-et-reservation holds D-70 to D-78 and D-82 to D-86, disponibilites-indicatives D-69 and D-79 to D-81.*
+
+- D-87 — Berceo posts two messages, split by moment: the guide's « Message d'amorce automatique » when a professional answers, the cahier des charges' « L'équipe Berceo vous souhaite une excellente garde » when the family confirms the booking (in that conversation only). Each « ! » becomes « . » (D-19), 🤍 kept, both `@relecture Surya`; stored as keys and rendered from the catalogue. Neither sends an e-mail. Operator (the split), Define (the rest), 2026-09-25.
+- D-88 — The guide's « une fois sur trois » banner is kept, without the insurance claim (D-8): « Une garde est réservée une fois confirmée sur Berceo. » (`@relecture`), after every third message written by the two people, only in a conversation whose answer is not the booked one. Operator (keep, reworded), Define (positions and scope), 2026-09-25.
+- D-89 — Every conversation accepts messages until the request's night ends (start + 11 h, Europe/Brussels), whatever its answer's state (pending, booked, not retained, withdrawn); a cancelled request closes it at once. Closed conversations stay readable by both. Operator, Define, 2026-09-25.
+- D-90 — Each message one party sends e-mails the other once, as a notice with no message text and a link to the conversation, idempotency key `message-<id>`. Operator (no text), stub (one per message), 2026-09-25.
+- D-91 — One conversation per answer row (a re-answer reuses it); each side keeps a read marker per conversation; the unread count is the number of conversations holding an unread message. The pages live under each space (`/espace/famille/messages`, `/espace/professionnelle/messages`) rather than the stub's shared `/messages`, like every other signed-in page. Define, 2026-09-25.
