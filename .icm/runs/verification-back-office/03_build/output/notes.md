@@ -48,3 +48,13 @@
 - Production before promotion: `CRON_SECRET` in Vercel Production (the operator's; `env.sh audit --changed` reports it on purpose).
 
 Context budget: over the Inputs table — the onboarding run's actions and pages were read to follow its patterns (the CTE statement, the batch, the action checks), and the Vercel env API was read to place `CRON_SECRET` on the `uat` custom environment.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 32e971c (ci-status.sh, full gate); re-read after the last push below
+- reviews: code medium (2 findings, both in onboarding code already on main — parked) · security security-check.sh --branch --audit: OK (gitleaks absent, built-in patterns) + /security-review — no findings at confidence ≥ 8 · readiness env.sh audit --changed: OK (`CRON_SECRET` now on Production, Preview and `uat`) · /production-readiness n/a — the skill is not shipped in this repo
+- parked: onboarding-orphaned-objects.md, onboarding-double-photo-race.md (the three-files half of the second finding was already parked as onboarding-upload-limit-race.md)
+- migrations: skip — check-migrations.sh reads Drizzle's own journal order; 0004 follows main's 0003
+- learned: skip — no error.log (3 rules from FAILURE.md reach _shared/project-rules.md through close-out)
+- docs: README and AGENTS updated in Build; no docs-tree impact · announce: deferred to promotion
