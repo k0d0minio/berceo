@@ -57,7 +57,7 @@ export default function AccueilPage() {
           photo={p.bebeEndormi}
           preload
           fillHeight
-          className="lg:object-[20%_50%]"
+          className="lg:object-[30%_50%]"
         />
       </section>
 

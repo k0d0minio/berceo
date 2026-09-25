@@ -23,6 +23,6 @@ step, so a resuming session can pick up the first unticked line.
 
 - [x] Header: full nav from xl, links nowrap, row gaps and capsule side padding tightened — `src/components/shell/public-header.tsx`
 - [x] Photo: `fillHeight` mode (stretch to the row from lg, cover-crop, sizes) — `src/components/vitrine/photo.tsx`
-- [x] Hero: stacked below lg, `1fr | 22rem` from lg, balanced H1, intro at max-w-xl, portrait crop at 20 % — `src/app/(public)/page.tsx`
+- [x] Hero: stacked below lg, `1fr | 22rem` from lg, balanced H1, intro at max-w-xl, portrait crop at 30 % — `src/app/(public)/page.tsx`
 - [x] PageHeader: same grid and type rules; `/comment-ca-marche` and `/tarifs` pass `fillHeight` — `src/components/vitrine/page-header.tsx` and the two pages
 - [ ] Measure the preview at every width on the four pages; record in `03_build/output/notes.md`
