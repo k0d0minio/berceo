@@ -1,0 +1,52 @@
+# The daily digest of new care requests (demande-de-garde, D-51, D-52).
+#
+# Vercel Cron runs only on production deployments, never on the `uat` custom
+# environment the founders test on, so the schedule lives here and calls the
+# route on both. It runs at 16:00 and 17:00 UTC: the route sends only from
+# 18:00 in Brussels (16:00 UTC in summer, 17:00 UTC in winter) and puts each
+# request in one digest at most, so the other call of the day sends nothing.
+# Each environment has its own secret; one that is missing is skipped with a
+# warning, never a failure, so UAT can run before production has one.
+name: Demandes digest
+
+on:
+  schedule:
+    - cron: "0 16,17 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: demandes-digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    name: Digest (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: uat
+            url: https://uat.berceo.be
+            secret: CRON_SECRET_UAT
+          - environment: production
+            url: https://www.berceo.be
+            secret: CRON_SECRET_PRODUCTION
+    steps:
+      - name: Call the digest route
+        env:
+          CRON_SECRET: ${{ secrets[matrix.secret] }}
+          URL: ${{ matrix.url }}
+          SECRET_NAME: ${{ matrix.secret }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::warning::$SECRET_NAME is not set: the $URL digest is skipped."
+            exit 0
+          fi
+          curl --fail-with-body --silent --show-error --max-time 60 \
+            -X POST -H "Authorization: Bearer $CRON_SECRET" \
+            "$URL/api/cron/demandes-digest"
+          echo
