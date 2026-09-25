@@ -211,3 +211,9 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - Before `/security-review` in a cloud session, run `git remote set-head origin main`; the skill diffs against `origin/HEAD`, which a fresh clone lacks. (`FAILURE.md` — verification-back-office)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - To prove server code against the run's Neon branch, run a throwaway `scripts/.probe-*.mts` with `npx tsx --conditions=react-server` (`.mts` for top-level await; `users` rows need an `auth_user_id`), then delete it before committing. (`FAILURE.md` — verification-back-office)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Before Define numbers a new decision, read the highest `D-n` on `main` and on every open run's branch, not only `main` and the archive: sibling runs defined the same day otherwise take the same ids. (`FAILURE.md` — demande-de-garde)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When an edit re-checks a value against a rule that depends on today (a date window), accept the stored value unchanged; only a new value is held to today's rule. (`FAILURE.md` — demande-de-garde)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Build a link sent to other people (an e-mail) from the host the request reached, never from the client's `Origin` header, whose scheme and path the caller chooses. (`FAILURE.md` — demande-de-garde)
