@@ -205,3 +205,9 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - when a merge of main renumbers this branch's Drizzle migration, the PR's Neon preview branch still holds the old one: drop its objects and its __drizzle_migrations row (or reset the branch from its parent) before trusting the next preview build. (`error: command "npm run vercel-build" exited with n (applying migrations`, seen 1× — onboarding-professionnelle; drizzle, drizzle/meta, root, src/app)
 <!-- Retrospective Learned Rule [2026-09-24] -->
 - Before building a module other stubs of the same scope also name (a shared list, a shared component), check `main` and the live sibling runs' branches for it, and build on the one that exists rather than a second copy. (`FAILURE.md` — onboarding-professionnelle)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Never tick acceptance-criteria boxes in the PR body from a session (it is refused as self-approval); record each criterion's status in `03_build/output/notes.md` for the operator. (`FAILURE.md` — verification-back-office)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Before `/security-review` in a cloud session, run `git remote set-head origin main`; the skill diffs against `origin/HEAD`, which a fresh clone lacks. (`FAILURE.md` — verification-back-office)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- To prove server code against the run's Neon branch, run a throwaway `scripts/.probe-*.mts` with `npx tsx --conditions=react-server` (`.mts` for top-level await; `users` rows need an `auth_user_id`), then delete it before committing. (`FAILURE.md` — verification-back-office)
