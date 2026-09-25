@@ -30,6 +30,7 @@ npm run dev      # http://localhost:3000
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
 | [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
 | [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
+| [src/lib/paiements/](src/lib/paiements/), [src/app/api/webhooks/stripe/](src/app/api/webhooks/stripe/) | The 3 % service fee through Stripe: the Checkout, the webhook, refunds, the founders' list. See **The service fee** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
 | [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
@@ -228,7 +229,8 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   waiting answers `non_retenue`, her other answers that night `retiree`; the unique indexes turn
   two clicks racing into one booking and a « conflit ». Accepting needs the family's street and
   number (D-77). Both sides get the guide's confirmation, the others « not retained ».
-  Frais-de-service puts the payment before `acceptAnswer`.
+  The click only opens the fee's Checkout; `acceptAnswer` runs when the payment lands, and its
+  first statement requires that payment, paid (**The service fee**, D-90).
 - **Republish and edit (D-70, D-76):** a request with a waiting answer cannot be edited;
   « Republier ma demande » declines the waiting answers and sends the request out again (the
   urgent e-mail at once, or the next digest, which carries a request republished since its last
@@ -246,6 +248,47 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   professional only on her own booking's page; the address is read live through
   `bookingAddress` in `src/lib/famille/profile.ts`, still the only reader of `family_profiles`.
 - **Words:** `src/content/reservations.ts`; e-mails in `src/content/emails.ts`.
+
+## The service fee
+
+The 3 % fee (D-2), through Stripe Checkout, Bancontact and cards (frais-de-service). Berceo
+never touches the money for the night (D-1).
+
+- **The amount (D-87):** 3 % of the chosen answer's frozen rate, computed on the server as
+  `rate × 3` cents (3,00 € to 9,00 €), all-in, VAT included; Stripe Tax is off. The summary
+  shows it with the Tarifs page's two sentences (`src/content/paiement.ts`).
+- **Paying (D-90, D-92):** « Confirmer et régler les frais de service » runs the booking rules,
+  closes the request's open Checkout if any (one per request, a partial unique index), opens a
+  30-minute Checkout and records it in `payments` as `en_attente`. Nothing about the request or
+  its answers changes while the family is on Stripe.
+- **The booking is made by the payment (D-90, D-91):** `confirmPayment` in
+  `src/lib/paiements/payments.ts` reads the session from Stripe, takes the row
+  `en_attente → payee` with one conditional update, then runs `acceptAnswer`, which books only
+  against that paid row. Two paths call it: the webhook `POST /api/webhooks/stripe` and the
+  return page `/espace/famille/reservations/paiement` (so previews, which Stripe cannot reach,
+  still book). Whichever wins sends the e-mails. A payment whose booking can no longer be made
+  is refunded in full at once and the family told (page and e-mail).
+- **Abandoning:** « Retour » on Stripe goes to `/espace/famille/reservations/paiement/abandon`,
+  which expires the Checkout; an unpaid one expires on its own after 30 minutes, and a row
+  `en_attente` past `expires_at` reads as expired without a cron.
+- **Refunds (D-89, D-94):** `refundFee(paymentId, reason, now, by?)` is the one refund: the whole
+  fee, a `payee` row only (or a failed refund, to retry), one Stripe idempotency key per payment
+  and attempt. Reasons: `annulation_professionnelle` (cycle-de-garde-et-annulation calls it),
+  `reservation_impossible`, `berceo` (the founders' button, one `frais_rembourses` journal
+  line), `stripe` (a refund made in Stripe's dashboard, synced by the webhook). A refund Stripe
+  reports failed reads `remboursement_echoue`.
+- **The founders' list (D-93):** `/admin/paiements`, every fee newest first, 50 per page, with
+  « Rembourser les frais ». Families and professionals see no payment history.
+- **Configuration (D-88):** `STRIPE_SECRET_KEY` (test key on Preview and Development, live key on
+  Production only once the company's Stripe account exists) and `STRIPE_WEBHOOK_SECRET` (per
+  environment). In Stripe's dashboard, per account: enable Bancontact, and add the endpoint
+  `https://uat.berceo.be/api/webhooks/stripe` (test mode) or `https://www.berceo.be/api/webhooks/stripe`
+  (live) with the events `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
+  `checkout.session.async_payment_failed`, `checkout.session.expired`, `refund.created`,
+  `refund.updated`, `refund.failed`; its signing secret is that environment's
+  `STRIPE_WEBHOOK_SECRET`. The client pins the API version `2026-08-26.dahlia`.
+- **Words:** `src/content/paiement.ts`; the admin page in `src/content/admin.ts`; the refund
+  e-mail in `src/content/emails.ts`.
 
 ## The professional's availability
 
