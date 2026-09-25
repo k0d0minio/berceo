@@ -92,6 +92,17 @@ describe("each role lands on its own space (spec)", () => {
     });
   });
 
+  it("opens « Mes disponibilités » to a professional only", () => {
+    const path = "/espace/professionnelle/disponibilites";
+    expect(accessFor("professionnel", path)).toEqual({ kind: "allow" });
+    expect(accessFor("parent", path)).toEqual({ kind: "redirect", to: "/espace/famille" });
+    expect(accessFor("admin", path)).toEqual({ kind: "redirect", to: "/admin" });
+    expect(accessFor(null, path)).toEqual({
+      kind: "redirect",
+      to: "/connexion?retour=%2Fespace%2Fprofessionnelle%2Fdisponibilites",
+    });
+  });
+
   it("does not mistake a lookalike path for a space", () => {
     expect(accessFor("admin", "/administration")).toEqual({
       kind: "redirect",

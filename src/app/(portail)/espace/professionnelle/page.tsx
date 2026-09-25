@@ -13,6 +13,7 @@ import { isHeldStudent } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
+import { AVAILABILITY_PATH } from "@/lib/disponibilites/paths";
 import { loadFile } from "@/lib/professionnelle/file";
 import { firstIncompleteStep } from "@/lib/professionnelle/rules";
 import { studentsAdmitted } from "@/lib/settings";
@@ -38,7 +39,8 @@ export const dynamic = "force-dynamic";
  * decision shows here too (verification-back-office): the guide's line once
  * validated, the reason of a complément or a refusal, and why a student file
  * waits while students are not admitted. Once validated, it also links to the
- * requests in her communes (demande-de-garde).
+ * requests in her communes (demande-de-garde) and to « Mes disponibilités »
+ * (disponibilites-indicatives).
  */
 export default async function EspaceProfessionnellePage({
   searchParams,
@@ -77,9 +79,14 @@ export default async function EspaceProfessionnellePage({
       ) : null}
       <div className="flex flex-wrap gap-3">
         {status === "valide" ? (
-          <Button asChild>
-            <Link href={PROFESSIONAL_REQUESTS_PATH}>{d.professionnelle.lien}</Link>
-          </Button>
+          <>
+            <Button asChild>
+              <Link href={PROFESSIONAL_REQUESTS_PATH}>{d.professionnelle.lien}</Link>
+            </Button>
+            <Button asChild variant="raye">
+              <Link href={AVAILABILITY_PATH}>{t.espaces.navDisponibilites}</Link>
+            </Button>
+          </>
         ) : null}
         {status !== "refuse" ? (
           <Button asChild variant={status === "valide" ? "raye" : "blanc"}>
