@@ -8,12 +8,14 @@ import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
 import { famille } from "@/content/famille";
 import { words } from "@/content/locale";
+import { recherche } from "@/content/recherche";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { noteOfUser } from "@/lib/avis/ratings";
 import { FAMILY_REQUESTS_PATH, NEW_REQUEST_PATH, NEW_URGENT_REQUEST_PATH } from "@/lib/demandes/paths";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyCommune } from "@/lib/famille/profile";
+import { SEARCH_PATH } from "@/lib/recherche/slugs";
 
 const t = words(comptes);
 const f = words(famille).accueil;
@@ -55,6 +57,12 @@ export default async function EspaceFamillePage() {
           <Link href={NEW_URGENT_REQUEST_PATH}>{d.boutons.publierUrgente}</Link>
         </Button>
       </div>
+      <Link
+        href={SEARCH_PATH}
+        className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+      >
+        {words(recherche).nav}
+      </Link>
       <Link
         href={FAMILY_REQUESTS_PATH}
         className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"

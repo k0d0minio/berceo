@@ -20,8 +20,11 @@ import { words } from "@/content/locale"
  */
 function SignUpForm({
   action,
+  signInHref = "/connexion",
 }: {
   action: (state: SignUpState, form: FormData) => Promise<SignUpState>
+  /** The sign-in link, carrying the way back when the page has one (D-129). */
+  signInHref?: string
 }) {
   const [state, submit, pending] = useActionState(action, {})
   const t = words(comptes)
@@ -124,7 +127,7 @@ function SignUpForm({
 
       <p className="text-corps text-encre-taupe">
         {t.inscription.dejaInscrit}{" "}
-        <Link href="/connexion" className="text-encre-sauge underline">
+        <Link href={signInHref} className="text-encre-sauge underline">
           {t.inscription.seConnecter}
         </Link>
       </p>
