@@ -64,6 +64,13 @@
       "when": 1790345869371,
       "tag": "0008_messagerie",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790349377571,
+      "tag": "0009_frais_de_service",
+      "breakpoints": true
     }
   ]
 }

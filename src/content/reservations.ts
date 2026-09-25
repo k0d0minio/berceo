@@ -133,8 +133,6 @@ export const reservations = catalogue({
       duree: "{n} heures",
       /** @relecture Surya — la famille règle la garde directement, sans dire comment (D-1). */
       paiement: "Vous réglez la garde directement à la professionnelle.",
-      /** @relecture Surya — réponse qui confirme (vert, D-24), d'après « Confirmez la réservation » du guide. */
-      confirmer: "Confirmer la réservation",
       /** @relecture Surya — réponse qui renonce (rouge, D-24). */
       renoncer: "Revenir aux réponses",
     },

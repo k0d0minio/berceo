@@ -97,6 +97,9 @@ function DecisionPanel({
   )
 }
 
+/** The dialog's own words, where they are not the decisions' (the fee's refund). */
+type ReasonLabels = { oui: string; non: string; motif: string; motifAide: string }
+
 /** A confirmation that asks for the reason first, and stays open until it is valid. */
 function ReasonDialog({
   trigger,
@@ -104,6 +107,7 @@ function ReasonDialog({
   description,
   tone,
   onConfirm,
+  labels,
 }: {
   trigger: React.ReactElement
   title: string
@@ -111,8 +115,10 @@ function ReasonDialog({
   /** The confirming answer's colour: green to ask, red to refuse (D-24). */
   tone: "confirmation" | "sensible"
   onConfirm: (reason: string) => void
+  labels?: ReasonLabels
 }) {
   const d = words(admin).decisions
+  const l = labels ?? d.confirmation
   const id = React.useId()
   const [reason, setReason] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
@@ -126,7 +132,7 @@ function ReasonDialog({
         if (!open) setError(null)
       }}
       action={{
-        label: d.confirmation.oui,
+        label: l.oui,
         tone,
         onSelect: (event) => {
           const checked = checkReason(reason)
@@ -139,11 +145,11 @@ function ReasonDialog({
           setReason("")
         },
       }}
-      cancel={{ label: d.confirmation.non, tone: tone === "sensible" ? "confirmation" : "sensible" }}
+      cancel={{ label: l.non, tone: tone === "sensible" ? "confirmation" : "sensible" }}
     >
       <div className="flex flex-col gap-2">
         <label htmlFor={`${id}-motif`} className="text-corps font-semibold text-encre-taupe">
-          {d.confirmation.motif}
+          {l.motif}
         </label>
         <textarea
           id={`${id}-motif`}
@@ -156,7 +162,7 @@ function ReasonDialog({
           className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge aria-invalid:border-destructive"
         />
         <p id={`${id}-aide`} className="px-6 text-legende text-encre-taupe">
-          {d.confirmation.motifAide}
+          {l.motifAide}
         </p>
         {error ? (
           <p id={`${id}-erreur`} role="alert" className="px-6 text-legende font-semibold text-encre-taupe">
@@ -168,4 +174,4 @@ function ReasonDialog({
   )
 }
 
-export { DecisionPanel }
+export { DecisionPanel, ReasonDialog }

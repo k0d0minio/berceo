@@ -22,9 +22,10 @@ import {
 } from "@/lib/demandes/requests";
 import { isEditable } from "@/lib/demandes/rules";
 import { pendingCounts, republishRequest, type RepublishResult } from "@/lib/reservations/answers";
-import { acceptAnswer, type AcceptResult } from "@/lib/reservations/bookings";
-import { notifyBooking, notifyDeclined, notifyPriority } from "@/lib/reservations/notify";
-import { familyBookingPath, priorityPath } from "@/lib/reservations/paths";
+import { PAYMENT_RETURN_PATH } from "@/lib/paiements/paths";
+import { startCheckout, type StartResult } from "@/lib/paiements/payments";
+import { notifyDeclined, notifyPriority } from "@/lib/reservations/notify";
+import { priorityPath } from "@/lib/reservations/paths";
 import { publicProfile } from "@/lib/reservations/profiles";
 import {
   readRequestForm,
@@ -163,32 +164,38 @@ export async function cancelRequestAction(id: string): Promise<void> {
 }
 
 /**
- * « Accepter et réserver »: books the answer, then sends both confirmations and
- * the « not retained » e-mails. Frais-de-service later puts the payment here,
- * before `acceptAnswer`.
+ * « Accepter et réserver », confirmed in the summary: opens the fee's Stripe
+ * Checkout and sends her there (D-102). Nothing is booked here: the payment
+ * books when Stripe reports it, through the webhook or the return page. A
+ * refusal reads today's message; an earlier Checkout found paid is confirmed
+ * instead of opening a second one.
  */
 export async function acceptAnswerAction(requestId: string, applicationId: string): Promise<void> {
   const user = await requireAccess(FAMILY_REQUESTS_PATH);
   const id = String(requestId);
   if (!UUID.test(id)) notFound();
 
-  let result: AcceptResult;
+  let result: StartResult;
   try {
-    result = await acceptAnswer(user.id, id, String(applicationId), new Date());
+    result = await startCheckout({
+      user: { id: user.id, email: user.email },
+      requestId: id,
+      applicationId: String(applicationId),
+      siteUrl: await siteOrigin(),
+      now: new Date(),
+    });
   } catch (error) {
-    logWriteError("answer not accepted", { userId: user.id, requestId: id }, error);
-    redirect(`${familyRequestPath(id)}?erreur=generique`);
+    logWriteError("checkout not opened", { userId: user.id, requestId: id }, error);
+    redirect(`${familyRequestPath(id)}?paiement=erreur`);
   }
 
+  if (result.kind === "stripe") redirect(result.url);
+  if (result.kind === "dejaPaye") {
+    redirect(`${PAYMENT_RETURN_PATH}?session_id=${encodeURIComponent(result.sessionId)}`);
+  }
   // Its own key: « nonModifiable » here is about booking, not about editing.
-  if (!result.ok) redirect(`${familyRequestPath(id)}?refus=${result.reason}`);
-
-  const origin = await siteOrigin();
-  const { bookingId, declined } = result;
-  after(() => notifyBooking(bookingId, declined, origin));
-
-  revalidatePath(SPACES.parent, "layout");
-  redirect(`${familyBookingPath(bookingId)}?confirmee=1`);
+  if (result.kind === "refus") redirect(`${familyRequestPath(id)}?refus=${result.reason}`);
+  redirect(`${familyRequestPath(id)}?paiement=erreur`);
 }
 
 /**

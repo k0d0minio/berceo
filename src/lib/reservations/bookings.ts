@@ -1,12 +1,13 @@
 import "server-only";
 
-import { and, asc, eq, exists, ne, sql } from "drizzle-orm";
+import { and, asc, eq, exists, isNull, ne, sql } from "drizzle-orm";
 
 import {
   bookings,
   careRequestApplications,
   careRequests,
   db,
+  payments,
   professionalProfiles,
   users,
   type Profession,
@@ -22,38 +23,26 @@ import { acceptRefusal, type AcceptRefusal } from "./rules";
  * Every read and write of a booking. Accepting an answer is the one write, in
  * one transaction; the reads give each side only its own bookings, and the
  * professional reads the family's name, phone and address only on her own
- * booking (D-15, D-72). Frais-de-service later inserts the payment between
- * the family's click and `acceptAnswer`: it is the one function to change.
+ * booking (D-15, D-72). « Accepter et réserver » opens the fee's Checkout
+ * (`src/lib/paiements/`); only a paid payment books, through `acceptAnswer`
+ * (D-102).
  */
 
-export type AcceptResult =
-  | { ok: true; bookingId: string; declined: string[] }
-  | { ok: false; reason: AcceptRefusal | "introuvable" | "conflit" };
+export type AcceptCheck =
+  | { ok: true; nightDate: string; startTime: string; nightRateEur: number }
+  | { ok: false; reason: AcceptRefusal | "introuvable" };
 
 /**
- * « Accepter et réserver ». The rules are read first for a precise message,
- * then the batch holds them again, statement by statement, in one transaction:
- *
- * 1. the chosen answer becomes `retenue`, only if it still waits, its
- *    professional is still validated, and the request is hers, open and ahead;
- * 2. the booking is made from that answer (its rate, D-74), only if step 1
- *    took; the unique indexes refuse a second booking for the request or for
- *    her that night, which rolls the whole batch back;
- * 3. the request becomes `attribuee`, 4. the other waiting answers on it
- *    `non_retenue` (returned, to be told), 5. her waiting answers on other
- *    requests that night `retiree` (D-73): each only if the booking exists;
- * 6. Berceo's « excellente garde » in the booked answer's conversation
- *    (messagerie, D-87).
- *
- * Two families' clicks racing on one request, or two requests booking one
- * professional for one night, end with one booking and a « conflit ».
+ * Whether the family may book this answer now, with what the fee needs: the
+ * night and the rate the answer froze (D-74). The Checkout is opened only on
+ * `ok`; `acceptAnswer` reads it again when the payment lands.
  */
-export async function acceptAnswer(
+export async function acceptCheck(
   userId: string,
   requestId: string,
   applicationId: string,
   now: Date,
-): Promise<AcceptResult> {
+): Promise<AcceptCheck> {
   if (!UUID.test(requestId) || !UUID.test(applicationId)) return { ok: false, reason: "introuvable" };
 
   const [facts] = await db
@@ -63,6 +52,7 @@ export async function acceptAnswer(
       startTime: careRequests.startTime,
       priorityProfileId: careRequests.priorityProfileId,
       answerStatus: careRequestApplications.status,
+      nightRateEur: careRequestApplications.nightRateEur,
       profileStatus: professionalProfiles.status,
     })
     .from(careRequestApplications)
@@ -87,12 +77,53 @@ export async function acceptAnswer(
     now,
   );
   if (refusal) return { ok: false, reason: refusal };
+  return { ok: true, nightDate: facts.nightDate, startTime: facts.startTime, nightRateEur: facts.nightRateEur };
+}
+
+export type AcceptResult =
+  | { ok: true; bookingId: string; declined: string[] }
+  | { ok: false; reason: AcceptRefusal | "introuvable" | "conflit" };
+
+/**
+ * The booking a paid fee makes (D-102). The rules are read first for a precise
+ * answer, then the batch holds them again, statement by statement, in one
+ * transaction, the payment row locked first:
+ *
+ * 1. the chosen answer becomes `retenue`, only if it still waits, its
+ *    professional is still validated, the request is hers, open and ahead,
+ *    and `paymentId` is her fee for this very answer, paid;
+ * 2. the booking is made from that answer (its rate, D-74), only if step 1
+ *    took; the unique indexes refuse a second booking for the request or for
+ *    her that night, which rolls the whole batch back;
+ * 3. the request becomes `attribuee`, 4. the other waiting answers on it
+ *    `non_retenue` (returned, to be told), 5. her waiting answers on other
+ *    requests that night `retiree` (D-73), 6. the payment points at the
+ *    booking: each only if the booking exists; 7. Berceo's « excellente
+ *    garde » in the booked answer's conversation (messagerie).
+ *
+ * Two payments racing on one request, or two requests booking one
+ * professional for one night, end with one booking and a « conflit »; the
+ * caller refunds the loser (D-103).
+ */
+export async function acceptAnswer(
+  userId: string,
+  requestId: string,
+  applicationId: string,
+  paymentId: string,
+  now: Date,
+): Promise<AcceptResult> {
+  if (!UUID.test(paymentId)) return { ok: false, reason: "introuvable" };
+  const check = await acceptCheck(userId, requestId, applicationId, now);
+  if (!check.ok) return check;
 
   const booked = sql`exists (select 1 from ${bookings} where ${bookings.requestId} = ${requestId})`;
   const at = now.toISOString();
 
   try {
-    const [, made, , declined] = await db.batch([
+    const [, , made, , declined] = await db.batch([
+      // Holds the payment row until the booking commits, so a refund cannot
+      // land between the check below and the link in the last statement.
+      db.execute(sql`select id from payments where id = ${paymentId} for update`),
       db
         .update(careRequestApplications)
         .set({ status: "retenue", updatedAt: now })
@@ -122,6 +153,22 @@ export async function acceptAnswer(
                     eq(careRequests.familyUserId, userId),
                     eq(careRequests.status, "ouverte"),
                     nightAhead,
+                  ),
+                ),
+            ),
+            // The click never books: only her paid fee for this answer (D-102).
+            exists(
+              db
+                .select({ id: payments.id })
+                .from(payments)
+                .where(
+                  and(
+                    eq(payments.id, paymentId),
+                    eq(payments.status, "payee"),
+                    eq(payments.requestId, requestId),
+                    eq(payments.applicationId, applicationId),
+                    eq(payments.familyUserId, userId),
+                    isNull(payments.bookingId),
                   ),
                 ),
             ),
@@ -165,6 +212,16 @@ export async function acceptAnswer(
           and a.request_id <> ${requestId}
           and r.id = a.request_id
           and r.night_date = b.night_date
+      `),
+      db.execute(sql`
+        update payments p
+        set booking_id = b.id, updated_at = ${at}::timestamptz
+        from bookings b
+        where b.request_id = ${requestId}
+          and b.application_id = ${applicationId}
+          and p.id = ${paymentId}
+          and p.status = 'payee'
+          and p.booking_id is null
       `),
       // Berceo's « excellente garde » in the booked answer's conversation (messagerie, D-87).
       db.execute(bonneGardeStatement(applicationId, at)),
