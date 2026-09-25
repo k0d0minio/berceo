@@ -23,4 +23,11 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Schema and migration `drizzle/0010_cycle_de_garde.sql` — status, cancellation columns, reminder column, partial `bookings_profile_night_key` (0b7e001; applied on the run's Neon branch)
+- [x] `src/lib/gardes/rules.ts` + tests — state by the clock, windows, fee line, reminder hour (515e7f0)
+- [x] `src/lib/gardes/gardes.ts` — cancel, absence, republish, reminder claim, reads; request statement in `src/lib/demandes/`; same-night checks limited to confirmed gardes; `bookingAddress` gated; `bookingFees` in `src/lib/paiements/` (515e7f0; proved on a fixture on the run's branch)
+- [x] Words and e-mails — `src/content/gardes.ts` + test, `emails.ts` entries, templates + tests, the platform line on both confirmations (515e7f0)
+- [x] Pages — both sides' lists and garde pages, the family's request page, dialogs in `src/components/gardes/` (515e7f0)
+- [x] `/admin/absences` + the admin home link (515e7f0)
+- [x] `/api/cron/gardes-rappel` + `.github/workflows/gardes-rappel.yml` (515e7f0)
+- [ ] README and AGENTS.md routing row — Release

@@ -3,3 +3,4 @@
 - stub: intake/plateforme-v1/cycle-de-garde-et-annulation.md
 - branch: claude/quirky-sagan-yfikdh
 - pr: #48
+- db: neon run/cycle-de-garde-et-annulation (via $DATABASE_URL)
