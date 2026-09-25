@@ -78,6 +78,13 @@
       "when": 1790354966583,
       "tag": "0010_cycle_de_garde",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790357723279,
+      "tag": "0011_avis",
+      "breakpoints": true
     }
   ]
 }

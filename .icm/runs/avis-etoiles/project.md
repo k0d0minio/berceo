@@ -15,9 +15,9 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 - Build waits for cycle-de-garde-et-annulation to merge; the garde's state is read from it, never re-implemented here.
 - Stars only, no free text anywhere: no text column, no text input (D-18).
-- Double-blind: a rating counts only once both sides have rated or 14 days after the garde's end (D-106).
-- One rating per side per garde, no edit, no reminder e-mail (D-107).
-- The professional's request card gains the family's note and gardes count, never an identity column (D-108).
+- Double-blind: a rating counts only once both sides have rated or 14 days after the garde's end (D-116).
+- One rating per side per garde, no edit, no reminder e-mail (D-117).
+- The professional's request card gains the family's note and gardes count, never an identity column (D-118).
 - `src/lib/avis/` is the only reader and writer of `ratings` and `rating_invitations`.
 - Every word in `src/content/`, `@relecture Surya` unless quoted from the guide (D-19); no red or green (D-24).
 

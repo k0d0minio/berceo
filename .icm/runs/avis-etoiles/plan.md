@@ -117,4 +117,4 @@ re-implement the state here. Done when: the three facts are named in `notes.md`.
   yesterday if cycle-de-garde permits it. Never edit the shared database.
 - **The GitHub Actions secret.** The new workflow reuses `CRON_SECRET`. There is nothing new to
   set, but check that the repository secret exists.
-- **Decision ids D-105 to D-111** may collide with cycle-de-garde's. Renumber at the second merge.
+- **Decision ids** were renumbered D-105–D-111 → D-115–D-121 at Build (cycle-de-garde merged first with D-105–D-114). Re-check on every merge of `main`.

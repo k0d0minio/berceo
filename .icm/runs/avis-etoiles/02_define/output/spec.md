@@ -28,29 +28,29 @@ ended (its start plus its duration, the standard night being 11 hours, D-20).
 ## Proposed change
 
 **Who rates whom.** After a garde, the family rates the professional who came and the
-professional rates the family she came to. Each side rates once per garde (D-107). A rating is
+professional rates the family she came to. Each side rates once per garde (D-117). A rating is
 made of four criteria, each scored from 1 to 5 whole stars. All four are required. There is no
 free text anywhere in the flow: no comment field, no « autre » field, no text column (D-18).
 
-**The criteria (D-105).** The labels live in `src/content/avis.ts` and carry `@relecture Surya`:
+**The criteria (D-115).** The labels live in `src/content/avis.ts` and carry `@relecture Surya`:
 
 - the family rates the professional on « Ponctualité », « Communication », « Soin », « Confiance »;
 - the professional rates the family on « Accueil », « Communication », « Clarté des consignes »,
   « Respect du cadre ».
 
-**When a garde can be rated (D-107).** The rating window opens when the garde is terminée and
+**When a garde can be rated (D-117).** The rating window opens when the garde is terminée and
 closes 14 days after the instant it ended. A garde that was annulée is never rated. Outside the
 window, and for a side that has already rated, there is no form. A rating cannot be edited or
 withdrawn by the person who gave it.
 
-**Double-blind (D-106).** A rating is *published* once both sides have rated the garde, or once
+**Double-blind (D-116).** A rating is *published* once both sides have rated the garde, or once
 the window has closed, whichever comes first. Until then it counts nowhere and nobody but the
 founders sees it. Publication is computed at read time from those two facts; no job flips it. The
 form page says so in one line (`@relecture Surya`), so that neither side waits for the other.
 Nobody ever sees the other side's individual scores, only the aggregate note below. This
 overrides the stub's rough criterion « update on the first rating ».
 
-**The note and the gardes count (D-109).**
+**The note and the gardes count (D-119).**
 
 - A person's *note* is the mean of every criterion score in the published ratings they received,
   rounded to one decimal and written with a French decimal comma (« 4,7 »). It is shown as five
@@ -70,13 +70,13 @@ family compares on `/espace/famille/demandes/[id]`. `PublicProfile` and `Applica
 (the value, or null) and `gardes` (the count). These are the fields D-14's teaser pages
 (recherche-et-fiches-publiques) will reuse.
 
-**Where the family's note shows (professional side) (D-108).** It shows on every request card in
+**Where the family's note shows (professional side) (D-118).** It shows on every request card in
 the professional's list (`/espace/professionnelle/demandes`), before she answers, so that it can
 inform her choice. It also shows on her booking (`/espace/professionnelle/gardes/[id]`). The card
 still carries no family identity: a note and a count, never a name. The request card read in
 `src/lib/demandes/requests.ts` gains the two fields for the family that published the request.
 
-**Each side's own note (D-111).** The family's home (`/espace/famille`) and the professional's
+**Each side's own note (D-121).** The family's home (`/espace/famille`) and the professional's
 home (`/espace/professionnelle`) show the person's own note and gardes count. Only the aggregate
 is shown, never a single rating.
 
@@ -110,8 +110,8 @@ is shown, never a single rating.
   today. A signed-out user following the e-mail link goes through the existing sign-in and comes
   back to the form.
 
-**The invitation e-mail (D-110).** When a garde becomes terminée, each side gets one e-mail
-inviting them to rate. Nothing else is sent: no reminder and no e-mail on publication (D-107).
+**The invitation e-mail (D-120).** When a garde becomes terminée, each side gets one e-mail
+inviting them to rate. Nothing else is sent: no reminder and no e-mail on publication (D-117).
 
 - Family: the guide's « Demande d'avis post-garde (famille) », verbatim.
   - Subject: « Votre garde avec [Prénom] est terminée : partagez votre retour ».
@@ -134,7 +134,7 @@ inviting them to rate. Nothing else is sent: no reminder and no e-mail on public
   holds it. A garde whose window had already closed when the pass first sees it gets no e-mail,
   so no backlog is sent on the first deploy. A failed send is logged and retried on the next pass.
 
-**The founders' list — `/admin/avis` (G-03, D-108).** It is guarded by admin access, `noindex`
+**The founders' list — `/admin/avis` (G-03, D-118).** It is guarded by admin access, `noindex`
 and read-only, and linked from the admin home (`src/app/(portail)/admin/page.tsx`, label in
 `src/content/admin.ts`, `@relecture Surya`). Every rating is listed, published or not, newest
 first, 50 per page. Each row shows:
@@ -230,7 +230,7 @@ routing row.
 - Folding the ratings into the « Vue d'ensemble » and any sort, filter, export or moderation of ratings: back-office-admin (stub 14).
 - The note on the public teaser pages and the search cards: recherche-et-fiches-publiques (stub 15) reads `note` and `gardes` from this run's module.
 - Sorting or filtering professionals or requests by note.
-- A reminder e-mail, an e-mail when a rating is published, and a notification of the note to the rated person (D-107).
+- A reminder e-mail, an e-mail when a rating is published, and a notification of the note to the rated person (D-117).
 - Editing, withdrawing or deleting a rating by its author, and founders deleting a rating.
 - Per-criterion averages shown to anyone but the founders.
 - A minimum number of ratings before a note shows (it shows from the first published one).
@@ -241,8 +241,8 @@ routing row.
 ## Open questions
 
 - none. Non-blocking notes:
-  - The criteria (D-105), double-blind publication (D-106), the 14-day window with no reminder and no edits (D-107), the family's note on request cards and `/admin/avis` in this run (D-108) are the operator's answers in this Define session, 2026-09-25. The note and count rules (D-109), the invitation pass (D-110) and each side's own note on their home (D-111) are Define's choices. `revise` changes any of them.
+  - The criteria (D-115), double-blind publication (D-116), the 14-day window with no reminder and no edits (D-117), the family's note on request cards and `/admin/avis` in this run (D-118) are the operator's answers in this Define session, 2026-09-25. The note and count rules (D-119), the invitation pass (D-120) and each side's own note on their home (D-121) are Define's choices. `revise` changes any of them.
   - This run was defined before its dependency cycle-de-garde-et-annulation (operator, 2026-09-25). Build waits for that run's merge.
-  - The decision ids D-105 to D-111 are the next free ones on `main`. cycle-de-garde-et-annulation, defined after this run, takes the ids after D-111, and whichever run merges second renumbers on collision, as frais-de-service did.
+  - Define numbered these decisions D-105 to D-111. cycle-de-garde-et-annulation merged first with D-105 to D-114, so Build renumbered them D-115 to D-121 (2026-09-25).
 
 Context budget: read Surya's editorial guide (« Les e-mails », the reassurance hierarchy), the kick-off notes on ratings, `src/lib/reservations/` (profiles, bookings), `src/db/schema.ts` and `.github/workflows/demandes-digest.yml` beyond the Inputs table: to quote the guide's e-mail exactly, to confirm bookings carry no state yet, and to model the scheduled pass.
