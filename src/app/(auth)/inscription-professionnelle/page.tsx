@@ -29,7 +29,7 @@ export default async function InscriptionProfessionnellePage() {
       title={t.inscription.professionnelle.title}
       intro={[t.inscription.message, t.inscription.professionnelle.accroche]}
     >
-      <SignUpForm action={signUp.bind(null, "professionnel")} />
+      <SignUpForm action={signUp.bind(null, "professionnel", null)} />
     </AuthPage>
   );
 }

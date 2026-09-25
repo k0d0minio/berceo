@@ -152,3 +152,34 @@ export function postcodesOf(ins: string): string[] {
   }
   return postcodes.get(ins) ?? [];
 }
+
+// ---------------------------------------------------------------------------
+// Communes, for the search and the commune pages (recherche-et-fiches-publiques)
+// ---------------------------------------------------------------------------
+
+/** Every current commune, by REFNIS code, in the list's order. */
+export function allCommunes(): { ins: string; name: string }[] {
+  return Object.entries(COMMUNES).map(([ins, commune]) => ({ ins, name: commune.name }));
+}
+
+/** Every commune a four-digit postcode covers, once each, in list order. */
+export function communesOfPostcode(postcode: string): string[] {
+  const codes: string[] = [];
+  for (const l of all()) {
+    if (l.postcode === postcode && !codes.includes(l.ins)) codes.push(l.ins);
+  }
+  return codes;
+}
+
+/**
+ * The one commune whose name, or other official name, is exactly what was
+ * typed (accents, case and punctuation ignored); null when none or several.
+ */
+export function communeByName(query: string): string | null {
+  const q = normalize(query);
+  if (q === "") return null;
+  const found = Object.entries(COMMUNES).filter(([, commune]) =>
+    [commune.name, ...(commune.aliases ?? [])].some((name) => normalize(name) === q),
+  );
+  return found.length === 1 ? found[0][0] : null;
+}

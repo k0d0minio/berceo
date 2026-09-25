@@ -175,3 +175,25 @@ describe("after signing in, the user lands back where they were going (spec)", (
     expect(signInWithReturn("/tarifs")).toBe("/connexion");
   });
 });
+
+describe("the search and the public pages (recherche-et-fiches-publiques)", () => {
+  const search = "/espace/famille/recherche";
+
+  it("opens the search to a family only", () => {
+    expect(accessFor("parent", search)).toEqual({ kind: "allow" });
+    expect(accessFor("professionnel", search)).toEqual({ kind: "redirect", to: "/espace/professionnelle" });
+    expect(accessFor("admin", search)).toEqual({ kind: "redirect", to: "/admin" });
+  });
+
+  it("sends a signed-out visitor on the search to sign-in, with the way back", () => {
+    expect(accessFor(null, search)).toEqual({
+      kind: "redirect",
+      to: `/connexion?retour=${encodeURIComponent(search)}`,
+    });
+  });
+
+  it("never takes a public page as a way back", () => {
+    expect(safeReturnPath("/professionnelles/emma-3f0c9a52")).toBeNull();
+    expect(safeReturnPath("/garde-de-nuit/ixelles")).toBeNull();
+  });
+});
