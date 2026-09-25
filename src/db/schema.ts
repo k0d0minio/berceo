@@ -31,6 +31,10 @@
  * After a garde each side rates the other with stars (avis-etoiles, D-18):
  * `ratings`, four whole scores and no text, and `rating_invitations`, the
  * e-mail that asked for them, once per garde and side.
+ *
+ * The founders' back-office (back-office-admin) suspends and deletes accounts
+ * on `users` (a deleted account is anonymised, never removed, D-136) and marks
+ * a cancelled garde handled on `bookings`.
  */
 import { sql } from "drizzle-orm";
 import {
@@ -89,10 +93,21 @@ export const users = pgTable("users", {
   role: userRoleEnum("role").notNull(),
   /** Set once, when the family's welcome e-mail leaves; null until then. */
   welcomeSentAt: timestamp("welcome_sent_at", { withTimezone: true }),
+  /**
+   * Set by a founder's « Suspendre le compte » (back-office-admin, D-134): a
+   * suspended account opens nothing and is shown to no one. Who did it is an
+   * id without a foreign key, like the journal's.
+   */
+  suspendedAt: timestamp("suspended_at", { withTimezone: true }),
+  suspendedBy: uuid("suspended_by"),
+  /** Set by « Supprimer le compte »: the row is anonymised and stays suspended (D-136, D-137). */
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  check("users_deleted_suspended", sql`${table.deletedAt} IS NULL OR ${table.suspendedAt} IS NOT NULL`),
+]);
 
 // ---------------------------------------------------------------------------
 // The family's profile
@@ -559,6 +574,12 @@ export const bookings = pgTable(
     cancellationKind: cancellationKindEnum("cancellation_kind"),
     /** When the reminder of the day before claimed it (D-108); null until then. */
     reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
+    /**
+     * A founder's « Marquer comme traité » on a cancelled garde (back-office-admin,
+     * D-139); `src/lib/admin/` writes it, and only on a cancelled garde.
+     */
+    reportHandledAt: timestamp("report_handled_at", { withTimezone: true }),
+    reportHandledBy: uuid("report_handled_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -575,7 +596,12 @@ export const bookings = pgTable(
     index("bookings_absence_idx")
       .on(table.cancelledAt)
       .where(sql`${table.cancellationKind} = 'absence'`),
+    // The founders' « Signalements à traiter »: cancelled gardes nobody has marked handled.
+    index("bookings_reports_pending_idx")
+      .on(table.cancelledAt)
+      .where(sql`${table.status} = 'annulee' AND ${table.reportHandledAt} IS NULL`),
     check("bookings_night_rate_range", sql`${table.nightRateEur} BETWEEN 100 AND 300`),
+    check("bookings_report_handled", sql`${table.reportHandledAt} IS NULL OR ${table.status} = 'annulee'`),
     check("bookings_cancelled_at", sql`(${table.status} = 'annulee') = (${table.cancelledAt} IS NOT NULL)`),
     check(
       "bookings_cancellation",
@@ -850,6 +876,12 @@ export const adminActionEnum = pgEnum("admin_action", [
   "reglage_etudiantes",
   "documents_supprimes",
   "frais_rembourses",
+  // back-office-admin (D-134 to D-139)
+  "compte_suspendu",
+  "compte_reactive",
+  "compte_supprime",
+  "utilisateur_contacte",
+  "signalement_traite",
 ]);
 
 /**
