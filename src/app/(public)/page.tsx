@@ -106,7 +106,8 @@ export default function AccueilPage() {
       </VitrineSection>
 
       <StripedSection>
-        <h2 className="font-display text-h2 text-balance">
+        {/* Below md this heading sets at 26 px: at 32 px its shortest two-line split needs 380 px, and a phone's block gives 318 (blocs-accueil D-20). */}
+        <h2 className="font-display text-h2 text-balance max-md:text-[1.625rem]">
           {t.professionnelles.title}
         </h2>
         <p>{t.professionnelles.text}</p>

@@ -9,8 +9,10 @@ import { cn } from "@/lib/utils"
  * title at the DA's H3 size, and an odd last card takes the whole row, so no
  * slot is left empty. Each card spans two rows of the grid (a subgrid), so
  * the titles of a row share a line and their texts start together, 12 px
- * under the title rather than the card's 32 px. The paragraph keeps to the
- * DA's 75 characters a line when the card runs the full row.
+ * under the title rather than the card's 32 px. A title shorter than its
+ * neighbour's sits at the foot of the shared line, so it keeps the 12 px too.
+ * The paragraph keeps to the DA's 75 characters a line when the card runs
+ * the full row (55ch measured at 70 to 74 characters with Nunito).
  */
 function ReasonGrid({
   items,
@@ -27,13 +29,13 @@ function ReasonGrid({
           className="flex md:row-span-2 md:grid md:grid-rows-subgrid md:gap-y-3 md:last:odd:col-span-2"
         >
           <Card className="w-full gap-3 md:row-span-2 md:grid md:grid-rows-subgrid">
-            <CardHeader>
+            <CardHeader className="md:self-end">
               <h3 className="font-sans text-h3 font-bold text-balance">
                 {item.title}
               </h3>
             </CardHeader>
             <CardContent>
-              <p className="max-w-[60ch]">{item.text}</p>
+              <p className="max-w-[55ch]">{item.text}</p>
             </CardContent>
           </Card>
         </li>
