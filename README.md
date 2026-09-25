@@ -29,6 +29,7 @@ npm run dev      # http://localhost:3000
 | [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`) and the daily digest of new requests (`.github/workflows/demandes-digest.yml`), both guarded by `CRON_SECRET`. |
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
 | [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
+| [src/lib/messagerie/](src/lib/messagerie/), [src/components/messagerie/](src/components/messagerie/) | The conversation per answer: its rules, reads and writes, the send action, the new-message e-mail. See **The conversation** below. |
 | [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
@@ -115,6 +116,10 @@ The platform's data starts here: one Neon Postgres database, read through
   professional and request (`application_status`: `en_attente`, `retenue`, `non_retenue`,
   `retiree`), with the rate she answered at; `bookings` is one per request and one per
   professional and night, with that rate, and no address.
+  Conversations (0008): `conversations` is one per answer (the family, the professional, each
+  side's read marker, `last_message_at`); `messages` holds the people's text (1 to 2 000
+  characters, the browser's id as key) or one of Berceo's two keys (`amorce`, `bonne_garde`, at
+  most one each). The migration backfilled a conversation for every earlier answer and booking.
   Identity itself lives in Neon Auth's `neon_auth` schema, which Neon manages and Drizzle never
   declares.
 - **Client:** `src/db/index.ts` — a lazily-initialized Drizzle client on Neon's serverless HTTP
@@ -246,6 +251,33 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   professional only on her own booking's page; the address is read live through
   `bookingAddress` in `src/lib/famille/profile.ts`, still the only reader of `family_profiles`.
 - **Words:** `src/content/reservations.ts`; e-mails in `src/content/emails.ts`.
+
+## The conversation
+
+- **One per answer (D-16, D-91):** `withConversation` in `src/lib/messagerie/conversations.ts`
+  wraps the answer's INSERT, so the answer, its conversation and Berceo's amorce land in one
+  statement; a re-answer finds the same conversation. Only the family who owns the request and
+  the professional who answered read it; anyone else's id is not found. Nothing else creates one.
+- **Berceo's two messages (D-87):** the guide's amorce when she answers, the cahier des charges'
+  « excellente garde » in the booked conversation when the family confirms
+  (`bonneGardeStatement`, a statement of `acceptAnswer`'s batch). Stored as keys, rendered from
+  `src/content/messagerie.ts`; neither sends an e-mail.
+- **Where:** « Messages » in each space (`/espace/famille/messages`,
+  `/espace/professionnelle/messages`, a conversation at `…/[id]`), with the number of
+  conversations holding an unread message beside it, on the menu button too below md.
+  « Écrire à [Prénom] » on the family's answers and booking, « Voir la conversation » on the
+  professional's answered requests and garde.
+- **Reading and sending:** opening a conversation moves the viewer's read marker; « Lu » sits
+  under her last message once the other side opened it after. `sendMessageAction`
+  (`src/lib/messagerie/actions.ts`) sends 1 to 2 000 characters of plain text with the id the
+  browser gave it: a retry inserts once. Each inserted message e-mails the other side once,
+  without its text (`notify.ts`, key `message-<id>`, D-90). A reminder line follows every third
+  message of the two people outside the booked conversation (D-88).
+- **Closing (D-89):** a conversation accepts messages until the night ends (start + 11 h,
+  Brussels), whatever its answer's state; a cancelled request closes it at once. Closed, it stays
+  readable. `isConversationOpen` in `rules.ts` is the one rule; `sendMessage` holds it again in
+  SQL. Cycle-de-garde-et-annulation extends it for a cancelled booking.
+- **Words:** `src/content/messagerie.ts`; the e-mail in `src/content/emails.ts`.
 
 ## The professional's availability
 
