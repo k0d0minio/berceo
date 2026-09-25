@@ -250,3 +250,6 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - When Define specifies a run ahead of the stub it depends on, it names the facts it will read from that stub and lets Build re-read that stub's merged rules for any later transition (a window that changes the state after the fact) before writing code. (`FAILURE.md` — avis-etoiles)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - A run defined ahead of its dependency numbers its decisions only at Build, after that dependency has merged; until then its spec uses the numbers provisionally and says so. (`FAILURE.md` — avis-etoiles)
+
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- this repo installs with npm only (package-lock.json); a pnpm-lock.yaml or yarn.lock in the tree switches Vercel's package manager and breaks every build. (`ERR_PNPM_OUTDATED_LOCKFILE`, seen 1× — recherche-et-fiches-publiques; root, src/app, src/components, src/content)

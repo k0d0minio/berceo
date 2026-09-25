@@ -47,3 +47,14 @@
 - Unverified locally (the repo forbids local lint/typecheck/test): the advisory quality job is the first run of the new tests.
 
 Context budget: read the avis-etoiles spec, `src/lib/auth/` (routing, guard, server), the account pages and actions, the confirmation route, the full-profile page, the vitrine blocks and the design-system page beyond the Inputs table, to reuse their readers and components.
+
+## Release
+
+- gate: Ready to merge ticked, which authorises the merge
+- ci: GREEN on 5c76446 (full gate) before the review fix; read again after the last push (the head that merges is the close-out commit)
+- reviews: code medium (`/code-review` on origin/main...HEAD: one finding, fixed on the branch: a `?commune=` value naming a prototype key such as `constructor` passed `isKnownCommune`; `communeName` now reads own keys only, with a test) · security `security-check.sh --branch --audit`: OK (npm audit clean; gitleaks absent, built-in patterns ran) + /security-review: no finding (`retour` re-checked at sign-up and at the confirmation route, same-origin redirect only; the short-id LIKE bound and hex-checked; every read `valide` only; public pages carry the whitelisted fields only; no raw HTML) · readiness `env.sh audit --changed`: OK · /production-readiness n/a: no such skill ships in this repo or this session; the code review, the security review and the env audit cover its ground (auth, DB reads, env)
+- parked: none
+- merge of main: up to date at Release; main was merged at Build (the stray pnpm-lock.yaml, deleted in this PR by the operator's choice)
+- migrations: skip — none of this run's own
+- learned: 1 rule appended to _shared/project-rules.md (npm only; a pnpm or yarn lockfile breaks every Vercel build)
+- docs: README « The search and the public pages », AGENTS routing row (at Build); no page under `.icm/docs` changes · announce: deferred to promotion
