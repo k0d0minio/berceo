@@ -194,6 +194,10 @@ export const comptes = catalogue({
       navDemandesFamille: "Mes demandes",
       /** @relecture Surya — entrée de navigation vers les demandes de la zone de la professionnelle. */
       navDemandesProfessionnelle: "Demandes",
+      /** @relecture Surya — entrée de navigation vers les réservations de la famille. */
+      navReservations: "Mes réservations",
+      /** @relecture Surya — entrée de navigation vers les gardes de la professionnelle. */
+      navGardes: "Mes gardes",
       /** @relecture Surya — entrée de navigation vers le calendrier de la professionnelle ; le titre du guide. */
       navDisponibilites: "Mes disponibilités",
       professionnelle: {

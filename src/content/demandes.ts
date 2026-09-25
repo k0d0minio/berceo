@@ -138,6 +138,8 @@ export const demandes = catalogue({
       annulee: "Annulée",
       /** @relecture Surya — la nuit a commencé. */
       passee: "Passée",
+      /** @relecture Surya — une réponse a été acceptée (candidature-et-reservation). */
+      attribuee: "Attribuée",
     },
 
     carte: {
@@ -204,9 +206,9 @@ export const demandes = catalogue({
     famille: {
       /** @relecture Surya — titre de la liste. */
       titre: "Mes demandes",
-      /** @relecture Surya — introduction de la liste. */
+      /** @relecture Surya — introduction de la liste (D-76 : plus de modification après une réponse). */
       intro:
-        "Vos demandes de garde de nuit. Tant qu'une demande est ouverte, vous pouvez la modifier ou l'annuler.",
+        "Vos demandes de garde de nuit. Tant qu'une demande est ouverte, vous pouvez l'annuler, et la modifier tant qu'aucune professionnelle n'y a répondu.",
       /** @relecture Surya — aucune demande encore. */
       vide: "Vous n'avez pas encore publié de demande.",
       /** @relecture Surya — accueil de l'espace famille, au-dessus des deux boutons. */
@@ -230,9 +232,9 @@ export const demandes = catalogue({
     professionnelle: {
       /** @relecture Surya — titre de la liste de la professionnelle. */
       titre: "Demandes dans votre zone",
-      /** @relecture Surya — introduction de la liste. */
+      /** @relecture Surya — introduction de la liste (D-71 : les demandes prioritaires d'abord). */
       intro:
-        "Les demandes ouvertes dans les communes où vous intervenez, les demandes urgentes en premier.",
+        "Les demandes ouvertes dans les communes où vous intervenez. Celles qui vous sont envoyées en priorité, puis les demandes urgentes, apparaissent en premier.",
       /** @relecture Surya — aucune demande dans sa zone. */
       vide: "Aucune demande ouverte dans votre zone pour le moment.",
       /** @relecture Surya — profil pas encore validé. */

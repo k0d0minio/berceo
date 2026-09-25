@@ -3,21 +3,26 @@ import Link from "next/link"
 
 import { demandes } from "@/content/demandes"
 import { fill, words } from "@/content/locale"
+import { reservations } from "@/content/reservations"
 import { cardTitle, childrenLine, nightLine, placeLine } from "@/lib/demandes/format"
 import type { RequestCard as Request } from "@/lib/demandes/requests"
 import type { DisplayStatus } from "@/lib/demandes/rules"
+import { rateLine } from "@/lib/reservations/format"
 import { cn } from "@/lib/utils"
 
 /*
  * The DA's request card (Cartes et blocs de contenu): « Garde de nuit à
  * <Commune> », the locality, the night, the children, 32 px corners, flat
  * pearl, no shadow. An urgent request carries a butter-yellow mark, never red
- * (D-24). The family's card adds its status and a link; a professional's card
- * shows when it was published. It never shows anything about the family
- * (D-15): its props hold only the card columns.
+ * (D-24). The family's card adds its status, its answers and a link; a
+ * professional's card shows when it was published, a request sent to her in
+ * priority (butter yellow too, D-71), her rate as the DA's price line, and her
+ * answer's buttons below. It never shows anything about the family (D-15): its
+ * props hold only the card columns.
  */
 
 const t = words(demandes)
+const r = words(reservations)
 
 function Mark({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
@@ -37,6 +42,10 @@ function RequestCard({
   status,
   href,
   showPublished = false,
+  priority = false,
+  rate,
+  note,
+  footer,
 }: {
   request: Request
   /** The family's view: the request's status. */
@@ -44,6 +53,14 @@ function RequestCard({
   /** The family's view: a link to the request. */
   href?: string
   showPublished?: boolean
+  /** The professional's view: sent to her « en priorité » (D-71). */
+  priority?: boolean
+  /** The professional's view: her rate, the DA's « 150 € pour la garde de nuit ». */
+  rate?: number | null
+  /** A short line under the card's facts: « 2 réponses », « Vous avez répondu ». */
+  note?: string
+  /** The professional's view: her answer's buttons. */
+  footer?: React.ReactNode
 }) {
   const published = new Intl.DateTimeFormat("fr-BE", {
     timeZone: "Europe/Brussels",
@@ -55,6 +72,7 @@ function RequestCard({
   return (
     <article className="flex flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
       <div className="flex flex-wrap items-center gap-2">
+        {priority ? <Mark className="bg-beurre">{r.professionnelle.prioritaire}</Mark> : null}
         {request.urgent ? <Mark className="bg-beurre">{t.carte.urgente}</Mark> : null}
         {status ? (
           <Mark className="border border-solid border-taupe bg-blanc">{t.statuts[status]}</Mark>
@@ -70,9 +88,11 @@ function RequestCard({
       <p className="text-corps text-taupe">
         {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
       </p>
+      {rate ? <p className="text-corps font-semibold text-sauge">{rateLine(rate)}</p> : null}
       {showPublished ? (
         <p className="text-legende text-taupe">{fill(t.carte.publiee, { date: published })}</p>
       ) : null}
+      {note ? <p className="text-corps font-semibold text-taupe">{note}</p> : null}
       {href ? (
         <Link
           href={href}
@@ -81,6 +101,7 @@ function RequestCard({
           {t.boutons.voir}
         </Link>
       ) : null}
+      {footer ? <div className="flex flex-wrap gap-3 pt-2">{footer}</div> : null}
     </article>
   )
 }

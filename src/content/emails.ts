@@ -84,6 +84,57 @@ export const emails = catalogue({
       cta: "Voir les demandes disponibles",
     },
 
+    /**
+     * Nouvelle candidature (famille), le guide verbatim, un point ajouté à la fin
+     * du corps. {profession} est écrite en minuscules au milieu de la phrase.
+     */
+    nouvelleReponse: {
+      objet: "{prenom} a répondu à votre demande",
+      corps: "{prenom}, {profession}, a postulé pour votre garde du {date}. Consultez son profil et confirmez votre choix.",
+      cta: "Voir le profil de {prenom}",
+    },
+
+    /** Confirmation de réservation (famille), le guide sans sa phrase sur l'assurance (D-8, D-78). */
+    reservationFamille: {
+      objet: "Votre garde du {date} est confirmée ✓",
+      corps: "Tout est prêt. {prenom} sera chez vous le {date} à partir de {heure}. L'adresse lui a été transmise.",
+      cta: "Voir les détails de ma réservation",
+    },
+
+    /** Confirmation de réservation (professionnelle), le guide ; « Bonne nuit ! » perd son point d'exclamation (D-78). */
+    reservationProfessionnelle: {
+      objet: "Garde confirmée : {date} chez {prenomFamille}",
+      /** @relecture Surya — « Bonne nuit. » au lieu de « Bonne nuit ! » (D-78). */
+      corps:
+        "Votre garde du {date} est confirmée. L'adresse et les coordonnées de la famille vous ont été transmises. Bonne nuit.",
+      cta: "Voir les détails de la garde",
+    },
+
+    /** Une réponse déclinée : une autre professionnelle choisie, la demande republiée ou annulée (D-70, D-76). */
+    nonRetenue: {
+      /** @relecture Surya — objet. */
+      objet: "Votre disponibilité pour la garde du {date}",
+      /** @relecture Surya — corps : la famille a fait un autre choix ou la demande est close. */
+      corps:
+        "La famille de {commune} a fait un autre choix pour la nuit du {nuit}, ou sa demande n'est plus ouverte. Merci pour votre disponibilité.",
+      /** @relecture Surya — la suite. */
+      suite: "D'autres demandes vous attendent peut-être dans votre zone.",
+      cta: "Voir les demandes disponibles",
+    },
+
+    /** Une demande envoyée en priorité à une professionnelle (D-71). Aucun nom de famille. */
+    prioritaire: {
+      /** @relecture Surya — objet. */
+      objet: "Une famille vous envoie sa demande en priorité",
+      /** @relecture Surya — corps : la nuit et les enfants. */
+      corps: "Une famille de {commune} vous a choisie pour la nuit du {nuit}. {enfants}.",
+      /** @relecture Surya — la demande reste visible des autres (le guide, « La mise en relation »). */
+      suite:
+        "Sa demande reste visible des autres professionnelles de sa zone jusqu'à ce qu'elle confirme une réservation.",
+      /** @relecture Surya — bouton vers la liste. */
+      cta: "Voir la demande",
+    },
+
     verification: {
       /** @relecture Surya — objet de l'e-mail de vérification. */
       objet: "Confirmez votre adresse e-mail",

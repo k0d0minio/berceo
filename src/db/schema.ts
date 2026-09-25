@@ -14,6 +14,9 @@
  *
  * A care request (demande-de-garde) is a family's night: its date, start time,
  * children and commune, never its address or anything about health (D-20).
+ * A professional answers it (`care_request_applications`) and the family books
+ * one answer (`bookings`, candidature-et-reservation); the address still stays
+ * in `family_profiles`, read live for her booking only (D-77).
  *
  * A professional's indicative availability (disponibilites-indicatives) is the
  * nights she marked available; nothing about a care request reads it (D-12).
@@ -336,11 +339,15 @@ export const professionalAvailability = pgTable(
 // ---------------------------------------------------------------------------
 
 /**
- * `ouverte` until the family cancels it. `attribuee` arrives with
- * candidature-et-reservation, the time-driven statuses with
+ * `ouverte` until the family cancels it or books an answer (`attribuee`,
+ * candidature-et-reservation). The time-driven statuses come with
  * cycle-de-garde-et-annulation (D-17).
  */
-export const careRequestStatusEnum = pgEnum("care_request_status", ["ouverte", "annulee"]);
+export const careRequestStatusEnum = pgEnum("care_request_status", [
+  "ouverte",
+  "annulee",
+  "attribuee",
+]);
 
 /** The guide's two options: « Un bébé », « Jumeaux ». */
 export const careRequestChildrenEnum = pgEnum("care_request_children", ["un_bebe", "jumeaux"]);
@@ -379,11 +386,27 @@ export const careRequests = pgTable(
     /** Set when a daily digest carried it (normal requests only); null until then. */
     digestSentAt: timestamp("digest_sent_at", { withTimezone: true }),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    /**
+     * The professional the family sent it to « en priorité » (D-71): set once,
+     * never changed. She sees it whatever her communes; nobody else waits.
+     */
+    priorityProfileId: uuid("priority_profile_id").references(() => professionalProfiles.id, {
+      onDelete: "set null",
+    }),
+    prioritySentAt: timestamp("priority_sent_at", { withTimezone: true }),
+    /**
+     * When the family last republished it, and how many times (D-70): a normal
+     * one republished after its digest is carried by the next one, and the
+     * count keys the urgent e-mail again.
+     */
+    republishedAt: timestamp("republished_at", { withTimezone: true }),
+    republishCount: smallint("republish_count").notNull().default(0),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
+    index("care_requests_priority_profile_id_idx").on(table.priorityProfileId),
     index("care_requests_commune_status_night_idx").on(
       table.communeIns,
       table.status,
@@ -410,6 +433,105 @@ export const careRequests = pgTable(
       "care_requests_cancelled_at",
       sql`(${table.status} = 'annulee') = (${table.cancelledAt} IS NOT NULL)`,
     ),
+    // A profile deleted later clears the id and leaves the moment: only a set id needs one.
+    check(
+      "care_requests_priority_sent_at",
+      sql`${table.priorityProfileId} IS NULL OR ${table.prioritySentAt} IS NOT NULL`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Answers and bookings
+// ---------------------------------------------------------------------------
+
+/**
+ * An answer's life: `en_attente` while the family chooses; `retenue` when she
+ * books it; `non_retenue` when she books another, republishes or cancels
+ * (D-70, D-76), never to answer that request again; `retiree` when the
+ * professional withdraws it, or when she is booked elsewhere that night (D-73).
+ */
+export const applicationStatusEnum = pgEnum("application_status", [
+  "en_attente",
+  "retenue",
+  "non_retenue",
+  "retiree",
+]);
+
+/**
+ * « Je suis disponible pour cette garde »: one row per professional per
+ * request, re-answering after a withdrawal updates it. The rate is hers at
+ * the moment she answered (D-74): what the family compares and what a booking
+ * carries.
+ */
+export const careRequestApplications = pgTable(
+  "care_request_applications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => careRequests.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => professionalProfiles.id, { onDelete: "cascade" }),
+    status: applicationStatusEnum("status").notNull().default("en_attente"),
+    nightRateEur: integer("night_rate_eur").notNull(),
+    /** Her latest « Je suis disponible », a re-answer included. */
+    answeredAt: timestamp("answered_at", { withTimezone: true }).notNull().defaultNow(),
+    /** How many times she answered; keys the family's e-mail per answer. */
+    answerCount: smallint("answer_count").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("care_request_applications_request_profile_key").on(table.requestId, table.profileId),
+    index("care_request_applications_profile_status_idx").on(table.profileId, table.status),
+    // One booked answer per request, whatever races.
+    uniqueIndex("care_request_applications_one_retenue")
+      .on(table.requestId)
+      .where(sql`${table.status} = 'retenue'`),
+    check(
+      "care_request_applications_night_rate_range",
+      sql`${table.nightRateEur} BETWEEN 100 AND 300`,
+    ),
+  ],
+);
+
+/**
+ * The night two people agreed on. Made from one answer, for one request, and
+ * one per professional per night (D-73). It carries no address: the
+ * professional reads the family's through `src/lib/famille/` (D-77). Its
+ * status, cancellation and the time-driven states come with
+ * cycle-de-garde-et-annulation.
+ */
+export const bookings = pgTable(
+  "bookings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requestId: uuid("request_id")
+      .notNull()
+      .unique()
+      .references(() => careRequests.id, { onDelete: "cascade" }),
+    applicationId: uuid("application_id")
+      .notNull()
+      .unique()
+      .references(() => careRequestApplications.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => professionalProfiles.id, { onDelete: "cascade" }),
+    familyUserId: uuid("family_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** The request's night, copied so the index below can hold one garde a night. */
+    nightDate: date("night_date").notNull(),
+    nightRateEur: integer("night_rate_eur").notNull(),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("bookings_profile_night_key").on(table.profileId, table.nightDate),
+    index("bookings_family_night_idx").on(table.familyUserId, table.nightDate),
+    check("bookings_night_rate_range", sql`${table.nightRateEur} BETWEEN 100 AND 300`),
   ],
 );
 
@@ -487,3 +609,6 @@ export type CareRequest = typeof careRequests.$inferSelect;
 export type CareRequestStatus = (typeof careRequestStatusEnum.enumValues)[number];
 export type CareRequestChildren = (typeof careRequestChildrenEnum.enumValues)[number];
 export type BabyAgeUnit = (typeof babyAgeUnitEnum.enumValues)[number];
+export type CareRequestApplication = typeof careRequestApplications.$inferSelect;
+export type ApplicationStatus = (typeof applicationStatusEnum.enumValues)[number];
+export type Booking = typeof bookings.$inferSelect;

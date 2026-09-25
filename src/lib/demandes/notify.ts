@@ -14,6 +14,7 @@ import { childrenLine, formatDate, nightLine } from "./format";
 import { PROFESSIONAL_REQUESTS_PATH } from "./paths";
 import {
   claimDigestRequests,
+  declinedPairs,
   digestSentOn,
   professionalsServing,
   requestForNotice,
@@ -27,11 +28,12 @@ import { brusselsNow, isDigestTime } from "./rules";
  * (D-61): an urgent request at once, the normal ones in one digest a day at
  * 18:00 in Brussels. Links point at the deployment that sent them, so a UAT
  * e-mail opens UAT. A failed send is logged with ids only and never undoes a
- * request.
+ * request. A republished request (D-70) goes out again the same way, to
+ * everyone but the professionals the family declined on it.
  */
 
 
-function summary(request: RequestCard): RequestSummary {
+export function summary(request: RequestCard): RequestSummary {
   return {
     commune: communeName(request.communeIns) ?? request.locality,
     nuit: nightLine(request.nightDate, request.startTime),
@@ -40,7 +42,7 @@ function summary(request: RequestCard): RequestSummary {
   };
 }
 
-function logFailures(what: string, results: PromiseSettledResult<unknown>[], ids: string[]): number {
+export function logFailures(what: string, results: PromiseSettledResult<unknown>[], ids: string[]): number {
   let failed = 0;
   results.forEach((result, i) => {
     if (result.status === "rejected") {
@@ -52,20 +54,28 @@ function logFailures(what: string, results: PromiseSettledResult<unknown>[], ids
   return failed;
 }
 
-/** One e-mail per validated professional serving the urgent request's commune. */
+/**
+ * One e-mail per validated professional serving the urgent request's commune,
+ * but those declined on it and the one it was sent to in priority, who has her
+ * own e-mail (D-71). Each republication is a new send: its count keys it.
+ */
 export async function notifyUrgentRequest(requestId: string, siteUrl: string): Promise<void> {
   try {
     const request = await requestForNotice(requestId);
     if (!request || !request.urgent || request.status !== "ouverte") return;
 
-    const recipients = dedupe(await professionalsServing([request.communeIns]));
+    const declined = await declinedPairs([request.id]);
+    const recipients = dedupe(await professionalsServing([request.communeIns])).filter(
+      (r) => !declined.has(`${request.id}:${r.profileId}`) && r.profileId !== request.priorityProfileId,
+    );
     const url = `${siteUrl}${PROFESSIONAL_REQUESTS_PATH}`;
+    const round = request.republishCount > 0 ? `-r${request.republishCount}` : "";
     const results = await Promise.allSettled(
       recipients.map((r) =>
         sendEmail(
           r.email,
           urgentRequestEmail({ siteUrl, prenom: r.firstName, url, request: summary(request) }),
-          `demande-${request.id}-${r.profileId}`,
+          `demande-${request.id}-${r.profileId}${round}`,
         ),
       ),
     );
@@ -106,7 +116,10 @@ export async function sendRequestDigest(now: Date, siteUrl: string): Promise<Dig
   const claimed = await claimDigestRequests(now);
   if (claimed.length === 0) return { requests: 0, professionals: 0, failed: 0 };
 
-  const recipients = await professionalsServing([...new Set(claimed.map((r) => r.communeIns))]);
+  const [recipients, declined] = await Promise.all([
+    professionalsServing([...new Set(claimed.map((r) => r.communeIns))]),
+    declinedPairs(claimed.map((r) => r.id)),
+  ]);
 
   const byProfessional = new Map<string, { recipient: Recipient; communes: Set<string> }>();
   for (const r of recipients) {
@@ -116,29 +129,33 @@ export async function sendRequestDigest(now: Date, siteUrl: string): Promise<Dig
   }
 
   const url = `${siteUrl}${PROFESSIONAL_REQUESTS_PATH}`;
-  const sends = [...byProfessional.values()].map(({ recipient, communes }) => {
+  const sends = [...byProfessional.values()].flatMap(({ recipient, communes }) => {
     const hers = claimed
-      .filter((r) => communes.has(r.communeIns))
+      .filter((r) => communes.has(r.communeIns) && !declined.has(`${r.id}:${recipient.profileId}`))
       .sort((a, b) => `${a.nightDate}T${a.startTime}`.localeCompare(`${b.nightDate}T${b.startTime}`));
+    // Declined on every request of hers in this digest: nothing to send her.
+    if (hers.length === 0) return [];
     // Per professional, per day and per set of requests: a retry of the same
     // digest sends it once.
     const batch = createHash("sha256")
       .update(hers.map((r) => r.id).sort().join(","))
       .digest("hex")
       .slice(0, 16);
-    return {
-      profileId: recipient.profileId,
-      send: sendEmail(
-        recipient.email,
-        requestDigestEmail({
-          siteUrl,
-          prenom: recipient.firstName,
-          url,
-          requests: hers.map(summary),
-        }),
-        `digest-${recipient.profileId}-${day}-${batch}`,
-      ),
-    };
+    return [
+      {
+        profileId: recipient.profileId,
+        send: sendEmail(
+          recipient.email,
+          requestDigestEmail({
+            siteUrl,
+            prenom: recipient.firstName,
+            url,
+            requests: hers.map(summary),
+          }),
+          `digest-${recipient.profileId}-${day}-${batch}`,
+        ),
+      },
+    ];
   });
 
   const results = await Promise.allSettled(sends.map((s) => s.send));

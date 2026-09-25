@@ -22,8 +22,9 @@ import { cn } from "@/lib/utils"
  * her profile (read-only, D-63) with the address note, and the mandatory
  * checkbox (D-20). Three modes: a normal request, an urgent one (tonight or
  * tomorrow night, D-60), and an edit, which never shows the checkbox again nor
- * changes the commune or the urgency. Validation is the server's; a refused
- * form keeps what was typed.
+ * changes the commune or the urgency. Published from a professional's
+ * profile, it carries her id and says the request goes to her in priority.
+ * Validation is the server's; a refused form keeps what was typed.
  */
 
 export type RequestFormMode = "normale" | "urgente" | "modification"
@@ -45,6 +46,7 @@ function RequestForm({
   commune,
   id,
   defaults,
+  priority,
 }: {
   action: (state: RequestState, form: FormData) => Promise<RequestState>
   mode: RequestFormMode
@@ -55,6 +57,8 @@ function RequestForm({
   /** The request being edited. */
   id?: string
   defaults?: Omit<RequestInput, "confirmation">
+  /** Published from a professional's profile: sent to her « en priorité » (D-71), with the line saying so. */
+  priority?: { profileId: string; note: string }
 }) {
   const [state, submit, pending] = useActionState(action, {})
   const e = state.errors ?? {}
@@ -85,6 +89,12 @@ function RequestForm({
       ) : null}
       {mode === "urgente" ? <input type="hidden" name="urgente" value="1" /> : null}
       {id ? <input type="hidden" name="id" value={id} /> : null}
+      {priority ? (
+        <>
+          <input type="hidden" name="priorite" value={priority.profileId} />
+          <p className="text-corps font-semibold text-taupe">{priority.note}</p>
+        </>
+      ) : null}
 
       <Field
         // A refused form remounts the field with what was typed.
