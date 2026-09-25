@@ -13,9 +13,14 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Build waits for cycle-de-garde-et-annulation to merge; the garde's state is read from it, never re-implemented here.
+- Stars only, no free text anywhere: no text column, no text input (D-18).
+- Double-blind: a rating counts only once both sides have rated or 14 days after the garde's end (D-106).
+- One rating per side per garde, no edit, no reminder e-mail (D-107).
+- The professional's request card gains the family's note and gardes count, never an identity column (D-108).
+- `src/lib/avis/` is the only reader and writer of `ratings` and `rating_invitations`.
+- Every word in `src/content/`, `@relecture Surya` unless quoted from the guide (D-19); no red or green (D-24).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read Surya's editorial guide (« Les e-mails »), the kick-off notes on ratings, `src/lib/reservations/`, `src/db/schema.ts` and `demandes-digest.yml` beyond its Inputs: to quote the guide's post-garde e-mail, to confirm bookings carry no state yet, and to model the scheduled pass.

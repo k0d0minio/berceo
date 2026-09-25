@@ -6,18 +6,17 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. The operator reads `02_define/output/spec.md` and ticks **Spec approved** on https://github.com/k0d0minio/berceo/pull/49, or changes it with `revise avis-etoiles "<what>"`.
+2. Once cycle-de-garde-et-annulation has merged on `main`, run `build avis-etoiles`, starting with `plan.md` → Pass 0 (merge `main`, then name the three garde facts in `notes.md`).
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- cycle-de-garde-et-annulation (stub 11) is not built yet. This run reads its terminée / annulée states and the garde's end instant. It must be defined, built and merged first (`new cycle-de-garde-et-annulation`).
+- blocked on operator: tick **Spec approved** on https://github.com/k0d0minio/berceo/pull/49.
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not start Build before cycle-de-garde-et-annulation has merged, and never re-implement the garde's state here.
+- Do not tick the gate checkboxes.
+- Do not add any text field to the rating flow or a text column to `ratings` (D-18).
+- Do not hand-edit `drizzle/meta/_journal.json`. Regenerate the migration on the merged tree.
