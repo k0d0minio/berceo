@@ -12,7 +12,7 @@ import {
 import { bookingFees } from "@/lib/paiements/payments";
 import { familyBookingPath, PROFESSIONAL_BOOKINGS_PATH, professionalBookingPath } from "@/lib/reservations/paths";
 
-import { claimReminders, gardeNotice, logError } from "./gardes";
+import { claimReminder, gardeNotice, logError, pendingReminders, releaseReminder } from "./gardes";
 
 /**
  * The e-mails of a garde's life. Each runs after the write it follows
@@ -138,13 +138,26 @@ async function remind(bookingId: string, siteUrl: string): Promise<number> {
 }
 
 /**
- * The reminder of the day before (D-108): claims tomorrow's confirmed gardes,
- * then sends every garde's two e-mails at once rather than one garde after
- * another, so a long list finishes inside the function's time. The caller has
- * checked the hour.
+ * The reminder of the day before (D-108): each of tomorrow's confirmed gardes
+ * is claimed, then reminded, one after another, which keeps the sends under
+ * Resend's rate. A garde whose sends failed is released, and one a timeout
+ * never reached was never claimed, so the next call of the hour (the workflow
+ * calls twice inside it) tries again; the idempotency keys keep a side that
+ * was already reminded from a second e-mail. The caller has checked the hour.
  */
 export async function sendReminders(now: Date, siteUrl: string): Promise<ReminderOutcome> {
-  const ids = await claimReminders(now);
-  const failed = await Promise.all(ids.map((bookingId) => remind(bookingId, siteUrl)));
-  return { gardes: ids.length, failed: failed.reduce((sum, n) => sum + n, 0) };
+  let gardes = 0;
+  let failed = 0;
+  for (const bookingId of await pendingReminders(now)) {
+    if (!(await claimReminder(bookingId, now))) continue;
+    gardes += 1;
+    const failures = await remind(bookingId, siteUrl);
+    if (failures > 0) {
+      failed += failures;
+      await releaseReminder(bookingId).catch((error: unknown) =>
+        logError("reminder claim not released", { bookingId }, error),
+      );
+    }
+  }
+  return { gardes, failed };
 }

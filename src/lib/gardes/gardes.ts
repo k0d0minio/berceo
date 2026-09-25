@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import {
@@ -189,23 +189,37 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
 // The reminder of the day before (D-108)
 // ---------------------------------------------------------------------------
 
-/**
- * Claims every confirmed garde of tomorrow's night not yet reminded, marking
- * it in the same statement, so a second call the same day finds none.
- */
-export async function claimReminders(now: Date): Promise<string[]> {
-  const claimed = await db
-    .update(bookings)
-    .set({ reminderSentAt: now })
+/** Tomorrow's confirmed gardes not yet reminded, or whose reminder failed and was released. */
+export async function pendingReminders(now: Date): Promise<string[]> {
+  const rows = await db
+    .select({ id: bookings.id })
+    .from(bookings)
     .where(
       and(
         eq(bookings.status, "confirmee"),
-        sql`${bookings.reminderSentAt} IS NULL`,
+        isNull(bookings.reminderSentAt),
         eq(bookings.nightDate, reminderNight(now)),
       ),
-    )
+    );
+  return rows.map((row) => row.id);
+}
+
+/**
+ * Claims one garde's reminder, only if nobody has: two calls in the same hour
+ * never both send it. A garde cancelled meanwhile is not claimed.
+ */
+export async function claimReminder(bookingId: string, now: Date): Promise<boolean> {
+  const claimed = await db
+    .update(bookings)
+    .set({ reminderSentAt: now })
+    .where(and(eq(bookings.id, bookingId), eq(bookings.status, "confirmee"), isNull(bookings.reminderSentAt)))
     .returning({ id: bookings.id });
-  return claimed.map((row) => row.id);
+  return claimed.length > 0;
+}
+
+/** Gives a claim back after a failed send, so the next call of the hour tries again. */
+export async function releaseReminder(bookingId: string): Promise<void> {
+  await db.update(bookings).set({ reminderSentAt: null }).where(eq(bookings.id, bookingId));
 }
 
 // ---------------------------------------------------------------------------
