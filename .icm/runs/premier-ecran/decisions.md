@@ -19,5 +19,6 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-14 — The header shows its full nav from xl (1280 px); below it the menu panel serves. The full row measures 1,130 px against the 1,088 px `max-w-6xl` container, so links take `whitespace-nowrap` and the row's gaps and the header capsules' side padding tighten (to about 1,070 px). Operator, in Define (2026-09-25).
+- D-15 — From lg the hero and `PageHeader` photographs fill the text block's height, cover-cropped, over a top-aligned 16:9. Operator, in Define (2026-09-25).
+- D-16 — Below 360 px the hero's side gutter narrows to 12 px and its H1 sets at 38 px: « professionnelles » measures 294 px at the DA's 38 px floor against a 288 px column at 320 px with the site's 16 px gutter, so D-6's 38–44 px and "never overflows from 320" could not both hold. Operator, in Build (2026-09-25) — a spec gap; see notes.md → Notes for Release.
