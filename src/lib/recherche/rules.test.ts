@@ -60,6 +60,7 @@ describe("a query resolves to communes (D-11)", () => {
     expect(communesOfParams(["21009", "21009", "99999", "21015"])).toEqual(["21009", "21015"]);
     expect(communesOfParams("21009")).toEqual(["21009"]);
     expect(communesOfParams(undefined)).toEqual([]);
+    expect(communesOfParams(["constructor", "toString", "__proto__"])).toEqual([]);
     expect(searchQuery(["21009", "21015"])).toBe("commune=21009&commune=21015");
   });
 });

@@ -88,7 +88,8 @@ export function findLocality(postcode: string, locality: string): Locality | nul
 
 /** The commune's name for a REFNIS code, or null for an unknown code. */
 export function communeName(ins: string): string | null {
-  return COMMUNES[ins]?.name ?? null;
+  // Own keys only: « constructor » or « toString » is not a commune.
+  return Object.hasOwn(COMMUNES, ins) ? COMMUNES[ins].name : null;
 }
 
 /** « 1050 Ixelles », or « 9090 Gontrode (Merelbeke-Melle) » for a sub-locality. */
