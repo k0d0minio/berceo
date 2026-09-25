@@ -43,3 +43,15 @@ Proven against the run's Neon branch (a UAT copy) with throwaway probes, never c
 - The admin catalogue's `absences` section and the old home's `lien*` keys are gone with the pages that used them.
 - `main` brought the epic `professionnelle-invalidee-consequences` (withdraw a professional's waiting answers when her profile leaves `valide`). It is a separate trigger from suspension, but `suspensionWithdrawsAnswers` in `src/lib/reservations/answers.ts` is the same write and a ready precedent for its first stub.
 - Context budget: over the Inputs table — the modules each reader lives in were read to hold the suspension there, and the `neon_auth` schema was read on the branch.
+
+## Release
+
+- gate: Ready to merge ticked, which authorises the merge
+- ci: GREEN on e5798ef (full gate: Vercel preview pass, Quality advisory pass: lint, typecheck, tests); read again after the last push (the head that merges is the close-out commit)
+- reviews: code high (`/code-review` on origin/main...HEAD: 10 findings; 5 fixed in bdf7a81 (the queue and the decision now skip a suspended account's file, `/connexion/suspendu` signs out only a suspended session, one Resend key per message rather than per click, a refused write re-reads why, a stale error cleared), 1 kept by design (the `neon_auth` identity delete inside the deletion's transaction, D-141; privileges and cascades checked on the UAT copy), 4 refactors parked) · security `security-check.sh --branch --audit`: OK (npm audit clean) + /security-review: no finding (all SQL parameterised, every new action re-checks the admin role, admin accounts refused in rules and SQL, the suspension gate holds on every `currentUser` caller, contact e-mail escaped and its Reply-To never from input) · readiness `env.sh audit --changed`: OK (one warning: the GitHub secrets surface is not readable with this token) · /production-readiness n/a: no such skill ships in this repo or this session; the code review, the migration applied on the run's Neon branch and on the preview, and the env audit cover its ground
+- parked: suspension-one-predicate.md (one enforcement point for the suspension rule), admin-sql-helpers-dedupe.md (the journal insert and the garde clock written once)
+- merge of main: at Build (intake-only changes), up to date at Release
+- migrations: skip. `check-migrations.sh` reads Drizzle's journal as SKIP; `0012_back_office_admin` follows main's `0011`, applied on the run's Neon branch and by the preview build with `db:verify`
+- learned: none from error.log (2 entries, each seen once, no `- rule:`); FAILURE.md carries one learned rule for the close-out
+- docs: README « The back-office » (new), « The founders' verification », the schema, absences and ratings lines; AGENTS routing and data-model rows; no page under `.icm/docs` changes · announce: deferred to promotion
+- Context budget: over the Inputs table: the modules each reader lives in, for the review fixes

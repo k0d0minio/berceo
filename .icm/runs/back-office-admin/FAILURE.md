@@ -13,12 +13,18 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-25 — a reader of a suspended account's file was missed
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: the release code review found that the verification queue (`loadQueue`) and the decision in `src/lib/admin/review.ts` still listed and acted on a suspended or deleted professional's waiting file; the overview's count carried it too.
+- why: Build listed the readers to hide a suspended account from by grepping `status, "valide"` (the readers that show a professional to others), and missed the readers keyed on the other statuses, in the admin's own module.
+- fixed by: bdf7a81 (the queue and the decision's SQL hold a suspended account out; proven on the run's Neon branch).
+
+### 2026-09-25 — the stub named a route group that does not exist
+
+- what happened: the stub's `touches` guessed `src/app/(admin)/**`; the admin pages live in `src/app/(portail)/admin/`.
+- why: Scope wrote the guess before the verification stub had placed `/admin` under `(portail)`.
+- fixed by: Define wrote the real paths in the spec's `touches:`.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- When a change must hide an account (suspended, deleted) everywhere, list its readers by the table it lives on (`users`, `professional_profiles` joins), in every module including `src/lib/admin/`, not by one status predicate; then hold each one out in the SQL of the read and of the write it guards.
