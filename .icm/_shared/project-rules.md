@@ -229,3 +229,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - When a spec changes colours platform-wide, Define lists every text and surface pair from every component under `src/components/ui/` that sets its own background (the confirmation dialog, the translucent veil included), and measures each proposed value on every surface the change moves text onto. (`FAILURE.md` — encres-contraste)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - After merging `main` at Release, grep the branch's new files for every pattern a repo-wide source test on `main` refuses (for example `src/app/contrast.test.ts`), since the advisory job only reads it after the push. (`FAILURE.md` — messagerie)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Before Define numbers a decision, list every remote branch (`git branch -r`) and grep each for its highest `D-n`; a same-day sibling's branch counts even before it has a PR. (`FAILURE.md` — frais-de-service)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When a payment is taken before the work it pays for, design for the holder of the lock failing: whatever state it leaves must be one the next caller (webhook retry, return page, refresh) can finish, never one only a retry that may not come can. (`FAILURE.md` — frais-de-service)
