@@ -1,7 +1,7 @@
 # Build notes: frais-de-service
 
 - commits: 539a2d3 (schema + migration 0008), f581482 (rules, Stripe, payments, webhook, booking seam, refund e-mail), ddcc3ff (the family's flow), f6196bd (/admin/paiements), 7a0ce2f (docs)
-- ci: draft — nothing owed until the ready flip; the full verdict is read after it (below)
+- ci: GREEN on c1e2ede (full gate: Vercel preview pass; Quality (advisory) pass — lint, typecheck, tests)
 
 ## What changed
 
