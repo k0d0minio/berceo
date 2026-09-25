@@ -3,6 +3,7 @@
 - lane: tweak
 - found-by: encres-contraste build · 2026-09-25
 - complexity: low
+- priority: P1
 
 ## Problem
 
@@ -11,3 +12,7 @@
 ## Proposed change
 
 Add the two ink literals next to the others in `templates.ts`, with the same "mirrors globals.css, change both together" comment `src/app/theme-color.ts` carries. Body text takes the taupe ink, the logotype and links the sage ink, and the button the sage-ink fill with white text. Words and layout unchanged. The e-mail tests already render every template, so they cover the change.
+
+## Prompt
+
+In the berceo repo, read `.icm/intake/triage/emails-encres-contraste.md`. In `src/lib/email/templates.ts`, add the sage ink (`#3c584b`) and taupe ink (`#646254`) as literals beside `SAUGE`/`TAUPE`/`PERLE`/`BLANC`, with the same "mirrors globals.css" comment `src/app/theme-color.ts` carries, and switch body text, the logotype/links and the capsule button to them so every transactional e-mail clears WCAG AA. Change no word or layout. Run it through `/pipeline tweak emails-encres-contraste`.

@@ -3,6 +3,10 @@
 - lane: bug
 - found-by: messagerie release review (security pass) · 2026-09-25
 - complexity: standard
+- feature-slug: messagerie-profil-non-valide
+- sequence: 2 of 2
+- depends-on: none
+- priority: P1
 
 ## Problem
 
@@ -22,7 +26,7 @@ withdrawn when she leaves `valide`).
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/messagerie-profil-non-valide.md`. In
-`src/lib/messagerie/conversations.ts`, refuse a professional's send (and, if the operator says so,
-her reads) when her profile is not `valide`, held in the SQL of the write, with a test of the rule.
-Run it through `/pipeline bug messagerie-profil-non-valide`.
+In the berceo repo, read `.icm/intake/professionnelle-invalidee-consequences/messagerie-profil-non-valide.md`
+and the epic's `breakdown.md`. In `src/lib/messagerie/conversations.ts`, refuse a professional's
+send (and, if the operator says so, her reads) when her profile is not `valide`, held in the SQL
+of the write, with a test of the rule. Run it through `/pipeline bug messagerie-profil-non-valide`.

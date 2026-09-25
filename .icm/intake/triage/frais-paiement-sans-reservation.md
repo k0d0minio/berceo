@@ -1,8 +1,9 @@
-# Stub: A paid fee whose booking was deleted with an account reads as « still being settled »
+# Stub: A paid fee whose booking vanished reads as still being settled
 
 - lane: bug
 - found-by: frais-de-service release review · 2026-09-25
 - complexity: standard
+- priority: P2
 
 ## Problem
 

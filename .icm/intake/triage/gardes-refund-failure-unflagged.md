@@ -3,6 +3,7 @@
 - lane: tweak
 - found-by: cycle-de-garde-et-annulation release review · 2026-09-25
 - complexity: low
+- priority: P1
 
 ## Problem
 

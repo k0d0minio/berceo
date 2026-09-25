@@ -3,6 +3,7 @@
 - lane: bug
 - found-by: candidature-et-reservation release review · 2026-09-25
 - complexity: standard
+- priority: P1
 
 ## Problem
 

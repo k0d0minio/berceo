@@ -3,6 +3,10 @@
 - lane: bug
 - found-by: candidature-et-reservation release review · 2026-09-25
 - complexity: standard
+- feature-slug: reservations-reponse-suspendue
+- sequence: 1 of 2
+- depends-on: none
+- priority: P1
 
 ## Problem
 
@@ -19,7 +23,8 @@ professional's own change that sends her file back to review), set her `en_atten
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/reservations-reponse-suspendue.md`. Wherever a
-professional profile moves out of `valide` (`src/lib/admin/review.ts`, `src/lib/professionnelle/`
-reopening), withdraw her waiting answers (`care_request_applications.status = 'retiree'`) in the
-same batch, with a test. Run it through `/pipeline bug reservations-reponse-suspendue`.
+In the berceo repo, read `.icm/intake/professionnelle-invalidee-consequences/reservations-reponse-suspendue.md`
+and the epic's `breakdown.md`. Wherever a professional profile moves out of `valide`
+(`src/lib/admin/review.ts`, `src/lib/professionnelle/` reopening), withdraw her waiting answers
+(`care_request_applications.status = 'retiree'`) in the same batch, with a test. Run it through
+`/pipeline bug reservations-reponse-suspendue`.

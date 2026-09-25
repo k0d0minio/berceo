@@ -3,6 +3,10 @@
 - lane: chore
 - found-by: comptes-neon-auth release review · 2026-09-24
 - complexity: low
+- feature-slug: comptes-auth-cleanups
+- sequence: 1 of 3
+- depends-on: none
+- priority: P2
 
 ## Problem
 
@@ -18,4 +22,4 @@ One `userByAuthId()` helper; drop the Origin read or use the site URL; `requireA
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/comptes-auth-cleanups.md`. Extract one `userByAuthId()` helper for the three duplicated `users`-by-`auth_user_id` lookups, drop the Origin-header `redirectTo` in `requestPasswordReset`, and pass the full path plus query into `requireAccess`'s sign-in redirect (`src/lib/auth/guard.ts`) as the proxy already does. Run it through `/pipeline chore comptes-auth-cleanups`.
+In the berceo repo, read `.icm/intake/comptes-auth-recuperation/comptes-auth-cleanups.md`. Extract one `userByAuthId()` helper for the three duplicated `users`-by-`auth_user_id` lookups, drop the Origin-header `redirectTo` in `requestPasswordReset`, and pass the full path plus query into `requireAccess`'s sign-in redirect (`src/lib/auth/guard.ts`) as the proxy already does. Run it through `/pipeline chore comptes-auth-cleanups`.
