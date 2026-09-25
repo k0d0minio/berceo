@@ -88,9 +88,11 @@ export type DigestOutcome =
 
 /**
  * The daily digest. Before 18:00 in Brussels it does nothing, and once a
- * digest has left today it does nothing more, so it can be called at 16:00 and
- * 17:00 UTC (18:00 and 19:00 in summer, 17:00 and 18:00 in winter) and leave
- * once a day. A request published after it waits for tomorrow's.
+ * digest has carried requests today it does nothing more, so it can be called
+ * at 16:00 and 17:00 UTC (18:00 and 19:00 in summer, 17:00 and 18:00 in
+ * winter) and a professional gets one digest a day at most. A request
+ * published after today's digest waits for tomorrow's; when the first call of
+ * the evening found nothing to send, a later call that evening still sends.
  * It claims every normal request no digest has carried (a request is in one
  * digest at most, even when no professional serves its commune), then sends
  * each validated professional one e-mail with her requests. A professional
