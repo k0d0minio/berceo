@@ -41,7 +41,7 @@ export default async function ProfilFamillePage({
           <span className="font-semibold">{completer.titre}</span> {completer.texte}
         </FormMessage>
       ) : null}
-      <p className="max-w-2xl text-intro text-taupe">{t.intro}</p>
+      <p className="max-w-2xl text-intro text-encre-taupe">{t.intro}</p>
       <ProfileForm
         action={saveProfile}
         defaults={{

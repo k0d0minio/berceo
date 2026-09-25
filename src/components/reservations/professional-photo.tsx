@@ -19,7 +19,7 @@ function ProfessionalPhoto({
   const base = cn("aspect-square shrink-0 rounded-full bg-perle object-cover", className)
   if (!photoId) {
     return (
-      <span aria-hidden className={cn(base, "flex items-center justify-center font-display text-h3 text-sauge")}>
+      <span aria-hidden className={cn(base, "flex items-center justify-center font-display text-h3 text-encre-sauge")}>
         {prenom.charAt(0).toUpperCase()}
       </span>
     )

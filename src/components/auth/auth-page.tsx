@@ -19,10 +19,10 @@ function AuthPage({
     <div className="bg-perle px-4 py-12 md:py-20">
       <div className="mx-auto flex max-w-2xl flex-col gap-8">
         <header className="flex flex-col gap-4">
-          {eyebrow ? <p className="text-legende font-semibold text-taupe">{eyebrow}</p> : null}
-          <h1 className="font-display text-h1 text-sauge">{title}</h1>
+          {eyebrow ? <p className="text-legende font-semibold text-encre-taupe">{eyebrow}</p> : null}
+          <h1 className="font-display text-h1 text-encre-sauge">{title}</h1>
           {intro?.map((line) => (
-            <p key={line} className="text-intro text-taupe">
+            <p key={line} className="text-intro text-encre-taupe">
               {line}
             </p>
           ))}

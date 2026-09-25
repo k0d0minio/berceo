@@ -56,8 +56,8 @@ function SpaceShell({
       actions={<SignOutDialog onSignOut={signOut} />}
     >
       <div className="flex flex-col gap-6">
-        {title ? <p className="text-intro text-taupe">{greeting}</p> : null}
-        <h1 className="font-display text-h1 text-sauge">{title ?? greeting}</h1>
+        {title ? <p className="text-intro text-encre-taupe">{greeting}</p> : null}
+        <h1 className="font-display text-h1 text-encre-sauge">{title ?? greeting}</h1>
         {children}
       </div>
     </PortalShell>

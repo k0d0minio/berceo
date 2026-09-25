@@ -36,14 +36,14 @@ export default async function EspaceFamillePage() {
     <SpaceShell user={user}>
       {commune ? null : (
         <section className="flex max-w-2xl flex-col items-start gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">
-          <h2 className="font-display text-h3 text-sauge">{f.completer.titre}</h2>
-          <p className="text-corps text-taupe">{f.completer.texte}</p>
+          <h2 className="font-display text-h3 text-encre-sauge">{f.completer.titre}</h2>
+          <p className="text-corps text-encre-taupe">{f.completer.texte}</p>
           <Button asChild>
             <Link href={PROFILE_PATH}>{f.completer.lien}</Link>
           </Button>
         </section>
       )}
-      <p className="max-w-2xl text-intro text-taupe">{d.famille.accueil}</p>
+      <p className="max-w-2xl text-intro text-encre-taupe">{d.famille.accueil}</p>
       <div className="flex flex-wrap gap-3">
         <Button asChild>
           <Link href={NEW_REQUEST_PATH}>{d.boutons.publier}</Link>
@@ -54,7 +54,7 @@ export default async function EspaceFamillePage() {
       </div>
       <Link
         href={FAMILY_REQUESTS_PATH}
-        className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+        className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
       >
         {d.famille.titre}
       </Link>

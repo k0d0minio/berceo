@@ -5,7 +5,8 @@ import { common } from "@/content/common"
 import { words } from "@/content/locale"
 
 /*
- * The public footer: on sage, the brand's identity surface. Every page of the
+ * The public footer: on the sage ink, the brand's identity colour deep enough
+ * to carry white text (finition-accueil D-2); the focus ring turns white here. Every page of the
  * guide's URL map, the legal ones last. No contact: Berceo has no published
  * address yet (AGENTS.md → Standing rules).
  */
@@ -23,7 +24,7 @@ function PublicFooter() {
   ]
 
   return (
-    <footer className="bg-sauge text-blanc">
+    <footer className="bg-encre-sauge text-blanc [--ring:var(--blanc)]">
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 md:flex-row md:items-start md:justify-between md:px-8 md:py-16">
         <div className="flex max-w-sm flex-col gap-4">
           <BerceoLogomark className="h-16 w-auto self-start" />

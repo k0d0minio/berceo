@@ -24,8 +24,8 @@ export const dynamic = "force-dynamic";
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <dt className="text-legende font-semibold text-taupe">{label}</dt>
-      <dd className="text-corps text-taupe">{children}</dd>
+      <dt className="text-legende font-semibold text-encre-taupe">{label}</dt>
+      <dd className="text-corps text-encre-taupe">{children}</dd>
     </div>
   );
 }
@@ -52,7 +52,7 @@ export default async function GardePage({ params }: { params: Promise<{ id: stri
         <RequestCard request={booking.request} rate={booking.nightRateEur} />
       </div>
       <section className="flex max-w-2xl flex-col gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">
-        <h2 className="font-display text-h3 text-sauge uppercase">{t.gardes.famille}</h2>
+        <h2 className="font-display text-h3 text-encre-sauge uppercase">{t.gardes.famille}</h2>
         <dl className="flex flex-col gap-4">
           <Row label={t.gardes.nom}>{`${family.firstName} ${family.lastName}`}</Row>
           <Row label={t.gardes.adresse}>
