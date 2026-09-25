@@ -1,7 +1,7 @@
 # Build notes: premier-ecran
 
 - commits: 7022ee1 (header, photo fill mode, hero, PageHeader) · 94ab1f2 (doors at 320 px) · f928743 (hero H1 at 320 px, D-16) · bb5c8ab (hero crop focal point) · 56ce34d (merge of main, #45)
-- ci: GREEN on 56ce34d (draft tier: Vercel pass, Quality (advisory) pass); full gate settled after the ready flip, below
+- ci: GREEN on 80e5af4, full gate after the ready flip (Vercel pass). Quality (advisory) passed on 56ce34d, the last head that changed code; it is path-filtered off the `.icm`-only commits after it
 
 ## What changed
 
