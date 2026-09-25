@@ -4,3 +4,8 @@ ERR_PNPM_OUTDATED_LOCKFILE  Cannot install with "frozen-lockfile" because pnpm-l
 * 1 dependencies were added: stripe@^22.6.2
 - resolved: a stray pnpm-lock.yaml committed to main (5877c2e) beside package-lock.json made Vercel install with pnpm from a stale lockfile; the operator chose to delete it in this PR, so the build is back on npm (package-lock.json).
 - rule: this repo installs with npm only (package-lock.json); a pnpm-lock.yaml or yarn.lock in the tree switches Vercel's package manager and breaks every build.
+
+## 2026-09-25T21:25:00Z ci Quality (advisory) — confirmer/route.test.ts › drops a way back outside a space
+AssertionError: expected '/connexion' to be '/espace/famille' // Object.is equality
+ ❯ src/app/(auth)/verification-email/confirmer/route.test.ts:71:40
+- resolved: the mock returned one Response object for every call, and a body can be read once, so the second call read no user and took the already-verified path; the mock now builds a fresh Response per call.

@@ -40,11 +40,13 @@ function call(cookie?: string) {
 beforeEach(() => {
   vi.clearAllMocks();
   row.current = { id: "u1", role: "parent" };
-  handlerGet.mockResolvedValue(
-    new Response(JSON.stringify({ user: { id: "auth-1" } }), {
-      status: 200,
-      headers: { "set-cookie": "__Secure-neon-auth.session_token=s; Path=/; HttpOnly" },
-    }),
+  // A fresh response per call: a body can be read once.
+  handlerGet.mockImplementation(
+    async () =>
+      new Response(JSON.stringify({ user: { id: "auth-1" } }), {
+        status: 200,
+        headers: { "set-cookie": "__Secure-neon-auth.session_token=s; Path=/; HttpOnly" },
+      }),
   );
 });
 
