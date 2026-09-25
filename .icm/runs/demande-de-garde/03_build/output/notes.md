@@ -55,3 +55,14 @@
 - The professional's list can only be smoke-tested with a profile set to `valide` by hand on the preview's Neon branch, until verification-back-office merges.
 - `format.sh` and `lint.sh` are not wired in this repo (SKIP): the post-flip advisory quality job is the first lint/typecheck/test read of this code.
 - Context budget: read the family-profile and onboarding code (forms, shell, guard, templates, tests) as patterns, beyond `touches:`.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 6b40e6a (ci-status.sh, full gate: Vercel pass, Quality (advisory) pass); re-read after the last push below
+- reviews: code medium (3 findings: 2 fixed in d23e976, 1 parked; the fix commit re-reviewed at low, its wording finding fixed in 680889c) · security security-check.sh --branch --audit: OK + /security-review — no finding at the reporting bar; one low hardening (e-mail links from the `Origin` header) fixed in 6b40e6a · production-readiness n/a — the skill is not installed in this session; DB and env were read by check-migrations.sh and env.sh · readiness env.sh audit --changed: OK
+- parked: .icm/intake/triage/demandes-digest-failed-send-no-retry.md
+- migrations: skip — check-migrations.sh reads no stamped migrations (Drizzle journal); `0005_care_requests` regenerated after main's `0004`, preview branch reset from its parent
+- learned: none from retrospective.sh (no error.log); 3 rules in FAILURE.md, copied by close-out.sh
+- docs: no docs impact (`.icm/docs` unchanged; README and AGENTS updated in this PR) · announce: deferred to promotion
+

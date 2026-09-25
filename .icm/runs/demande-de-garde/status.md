@@ -4,7 +4,7 @@ Where the run is, in five lines. Updated at every stage start and stop, and when
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: release
-- step: 2 (gate)
-- ci: GREEN (full gate on 1d28ea4; Quality (advisory) pass)
-- blocked: no — waiting on the operator (smoke, Ready to merge, CRON_SECRET)
+- step: done
+- ci: GREEN (6b40e6a, full gate)
+- blocked: no
 - updated: 2026-09-25
