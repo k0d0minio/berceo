@@ -3,6 +3,7 @@ import "server-only";
 import { and, eq, sql } from "drizzle-orm";
 
 import { bookings, careRequests, db, familyProfiles, professionalProfiles, users } from "@/db";
+import { deletedAtExactly } from "@/lib/auth/suspension";
 import { findLocality, type Locality } from "@/lib/communes";
 import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
 import { hasAddress } from "@/lib/reservations/rules";
@@ -160,4 +161,15 @@ export async function saveFamilyProfile(userId: string, values: ProfileValues): 
       .values({ userId, ...profile })
       .onConflictDoUpdate({ target: familyProfiles.userId, set: profile }),
   ]);
+}
+
+/**
+ * A deletion's part here (back-office-admin, D-137): her profile, commune,
+ * address and context line go, in the deletion's own batch and only if that
+ * batch deleted her at `at`. Her requests keep their own commune.
+ */
+export function deletionForgetsFamilyProfile(userId: string, at: Date) {
+  return db
+    .delete(familyProfiles)
+    .where(and(eq(familyProfiles.userId, userId), deletedAtExactly(userId, at)));
 }

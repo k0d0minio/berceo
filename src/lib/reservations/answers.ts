@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, eq, exists, sql } from "drizzle-orm";
+import { and, asc, count, eq, exists, inArray, sql } from "drizzle-orm";
 
 import {
   careRequestApplications,
@@ -13,6 +13,7 @@ import {
   bookings,
   type Profession,
 } from "@/db";
+import { notSuspended, suspendedAtExactly } from "@/lib/auth/suspension";
 import { notesOfProfiles, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { nightAhead, professionalProfileOf, UUID } from "@/lib/demandes/requests";
 import { TIME_ZONE } from "@/lib/demandes/rules";
@@ -160,6 +161,31 @@ export async function withdrawAnswer(userId: string, requestId: string, now: Dat
     )
     .returning({ id: careRequestApplications.id });
   return updated.length > 0;
+}
+
+/**
+ * A suspension's part here (back-office-admin, D-134): every answer of hers
+ * still waiting becomes `retiree`, as if she had withdrawn it, in the
+ * suspension's own batch and only if that batch suspended her at `at`.
+ */
+export function suspensionWithdrawsAnswers(userId: string, at: Date) {
+  return db
+    .update(careRequestApplications)
+    .set({ status: "retiree", updatedAt: at })
+    .where(
+      and(
+        eq(careRequestApplications.status, "en_attente"),
+        inArray(
+          careRequestApplications.profileId,
+          db
+            .select({ id: professionalProfiles.id })
+            .from(professionalProfiles)
+            .where(eq(professionalProfiles.userId, userId)),
+        ),
+        suspendedAtExactly(userId, at),
+      ),
+    )
+    .returning({ id: careRequestApplications.id });
 }
 
 /** An answer as the family compares it. */

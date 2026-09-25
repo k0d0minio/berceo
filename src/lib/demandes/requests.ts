@@ -12,7 +12,7 @@ import {
   users,
   type ApplicationStatus,
 } from "@/db";
-import { notSuspended } from "@/lib/auth/suspension";
+import { notSuspended, suspendedAtExactly } from "@/lib/auth/suspension";
 import { familyNotesOfRequests, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { familyCommune } from "@/lib/famille/profile";
 
@@ -262,6 +262,54 @@ export async function cancelRequest(
     result: cancelled.length > 0 ? "ok" : "nonModifiable",
     declined: cancelled.length > 0 ? declined.map((a) => a.id) : [],
   };
+}
+
+/**
+ * A suspension's part here (back-office-admin, D-134): her open requests
+ * ahead are cancelled as her own cancellation would, in the suspension's own
+ * batch and only if that batch suspended her at `at`. The next statement
+ * declines the answers that waited on them, so each professional is told.
+ */
+export function suspensionCancelsRequests(userId: string, at: Date) {
+  return db
+    .update(careRequests)
+    .set({ status: "annulee", cancelledAt: at, updatedAt: at })
+    .where(
+      and(
+        eq(careRequests.familyUserId, userId),
+        eq(careRequests.status, "ouverte"),
+        nightAhead,
+        suspendedAtExactly(userId, at),
+      ),
+    )
+    .returning({ id: careRequests.id });
+}
+
+/** The answers still waiting on the requests `suspensionCancelsRequests` cancelled at `at`, declined. */
+export function suspensionDeclinesAnswers(userId: string, at: Date) {
+  return db
+    .update(careRequestApplications)
+    .set({ status: "non_retenue", updatedAt: at })
+    .where(
+      and(
+        eq(careRequestApplications.status, "en_attente"),
+        inArray(
+          careRequestApplications.requestId,
+          db
+            .select({ id: careRequests.id })
+            .from(careRequests)
+            .where(
+              and(
+                eq(careRequests.familyUserId, userId),
+                eq(careRequests.status, "annulee"),
+                eq(careRequests.cancelledAt, at),
+              ),
+            ),
+        ),
+        suspendedAtExactly(userId, at),
+      ),
+    )
+    .returning({ id: careRequestApplications.id });
 }
 
 /**

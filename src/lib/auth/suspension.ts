@@ -18,3 +18,17 @@ export function notSuspended(userId: AnyPgColumn | SQL): SQL {
 
 /** Where a suspended account lands: the route that ends its session and shows why. */
 export const SUSPENDED_PATH = "/connexion/suspendu";
+
+/**
+ * True only inside the batch that suspended `userId` at exactly `at`: the
+ * statements a suspension carries (withdrawn answers, cancelled requests) take
+ * effect only if the suspension itself did, in the same transaction.
+ */
+export function suspendedAtExactly(userId: string, at: Date): SQL {
+  return sql`exists (select 1 from users as su where su.id = ${userId} and su.suspended_at = ${at.toISOString()}::timestamptz)`;
+}
+
+/** The same guard for a deletion: the batch that anonymised `userId` at exactly `at`. */
+export function deletedAtExactly(userId: string, at: Date): SQL {
+  return sql`exists (select 1 from users as su where su.id = ${userId} and su.deleted_at = ${at.toISOString()}::timestamptz)`;
+}

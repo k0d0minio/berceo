@@ -14,12 +14,17 @@ export type DueProfile = {
   profileId: string;
   userId: string;
   name: string;
+  /** Why the files go: thirty days after a refusal, or the account deleted (back-office-admin, D-137). */
+  reason?: "refus" | "suppression";
   files: { id: string; storageKey: string }[];
 };
 
 export type PurgeDeps = {
   now: () => Date;
-  /** Refused profiles whose refusal is older than `cutoff` and that still hold files. */
+  /**
+   * Refused profiles whose refusal is older than `cutoff`, and deleted
+   * accounts' profiles, that still hold files.
+   */
   due: (cutoff: Date) => Promise<DueProfile[]>;
   deleteObject: (key: string) => Promise<void>;
   /** The profile's file rows and one "Documents supprimés" journal entry, in one transaction. */

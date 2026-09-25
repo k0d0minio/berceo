@@ -2,7 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
-import { and, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { after } from "next/server";
 import type Stripe from "stripe";
@@ -556,7 +556,25 @@ export type AdminPayment = Pick<
 const professionalUser = alias(users, "professional_user");
 
 /** One page of every fee, newest first, for the founders (D-93). */
-export async function readPayments(page: number): Promise<{ rows: AdminPayment[]; pages: number }> {
+/**
+ * The fees paid at or after `since` (back-office-admin, D-133): the overview's
+ * « Paiements récents » counts with this condition and its link lists with it,
+ * so the number and the list cannot disagree. No `since`, every payment.
+ */
+function paidSince(since: Date | null) {
+  return since ? gte(payments.paidAt, since) : undefined;
+}
+
+/** How many fees were paid at or after `since`: the overview's « Paiements récents ». */
+export async function paymentCountSince(since: Date): Promise<number> {
+  const [row] = await db.select({ n: count() }).from(payments).where(paidSince(since));
+  return row?.n ?? 0;
+}
+
+export async function readPayments(
+  page: number,
+  since: Date | null = null,
+): Promise<{ rows: AdminPayment[]; pages: number }> {
   const [rows, [total]] = await Promise.all([
     db
       .select({
@@ -579,10 +597,11 @@ export async function readPayments(page: number): Promise<{ rows: AdminPayment[]
       .leftJoin(careRequestApplications, eq(careRequestApplications.id, payments.applicationId))
       .leftJoin(professionalProfiles, eq(professionalProfiles.id, careRequestApplications.profileId))
       .leftJoin(professionalUser, eq(professionalUser.id, professionalProfiles.userId))
+      .where(paidSince(since))
       .orderBy(desc(payments.createdAt), desc(payments.id))
       .limit(PAYMENTS_PAGE_SIZE)
       .offset((page - 1) * PAYMENTS_PAGE_SIZE),
-    db.select({ n: count() }).from(payments),
+    db.select({ n: count() }).from(payments).where(paidSince(since)),
   ]);
   return {
     rows: rows.map(({ familyFirstName, familyLastName, ...rest }) => ({
