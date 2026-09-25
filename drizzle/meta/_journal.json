@@ -43,6 +43,13 @@
       "when": 1790330908436,
       "tag": "0005_care_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790338941034,
+      "tag": "0006_candidature_reservation",
+      "breakpoints": true
     }
   ]
 }

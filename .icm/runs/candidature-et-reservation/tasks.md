@@ -39,4 +39,12 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] 1. Schema: `attribuee`, priority columns, `application_status`, `care_request_applications`, `bookings`; drizzle-kit migration; applied to `run/candidature-et-reservation`
+- [ ] 2. Rules: `src/lib/reservations/rules.ts` + tests; the edit lock in `src/lib/demandes/rules.ts`; `canReadFile` photo case + tests
+- [ ] 3. Data: `src/lib/reservations/` (answer, withdraw, answers, accept batch, republish, bookings, full profile), `src/lib/demandes/` (list, priority, cancel), `src/lib/famille/` (booking address reader) + column tests
+- [ ] 4. E-mails: five new templates, the urgent key's republish count, template tests
+- [ ] 5. Words: `src/content/reservations.ts`, `demandes.ts` additions, catalogue tests
+- [ ] 6. Professional pages: list card actions, « Mes gardes » and a booking, nav, home link
+- [ ] 7. Family pages: answers, accept, republish, full profile, priority, « Mes réservations », file route, nav, routing test
+- [ ] 8. Docs: README section, AGENTS.md row
+- [ ] 9. Notes, pre-flip check, merge main, flip ready, full verdict
