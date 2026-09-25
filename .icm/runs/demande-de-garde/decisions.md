@@ -38,5 +38,9 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-50 — Two publishing modes fixed at publication: a normal request for the day after tomorrow up to 56 days ahead; an urgent one, through its own « Publier une demande urgente » button, for tonight or tomorrow only. Resolves the stub's conflict between "1 day to 8 weeks" and "urgent = tonight or tomorrow". Operator, Define, 2026-09-25.
+- D-51 — Professionals are e-mailed at once for an urgent request and by a daily digest at 18:00 Brussels for normal ones. Operator, Define, 2026-09-25.
+- D-52 — The digest is scheduled by a GitHub Actions workflow calling both UAT and production, not by Vercel Cron, which runs only on production deployments and so never on the `uat` custom environment where the founders test (D-22). Define, 2026-09-25.
+- D-53 — A request's commune is the family's profile commune, copied at publication and read-only on the form. Operator, Define, 2026-09-25.
+- D-54 — « Âge du bébé » is a whole number with a unit: 0 to 12 semaines or 1 to 24 mois, the age on the day of publishing. Operator, Define, 2026-09-25.
+- D-55 — Start times are half-hours from 18:00 to 23:00; the end is start + 11 hours, never stored. A family holds at most one open request per night. Define's choices, not the sources'; `revise` changes them. Define, 2026-09-25.

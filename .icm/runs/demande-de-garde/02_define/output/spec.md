@@ -18,7 +18,7 @@ Cahier des charges D-01, D-02, D-03 and the statuses of F (as reduced by D-17).
 
 ## Proposed change
 
-**Two ways to publish, one form (the operator's choice, 2026-09-25).**
+**Two ways to publish, one form (the operator's choice, 2026-09-25, D-50).**
 
 - **« Publier une demande de garde de nuit »**, the normal request: the night is at least the day
   after tomorrow and at most 8 weeks (56 days) after today, Brussels time.
@@ -47,16 +47,16 @@ reverse; the family cancels it and publishes the other kind. Dates are compared 
 trouverez la professionnelle qui vous correspond. » Fields:
 
 - **« Date de la garde »** — a date within the window of its mode (above).
-- **« Heure de début »** — a half-hour between 18:00 and 23:00 included, with the note « La garde de
+- **« Heure de début »** — a half-hour between 18:00 and 23:00 included (D-55), with the note « La garde de
   nuit standard est de 11 heures. » The end shown everywhere is start + 11 hours (e.g. « de 20h00 à
   7h00 »); no end time is entered or stored.
 - **« Nombre d'enfants »** — « Un bébé » or « Jumeaux ».
 - **« Âge du bébé »** — a whole number and a unit, « semaines » (0 to 12) or « mois » (1 to 24),
-  the operator's choice. It is the age on the day of publishing, as the family gives it; for twins
+  the operator's choice (D-54). It is the age on the day of publishing, as the family gives it; for twins
   it is their shared age.
 - **« Votre commune »** — read-only, copied from the family's profile (the operator's choice), with
   the note « L'adresse exacte sera communiquée uniquement après confirmation de la réservation. »
-  and a link to the profile to change it. The request stores its own copy (INS code, postcode,
+  and a link to the profile to change it (D-53). The request stores its own copy (INS code, postcode,
   locality) at publication; changing the profile later does not move a request already published.
 - **The mandatory checkbox** « Mon enfant n'a pas de condition médicale particulière nécessitant des
   soins spécialisés. » — unticked by default; the request is refused without it, and the moment it
@@ -68,7 +68,7 @@ name of the child. The profile's context line is not shown on a request in this 
 A family without a commune in her profile cannot publish: the form's routes send her to
 `/espace/famille/profil` with the « Complétez votre profil » message the home already uses.
 
-A family has **at most one open request per night**: publishing a second open request for the same
+A family has **at most one open request per night** (D-55): publishing a second open request for the same
 date is refused with a field error on the date (also enforced by the database).
 
 **After publication.** A normal request shows a confirmation line (words written to the guide,
@@ -115,7 +115,7 @@ family's user id, name or contact. `src/lib/famille/` stays the only reader of t
 existing column guard test keeps passing); this run reads the commune through its commune-only
 reader.
 
-**E-mails to professionals (the operator's choice: urgent at once, the rest as a daily digest).**
+**E-mails to professionals (the operator's choice: urgent at once, the rest as a daily digest, D-51).**
 Every e-mail goes to a professional whose profile is `valide` at sending time and who serves the
 request's commune. Words follow the guide's e-mail structure (« Bonjour [Prénom], », 2 to 4
 sentences, one button « Voir les demandes disponibles » to `/espace/professionnelle/demandes`,
@@ -136,7 +136,7 @@ signed « L'équipe Berceo »); the guide gives no copy for these two e-mails, s
   and send once at 18:00 local, summer and winter. Idempotency key per professional per Brussels
   day: `digest-<professional id>-<YYYY-MM-DD>`.
 - **Scheduling.** Vercel Cron runs only on production deployments, not on the `uat` custom
-  environment where the founders test (D-22). So the schedule is a GitHub Actions workflow
+  environment where the founders test (D-22). So the schedule (D-52) is a GitHub Actions workflow
   `.github/workflows/demandes-digest.yml` (`cron: "0 16,17 * * *"`, plus `workflow_dispatch` for a
   manual run) that POSTs the route on `https://uat.berceo.be` and `https://www.berceo.be` with the
   secret. Each environment has its own `CRON_SECRET`; the workflow reads them from repository
@@ -215,7 +215,7 @@ and its schedule, the secrets) and the routing row in `AGENTS.md`.
 - E-mails on edit or cancellation, e-mail preferences or unsubscribing from the digest, SMS or push notifications.
 - Requests in the admin back-office: back-office-admin.
 - Validating professionals: verification-back-office. Until it merges, no profile on UAT becomes `valide` except by a direct database change, so the professional's list can only be smoke-tested that way.
-- Scope decisions this run neither builds nor changes: D-1 to D-9, D-12 to D-14, D-16, D-18, D-21, D-23, D-25 to D-27.
+- Scope decisions this run neither builds nor changes: D-1, D-2, D-3, D-4, D-5, D-6, D-7, D-8, D-12, D-13, D-14, D-16, D-18, D-21, D-23, D-25, D-26, D-27.
 
 ## Open questions
 
