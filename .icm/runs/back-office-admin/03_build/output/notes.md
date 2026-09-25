@@ -1,7 +1,7 @@
 # Build notes: back-office-admin
 
 - commits: b3b8a63 (schema + migration 0012), 0a521e7 (suspension gate and readers), cab5b49 (admin domain, contact e-mail, purge), 0aacd65 (pages and components), then the tests and this pack
-- ci: see status.md — the draft owed nothing; the full verdict is read after the ready flip
+- ci: GREEN on 9d9e240 (full gate: Vercel preview pass, Quality advisory pass — lint, typecheck, tests)
 
 ## What changed
 
