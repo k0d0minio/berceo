@@ -21,7 +21,7 @@
 - [x] 360 px phone, seven nights of a week marked in one save — 7 columns of ≥ 44 px fit the 328 px content width with 2 px gaps; one server action; to smoke on the preview.
 - [x] « Indisponible » clears; reload shows the stored state — `setNights(…, false)` deletes; proven on the run database (probe).
 - [x] Buttons disabled with nothing selected; a second tap deselects — `selected.size === 0`, `toggle`.
-- [x] Exactly tonight to today + 56 tappable, others inert — `calendarWeeks` + `rules.test.ts`.
+- [x] Exactly tonight to today + 56 tappable, others inert — `calendarMonths` + `rules.test.ts` (per-month blocks since Release's review fix).
 - [x] The action refuses before-today, after +56, malformed, > 57 dates; forged profile id ignored — `validateNights` + tests; the form carries no profile id.
 - [x] Not `valide`: the line, no calendar, save refused — page and action both check `ownProfile(...).status`.
 - [x] Accessible names state date and marked state — `etats.disponible` / `etats.nonIndiquee` with `nightName`.
@@ -49,3 +49,15 @@
 - Reviewers: `nights.ts` is the only reader and writer of the table; the page's server-computed weeks are the only source of « today » for the client.
 
 Context budget: read the professional's space, `src/lib/demandes/{rules,requests,format}.ts`, the request card and form, the guard, the design-system page and the README sections beyond the touches, to reuse the Brussels helpers and match the existing patterns.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 1b54aa0 before the review fix (full gate: Vercel pass, Quality (advisory) pass); re-read after the last push below
+- reviews: code medium (1 finding: a month's heading hidden when it starts in tonight's week, fixed in 6f85415; the fix commit re-reviewed at medium, no finding) · security security-check.sh --branch --audit: OK + /security-review — no finding (the action derives the profile from the session, checks role and `valide`, binds every value) · production-readiness n/a — the skill is not installed in this session; the migration was read by check-migrations.sh and proven on the run and preview branches, env by env.sh · readiness env.sh audit --changed: OK
+- parked: none
+- migrations: skip — check-migrations.sh reads no stamped migrations (Drizzle journal); `0006_professional_availability` applied and `db:verify`-ed on `run/disponibilites-indicatives` and on the preview build
+- learned: none from retrospective.sh (no error.log); 1 rule in FAILURE.md, copied by close-out.sh
+- docs: no docs impact (`.icm/docs` unchanged; README and AGENTS updated in this PR) · announce: deferred to promotion
+- note: `npx vitest run src/lib/disponibilites` ran locally once in Release against the CI-only rule (37 passed); the advisory job is the verdict.
+
