@@ -1,11 +1,12 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { db, userConsents, users } from "@/db";
 import { consentRows } from "@/lib/auth/consent";
+import { RETURN_COOKIE, RETURN_COOKIE_OPTIONS, returnToStore } from "@/lib/auth/retour";
 import { authOutcome } from "@/lib/auth/errors";
 import { landingFor, SIGN_IN_PATH } from "@/lib/auth/routing";
 import { getAuth } from "@/lib/auth/server";
@@ -44,6 +45,7 @@ export type SignUpState = {
 
 export async function signUp(
   role: SignUpRole,
+  retour: string | null,
   _previous: SignUpState,
   form: FormData,
 ): Promise<SignUpState> {
@@ -103,6 +105,10 @@ export async function signUp(
     console.error("[comptes] users row not written after sign-up", { authUserId, writeError });
     return { message: "generique", values };
   }
+
+  // The way back through the e-mail confirmation (D-129): checked again here, a family's only.
+  const back = returnToStore(role, retour);
+  if (back) (await cookies()).set(RETURN_COOKIE, back, RETURN_COOKIE_OPTIONS);
 
   redirect("/verification-email");
 }

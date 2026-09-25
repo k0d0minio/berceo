@@ -9,7 +9,7 @@ import { comptes } from "@/content/comptes";
 import { words } from "@/content/locale";
 import { currentUser } from "@/lib/auth/current-user";
 import { redirectIfSignedIn } from "@/lib/auth/guard";
-import { safeReturnPath } from "@/lib/auth/routing";
+import { safeReturnPath, withReturn } from "@/lib/auth/routing";
 
 const t = words(comptes);
 const pages = words(common).pages;
@@ -54,7 +54,7 @@ export default async function ConnexionPage({ searchParams }: PageProps<"/connex
         <SignInForm action={signIn.bind(null, retour)} notice={notice} />
         <p className="text-corps text-encre-taupe">
           {t.connexion.pasDeCompte}{" "}
-          <Link href={pages.inscriptionFamille.href} className="text-encre-sauge underline">
+          <Link href={withReturn(pages.inscriptionFamille.href, retour)} className="text-encre-sauge underline">
             {pages.inscriptionFamille.label}
           </Link>
           {" · "}

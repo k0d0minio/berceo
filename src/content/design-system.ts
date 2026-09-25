@@ -137,6 +137,14 @@ export const designSystem = catalogue({
         /** @relecture Surya — explication interne (avis-etoiles). */
         text: "Une note avec son nombre de gardes, une personne sans note encore, et un critère du formulaire d'avis.",
       },
+      recherche: {
+        /** @relecture Surya — page interne, non indexée. */
+        title: "La recherche",
+        /** @relecture Surya — explication interne (recherche-et-fiches-publiques). */
+        text: "La carte d'une professionnelle dans la recherche de l'espace famille, la même carte sur une page commune publique, sans photo ni disponibilités, et le message quand aucune professionnelle ne couvre la zone.",
+        /** @relecture Surya — prénom d'exemple. */
+        prenom: "Emma",
+      },
     },
   },
 });

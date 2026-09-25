@@ -2,7 +2,8 @@ import { eq } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { db, users } from "@/db";
-import { homeFor, SIGN_IN_PATH } from "@/lib/auth/routing";
+import { RETURN_COOKIE, verifiedLanding } from "@/lib/auth/retour";
+import { SIGN_IN_PATH } from "@/lib/auth/routing";
 import { getAuth } from "@/lib/auth/server";
 import { sendWelcomeIfDue } from "@/lib/auth/welcome";
 
@@ -12,7 +13,8 @@ import { sendWelcomeIfDue } from "@/lib/auth/welcome";
  * is set on this origin and the user arrives signed in. The SDK's
  * `verifyEmail()` cannot be used: it POSTs, and Neon's endpoint is GET-only.
  *
- * - First click: verified and signed in → welcome e-mail for a family → space.
+ * - First click: verified and signed in → welcome e-mail for a family → space,
+ *   or the full profile a family was reading before she signed up (D-129).
  * - Second click (already verified, no new session): sign-in, told it is done.
  * - Expired or forged token: sign-in, told the link is no longer valid.
  */
@@ -55,7 +57,9 @@ export async function GET(request: NextRequest) {
     response = to(request, `${SIGN_IN_PATH}?erreur=compte`);
   } else {
     await sendWelcomeIfDue(row, request.nextUrl.origin);
-    response = to(request, homeFor(row.role));
+    // A family who came from a full profile goes back to it (D-129); anyone else, home.
+    response = to(request, verifiedLanding(row.role, request.cookies.get(RETURN_COOKIE)?.value));
+    response.cookies.delete(RETURN_COOKIE);
   }
 
   for (const cookie of cookies) response.headers.append("Set-Cookie", cookie);

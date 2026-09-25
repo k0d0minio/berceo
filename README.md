@@ -340,6 +340,44 @@ SQL of the statement it governs. The garde's state is `src/lib/gardes/`'s, never
 - **Words:** `src/content/avis.ts` (every entry `@relecture` but « Laisser un avis »), the
   e-mails in `src/content/emails.ts`, the admin list in `src/content/admin.ts`.
 
+## The search and the public pages
+
+A family searches the professionals serving her commune; anyone finds a professional's teaser page
+or a commune's page on the open web (recherche-et-fiches-publiques, D-11, D-14, D-123 to D-129).
+`src/lib/recherche/` holds the rules (`rules.ts`: what a query resolves to, the order, the zone and
+the titles; `slugs.ts`: every address; `sitemap.ts`), all pure and tested, and the only reads
+(`professionals.ts`, server-only). Words live in `src/content/recherche.ts`; the blocks in
+`src/components/recherche/`.
+
+- **What leaves (D-14, D-126):** `teaserColumns` (id, first name, profession, bio) for a public
+  page, `cardColumns` (the same plus her photo) for a signed-in card; never her surname, e-mail,
+  phone, INAMI number, rate or documents. Only a `valide` profile is read, held in each query's
+  SQL; any other status reads as unknown. The note and gardes count come from `src/lib/avis/`,
+  the next nights from `src/lib/disponibilites/`; the module computes neither.
+- **The search (D-11):** `/espace/famille/recherche`, « Trouver une professionnelle » in the
+  family's navigation and on her home (D-25). The guide's field on the profile's commune
+  combobox, as a GET form posting `q`: a picked locality, a four-digit postcode (every commune it
+  covers) or a name that is exactly one commune's resolves to communes and redirects to
+  `?commune=` (repeated), so a result list is a URL; anything else shows « Nous ne trouvons pas
+  cette commune ». Opened bare, it searches her own commune. No result: the guide's message
+  without its neighbouring-zones clause (D-124) and « Publier une demande ».
+- **The order (D-123):** soonest indicative night first, then those with none; ties by first
+  name, then profile id. No sort control, no filter but the zone.
+- **A professional's page (D-125):** `/professionnelles/[prenom]-[id8]`, her first name slugged
+  and the first 8 hex of her profile id. It resolves on `id8` alone (exactly one `valide` match,
+  else 404) and sends a stale first-name part to the canonical path for good. Indexable (on
+  production), the guide's title and meta, no photo; the call to action is family sign-up with
+  the way back to her full profile.
+- **The commune pages (D-127, D-128):** `/garde-de-nuit/[commune]` for all 565 communes, served
+  or not, every one indexable and in the sitemap; the serving professionals' teaser cards, or the
+  no-result message and the sign-up link. The slugs are unique (a test holds it).
+- **The sitemap:** rendered on request (the build never reads the database); the vitrine, every
+  commune page, and each `valide` professional's page, the list cached for an hour.
+- **The way back (D-129):** sign-in and family sign-up link to each other with `retour`; a
+  family's sign-up stores a checked `retour` in the one-day `berceo_retour` cookie
+  (`src/lib/auth/retour.ts`), and the e-mail confirmation route sends her there, signed in, then
+  clears it. Same browser only; a professional never sets or reads it.
+
 ## The service fee
 
 The 3 % fee (D-2), through Stripe Checkout, Bancontact and cards (frais-de-service). Berceo

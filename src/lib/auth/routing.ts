@@ -17,6 +17,7 @@ export const SPACES = {
 } as const satisfies Record<UserRole, string>;
 
 export const SIGN_IN_PATH = "/connexion";
+export const FAMILY_SIGN_UP_PATH = "/inscription-famille";
 
 export type Access =
   | { kind: "allow" }
@@ -73,6 +74,17 @@ export function signInWithReturn(pathname: string): string {
   return retour
     ? `${SIGN_IN_PATH}?retour=${encodeURIComponent(retour)}`
     : SIGN_IN_PATH;
+}
+
+/**
+ * An account page's address carrying the way back (`retour`), when the way
+ * back is one we accept; the bare page otherwise. Sign-in and family sign-up
+ * link to each other with it, so a visitor sent to sign in from a full
+ * profile can create her account instead and still return (D-129).
+ */
+export function withReturn(page: string, retour: string | null | undefined): string {
+  const safe = safeReturnPath(retour);
+  return safe ? `${page}?retour=${encodeURIComponent(safe)}` : page;
 }
 
 /** Where a signed-in `role` lands: back where it was going, if it may, else home. */
