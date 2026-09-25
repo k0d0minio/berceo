@@ -38,3 +38,16 @@ Proved on the run's Neon branch (`run/messagerie`) with throwaway probes calling
 - Nothing was run locally but the probes against `run/messagerie`: format and lint are not wired (`format.sh`/`lint.sh` → SKIP), so the advisory quality job is the first typecheck, lint and test run of this code.
 - The migration is forward-only, additive (two enums, two tables, backfill). A code revert tolerates it.
 - Context budget: the spec's `touches:` plus `src/lib/demandes/requests.ts`, `rules.ts`, `format.ts`, `src/lib/reservations/notify.ts`, `notices.ts` and a few component files read for their patterns.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the head that merged (ci-status.sh, after the last push; the stop report names the SHA)
+- reviews: code medium (/code-review — 1 finding fixed: the field's browser `maxLength` counted an emoji as two; 1 note fixed: « bonne garde » only for the batch's own booking, proved on `run/messagerie`) · security security-check.sh --branch --audit: OK + /security-review — no finding at confidence 8 or more (the gap of a professional no longer `valide` still writing, parked) · readiness env.sh audit --changed: OK · /production-readiness n/a — not installed in this session (the diff touches the database; the migration was proved on `run/messagerie` in Build)
+- parked: messagerie-profil-non-valide.md, template-change-router-skill-prompts.md
+- migrations: skip — none of this run's own in check-migrations.sh's stamp form (Drizzle 0008, journal order; `main` added none since)
+- learned: 1 rule from FAILURE.md (copied by close-out.sh); retrospective.sh skip — no error.log
+- docs: no docs impact (the docs tree is the discovery material; README and AGENTS were updated in Build) · announce: deferred to promotion
+- merge of main: #43 (encres-contraste) merged in at Release; conflicts in `mobile-menu.tsx` and `portal-shell.tsx` resolved with `main`'s inks, the new components moved to `text-encre-*` for `src/app/contrast.test.ts`
+- context budget: the #43 diff and `src/app/contrast.test.ts`, read to resolve the merge; `.claude/hooks/route-request.sh`, read for the template change request
+
