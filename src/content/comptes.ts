@@ -194,6 +194,8 @@ export const comptes = catalogue({
       navDemandesFamille: "Mes demandes",
       /** @relecture Surya — entrée de navigation vers les demandes de la zone de la professionnelle. */
       navDemandesProfessionnelle: "Demandes",
+      /** @relecture Surya — entrée de navigation vers le calendrier de la professionnelle ; le titre du guide. */
+      navDisponibilites: "Mes disponibilités",
       professionnelle: {
         enAttente:
           "Votre compte est en attente de validation. Nous vous contacterons dès que votre profil sera activé.",
