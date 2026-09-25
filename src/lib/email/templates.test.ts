@@ -11,6 +11,7 @@ import {
   priorityRequestEmail,
   profileRefusedEmail,
   profileValidatedEmail,
+  refundFamilyEmail,
   requestDigestEmail,
   resetPasswordEmail,
   urgentRequestEmail,
@@ -74,6 +75,10 @@ const all: [string, RenderedEmail][] = [
   ],
   ["not retained", notRetainedEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES })],
   ["priority request", priorityRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES })],
+  [
+    "fee refunded",
+    refundFamilyEmail({ siteUrl: SITE, prenom: "Julie", date: "30/09/2026", montant: "4,11 €", url: `${SITE}/d` }),
+  ],
   [
     "new message",
     newMessageEmail({ siteUrl: SITE, prenom: "Julie", auteur: "Emma", date: "30/09/2026", url: `${SITE}/espace/famille/messages/c1` }),
@@ -272,6 +277,16 @@ describe("the answer and the booking e-mails", () => {
     expect(email.subject).toBe("Une famille vous envoie sa demande en priorité");
     expect(email.text).toContain("Une famille de Ixelles vous a choisie pour la nuit du 30/09/2026 de 20h00 à 7h00. Un bébé de trois mois.");
     expect(email.text).toContain(`Voir la demande : ${LIST}`);
+  });
+});
+
+describe("the fee's refund e-mail (frais-de-service, D-103)", () => {
+  it("says the garde could not be booked and the whole fee is refunded, with a button to her request", () => {
+    const email = refundFamilyEmail({ siteUrl: SITE, prenom: "Julie", date: "30/09/2026", montant: "4,11 €", url: `${SITE}/d` });
+    expect(email.subject).toBe("Votre garde du 30/09/2026 n'a pas pu être confirmée");
+    expect(email.text).toContain("La garde du 30/09/2026 n'a donc pas pu être réservée.");
+    expect(email.text).toContain("Les frais de service de 4,11 € vous sont intégralement remboursés.");
+    expect(email.text).toContain(`Voir ma demande : ${SITE}/d`);
   });
 });
 

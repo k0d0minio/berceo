@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { adminActionEnum } from "@/db/schema";
+import { adminActionEnum, paymentStatusEnum, refundReasonEnum } from "@/db/schema";
 
 import { admin } from "./admin";
 import { words } from "./locale";
@@ -59,6 +59,11 @@ describe("the guide's lines, verbatim", () => {
 describe("the catalogue covers every key the rules use", () => {
   it("names every journal action", () => {
     for (const action of adminActionEnum.enumValues) expect(a.journal.actions[action]).toBeTruthy();
+  });
+
+  it("names every payment status and refund reason (frais-de-service)", () => {
+    for (const status of paymentStatusEnum.enumValues) expect(a.paiements.statuts[status]).toBeTruthy();
+    for (const reason of refundReasonEnum.enumValues) expect(a.paiements.raisons[reason]).toBeTruthy();
   });
 
   it("names every queue statut", () => {

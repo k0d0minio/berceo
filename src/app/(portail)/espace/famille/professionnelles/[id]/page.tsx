@@ -20,6 +20,7 @@ import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyHasAddress } from "@/lib/famille/profile";
 import { isSpecialisation } from "@/lib/professionnelle/rules";
 import { waitingAnswerOf } from "@/lib/reservations/answers";
+import { feeLine } from "@/lib/paiements/format";
 import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import { priorityPath, professionalProfilePath } from "@/lib/reservations/paths";
 import { publicProfile } from "@/lib/reservations/profiles";
@@ -134,6 +135,7 @@ export default async function ProfilProfessionnellePage({
               prenom: profile.firstName,
               profession: professionLabel(profile.profession),
               tarif: rateLine(answer.nightRateEur),
+              frais: feeLine(answer.nightRateEur),
             }}
             onAccept={acceptAnswerAction.bind(null, request.id, answer.applicationId)}
           />
