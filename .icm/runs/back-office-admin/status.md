@@ -4,7 +4,7 @@ Where the run is, in five lines. Updated at every stage start and stop, and when
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: build
-- step: pass 1 of 7 (schema)
+- step: pre-flip check (code complete, draft)
 - ci: draft — not owed
 - blocked: no
 - updated: 2026-09-25
