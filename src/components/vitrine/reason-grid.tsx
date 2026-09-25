@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
  * under the title rather than the card's 32 px. A title shorter than its
  * neighbour's sits at the foot of the shared line, so it keeps the 12 px too.
  * The paragraph keeps to the DA's 75 characters a line when the card runs
- * the full row (55ch measured at 70 to 74 characters with Nunito).
+ * the full row (55ch holds Nunito at 74 characters or fewer, measured).
  */
 function ReasonGrid({
   items,
