@@ -28,4 +28,11 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Commune helpers (`src/lib/communes/index.ts`), slugs, rules and sitemap builder (`src/lib/recherche/`) with their tests
+- [x] The reader `src/lib/recherche/professionals.ts` (column whitelists, `valide` in the SQL) with its tests
+- [x] Catalogue `src/content/recherche.ts` + test; components `src/components/recherche/`; design-system blocks
+- [x] The signed-in search page, nav entry and family-home link
+- [x] The public professional page, the commune pages and the sitemap
+- [x] The way back through sign-up (`src/lib/auth/retour.ts`, actions, pages, confirmation route) with its tests
+- [x] README section and AGENTS row
+- [ ] Ready flip, full gate green
