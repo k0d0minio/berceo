@@ -13,9 +13,19 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- D-2: refund only on the professional's cancellation, through `refundFee` (D-94); never on a
+  family's cancellation, never automatically on an absence (D-106).
+- D-17: no start or end confirmation, no in-app dispute; the state is derived by time (D-109).
+- D-15 / D-77: the address stays read through `src/lib/famille/` only, and only on a confirmed
+  garde whose night has not ended (D-110).
+- D-8, D-19: no insurance wording; every word in `src/content/`, `@relecture` unless quoted.
+- D-24: red and green only in the confirmation dialogs.
+- One migration, forward-only; `vercel.json` untouched (Vercel Cron does not reach UAT).
+- Out of scope: ratings (stub 12), the full bookings view and absence review (stub 14).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `src/db/schema.ts`, `src/lib/paiements/payments.ts` (`refundFee`),
+  `src/lib/messagerie/rules.ts`, `src/lib/demandes/rules.ts`, the digest workflow and Surya's
+  editorial guide beyond its Inputs, to settle the data model, the refund call and the e-mail
+  wording.

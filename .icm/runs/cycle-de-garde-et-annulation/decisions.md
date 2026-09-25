@@ -38,5 +38,12 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+*Numbered from D-105: frais-de-service ends at D-104.*
+
+- D-105 — A confirmed garde can be cancelled by either side from its space until its start hour; from the start hour the button is gone and the server refuses. Operator, 2026-09-25.
+- D-106 — A no-show is recorded in-app: from the start hour until 24 h after the night ends, either side can « Signaler une absence »; the garde becomes annulée with the absent side as `cancelled_by` and kind `absence`, the absent side is e-mailed, no refund is automatic, and the founders see it on `/admin/absences` and refund by hand (D-101) if they judge it fair. Operator (the stub's proposal), Define (the window, the list), 2026-09-25.
+- D-107 — After any cancelled garde (either side, either kind) whose night has not started, the family can « Republier ma demande »: a new request with the same details, published like any new one; the old one stays annulée. Operator, 2026-09-25.
+- D-108 — The reminder goes to both sides once, at about 10:00 Europe/Brussels the day before the night, from a GitHub Actions call like the digest (Vercel Cron does not run on UAT); a garde confirmed after that send gets none. Operator, 2026-09-25.
+- D-109 — A booking stores only `confirmee` or `annulee`; à venir, en cours and terminée are derived from the night and the clock at display time, never stored, so no job changes a state. Define, 2026-09-25.
+- D-110 — Cancelling a garde (or reporting an absence) cancels its request in the same statement, so its conversations close at once (D-89); the professional reads the address only on a confirmed garde whose night has not ended. Define, 2026-09-25.
+- D-111 — The « Rappel cadre plateforme » is one sentence from the guide's Tarifs instruction (the professional is paid directly, Berceo is an intermediary), without insurance wording, in both confirmation e-mails and both reminders only. Define, 2026-09-25.
