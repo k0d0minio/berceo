@@ -26,9 +26,10 @@ npm run dev      # http://localhost:3000
 | [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
 | [src/lib/professionnelle/](src/lib/professionnelle/), [src/lib/documents/](src/lib/documents/) | The professional's file: its rules, the private document bucket and `/api/fichiers/[id]`. |
 | [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' review: the queue and decision rules, the admin journal, the purge of refused files. See **The founders' verification** below. |
-| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`) and the daily digest of new requests (`.github/workflows/demandes-digest.yml`), both guarded by `CRON_SECRET`. |
+| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`) and the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`), all guarded by `CRON_SECRET`. |
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
 | [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
+| [src/lib/gardes/](src/lib/gardes/), [src/components/gardes/](src/components/gardes/) | The garde's life after its booking: its state by the clock, cancelling, reporting an absence, republishing, the reminder of the day before, the founders' list of absences. See **The garde's life** below. |
 | [src/lib/messagerie/](src/lib/messagerie/), [src/components/messagerie/](src/components/messagerie/) | The conversation per answer: its rules, reads and writes, the send action, the new-message e-mail. See **The conversation** below. |
 | [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
 | [src/lib/paiements/](src/lib/paiements/), [src/app/api/webhooks/stripe/](src/app/api/webhooks/stripe/) | The 3 % service fee through Stripe: the Checkout, the webhook, refunds, the founders' list. See **The service fee** below. |
@@ -261,6 +262,44 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   `bookingAddress` in `src/lib/famille/profile.ts`, still the only reader of `family_profiles`.
 - **Words:** `src/content/reservations.ts`; e-mails in `src/content/emails.ts`.
 
+## The garde's life
+
+A confirmed booking, from the payment to the morning after (cycle-de-garde-et-annulation, D-17,
+D-105 to D-113). `src/lib/gardes/` holds the rules (`rules.ts`, pure and tested) and the only
+writes of a booking's status columns (`gardes.ts`); creating a booking and both sides' reads stay
+in `src/lib/reservations/bookings.ts`.
+
+- **The state, by the clock (D-109):** a booking stores only `confirmee` or `annulee`. « À venir »
+  before the start hour, « En cours » until start + 11 h, « Terminée » after, all Brussels time,
+  are read by `gardeState` at display time; no job changes a state. Both lists, both garde pages
+  and the family's request page show it.
+- **Cancelling (D-105, D-2):** either side, from its garde page, until the start hour, through
+  the red confirmation dialog. One statement cancels the garde (who is responsible, who clicked,
+  when) and its request (`cancelBookedRequestStatement` in `src/lib/demandes/`), which closes its
+  conversations and frees the professional's night (`bookings_profile_night_key` counts
+  confirmed gardes only). A professional's cancellation then refunds the fee through `refundFee`;
+  a failure leaves the garde cancelled and the fee `payee`, for the founders' button. A family's
+  cancellation keeps the fee. The other side gets one e-mail.
+- **Reporting an absence (D-106):** from the start hour until 24 h after the night, either side
+  reports the other absent; the garde is cancelled against the absent side (kind `absence`), who
+  gets one e-mail. Nothing is refunded: the founders read `/admin/absences` (linked with its count
+  from `/admin`) and refund from `/admin/paiements` if they judge it fair.
+- **Republishing (D-107, D-112):** on a cancelled garde whose night has not started, « Republier
+  ma demande » publishes a new request for the same night through `publishRequest` (the
+  profile's commune, the urgent flag by the date window), or links to her live request that
+  night if she already has one.
+- **The address (D-110):** `bookingAddress` returns it only on a confirmed garde whose night has
+  not ended.
+- **The reminder of the day before (D-108, D-113):** `.github/workflows/gardes-rappel.yml` calls
+  `POST /api/cron/gardes-rappel` (bearer `CRON_SECRET`) at 08:00, 08:30, 09:00 and 09:30 UTC on
+  UAT and production; the route sends only between 10:00 and 10:59 Brussels. Each of tomorrow's
+  confirmed gardes is claimed, then both sides are e-mailed; a failed send releases the claim for
+  the next call. A 404 (the route not yet promoted) is a skipped call.
+- **The platform line (D-111):** one sentence (`cadre` in `src/content/emails.ts`) under the
+  button of both confirmations and both reminders.
+- **Words:** `src/content/gardes.ts` (every entry `@relecture`), the e-mails in
+  `src/content/emails.ts`, the admin list in `src/content/admin.ts`.
+
 ## The service fee
 
 The 3 % fee (D-2), through Stripe Checkout, Bancontact and cards (frais-de-service). Berceo
@@ -285,7 +324,7 @@ never touches the money for the night (D-1).
   `en_attente` past `expires_at` reads as expired without a cron.
 - **Refunds (D-101, D-94):** `refundFee(paymentId, reason, now, by?)` is the one refund: the whole
   fee, a `payee` row only (or a failed refund, to retry), one Stripe idempotency key per payment
-  and attempt. Reasons: `annulation_professionnelle` (cycle-de-garde-et-annulation calls it),
+  and attempt. Reasons: `annulation_professionnelle` (a professional's cancellation, **The garde's life**),
   `reservation_impossible`, `berceo` (the founders' button, one `frais_rembourses` journal
   line), `stripe` (a refund made in Stripe's dashboard, synced by the webhook). A refund Stripe
   reports failed reads `remboursement_echoue`.
@@ -326,7 +365,7 @@ never touches the money for the night (D-1).
 - **Closing (D-89):** a conversation accepts messages until the night ends (start + 11 h,
   Brussels), whatever its answer's state; a cancelled request closes it at once. Closed, it stays
   readable. `isConversationOpen` in `rules.ts` is the one rule; `sendMessage` holds it again in
-  SQL. Cycle-de-garde-et-annulation extends it for a cancelled booking.
+  SQL. A cancelled garde cancels its request (D-110), so its conversations close at once too.
 - **Words:** `src/content/messagerie.ts`; the e-mail in `src/content/emails.ts`.
 
 ## The professional's availability
