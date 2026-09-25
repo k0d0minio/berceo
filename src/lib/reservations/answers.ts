@@ -104,6 +104,7 @@ export async function answerRequest(userId: string, requestId: string, now: Date
     where r.id = ${requestId}
       and p.id = ${profile.id}
       and p.status = 'valide'
+      and not exists (select 1 from users su where su.id = p.user_id and su.suspended_at is not null)
       and p.night_rate_eur is not null
       and r.status = 'ouverte'
       and (r.night_date + r.start_time) > (now() at time zone ${TIME_ZONE})
@@ -174,11 +175,12 @@ export type Applicant = {
   note: Note;
 };
 
-/** Only answers still waiting, of professionals still validated, on her own request. */
+/** Only answers still waiting, of professionals still validated and not suspended (D-134), on her own request. */
 function waitingOnHers(userId: string) {
   return and(
     eq(careRequestApplications.status, "en_attente"),
     eq(professionalProfiles.status, "valide"),
+    notSuspended(professionalProfiles.userId),
     eq(careRequests.familyUserId, userId),
   );
 }

@@ -12,6 +12,7 @@ import {
   users,
   type ApplicationStatus,
 } from "@/db";
+import { notSuspended } from "@/lib/auth/suspension";
 import { familyNotesOfRequests, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { familyCommune } from "@/lib/famille/profile";
 
@@ -326,7 +327,13 @@ export async function setPriority(
           db
             .select({ id: professionalProfiles.id })
             .from(professionalProfiles)
-            .where(and(eq(professionalProfiles.id, profileId), eq(professionalProfiles.status, "valide"))),
+            .where(
+              and(
+                eq(professionalProfiles.id, profileId),
+                eq(professionalProfiles.status, "valide"),
+                notSuspended(professionalProfiles.userId),
+              ),
+            ),
         ),
         reachableBy(profileId),
       ),
@@ -488,7 +495,10 @@ export async function professionalRequests(userId: string): Promise<Professional
 
 export type Recipient = { profileId: string; email: string; firstName: string; communeIns: string };
 
-/** Every validated professional serving one of `communes`, once per commune she serves there. */
+/**
+ * Every validated professional serving one of `communes`, once per commune she
+ * serves there; never a suspended one, who can answer nothing (D-134).
+ */
 export async function professionalsServing(communes: string[]): Promise<Recipient[]> {
   if (communes.length === 0) return [];
   return db
@@ -502,7 +512,11 @@ export async function professionalsServing(communes: string[]): Promise<Recipien
     .innerJoin(users, eq(users.id, professionalProfiles.userId))
     .innerJoin(professionalCommunes, eq(professionalCommunes.profileId, professionalProfiles.id))
     .where(
-      and(eq(professionalProfiles.status, "valide"), inArray(professionalCommunes.communeIns, communes)),
+      and(
+        eq(professionalProfiles.status, "valide"),
+        isNull(users.suspendedAt),
+        inArray(professionalCommunes.communeIns, communes),
+      ),
     );
 }
 

@@ -36,7 +36,9 @@ export default async function ConnexionPage({ searchParams }: PageProps<"/connex
 
   const who = await currentUser();
   const notice =
-    who.status === "no-row" || first(params.erreur) === "compte"
+    who.status === "suspended" || first(params.erreur) === "suspendu"
+      ? t.erreurs.suspendu
+      : who.status === "no-row" || first(params.erreur) === "compte"
       ? t.erreurs.compteIndisponible
       : first(params.lien) === "invalide"
         ? t.erreurs.lienInvalide

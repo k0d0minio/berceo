@@ -1,7 +1,7 @@
 import "server-only";
 
 import { alias } from "drizzle-orm/pg-core";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import {
   bookings,
@@ -129,6 +129,7 @@ export async function priorityNotice(requestId: string): Promise<ProfessionalNot
         eq(careRequests.id, requestId),
         eq(careRequests.status, "ouverte"),
         eq(professionalProfiles.status, "valide"),
+        isNull(professionalUser.suspendedAt),
       ),
     )
     .limit(1);

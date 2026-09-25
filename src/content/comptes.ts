@@ -179,6 +179,8 @@ export const comptes = catalogue({
       /** @relecture Surya — compte sans espace (incident technique). */
       compteIndisponible:
         "Nous ne parvenons pas à ouvrir votre espace pour le moment. Réessayez un peu plus tard.",
+      /** @relecture Surya — compte suspendu par l'équipe Berceo (back-office-admin, D-134). */
+      suspendu: "Votre compte est suspendu. Vous ne pouvez pas vous connecter pour le moment.",
       /** @relecture Surya — erreur technique générique. */
       generique: "Une erreur est survenue. Réessayez dans quelques instants.",
     },

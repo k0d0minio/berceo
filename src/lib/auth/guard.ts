@@ -6,6 +6,7 @@ import type { User } from "@/db";
 
 import { currentUser } from "./current-user";
 import { accessFor, landingFor, signInWithReturn } from "./routing";
+import { SUSPENDED_PATH } from "./suspension";
 
 /**
  * The server-side gate every space page calls with its own path. The proxy
@@ -19,6 +20,8 @@ export async function requireAccess(pathname: string): Promise<User> {
     // /admin never confirms it exists, not even to a signed-out visitor.
     if (accessFor(null, pathname).kind === "not-found") notFound();
     if (who.status === "no-row") redirect("/connexion?erreur=compte");
+    // A suspended account's session ends here, and the sign-in page says why (D-134).
+    if (who.status === "suspended") redirect(SUSPENDED_PATH);
     redirect(signInWithReturn(pathname));
   }
 

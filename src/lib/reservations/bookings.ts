@@ -17,6 +17,7 @@ import {
 } from "@/db";
 import { cardColumns, isUniqueViolation, nightAhead, UUID, type RequestCard } from "@/lib/demandes/requests";
 import { bookingAddress, familyHasAddress, type BookingAddress } from "@/lib/famille/profile";
+import { notSuspended } from "@/lib/auth/suspension";
 import { bonneGardeStatement } from "@/lib/messagerie/conversations";
 
 import { photoId } from "./answers";
@@ -57,6 +58,8 @@ export async function acceptCheck(
       answerStatus: careRequestApplications.status,
       nightRateEur: careRequestApplications.nightRateEur,
       profileStatus: professionalProfiles.status,
+      // Her account suspended since she answered (D-134): she is no longer bookable.
+      suspended: sql<boolean>`not ${notSuspended(professionalProfiles.userId)}`,
     })
     .from(careRequestApplications)
     .innerJoin(careRequests, eq(careRequests.id, careRequestApplications.requestId))
@@ -74,7 +77,7 @@ export async function acceptCheck(
   const refusal = acceptRefusal(
     {
       request: facts,
-      answer: { status: facts.answerStatus, profileStatus: facts.profileStatus },
+      answer: { status: facts.answerStatus, profileStatus: facts.suspended ? "suspendu" : facts.profileStatus },
       hasAddress: await familyHasAddress(userId),
     },
     now,
@@ -93,7 +96,7 @@ export type AcceptResult =
  * transaction, the payment row locked first:
  *
  * 1. the chosen answer becomes `retenue`, only if it still waits, its
- *    professional is still validated, the request is hers, open and ahead,
+ *    professional is still validated and not suspended (D-134), the request is hers, open and ahead,
  *    and `paymentId` is her fee for this very answer, paid;
  * 2. the booking is made from that answer (its rate, D-74), only if step 1
  *    took; the unique indexes refuse a second booking for the request or for
@@ -143,6 +146,7 @@ export async function acceptAnswer(
                   and(
                     eq(professionalProfiles.id, careRequestApplications.profileId),
                     eq(professionalProfiles.status, "valide"),
+                    notSuspended(professionalProfiles.userId),
                   ),
                 ),
             ),
