@@ -21,4 +21,8 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Schema and migration 0008 with the backfill (`src/db/schema.ts`, `drizzle/`) — 5e371e7
+- [x] Rules, the data module, Berceo's messages in the answer and the booking (`src/lib/messagerie/`, `src/lib/reservations/`) — e725a24
+- [x] The send action and the new-message e-mail (`actions.ts`, `notify.ts`, `templates.ts`, `emails.ts`) — 0dfe712
+- [x] Pages, the shell's count, the entry points, the catalogue (`src/app/(portail)/espace/*/messages/`, `src/components/`) — 9099fcb
+- [x] README and AGENTS — 284b0bb
