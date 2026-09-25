@@ -4,7 +4,7 @@ import { paiement } from "./paiement";
 import { tarifs } from "./tarifs";
 
 /**
- * Spec (frais-de-service, D-19, D-8, D-87): every word of the fee lives in
+ * Spec (frais-de-service, D-19, D-8, D-99): every word of the fee lives in
  * the catalogue, follows the guide's rules (no exclamation mark, em dash or
  * ellipsis, no insurance wording), names no amount but the fee and the 3 %,
  * and repeats the Tarifs page's two sentences word for word.

@@ -280,7 +280,7 @@ describe("the answer and the booking e-mails", () => {
   });
 });
 
-describe("the fee's refund e-mail (frais-de-service, D-91)", () => {
+describe("the fee's refund e-mail (frais-de-service, D-103)", () => {
   it("says the garde could not be booked and the whole fee is refunded, with a button to her request", () => {
     const email = refundFamilyEmail({ siteUrl: SITE, prenom: "Julie", date: "30/09/2026", montant: "4,11 €", url: `${SITE}/d` });
     expect(email.subject).toBe("Votre garde du 30/09/2026 n'a pas pu être confirmée");

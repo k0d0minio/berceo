@@ -2,7 +2,7 @@ import type { PaymentStatus, RefundReason } from "@/db/schema";
 
 /**
  * The service fee's rules that need neither the database nor Stripe: the
- * amount (D-87), how long a Checkout stays open and how a stale one reads
+ * amount (D-99), how long a Checkout stays open and how a stale one reads
  * (D-92), which payments a refund accepts and the key that makes it happen
  * once (D-94), and the page of the admin list. Pure, so the tests hold them
  * to the spec; `./payments.ts` holds them again in its SQL.
@@ -13,7 +13,7 @@ export function isSessionId(value: string | null | undefined): value is string {
   return typeof value === "string" && /^cs_(test|live)_[A-Za-z0-9]+$/.test(value);
 }
 
-/** The fee: 3 % of the night rate, all-in, VAT included (D-2, D-87). */
+/** The fee: 3 % of the night rate, all-in, VAT included (D-2, D-99). */
 export const FEE_PERCENT = 3;
 
 /**
@@ -85,7 +85,7 @@ export function refundFailed(stripeStatus: string | null | undefined): boolean {
 export const APP_REFUND = { source: "berceo" } as const;
 
 /**
- * What a refund Stripe reports does to a payment (webhook, D-89): a live
+ * What a refund Stripe reports does to a payment (webhook, D-101): a live
  * refund on a paid fee, not made by the app, was made in the dashboard
  * (`stripe`); a failed one on the refund the row carries marks it
  * `remboursement_echoue`; anything else changes nothing. The app's own

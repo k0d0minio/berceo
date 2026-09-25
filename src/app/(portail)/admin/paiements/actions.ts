@@ -10,7 +10,7 @@ import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths";
 import { refundFee } from "@/lib/paiements/payments";
 
 /*
- * « Rembourser les frais » (D-89). The role is checked here at runtime,
+ * « Rembourser les frais » (D-101). The role is checked here at runtime,
  * whatever the page showed: a server action is reachable by anyone who can
  * post to it (Learned rules), and it answers a non-admin exactly as a failure.
  * The id and the reason are checked again; the refund itself holds its rules

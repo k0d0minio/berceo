@@ -49,7 +49,7 @@ import { stripe } from "./stripe";
  * (bar the booking link `acceptAnswer` writes in its own transaction) and the
  * only calls to Stripe. « Accepter et réserver » opens a Checkout
  * (`startCheckout`); a paid Checkout books through `confirmPayment`, called
- * by the webhook and by the return page, whichever comes first (D-90); a
+ * by the webhook and by the return page, whichever comes first (D-102); a
  * refund is always `refundFee` (D-94). Each rule of ./rules.ts is held again
  * in the SQL of the write it governs.
  */
@@ -84,7 +84,7 @@ export type StartResult =
   | { kind: "erreur" };
 
 /**
- * « Confirmer et régler les frais de service » (D-90, D-92): the rules first,
+ * « Confirmer et régler les frais de service » (D-102, D-92): the rules first,
  * exactly as a booking reads them; then the request's open Checkout, if any,
  * is closed; then a new one is opened at Stripe for 3 % of the answer's rate,
  * and recorded `en_attente`. Nothing about the request or its answers changes.
@@ -255,7 +255,7 @@ function paymentIntentId(value: string | { id: string } | null): string | null {
 }
 
 /**
- * The booking a paid Checkout makes, once (D-90, D-91). The session is read
+ * The booking a paid Checkout makes, once (D-102, D-103). The session is read
  * from Stripe, never from the caller; a conditional update takes the payment
  * `en_attente → payee`. A paid payment with no booking yet is settled by
  * whoever comes: the webhook, the return page, its « Actualiser » link, or
@@ -301,7 +301,7 @@ export async function confirmPayment(sessionId: string, siteUrl: string, now: Da
 
 /**
  * A paid fee without a booking: book it, or refund it when the booking can no
- * longer be made (D-91). A refusal is read again before refunding: another
+ * longer be made (D-103). A refusal is read again before refunding: another
  * caller may have just booked it, and a booked fee is never refunded here.
  */
 async function settle(payment: Payment, siteUrl: string, now: Date): Promise<ConfirmResult> {
@@ -378,7 +378,7 @@ export type RefundResult =
     }
   | { ok: false; reason: "introuvable" | "statut" };
 
-/** Who asked for a refund from the back office, for the journal (D-89). */
+/** Who asked for a refund from the back office, for the journal (D-101). */
 export type RefundBy = { admin: Person; motif: string };
 
 /**
@@ -465,7 +465,7 @@ export async function refundFee(
 }
 
 /**
- * A refund Stripe reports (webhook, D-89): one made in the dashboard is
+ * A refund Stripe reports (webhook, D-101): one made in the dashboard is
  * recorded `remboursee`, reason `stripe`; a failure of the refund the row
  * carries marks it `remboursement_echoue`. The app's own refunds are left to
  * `refundFee`.

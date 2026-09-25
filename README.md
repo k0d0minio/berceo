@@ -242,7 +242,7 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   two clicks racing into one booking and a « conflit ». Accepting needs the family's street and
   number (D-77). Both sides get the guide's confirmation, the others « not retained ».
   The click only opens the fee's Checkout; `acceptAnswer` runs when the payment lands, and its
-  first statement requires that payment, paid (**The service fee**, D-90).
+  first statement requires that payment, paid (**The service fee**, D-102).
 - **Republish and edit (D-70, D-76):** a request with a waiting answer cannot be edited;
   « Republier ma demande » declines the waiting answers and sends the request out again (the
   urgent e-mail at once, or the next digest, which carries a request republished since its last
@@ -266,14 +266,14 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
 The 3 % fee (D-2), through Stripe Checkout, Bancontact and cards (frais-de-service). Berceo
 never touches the money for the night (D-1).
 
-- **The amount (D-87):** 3 % of the chosen answer's frozen rate, computed on the server as
+- **The amount (D-99):** 3 % of the chosen answer's frozen rate, computed on the server as
   `rate × 3` cents (3,00 € to 9,00 €), all-in, VAT included; Stripe Tax is off. The summary
   shows it with the Tarifs page's two sentences (`src/content/paiement.ts`).
-- **Paying (D-90, D-92):** « Confirmer et régler les frais de service » runs the booking rules,
+- **Paying (D-102, D-92):** « Confirmer et régler les frais de service » runs the booking rules,
   closes the request's open Checkout if any (one per request, a partial unique index), opens a
   30-minute Checkout and records it in `payments` as `en_attente`. Nothing about the request or
   its answers changes while the family is on Stripe.
-- **The booking is made by the payment (D-90, D-91):** `confirmPayment` in
+- **The booking is made by the payment (D-102, D-103):** `confirmPayment` in
   `src/lib/paiements/payments.ts` reads the session from Stripe, takes the row
   `en_attente → payee` with one conditional update, then runs `acceptAnswer`, which books only
   against that paid row. Two paths call it: the webhook `POST /api/webhooks/stripe` and the
@@ -283,7 +283,7 @@ never touches the money for the night (D-1).
 - **Abandoning:** « Retour » on Stripe goes to `/espace/famille/reservations/paiement/abandon`,
   which expires the Checkout; an unpaid one expires on its own after 30 minutes, and a row
   `en_attente` past `expires_at` reads as expired without a cron.
-- **Refunds (D-89, D-94):** `refundFee(paymentId, reason, now, by?)` is the one refund: the whole
+- **Refunds (D-101, D-94):** `refundFee(paymentId, reason, now, by?)` is the one refund: the whole
   fee, a `payee` row only (or a failed refund, to retry), one Stripe idempotency key per payment
   and attempt. Reasons: `annulation_professionnelle` (cycle-de-garde-et-annulation calls it),
   `reservation_impossible`, `berceo` (the founders' button, one `frais_rembourses` journal
@@ -291,7 +291,7 @@ never touches the money for the night (D-1).
   reports failed reads `remboursement_echoue`.
 - **The founders' list (D-93):** `/admin/paiements`, every fee newest first, 50 per page, with
   « Rembourser les frais ». Families and professionals see no payment history.
-- **Configuration (D-88):** `STRIPE_SECRET_KEY` (test key on Preview and Development, live key on
+- **Configuration (D-100):** `STRIPE_SECRET_KEY` (test key on Preview and Development, live key on
   Production only once the company's Stripe account exists) and `STRIPE_WEBHOOK_SECRET` (per
   environment). In Stripe's dashboard, per account: enable Bancontact, and add the endpoint
   `https://uat.berceo.be/api/webhooks/stripe` (test mode) or `https://www.berceo.be/api/webhooks/stripe`

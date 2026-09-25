@@ -10,7 +10,7 @@ import { familyBookingPath } from "@/lib/reservations/paths";
 import { siteOrigin } from "@/lib/site-origin";
 
 /*
- * Where Stripe sends the family once she paid (`success_url`, D-90). The
+ * Where Stripe sends the family once she paid (`success_url`, D-102). The
  * session is read from Stripe, never trusted from the URL, and booked here if
  * the webhook has not done it yet (previews never get the webhook). Only her
  * own payment: another family's session, like an unknown one, is not found.

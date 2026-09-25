@@ -7,7 +7,7 @@ import { catalogue } from "./locale";
  * guide's, as the Tarifs page already carries them (D-2); every `@relecture`
  * entry is ours, written in the guide's rules (vouvoiement, no exclamation
  * mark, no em dash, no ellipsis) and waiting for Surya. The only amount is
- * the fee, 3 % of the professional's rate, the € after the number (D-87).
+ * the fee, 3 % of the professional's rate, the € after the number (D-99).
  * `{name}` slots are filled with `fill()` from ./locale.
  */
 export const paiement = catalogue({
@@ -42,7 +42,7 @@ export const paiement = catalogue({
       enCours: "Votre paiement est reçu, la confirmation de votre garde est en cours.",
       /** @relecture Surya — lien pour recharger la page. */
       actualiser: "Actualiser la page",
-      /** @relecture Surya — payé, mais la garde ne peut plus être réservée (D-91). */
+      /** @relecture Surya — payé, mais la garde ne peut plus être réservée (D-103). */
       rembourse:
         "Votre garde n'a pas pu être confirmée : la demande ou la réponse a changé pendant le paiement. Les frais de service vous sont intégralement remboursés.",
       /** @relecture Surya — payé, pas réservable, et Stripe a refusé le remboursement : l'équipe s'en occupe. */

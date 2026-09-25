@@ -37,7 +37,7 @@ async function refundNotice(paymentId: string): Promise<RefundNotice | null> {
 
 /**
  * The family's e-mail when her paid fee could not book the garde and was
- * refunded at once (D-91): she may have closed Stripe's tab before the return
+ * refunded at once (D-103): she may have closed Stripe's tab before the return
  * page said so. After the response (`after()`), logged with ids only, one per
  * payment (the idempotency key).
  */

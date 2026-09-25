@@ -15,7 +15,7 @@ const date = new Intl.DateTimeFormat("fr-BE", { dateStyle: "short", timeZone: "E
  * professional, the night, the rate, the fee, the status (an open Checkout
  * past its expiry reads « Abandonnés », D-92), Stripe's PaymentIntent id and,
  * for a refund, its date and reason. A paid fee offers « Rembourser les
- * frais » (D-89); nothing else on this page changes a payment.
+ * frais » (D-101); nothing else on this page changes a payment.
  */
 function PaymentsTable({ rows, now }: { rows: AdminPayment[]; now: Date }) {
   const p = words(admin).paiements

@@ -25,7 +25,7 @@ const link = "text-corps font-semibold text-encre-sauge underline underline-offs
 /*
  * « Paiements des frais de service » (frais-de-service, D-93): every fee,
  * newest first, 50 per page like the journal, with « Rembourser les frais »
- * on a paid one (D-89). A 404 to anyone but an admin (D-33). Families and
+ * on a paid one (D-101). A 404 to anyone but an admin (D-33). Families and
  * professionals see no payment history anywhere (I-05 NON).
  */
 export default async function PaiementsPage({

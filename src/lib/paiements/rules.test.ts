@@ -15,13 +15,13 @@ import {
 
 /*
  * Spec (frais-de-service): the fee is 3 % of the answer's rate, exact, 3,00 €
- * to 9,00 € (D-87); a Checkout lasts 30 minutes and an open one past its
+ * to 9,00 € (D-99); a Checkout lasts 30 minutes and an open one past its
  * expiry reads as expired (D-92); a refund takes a paid fee only, once, and a
- * refund Stripe reports is recorded as the dashboard's or as failed (D-89,
+ * refund Stripe reports is recorded as the dashboard's or as failed (D-101,
  * D-94).
  */
 
-describe("the amount (D-87)", () => {
+describe("the amount (D-99)", () => {
   it("is 3 % of the rate, in cents, never rounded", () => {
     expect(feeCents(100)).toBe(300);
     expect(feeCents(137)).toBe(411);
@@ -90,7 +90,7 @@ describe("a refund (D-94)", () => {
   });
 });
 
-describe("a refund Stripe reports (D-89)", () => {
+describe("a refund Stripe reports (D-101)", () => {
   it("records a refund made in the dashboard on a paid fee", () => {
     expect(refundSync({ status: "payee", stripeRefundId: null }, { id: "re_1", status: "succeeded", fromApp: false })).toEqual({
       kind: "dashboard",

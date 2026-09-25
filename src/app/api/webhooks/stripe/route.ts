@@ -6,7 +6,7 @@ import { siteOrigin } from "@/lib/site-origin";
 /*
  * Stripe calls this for the fee's Checkouts and refunds (frais-de-service).
  * The endpoint is registered per environment in Stripe's dashboard (UAT with
- * the test account, Production with the live one, D-88) for these events:
+ * the test account, Production with the live one, D-100) for these events:
  * checkout.session.completed, checkout.session.async_payment_succeeded,
  * checkout.session.async_payment_failed, checkout.session.expired,
  * refund.created, refund.updated, refund.failed.
@@ -14,7 +14,7 @@ import { siteOrigin } from "@/lib/site-origin";
  * Nothing is read before the signature is checked on the raw body: an
  * unsigned or wrongly signed call answers 400 and touches nothing. Every
  * handler is idempotent, so Stripe's retries and a replayed event change
- * nothing twice (D-90). A failure of ours answers 500, and Stripe retries.
+ * nothing twice (D-102). A failure of ours answers 500, and Stripe retries.
  */
 
 export const dynamic = "force-dynamic";

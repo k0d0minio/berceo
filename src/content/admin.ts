@@ -215,7 +215,7 @@ export const admin = catalogue({
       erreur: "Le réglage n'a pas pu être enregistré. Réessayez dans un instant.",
     },
 
-    /** Les frais de service payés par les familles (frais-de-service, D-89, D-93). */
+    /** Les frais de service payés par les familles (frais-de-service, D-101, D-93). */
     paiements: {
       /** @relecture Surya — titre de la page. */
       titre: "Paiements des frais de service",

@@ -15,7 +15,7 @@ import { reservations } from "@/content/reservations"
  * pays her directly (D-1), then the guide's two fee sentences and where the
  * fee is paid (frais-de-service). Confirming is green, going back red (D-24).
  * No word about insurance (D-8). Confirming opens Stripe's page; the booking
- * is made by the payment, on the server, which holds every rule again (D-90).
+ * is made by the payment, on the server, which holds every rule again (D-102).
  */
 
 export type Recap = {
@@ -25,7 +25,7 @@ export type Recap = {
   prenom: string
   profession: string
   tarif: string
-  /** « 4,11 € », computed on the server from the answer's rate (D-87). */
+  /** « 4,11 € », computed on the server from the answer's rate (D-99). */
   frais: string
 }
 

@@ -25,7 +25,7 @@ import { acceptRefusal, type AcceptRefusal } from "./rules";
  * professional reads the family's name, phone and address only on her own
  * booking (D-15, D-72). « Accepter et réserver » opens the fee's Checkout
  * (`src/lib/paiements/`); only a paid payment books, through `acceptAnswer`
- * (D-90).
+ * (D-102).
  */
 
 export type AcceptCheck =
@@ -85,7 +85,7 @@ export type AcceptResult =
   | { ok: false; reason: AcceptRefusal | "introuvable" | "conflit" };
 
 /**
- * The booking a paid fee makes (D-90). The rules are read first for a precise
+ * The booking a paid fee makes (D-102). The rules are read first for a precise
  * answer, then the batch holds them again, statement by statement, in one
  * transaction, the payment row locked first:
  *
@@ -103,7 +103,7 @@ export type AcceptResult =
  *
  * Two payments racing on one request, or two requests booking one
  * professional for one night, end with one booking and a « conflit »; the
- * caller refunds the loser (D-91).
+ * caller refunds the loser (D-103).
  */
 export async function acceptAnswer(
   userId: string,
@@ -156,7 +156,7 @@ export async function acceptAnswer(
                   ),
                 ),
             ),
-            // The click never books: only her paid fee for this answer (D-90).
+            // The click never books: only her paid fee for this answer (D-102).
             exists(
               db
                 .select({ id: payments.id })

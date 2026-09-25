@@ -101,7 +101,7 @@ export const emails = catalogue({
       cta: "Voir les détails de ma réservation",
     },
 
-    /** @relecture Surya — la garde payée n'a pas pu être réservée, les frais sont remboursés (frais-de-service, D-91). */
+    /** @relecture Surya — la garde payée n'a pas pu être réservée, les frais sont remboursés (frais-de-service, D-103). */
     remboursementFamille: {
       objet: "Votre garde du {date} n'a pas pu être confirmée",
       corps:

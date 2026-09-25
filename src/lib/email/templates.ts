@@ -289,7 +289,7 @@ export function bookingFamilyEmail(input: {
   };
 }
 
-/** A paid fee whose booking could no longer be made: the fee is refunded in full (frais-de-service, D-91). */
+/** A paid fee whose booking could no longer be made: the fee is refunded in full (frais-de-service, D-103). */
 export function refundFamilyEmail(input: {
   siteUrl: string;
   prenom: string;

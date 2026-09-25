@@ -29,7 +29,7 @@ Tarifs text already on the site (`src/content/tarifs.ts`); every other entry car
 the 100 to 300 € rate and the 3 % (D-3, D-4), amounts written the French way with the € after
 the number and a comma for the cents (« 4,11 € »). The catalogue tests cover the new file.
 
-### 1. The amount (D-2, D-87)
+### 1. The amount (D-2, D-99)
 
 - The fee is **3 % of the rate the chosen answer carries** (its `night_rate_eur`, frozen when the
   professional answered, D-74), computed in cents as `rate × 3`: exact, never rounded, from
@@ -54,7 +54,7 @@ the number and a comma for the cents (« 4,11 € »). The catalogue tests cover
 
 The Tarifs page and the FAQ already carry the guide's fee sentences; they are not changed.
 
-### 3. Paying (D-90, D-92)
+### 3. Paying (D-102, D-92)
 
 Confirming no longer books. The server:
 
@@ -76,7 +76,7 @@ Confirming no longer books. The server:
 Nothing about the request, the answers or the professional changes while the family is on Stripe:
 the request stays `ouverte`, the answers stay `en_attente`, nobody is told anything.
 
-### 4. The booking is made by the payment (D-90, D-91)
+### 4. The booking is made by the payment (D-102, D-103)
 
 A booking is made only once Stripe reports the session paid. One idempotent function,
 `confirmPayment(sessionId)` in `src/lib/paiements/`, does it, and two paths call it:
@@ -124,7 +124,7 @@ The return page, by outcome:
 An abandoned or failed checkout leaves the request open, the answers waiting and no booking; the
 family can choose again, the same answer or another.
 
-### 6. Refunds (D-89, D-94)
+### 6. Refunds (D-101, D-94)
 
 - **One entry point**, `refundFee(paymentId, reason, by?)` in `src/lib/paiements/`: the full
   fee, never part of it, only on a `payee` row, with a Stripe idempotency key built from the
@@ -172,7 +172,7 @@ and for a refund its date and reason. A booking-less `en_attente` or `expiree` r
 so an abandoned checkout is visible. The families and the professionals see no payment history
 and no receipt (I-05 NON).
 
-### 9. Configuration (D-88)
+### 9. Configuration (D-100)
 
 - Two new variables, named in `.env.example` with their targets, values never in git:
   `STRIPE_SECRET_KEY` (`[production,preview,development]`) and `STRIPE_WEBHOOK_SECRET`
@@ -208,12 +208,12 @@ and no receipt (I-05 NON).
 - Subscriptions, gift cards, promo codes (D-3).
 - Cancelling a booking by either side and the professional's-cancellation refund being triggered: stub 11 (cycle-de-garde-et-annulation) calls `refundFee` with `annulation_professionnelle`.
 - Receipts, invoices and a payment history for families or professionals (I-05 NON); Stripe's own receipt e-mails are a dashboard setting, the operator's.
-- Stripe Tax and a VAT line (D-87); the VAT bookkeeping is the accountant's.
+- Stripe Tax and a VAT line (D-99); the VAT bookkeeping is the accountant's.
 - Partial refunds.
 - The fee amount in the confirmation e-mails.
 - The back office's wider views (overview, search, suspension): stub 14 (back-office-admin), which builds on `/admin/paiements`.
 - Opening the Stripe account, its verification, the live keys, the webhook registration, the statement descriptor: the operator's, in Stripe's dashboard and Vercel.
-- Scope decisions this run neither builds nor changes: D-5, D-6, D-7, D-9 (the DA, already in the components), D-10, D-11, D-12, D-13, D-14, D-15 (the address still reveals at the booking, now made by the payment), D-16, D-17 (disputes go to the founders' e-mail; the admin button of D-89 is how they refund one), D-18, D-20, D-21, D-22, D-23, D-25, D-26, D-27.
+- Scope decisions this run neither builds nor changes: D-5, D-6, D-7, D-9 (the DA, already in the components), D-10, D-11, D-12, D-13, D-14, D-15 (the address still reveals at the booking, now made by the payment), D-16, D-17 (disputes go to the founders' e-mail; the admin button of D-101 is how they refund one), D-18, D-20, D-21, D-22, D-23, D-25, D-26, D-27.
 
 ## Open questions
 

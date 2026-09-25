@@ -1,7 +1,7 @@
 import { FAMILY_BOOKINGS_PATH } from "@/lib/reservations/paths";
 import { SPACES } from "@/lib/auth/routing";
 
-/** Where Stripe sends the family back once she paid (`success_url`, D-90). */
+/** Where Stripe sends the family back once she paid (`success_url`, D-102). */
 export const PAYMENT_RETURN_PATH = `${FAMILY_BOOKINGS_PATH}/paiement`;
 
 /** Where « Retour » on Stripe's page sends her (`cancel_url`, D-92). */

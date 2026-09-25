@@ -13,8 +13,8 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- Berceo never takes money for the night (D-1); only the fee, 3 % all-in (D-2, D-87). No subscriptions, promo codes, gift cards (D-3).
-- The click never books; Stripe's report does (D-90). Every rule of `acceptAnswer` stays held in its transaction.
+- Berceo never takes money for the night (D-1); only the fee, 3 % all-in (D-2, D-99). No subscriptions, promo codes, gift cards (D-3).
+- The click never books; Stripe's report does (D-102). Every rule of `acceptAnswer` stays held in its transaction.
 - Keys and the webhook secret live in the environment only; load `.icm/skills/security-audit/` before the first push; `security-check.sh` before every commit.
 - One forward migration (`.icm/skills/database-migration/`), generated on the merged tree.
 - Every word in `src/content/`, to Surya's guide (D-19); red and green only in the confirmation dialogs (D-24).

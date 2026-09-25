@@ -26,7 +26,7 @@
  * night ends (D-89).
  *
  * The service fee (frais-de-service) is one `payments` row per Stripe
- * Checkout opened, linked to the booking its payment made (D-90, D-93).
+ * Checkout opened, linked to the booking its payment made (D-102, D-93).
  */
 import { sql } from "drizzle-orm";
 import {
@@ -634,7 +634,7 @@ export const messages = pgTable(
 // ---------------------------------------------------------------------------
 
 /**
- * A fee's life (D-90 to D-94): `en_attente` while its Checkout is open (read as
+ * A fee's life (D-102, D-103, D-92 to D-94): `en_attente` while its Checkout is open (read as
  * expired once `expires_at` passes, D-92); `payee` once Stripe reports it paid;
  * `expiree` when abandoned or expired; `echouee` when an asynchronous payment
  * failed; `remboursee` once refunded; `remboursement_echoue` when Stripe
@@ -651,7 +651,7 @@ export const paymentStatusEnum = pgEnum("payment_status", [
 
 /**
  * Why a fee was refunded (D-94): the professional cancelled (stub 11), the
- * booking could no longer be made (D-91), the founders' button (D-89), or a
+ * booking could no longer be made (D-103), the founders' button (D-101), or a
  * refund made in Stripe's dashboard.
  */
 export const refundReasonEnum = pgEnum("refund_reason", [
@@ -662,7 +662,7 @@ export const refundReasonEnum = pgEnum("refund_reason", [
 ]);
 
 /**
- * One row per Stripe Checkout opened for the 3 % fee (D-87, D-93). The fee is
+ * One row per Stripe Checkout opened for the 3 % fee (D-99, D-93). The fee is
  * a money record: every link is set null, never cascaded, so deleting an
  * account never deletes what was paid, and the night and the rate are kept
  * on the row. `src/lib/paiements/` reads and writes it; `acceptAnswer` alone
@@ -677,14 +677,14 @@ export const payments = pgTable(
       onDelete: "set null",
     }),
     familyUserId: uuid("family_user_id").references(() => users.id, { onDelete: "set null" }),
-    /** The booking this payment made, once made (D-90). */
+    /** The booking this payment made, once made (D-102). */
     bookingId: uuid("booking_id")
       .unique()
       .references(() => bookings.id, { onDelete: "set null" }),
     nightDate: date("night_date").notNull(),
     /** The answer's rate the fee was computed from (D-74). */
     nightRateEur: integer("night_rate_eur").notNull(),
-    /** 3 % of the rate, in cents: rate × 3 (D-87). */
+    /** 3 % of the rate, in cents: rate × 3 (D-99). */
     amountCents: integer("amount_cents").notNull(),
     currency: text("currency").notNull().default("eur"),
     status: paymentStatusEnum("status").notNull().default("en_attente"),

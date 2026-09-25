@@ -3,7 +3,7 @@ import "server-only";
 import Stripe from "stripe";
 
 /**
- * The one Stripe client, on the server only (D-88). It is created on first
+ * The one Stripe client, on the server only (D-100). It is created on first
  * use, so importing this module (the build collecting server actions) never
  * needs the key; a call without `STRIPE_SECRET_KEY` throws, and the family
  * reads the generic « page de paiement » error. The API version is pinned to

@@ -165,7 +165,7 @@ export async function cancelRequestAction(id: string): Promise<void> {
 
 /**
  * « Accepter et réserver », confirmed in the summary: opens the fee's Stripe
- * Checkout and sends her there (D-90). Nothing is booked here: the payment
+ * Checkout and sends her there (D-102). Nothing is booked here: the payment
  * books when Stripe reports it, through the webhook or the return page. A
  * refusal reads today's message; an earlier Checkout found paid is confirmed
  * instead of opening a second one.

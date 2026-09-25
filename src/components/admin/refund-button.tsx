@@ -11,7 +11,7 @@ import { fill, words } from "@/content/locale"
 import { ReasonDialog } from "./decision-panel"
 
 /*
- * « Rembourser les frais » on a paid fee (D-89): a confirmation dialog that
+ * « Rembourser les frais » on a paid fee (D-101): a confirmation dialog that
  * asks for the reason first (green to refund, red to leave it, D-24), then
  * the server refunds the whole fee and writes the journal line. The reason is
  * checked here and again on the server; the result is said under the button.
