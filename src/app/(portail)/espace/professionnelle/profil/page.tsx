@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { DocumentsForm } from "@/components/professionnelle/documents-form";
 import { ProfileForm } from "@/components/professionnelle/profile-form";
 import { ReopenDialog } from "@/components/professionnelle/reopen-dialog";
+import { ResendForm } from "@/components/professionnelle/resend-form";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { fill, words } from "@/content/locale";
 import { professionnelle } from "@/content/professionnelle";
@@ -35,7 +36,9 @@ const date = new Intl.DateTimeFormat("fr-BE", {
  * declarations she accepted, read only. While it waits she edits anything and
  * it keeps waiting. Once validated, rate, zone, spécialisations, experience,
  * bio and photo apply at once; a new profession or new documents go through
- * the reopening dialog first. A draft belongs in the onboarding.
+ * the reopening dialog first. Asked for a complément, she reads the reason at
+ * the top and sends the file back once completed. A draft belongs in the
+ * onboarding.
  */
 export default async function DossierPage() {
   const user = await requireAccess(`${SPACES.professionnel}/profil`);
@@ -59,6 +62,7 @@ export default async function DossierPage() {
 
   return (
     <SpaceShell user={user} title={t.meta.dossier}>
+      {profile.status === "complement_demande" ? <ResendForm reason={profile.reviewReason} /> : null}
       <ReopenDialog />
 
       <h2 className="font-display text-h2 text-sauge">{t.etapes.titres.profil}</h2>

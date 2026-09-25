@@ -3,6 +3,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 
 import { appSettings, db } from "@/db";
+import { journalInsert, type Person } from "@/lib/admin/journal";
 
 /**
  * The founders' switches, stored in `app_settings`. No row means off.
@@ -21,16 +22,31 @@ export async function studentsAdmitted(): Promise<boolean> {
   return row?.value === true;
 }
 
-/** Records the switch, who flipped it and when. The caller has checked the role. */
-export async function setStudentsAdmitted(value: boolean, byUserId: string): Promise<void> {
+/** The journal's detail for the switch's new value (`admin.journal.details`). */
+export const STUDENTS_DETAIL = { true: "admises", false: "non_admises" } as const;
+
+/**
+ * Records the switch, who flipped it and when, and its journal entry in the
+ * same transaction (Neon runs a batch as one). The caller has checked the role.
+ */
+export async function setStudentsAdmitted(value: boolean, by: Person): Promise<void> {
   const now = new Date();
-  await db
-    .insert(appSettings)
-    .values({ key: STUDENTS_ADMITTED, value, updatedAt: now, updatedBy: byUserId })
-    .onConflictDoUpdate({
-      target: appSettings.key,
-      set: { value, updatedAt: now, updatedBy: byUserId },
-    });
+  await db.batch([
+    db
+      .insert(appSettings)
+      .values({ key: STUDENTS_ADMITTED, value, updatedAt: now, updatedBy: by.id })
+      .onConflictDoUpdate({
+        target: appSettings.key,
+        set: { value, updatedAt: now, updatedBy: by.id },
+      }),
+    journalInsert({
+      action: "reglage_etudiantes",
+      subject: null,
+      admin: by,
+      detail: STUDENTS_DETAIL[`${value}`],
+      at: now,
+    }),
+  ]);
 }
 
 /** When the switch last moved and who moved it, for the admin page. */

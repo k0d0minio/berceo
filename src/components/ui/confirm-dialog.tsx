@@ -25,6 +25,11 @@ import { cn } from "@/lib/utils"
  * Focus is trapped in the dialog, Escape closes it, and focus goes back to the
  * trigger (Radix alert dialog). Focus starts on the `cancel` answer, the one
  * that changes nothing.
+ *
+ * `children` sits between the description and the answers, for a field the
+ * answer needs (the founders' reason). An `onSelect` that calls
+ * `event.preventDefault()` keeps the dialog open, e.g. while that field is
+ * refused.
  */
 
 type Tone = "sensible" | "confirmation"
@@ -43,7 +48,7 @@ const answerClasses =
 type Answer = {
   label: string
   tone: Tone
-  onSelect?: () => void
+  onSelect?: (event: React.MouseEvent<HTMLButtonElement>) => void
 }
 
 function ConfirmDialog({
@@ -54,6 +59,7 @@ function ConfirmDialog({
   cancel,
   open,
   onOpenChange,
+  children,
 }: {
   /** The element that opens the dialog; rendered as the trigger itself. */
   trigger?: React.ReactElement
@@ -65,6 +71,7 @@ function ConfirmDialog({
   cancel: Answer
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  children?: React.ReactNode
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -72,6 +79,7 @@ function ConfirmDialog({
       <AlertDialogContent>
         <AlertDialogTitle>{title}</AlertDialogTitle>
         <AlertDialogDescription>{description}</AlertDialogDescription>
+        {children}
         <AlertDialogFooter>
           <AlertDialogAction
             className={cn(answerClasses, toneClasses[action.tone])}

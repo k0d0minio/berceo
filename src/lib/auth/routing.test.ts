@@ -34,6 +34,16 @@ describe("each role lands on its own space (spec)", () => {
     expect(accessFor(null, "/admin")).toEqual({ kind: "not-found" });
   });
 
+  it("answers 404 on the verification queue, a file and the journal to anyone but an admin", () => {
+    const file = "/admin/dossiers/3f0c9a52-6f2e-4a8b-9d7e-1c2b3a4d5e6f";
+    for (const path of ["/admin", file, "/admin/journal"]) {
+      for (const role of ["parent", "professionnel", null] as const) {
+        expect(accessFor(role, path)).toEqual({ kind: "not-found" });
+      }
+      expect(accessFor("admin", path)).toEqual({ kind: "allow" });
+    }
+  });
+
   it("sends a signed-out visitor on a space to sign-in, with the way back", () => {
     expect(accessFor(null, "/espace/famille")).toEqual({
       kind: "redirect",
