@@ -198,7 +198,7 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
 - **E-mails (D-61):** an urgent request e-mails every validated professional serving its commune
   right after publication (`after()`, `notifyUrgentRequest`). Normal requests go out in one
   digest a day: `POST /api/cron/demandes-digest`, bearer `CRON_SECRET`, sends from 18:00 in
-  Brussels only and puts each request in one digest at most. **Scheduling (D-62):**
+  Brussels only, once a day at most, and puts each request in one digest at most. **Scheduling (D-62):**
   `.github/workflows/demandes-digest.yml` calls the route on UAT and production at 16:00 and
   17:00 UTC (and on demand), with the repository secret `CRON_SECRET`; Vercel Cron is not
   used because it never runs on the `uat` environment. One value serves both environments

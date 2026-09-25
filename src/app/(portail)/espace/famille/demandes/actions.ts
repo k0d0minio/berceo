@@ -103,7 +103,13 @@ export async function updateRequestAction(
   if (!isChangeable(existing, now)) return { message: "nonModifiable", values: input };
 
   // The urgency is the stored one: an edit never turns one kind into the other.
-  const checked = validateRequest(input, { urgent: existing.urgent, now, publishing: false });
+  // The stored night may stay as it is; a new one must be in today's window.
+  const checked = validateRequest(input, {
+    urgent: existing.urgent,
+    now,
+    publishing: false,
+    storedDate: existing.nightDate,
+  });
   if (!checked.ok) return { errors: checked.errors, values: input };
 
   let result: Awaited<ReturnType<typeof updateRequest>>;

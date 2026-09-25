@@ -68,18 +68,26 @@ export function readRequestForm(form: FormData): RequestInput {
 }
 
 /**
- * Checks a request of kind `urgent` at `now`. `publishing` asks for the
+ * Checks a request of kind `urgent` at `now`. `storedDate`, on an edit, is
+ * the night already saved: kept as it is, it is not held to today's window
+ * (a normal request edited the day before its night keeps its night); a new
+ * date is. `publishing` asks for the
  * checkbox; an edit does not show it again, the tick stored at publication
  * stands.
  */
 export function validateRequest(
   input: RequestInput,
-  { urgent, now, publishing }: { urgent: boolean; now: Date; publishing: boolean },
+  {
+    urgent,
+    now,
+    publishing,
+    storedDate,
+  }: { urgent: boolean; now: Date; publishing: boolean; storedDate?: string },
 ): Checked {
   const errors: RequestErrors = {};
 
   if (!input.date) errors.date = "requis";
-  else if (!isDateInWindow(urgent, input.date, now)) errors.date = "date";
+  else if (input.date !== storedDate && !isDateInWindow(urgent, input.date, now)) errors.date = "date";
 
   if (!input.heure) errors.heure = "requis";
   else if (!isStartTime(input.heure)) errors.heure = "heure";

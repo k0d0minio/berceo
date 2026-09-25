@@ -14,6 +14,7 @@ import { childrenLine, formatDate, nightLine } from "./format";
 import { PROFESSIONAL_REQUESTS_PATH } from "./paths";
 import {
   claimDigestRequests,
+  digestSentOn,
   professionalsServing,
   requestForNotice,
   type Recipient,
@@ -82,12 +83,14 @@ function dedupe(recipients: Recipient[]): Recipient[] {
 }
 
 export type DigestOutcome =
-  | { skipped: "avant-18h" }
+  | { skipped: "avant-18h" | "deja-envoye" }
   | { requests: number; professionals: number; failed: number };
 
 /**
- * The daily digest. Before 18:00 in Brussels it does nothing, so it can be
- * called at 16:00 and 17:00 UTC and leave once at 18:00, summer and winter.
+ * The daily digest. Before 18:00 in Brussels it does nothing, and once a
+ * digest has left today it does nothing more, so it can be called at 16:00 and
+ * 17:00 UTC (18:00 and 19:00 in summer, 17:00 and 18:00 in winter) and leave
+ * once a day. A request published after it waits for tomorrow's.
  * It claims every normal request no digest has carried (a request is in one
  * digest at most, even when no professional serves its commune), then sends
  * each validated professional one e-mail with her requests. A professional
@@ -95,6 +98,8 @@ export type DigestOutcome =
  */
 export async function sendRequestDigest(now: Date, siteUrl: string): Promise<DigestOutcome> {
   if (!isDigestTime(now)) return { skipped: "avant-18h" };
+  const day = brusselsNow(now).date;
+  if (await digestSentOn(day)) return { skipped: "deja-envoye" };
 
   const claimed = await claimDigestRequests(now);
   if (claimed.length === 0) return { requests: 0, professionals: 0, failed: 0 };
@@ -108,14 +113,13 @@ export async function sendRequestDigest(now: Date, siteUrl: string): Promise<Dig
     byProfessional.set(r.profileId, entry);
   }
 
-  const day = brusselsNow(now).date;
   const url = `${siteUrl}${PROFESSIONAL_REQUESTS_PATH}`;
   const sends = [...byProfessional.values()].map(({ recipient, communes }) => {
     const hers = claimed
       .filter((r) => communes.has(r.communeIns))
       .sort((a, b) => `${a.nightDate}T${a.startTime}`.localeCompare(`${b.nightDate}T${b.startTime}`));
     // Per professional, per day and per set of requests: a retry of the same
-    // digest sends once, and a later digest the same day is a new e-mail.
+    // digest sends it once.
     const batch = createHash("sha256")
       .update(hers.map((r) => r.id).sort().join(","))
       .digest("hex")

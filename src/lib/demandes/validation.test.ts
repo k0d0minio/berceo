@@ -110,6 +110,29 @@ describe("publishing an urgent request", () => {
 });
 
 describe("editing a request", () => {
+  const edit = { urgent: false, now: NOON, publishing: false, storedDate: "2026-09-26" };
+
+  it("keeps its stored night even when that night is now inside the last two days", () => {
+    // Published for the 26th two days ago; edited on the 25th, only the age changes.
+    expect(validateRequest({ ...valid, date: "2026-09-26", ageValeur: "4" }, edit).ok).toBe(true);
+  });
+
+  it("holds a new night to today's window", () => {
+    expect(validateRequest({ ...valid, date: "2026-09-25" }, edit)).toEqual({
+      ok: false,
+      errors: { date: "date" },
+    });
+    expect(validateRequest({ ...valid, date: "2026-09-27" }, edit).ok).toBe(true);
+  });
+
+  it("still refuses the stored night once its start has passed", () => {
+    const evening = { ...edit, now: new Date("2026-09-26T19:10:00Z"), storedDate: "2026-09-26" };
+    expect(validateRequest({ ...valid, date: "2026-09-26", heure: "21:00" }, evening)).toEqual({
+      ok: false,
+      errors: { heure: "heurePassee" },
+    });
+  });
+
   it("does not ask for the checkbox again", () => {
     const checked = validateRequest(
       { ...valid, confirmation: false },

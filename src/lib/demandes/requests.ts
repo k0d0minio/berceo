@@ -258,6 +258,20 @@ export async function requestForNotice(
 }
 
 /**
+ * Whether a digest already left on `day` (`YYYY-MM-DD`, Brussels): the day's
+ * requests it carried hold that day in `digest_sent_at`. One digest a day at
+ * most, whatever calls the route later that evening (D-61).
+ */
+export async function digestSentOn(day: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: careRequests.id })
+    .from(careRequests)
+    .where(sql`(${careRequests.digestSentAt} AT TIME ZONE ${TIME_ZONE})::date = ${day}::date`)
+    .limit(1);
+  return Boolean(row);
+}
+
+/**
  * Claims every normal request no digest has carried yet, open and ahead:
  * marks it and returns it. One UPDATE, so two calls racing never claim the
  * same request twice.

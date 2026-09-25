@@ -11,14 +11,15 @@ import type { Recipient, RequestCard } from "./requests";
  * never throws. The database and Resend are mocked at their boundaries.
  */
 
-const { claimDigestRequests, professionalsServing, requestForNotice, sendEmail } = vi.hoisted(() => ({
+const { claimDigestRequests, digestSentOn, professionalsServing, requestForNotice, sendEmail } = vi.hoisted(() => ({
   claimDigestRequests: vi.fn<() => Promise<RequestCard[]>>(),
+  digestSentOn: vi.fn<(day: string) => Promise<boolean>>(),
   professionalsServing: vi.fn<(communes: string[]) => Promise<Recipient[]>>(),
   requestForNotice: vi.fn(),
   sendEmail: vi.fn<(to: string, email: { subject: string; text: string }, key?: string) => Promise<void>>(),
 }));
 
-vi.mock("./requests", () => ({ claimDigestRequests, professionalsServing, requestForNotice }));
+vi.mock("./requests", () => ({ claimDigestRequests, digestSentOn, professionalsServing, requestForNotice }));
 vi.mock("@/lib/email/send", () => ({ sendEmail }));
 
 const SITE = "https://uat.berceo.be";
@@ -49,11 +50,21 @@ const emma: Recipient = { profileId: "p-emma", email: "emma@example.be", firstNa
 beforeEach(() => {
   vi.clearAllMocks();
   sendEmail.mockResolvedValue(undefined);
+  digestSentOn.mockResolvedValue(false);
 });
 
 describe("the daily digest", () => {
   it("does nothing before 18:00 in Brussels", async () => {
     expect(await sendRequestDigest(BEFORE_SIX, SITE)).toEqual({ skipped: "avant-18h" });
+    expect(claimDigestRequests).not.toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("sends nothing more once today's digest has left (a second evening call in summer)", async () => {
+    digestSentOn.mockResolvedValue(true);
+    // 19:05 in Brussels, summer time: the 17:00 UTC call.
+    expect(await sendRequestDigest(new Date("2026-07-15T17:05:00Z"), SITE)).toEqual({ skipped: "deja-envoye" });
+    expect(digestSentOn).toHaveBeenCalledWith("2026-07-15");
     expect(claimDigestRequests).not.toHaveBeenCalled();
     expect(sendEmail).not.toHaveBeenCalled();
   });
