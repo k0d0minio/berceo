@@ -41,14 +41,17 @@ export type RequestState = {
   values?: RequestInput;
 };
 
-/** This deployment's own address, so the e-mails of a UAT request point at UAT. */
+/**
+ * This deployment's own address, so the e-mails of a UAT request point at UAT.
+ * Read from the host the request reached (set by Vercel's proxy), never from
+ * the client's `Origin`, whose scheme and path a caller chooses: these links
+ * go to other people.
+ */
 async function siteOrigin(): Promise<string> {
   const h = await headers();
-  const origin = h.get("origin");
-  if (origin) return origin;
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
-  const proto = h.get("x-forwarded-proto") ?? "https";
-  return `${proto}://${host}`;
+  const proto = h.get("x-forwarded-proto") === "http" ? "http" : "https";
+  return new URL(`${proto}://${host}`).origin;
 }
 
 export async function publishRequestAction(
