@@ -92,6 +92,36 @@ describe("each role lands on its own space (spec)", () => {
     });
   });
 
+  // Spec (candidature-et-reservation): the family's bookings, a professional's
+  // full profile and the priority page are a parent's; the gardes a professional's.
+  it.each([
+    "/espace/famille/reservations",
+    "/espace/famille/reservations/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10",
+    "/espace/famille/professionnelles/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10",
+    "/espace/famille/professionnelles/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10/priorite",
+  ])("opens the family's bookings and the professionals' profiles to a parent only: %s", (path) => {
+    expect(accessFor("parent", path)).toEqual({ kind: "allow" });
+    expect(accessFor("professionnel", path)).toEqual({ kind: "redirect", to: "/espace/professionnelle" });
+    expect(accessFor("admin", path)).toEqual({ kind: "redirect", to: "/admin" });
+    expect(accessFor(null, path)).toEqual({
+      kind: "redirect",
+      to: `/connexion?retour=${encodeURIComponent(path)}`,
+    });
+  });
+
+  it.each([
+    "/espace/professionnelle/gardes",
+    "/espace/professionnelle/gardes/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10",
+  ])("opens a professional's gardes to a professional only: %s", (path) => {
+    expect(accessFor("professionnel", path)).toEqual({ kind: "allow" });
+    expect(accessFor("parent", path)).toEqual({ kind: "redirect", to: "/espace/famille" });
+    expect(accessFor("admin", path)).toEqual({ kind: "redirect", to: "/admin" });
+    expect(accessFor(null, path)).toEqual({
+      kind: "redirect",
+      to: `/connexion?retour=${encodeURIComponent(path)}`,
+    });
+  });
+
   it("does not mistake a lookalike path for a space", () => {
     expect(accessFor("admin", "/administration")).toEqual({
       kind: "redirect",

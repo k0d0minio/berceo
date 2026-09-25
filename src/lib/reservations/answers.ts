@@ -220,10 +220,14 @@ export async function waitingAnswerOf(
   userId: string,
   requestId: string,
   profileId: string,
-): Promise<{ applicationId: string; status: ApplicationStatus } | null> {
+): Promise<{ applicationId: string; status: ApplicationStatus; nightRateEur: number } | null> {
   if (!UUID.test(requestId) || !UUID.test(profileId)) return null;
   const [row] = await db
-    .select({ applicationId: careRequestApplications.id, status: careRequestApplications.status })
+    .select({
+      applicationId: careRequestApplications.id,
+      status: careRequestApplications.status,
+      nightRateEur: careRequestApplications.nightRateEur,
+    })
     .from(careRequestApplications)
     .innerJoin(careRequests, eq(careRequests.id, careRequestApplications.requestId))
     .innerJoin(professionalProfiles, eq(professionalProfiles.id, careRequestApplications.profileId))

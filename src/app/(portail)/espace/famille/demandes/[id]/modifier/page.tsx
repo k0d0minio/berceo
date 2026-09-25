@@ -9,7 +9,8 @@ import { requireAccess } from "@/lib/auth/guard";
 import { placeLine } from "@/lib/demandes/format";
 import { familyRequestPath } from "@/lib/demandes/paths";
 import { ownRequest } from "@/lib/demandes/requests";
-import { dateWindow, isChangeable, toHourMinute } from "@/lib/demandes/rules";
+import { dateWindow, isEditable, toHourMinute } from "@/lib/demandes/rules";
+import { pendingCounts } from "@/lib/reservations/answers";
 
 import { updateRequestAction } from "../../actions";
 
@@ -25,7 +26,7 @@ export const dynamic = "force-dynamic";
 /*
  * Editing an open request: the night (within its own kind's window, as of
  * today), the start time, the children and the age. The commune and the
- * urgency stay as published.
+ * urgency stay as published. An answer waiting on it locks it (D-76).
  */
 export default async function ModifierDemandePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -34,7 +35,8 @@ export default async function ModifierDemandePage({ params }: { params: Promise<
   if (!request) notFound();
 
   const now = new Date();
-  if (!isChangeable(request, now)) redirect(`${familyRequestPath(request.id)}?erreur=nonModifiable`);
+  const pending = (await pendingCounts(user.id)).get(request.id) ?? 0;
+  if (!isEditable(request, pending, now)) redirect(`${familyRequestPath(request.id)}?erreur=nonModifiable`);
 
   return (
     <SpaceShell user={user} title={t.formulaire.titreModification}>

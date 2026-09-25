@@ -14,7 +14,9 @@ import {
   familyRequestPath,
 } from "@/lib/demandes/paths";
 import { familyRequests } from "@/lib/demandes/requests";
-import { displayStatus } from "@/lib/demandes/rules";
+import { displayStatus, isChangeable } from "@/lib/demandes/rules";
+import { pendingCounts } from "@/lib/reservations/answers";
+import { answersCount } from "@/lib/reservations/format";
 
 const t = words(demandes);
 
@@ -25,11 +27,15 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-/* « Mes demandes »: the ones she can still change first, by night, then the cancelled and past ones. */
+/*
+ * « Mes demandes »: the ones she can still change first, by night, then the
+ * booked, cancelled and past ones. An open request shows how many answers wait
+ * on it (« 2 réponses »).
+ */
 export default async function MesDemandesPage() {
   const user = await requireAccess(FAMILY_REQUESTS_PATH);
   const now = new Date();
-  const requests = await familyRequests(user.id, now);
+  const [requests, counts] = await Promise.all([familyRequests(user.id, now), pendingCounts(user.id)]);
 
   return (
     <SpaceShell user={user} title={t.famille.titre}>
@@ -52,6 +58,11 @@ export default async function MesDemandesPage() {
                 request={request}
                 status={displayStatus(request, now)}
                 href={familyRequestPath(request.id)}
+                note={
+                  isChangeable(request, now) && counts.get(request.id)
+                    ? answersCount(counts.get(request.id) ?? 0)
+                    : undefined
+                }
               />
             </li>
           ))}
