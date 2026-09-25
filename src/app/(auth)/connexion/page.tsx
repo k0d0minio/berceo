@@ -52,13 +52,13 @@ export default async function ConnexionPage({ searchParams }: PageProps<"/connex
     <AuthPage title={t.connexion.title}>
       <div className="flex flex-col gap-8">
         <SignInForm action={signIn.bind(null, retour)} notice={notice} />
-        <p className="text-corps text-taupe">
+        <p className="text-corps text-encre-taupe">
           {t.connexion.pasDeCompte}{" "}
-          <Link href={pages.inscriptionFamille.href} className="text-sauge underline">
+          <Link href={pages.inscriptionFamille.href} className="text-encre-sauge underline">
             {pages.inscriptionFamille.label}
           </Link>
           {" · "}
-          <Link href={pages.inscriptionProfessionnelle.href} className="text-sauge underline">
+          <Link href={pages.inscriptionProfessionnelle.href} className="text-encre-sauge underline">
             {pages.inscriptionProfessionnelle.label}
           </Link>
         </p>

@@ -6,9 +6,13 @@
  * Berceo — Surya's web art direction (DA), as tokens.
  *
  * This file is the only place a colour value is written. Components name the
- * DA's colours (`bg-sauge`, `border-taupe`…) or the shadcn contract below;
- * they never carry a hex. The values are the DA's own, applied literally,
- * text and button colours included (operator decision, spec socle-design-system).
+ * DA's colours (`bg-sauge`, `border-perle`…), the two inks, or the shadcn
+ * contract below; they never carry a hex. The five DA values are the DA's
+ * own. They stay surfaces, borders and accents: none of them carries text
+ * legibly, so text, filled controls and control outlines use the two inks,
+ * sage and taupe darkened on their own hue (finition-accueil D-1, D-2, which
+ * override socle D-9's literal text colours). src/app/contrast.test.ts holds
+ * every text and surface pair to WCAG AA.
  *
  * Tailwind's default palette is switched off so an off-brand `bg-red-500`
  * cannot creep in: the only colours that exist are the ones declared here.
@@ -25,6 +29,10 @@
   --color-taupe: var(--taupe); /* couleur de soutien, surface éditoriale, 15 % */
   --color-perle: var(--perle); /* fond discret, 5 % */
   --color-beurre: var(--beurre); /* couleur d'accent, survol, 5 % */
+
+  /* --- the two inks: text, filled controls, outlines, the focus ring --- */
+  --color-encre-sauge: var(--encre-sauge);
+  --color-encre-taupe: var(--encre-taupe);
 
   /*
    * Confirmation colours (D-24). Referenced by one component only:
@@ -105,29 +113,49 @@
   --taupe: #bab9ad;
   --perle: #e0ded8;
   --beurre: #fef5b5;
-  --rouge-confirmation: #ed5957;
+
+  /*
+   * The inks (finition-accueil D-1). @relecture Surya: the values are fixed by
+   * the contrast test. The sage ink reaches 7.81:1 on white, 5.80 on pearl
+   * and 3.25 on sage (the sage band's heading and focus ring); the taupe ink
+   * 6.15:1 on white and 4.57 on pearl. White on either passes 4.5:1.
+   */
+  --encre-sauge: #3c584b;
+  --encre-taupe: #646254;
+  /*
+   * @relecture Surya: the DA's #ed5957 darkened on its own hue so white
+   * reaches 5.80:1 on it (finition-accueil D-11); the green is unchanged and
+   * carries the sage ink (4.88:1).
+   */
+  --rouge-confirmation: #bc312f;
   --vert-confirmation: #b6d3c6;
 
   /* --- the shadcn contract, on the DA --- */
   --background: var(--blanc);
-  --foreground: var(--taupe);
+  --foreground: var(--encre-taupe);
   --card: var(--blanc);
-  --card-foreground: var(--taupe);
+  --card-foreground: var(--encre-taupe);
   --popover: var(--blanc);
-  --popover-foreground: var(--taupe);
-  --primary: var(--sauge);
+  --popover-foreground: var(--encre-taupe);
+  --primary: var(--encre-sauge);
   --primary-foreground: var(--blanc);
   --secondary: var(--perle);
-  --secondary-foreground: var(--taupe);
+  --secondary-foreground: var(--encre-taupe);
   --muted: var(--perle);
-  --muted-foreground: var(--taupe);
+  --muted-foreground: var(--encre-taupe);
   --accent: var(--beurre);
-  --accent-foreground: var(--taupe);
+  --accent-foreground: var(--encre-taupe);
   /* The DA has no error colour, and red is the dialogs' alone (D-24). */
-  --destructive: var(--taupe);
+  --destructive: var(--encre-taupe);
+  /* Decoration only: separators and card edges, never a control's boundary. */
   --border: var(--perle);
-  --input: var(--taupe);
-  --ring: var(--sauge);
+  /* A field's border must reach 3:1 on white, so it is an ink. */
+  --input: var(--encre-taupe);
+  /*
+   * The focus ring. The ink surfaces (the footer, an ink card) set it to
+   * white locally with `[--ring:var(--blanc)]`, or it would vanish there.
+   */
+  --ring: var(--encre-sauge);
 
   /* --- the type scale, mobile first (the DA's "Mobile" column) --- */
   --taille-h1: 2.5rem; /* 40 px */
@@ -157,7 +185,7 @@
 
 /*
  * Motif rayé — white and taupe, full width, continuous. Text never sits on it
- * directly: it goes in a solid block (see src/components/ui/striped-section.tsx).
+ * directly: it goes in a white block (see src/components/ui/striped-section.tsx).
  */
 @utility motif-raye {
   background-color: var(--blanc);
@@ -191,7 +219,7 @@
   }
   ::selection {
     background: var(--beurre);
-    color: var(--taupe);
+    color: var(--encre-taupe);
   }
   /* One focus treatment for the whole system: an outline, never a shadow. */
   :focus-visible {

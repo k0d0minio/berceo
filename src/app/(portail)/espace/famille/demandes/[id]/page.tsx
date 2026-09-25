@@ -113,7 +113,7 @@ export default async function DemandePage({
       {query.paiement === "enCours" ? (
         <Link
           href={familyRequestPath(request.id)}
-          className="w-fit text-corps font-semibold text-sauge underline underline-offset-4"
+          className="w-fit text-corps font-semibold text-encre-sauge underline underline-offset-4"
         >
           {p.retour.actualiser}
         </Link>
@@ -132,14 +132,14 @@ export default async function DemandePage({
 
       {open ? (
         <section className="flex max-w-4xl flex-col gap-4">
-          <h2 className="font-display text-h2 text-sauge">{r.famille.reponsesTitre}</h2>
+          <h2 className="font-display text-h2 text-encre-sauge">{r.famille.reponsesTitre}</h2>
           {answers.length === 0 ? (
-            <p className="max-w-2xl text-corps text-taupe">{r.famille.aucuneReponse}</p>
+            <p className="max-w-2xl text-corps text-encre-taupe">{r.famille.aucuneReponse}</p>
           ) : (
             <>
               {!hasAddress ? (
                 <div className="flex max-w-2xl flex-col gap-3">
-                  <p className="text-corps text-taupe">{r.famille.adresseRequise}</p>
+                  <p className="text-corps text-encre-taupe">{r.famille.adresseRequise}</p>
                   <Button asChild variant="raye" className="w-fit">
                     <Link href={PROFILE_PATH}>{r.famille.completerAdresse}</Link>
                   </Button>
@@ -152,15 +152,15 @@ export default async function DemandePage({
                       <div className="flex items-center gap-4">
                         <ProfessionalPhoto photoId={answer.photoId} prenom={answer.firstName} className="size-16" />
                         <div className="flex flex-col gap-1">
-                          <h3 className="font-display text-h3 text-sauge uppercase">{answer.firstName}</h3>
-                          <p className="text-corps text-taupe">{professionLabel(answer.profession)}</p>
+                          <h3 className="font-display text-h3 text-encre-sauge uppercase">{answer.firstName}</h3>
+                          <p className="text-corps text-encre-taupe">{professionLabel(answer.profession)}</p>
                         </div>
                       </div>
-                      <p className="text-corps font-semibold text-sauge">{rateLine(answer.nightRateEur)}</p>
+                      <p className="text-corps font-semibold text-encre-sauge">{rateLine(answer.nightRateEur)}</p>
                       <div className="flex flex-wrap items-center gap-3">
                         <Link
                           href={professionalProfilePath(answer.profileId, request.id)}
-                          className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+                          className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
                         >
                           {r.famille.voirProfil}
                         </Link>
@@ -186,7 +186,7 @@ export default async function DemandePage({
         </section>
       ) : null}
 
-      {open && answers.length > 0 ? <p className="max-w-2xl text-corps text-taupe">{r.famille.verrou}</p> : null}
+      {open && answers.length > 0 ? <p className="max-w-2xl text-corps text-encre-taupe">{r.famille.verrou}</p> : null}
 
       <div className="flex flex-wrap gap-3">
         {isEditable(request, answers.length, now) ? (

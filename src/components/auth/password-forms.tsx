@@ -26,7 +26,7 @@ function ResetRequestForm({
     return (
       <div className="flex flex-col gap-6">
         <FormMessage>{t.motDePasseOublie.confirmation}</FormMessage>
-        <Link href="/connexion" className="self-start text-corps text-sauge underline">
+        <Link href="/connexion" className="self-start text-corps text-encre-sauge underline">
           {t.motDePasseOublie.retour}
         </Link>
       </div>
@@ -47,7 +47,7 @@ function ResetRequestForm({
       <Button type="submit" disabled={pending} className="self-start">
         {pending ? t.motDePasseOublie.enCours : t.motDePasseOublie.bouton}
       </Button>
-      <Link href="/connexion" className="self-start text-corps text-sauge underline">
+      <Link href="/connexion" className="self-start text-corps text-encre-sauge underline">
         {t.motDePasseOublie.retour}
       </Link>
     </form>
@@ -67,7 +67,7 @@ function NewPasswordForm({
     <form action={submit} noValidate className="flex flex-col gap-6">
       {state.message ? <FormMessage>{formMessage(state.message)}</FormMessage> : null}
       {state.message === "lienInvalide" ? (
-        <Link href="/mot-de-passe-oublie" className="self-start text-corps text-sauge underline">
+        <Link href="/mot-de-passe-oublie" className="self-start text-corps text-encre-sauge underline">
           {t.connexion.oublie}
         </Link>
       ) : null}

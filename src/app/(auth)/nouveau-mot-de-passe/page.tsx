@@ -30,7 +30,7 @@ export default async function NouveauMotDePassePage({
       ) : (
         <div className="flex flex-col gap-6">
           <FormMessage>{t.erreurs.lienInvalide}</FormMessage>
-          <Link href="/mot-de-passe-oublie" className="self-start text-corps text-sauge underline">
+          <Link href="/mot-de-passe-oublie" className="self-start text-corps text-encre-sauge underline">
             {t.connexion.oublie}
           </Link>
         </div>

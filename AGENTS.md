@@ -63,8 +63,9 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
   blank is the correct state until it does. The vitrine deliberately shows no contact
   for exactly this reason.
 - **The platform is light, per Surya's art direction (D-9).** White base, sage, taupe,
-  pearl, butter yellow, the stripes; Comodo (Fraunces until delivered) and Nunito; capsule
-  buttons, 32 px cards. No shadow, no gendered pink or blue, no naïve illustration, no gadget
+  pearl, butter yellow, the stripes; text in the two inks `encre-sauge` and `encre-taupe`,
+  never the light sage or taupe, held to AA by `src/app/contrast.test.ts` (finition-accueil
+  D-1); Comodo (Fraunces until delivered) and Nunito; capsule buttons, 32 px cards. No shadow, no gendered pink or blue, no naïve illustration, no gadget
   animation; red and green only in confirmation dialogs (D-24). There is no dark theme and no
   toggle — the old night holding page is gone.
 - **Every word follows Surya's guide (D-19).** Vouvoiement; no `!`, `…` or `—`; no insurance

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const link = "text-corps font-semibold text-sauge underline underline-offset-4";
+const link = "text-corps font-semibold text-encre-sauge underline underline-offset-4";
 
 /*
  * « Paiements des frais de service » (frais-de-service, D-93): every fee,
@@ -43,12 +43,12 @@ export default async function PaiementsPage({
         {a.paiements.retour}
       </Link>
       {rows.length === 0 ? (
-        <p className="text-corps text-taupe">{a.paiements.vide}</p>
+        <p className="text-corps text-encre-taupe">{a.paiements.vide}</p>
       ) : (
         <PaymentsTable rows={rows} now={new Date()} />
       )}
       {pages > 1 ? (
-        <nav className="flex flex-wrap items-center gap-6 text-corps text-taupe">
+        <nav className="flex flex-wrap items-center gap-6 text-corps text-encre-taupe">
           {page > 1 ? (
             <Link href={`${ADMIN_PAYMENTS_PATH}?page=${page - 1}`} className={link}>
               {a.paiements.precedente}

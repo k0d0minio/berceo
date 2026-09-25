@@ -57,19 +57,19 @@ export default async function AdminPage() {
 
   return (
     <SpaceShell user={user} title={t.espaces.admin.title}>
-      <h2 className="font-display text-h2 text-sauge">{a.file.titre}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{a.file.titre}</h2>
       <QueueTable rows={queue} studentsAdmitted={setting.value} />
-      <h2 className="font-display text-h2 text-sauge">{a.reglages.titre}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{a.reglages.titre}</h2>
       <StudentsSwitch value={setting.value} changed={changed} />
       <Link
         href={`${SPACES.admin}/journal`}
-        className="self-start text-corps font-semibold text-sauge underline underline-offset-4"
+        className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
       >
         {a.file.lienJournal}
       </Link>
       <Link
         href={ADMIN_PAYMENTS_PATH}
-        className="self-start text-corps font-semibold text-sauge underline underline-offset-4"
+        className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
       >
         {a.file.lienPaiements}
       </Link>

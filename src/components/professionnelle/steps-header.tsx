@@ -22,7 +22,7 @@ function StepsHeader({ current, done }: { current: Step; done: readonly Step[] }
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-legende font-semibold text-taupe">{fill(t.position, { n: String(index + 1) })}</p>
+      <p className="text-legende font-semibold text-encre-taupe">{fill(t.position, { n: String(index + 1) })}</p>
       <Progress
         value={(completed / ORDER.length) * 100}
         aria-label={t.progression}
@@ -38,13 +38,13 @@ function StepsHeader({ current, done }: { current: Step; done: readonly Step[] }
               aria-current={isCurrent ? "step" : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-carte border border-solid px-4 py-3 text-corps",
-                isCurrent ? "border-sauge bg-blanc text-sauge" : "border-perle bg-blanc text-taupe",
+                isCurrent ? "border-encre-sauge bg-blanc text-encre-sauge" : "border-perle bg-blanc text-encre-taupe",
               )}
             >
               <span
                 className={cn(
                   "flex size-8 shrink-0 items-center justify-center rounded-capsule border border-solid font-semibold",
-                  isDone ? "border-sauge bg-sauge text-blanc" : "border-current",
+                  isDone ? "border-encre-sauge bg-encre-sauge text-blanc" : "border-current",
                 )}
               >
                 {isDone && !isCurrent ? <Check aria-hidden className="size-4" /> : i + 1}

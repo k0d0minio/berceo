@@ -26,17 +26,17 @@ function DocumentView({
     <figure className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-4">
       {contentType === "application/pdf" ? (
         <object data={src} type="application/pdf" className="h-[36rem] w-full rounded-carte bg-perle">
-          <p className="p-4 text-corps text-taupe">{t.pdfIndisponible}</p>
+          <p className="p-4 text-corps text-encre-taupe">{t.pdfIndisponible}</p>
         </object>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element -- a private file streamed per request, never optimised or cached
         <img src={src} alt={`${label} : ${fileName}`} className="max-h-[36rem] w-full rounded-carte object-contain" />
       )}
-      <figcaption className="flex flex-wrap items-center justify-between gap-2 text-legende text-taupe">
+      <figcaption className="flex flex-wrap items-center justify-between gap-2 text-legende text-encre-taupe">
         <span className="break-all">
           {label} : {fileName}
         </span>
-        <a href={src} target="_blank" rel="noopener noreferrer" className="font-semibold text-sauge underline underline-offset-4">
+        <a href={src} target="_blank" rel="noopener noreferrer" className="font-semibold text-encre-sauge underline underline-offset-4">
           {t.ouvrir}
         </a>
       </figcaption>

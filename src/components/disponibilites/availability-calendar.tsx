@@ -59,13 +59,13 @@ function AvailabilityCalendar({
 
   return (
     <form action={submit} aria-busy={pending} className="flex max-w-md flex-col gap-6">
-      <p className="text-corps text-taupe">{p.legende}</p>
+      <p className="text-corps text-encre-taupe">{p.legende}</p>
 
       <div role="group" aria-label={p.calendrier} className="flex flex-col gap-4">
         {months.map((month) => (
           <div key={month.month} className="flex flex-col gap-0.5">
-            <p className="pb-1 font-display text-h3 text-sauge">{monthHeading(month.month)}</p>
-            <div aria-hidden="true" className="grid grid-cols-7 gap-0.5 pb-1 text-center text-legende text-taupe">
+            <p className="pb-1 font-display text-h3 text-encre-sauge">{monthHeading(month.month)}</p>
+            <div aria-hidden="true" className="grid grid-cols-7 gap-0.5 pb-1 text-center text-legende text-encre-taupe">
               {t.nuits.joursCourts.map((day) => (
                 <span key={day}>{day}</span>
               ))}
@@ -87,8 +87,10 @@ function AvailabilityCalendar({
                       onClick={() => toggle(day.date)}
                       className={cn(
                         "flex min-h-11 min-w-0 items-center justify-center rounded-md text-corps font-semibold transition-colors duration-200 ease-out",
-                        isMarked ? "bg-sauge text-blanc" : "bg-perle text-taupe",
-                        isSelected && "outline-[3px] outline-offset-[-3px] outline-solid outline-taupe",
+                        isMarked ? "bg-encre-sauge text-blanc" : "bg-perle text-encre-taupe",
+                        isSelected && "outline-[3px] outline-offset-[-3px] outline-solid",
+                        // The inset outline sits on the cell's own fill: butter on the ink, ink on butter.
+                        isSelected && (isMarked ? "outline-beurre" : "outline-encre-taupe"),
                         isSelected && !isMarked && "bg-beurre"
                       )}
                     >

@@ -34,10 +34,10 @@ const t = words(demandes)
 
 // The DA's field construction for a native select: same capsule as the input.
 const selectClasses =
-  "flex min-h-12 w-full min-w-0 appearance-none rounded-capsule border border-solid border-input bg-blanc px-6 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge focus-visible:outline-none aria-invalid:border-destructive"
-const legend = "text-corps font-semibold text-taupe"
-const helpText = "px-6 text-legende text-taupe"
-const errorClasses = "px-6 text-legende font-semibold text-taupe"
+  "flex min-h-12 w-full min-w-0 appearance-none rounded-capsule border border-solid border-input bg-blanc px-6 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge focus-visible:outline-none aria-invalid:border-destructive"
+const legend = "text-corps font-semibold text-encre-taupe"
+const helpText = "px-6 text-legende text-encre-taupe"
+const errorClasses = "px-6 text-legende font-semibold text-encre-taupe"
 
 function RequestForm({
   action,
@@ -92,7 +92,7 @@ function RequestForm({
       {priority ? (
         <>
           <input type="hidden" name="priorite" value={priority.profileId} />
-          <p className="text-corps font-semibold text-taupe">{priority.note}</p>
+          <p className="text-corps font-semibold text-encre-taupe">{priority.note}</p>
         </>
       ) : null}
 
@@ -152,7 +152,7 @@ function RequestForm({
         <legend className={cn(legend, "mb-3")}>{t.formulaire.champs.enfants}</legend>
         <div key={`enfants-${v?.enfants ?? ""}`} className="flex flex-wrap gap-6 px-2">
           {CHILDREN.map((key) => (
-            <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-taupe">
+            <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-encre-taupe">
               <input
                 type="radio"
                 name="enfants"
@@ -235,7 +235,7 @@ function RequestForm({
         ) : (
           <Link
             href={PROFILE_PATH}
-            className="w-fit rounded-md px-6 text-legende font-semibold text-sauge underline underline-offset-4"
+            className="w-fit rounded-md px-6 text-legende font-semibold text-encre-sauge underline underline-offset-4"
           >
             {t.formulaire.aides.lienProfil}
           </Link>
@@ -244,7 +244,7 @@ function RequestForm({
 
       {mode === "modification" ? null : (
         <div className="flex flex-col gap-2">
-          <label className="flex items-start gap-3 text-corps text-taupe">
+          <label className="flex items-start gap-3 text-corps text-encre-taupe">
             <input
               type="checkbox"
               name="confirmation"

@@ -22,9 +22,9 @@ function ResendForm({ reason }: { reason: string | null }) {
       action={submit}
       className="flex flex-col gap-4 rounded-carte border border-solid border-perle bg-blanc p-8"
     >
-      <h2 className="font-display text-h3 text-sauge">{t.renvoi.titre}</h2>
-      {reason ? <p className="max-w-2xl text-corps text-taupe">{fill(t.messages.motif, { motif: reason })}</p> : null}
-      <p className="max-w-2xl text-corps text-taupe">{t.renvoi.aide}</p>
+      <h2 className="font-display text-h3 text-encre-sauge">{t.renvoi.titre}</h2>
+      {reason ? <p className="max-w-2xl text-corps text-encre-taupe">{fill(t.messages.motif, { motif: reason })}</p> : null}
+      <p className="max-w-2xl text-corps text-encre-taupe">{t.renvoi.aide}</p>
       {state.message ? (
         <FormMessage>{state.message === "incomplet" ? t.renvoi.incomplet : t.erreurs.generique}</FormMessage>
       ) : null}

@@ -23,7 +23,7 @@ function PaymentsTable({ rows, now }: { rows: AdminPayment[]; now: Date }) {
 
   return (
     <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
-      <Table className="text-corps text-taupe">
+      <Table className="text-corps text-encre-taupe">
         <TableHeader>
           <TableRow>
             <TableHead>{p.colonnes.date}</TableHead>

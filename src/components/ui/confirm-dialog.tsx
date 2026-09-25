@@ -38,7 +38,7 @@ const toneClasses: Record<Tone, string> = {
   sensible:
     "border-rouge-confirmation bg-rouge-confirmation text-blanc hover:border-rouge-confirmation hover:bg-rouge-confirmation",
   confirmation:
-    "border-vert-confirmation bg-vert-confirmation text-taupe hover:border-vert-confirmation hover:bg-vert-confirmation",
+    "border-vert-confirmation bg-vert-confirmation text-encre-sauge hover:border-vert-confirmation hover:bg-vert-confirmation",
 }
 
 /* The DA's button construction, with the confirmation fill instead of a background variant. */

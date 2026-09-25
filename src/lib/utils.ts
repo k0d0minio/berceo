@@ -3,7 +3,7 @@ import { extendTailwindMerge } from "tailwind-merge"
 
 /*
  * tailwind-merge has to be told about the DA's type scale: without it,
- * `text-bouton` reads as a colour and `cn("text-bouton", "text-sauge")`
+ * `text-bouton` reads as a colour and `cn("text-bouton", "text-encre-sauge")`
  * silently drops the size.
  */
 const twMerge = extendTailwindMerge({

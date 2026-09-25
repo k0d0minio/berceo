@@ -49,7 +49,7 @@ function RefundButton({ paymentId, family, amount }: { paymentId: string; family
         labels={p.confirmation}
       />
       {message ? (
-        <p role="status" className="max-w-xs text-legende text-taupe">
+        <p role="status" className="max-w-xs text-legende text-encre-taupe">
           {message}
         </p>
       ) : null}
