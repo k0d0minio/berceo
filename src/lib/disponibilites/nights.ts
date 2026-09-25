@@ -3,6 +3,7 @@ import "server-only";
 import { and, asc, eq, gte, inArray, lte } from "drizzle-orm";
 
 import { db, professionalAvailability, professionalProfiles, type ProfileStatus } from "@/db";
+import { deletedAtExactly } from "@/lib/auth/suspension";
 
 import { SHOWN_TO_FAMILIES, availabilityWindow, type NightWindow } from "./rules";
 
@@ -91,4 +92,25 @@ export async function nextAvailableNights(profileId: string, now: Date): Promise
     .orderBy(asc(professionalAvailability.nightDate))
     .limit(SHOWN_TO_FAMILIES);
   return rows.map((row) => row.nightDate);
+}
+
+/**
+ * A deletion's part here (back-office-admin, D-137): every night she marked
+ * goes, in the deletion's own batch and only if that batch deleted her at `at`.
+ */
+export function deletionForgetsAvailability(userId: string, at: Date) {
+  return db
+    .delete(professionalAvailability)
+    .where(
+      and(
+        inArray(
+          professionalAvailability.profileId,
+          db
+            .select({ id: professionalProfiles.id })
+            .from(professionalProfiles)
+            .where(eq(professionalProfiles.userId, userId)),
+        ),
+        deletedAtExactly(userId, at),
+      ),
+    );
 }

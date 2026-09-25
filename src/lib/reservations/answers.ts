@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, eq, exists, sql } from "drizzle-orm";
+import { and, asc, count, eq, exists, inArray, sql } from "drizzle-orm";
 
 import {
   careRequestApplications,
@@ -13,6 +13,7 @@ import {
   bookings,
   type Profession,
 } from "@/db";
+import { notSuspended, suspendedAtExactly } from "@/lib/auth/suspension";
 import { notesOfProfiles, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { nightAhead, professionalProfileOf, UUID } from "@/lib/demandes/requests";
 import { TIME_ZONE } from "@/lib/demandes/rules";
@@ -104,6 +105,7 @@ export async function answerRequest(userId: string, requestId: string, now: Date
     where r.id = ${requestId}
       and p.id = ${profile.id}
       and p.status = 'valide'
+      and not exists (select 1 from users su where su.id = p.user_id and su.suspended_at is not null)
       and p.night_rate_eur is not null
       and r.status = 'ouverte'
       and (r.night_date + r.start_time) > (now() at time zone ${TIME_ZONE})
@@ -161,6 +163,31 @@ export async function withdrawAnswer(userId: string, requestId: string, now: Dat
   return updated.length > 0;
 }
 
+/**
+ * A suspension's part here (back-office-admin, D-134): every answer of hers
+ * still waiting becomes `retiree`, as if she had withdrawn it, in the
+ * suspension's own batch and only if that batch suspended her at `at`.
+ */
+export function suspensionWithdrawsAnswers(userId: string, at: Date) {
+  return db
+    .update(careRequestApplications)
+    .set({ status: "retiree", updatedAt: at })
+    .where(
+      and(
+        eq(careRequestApplications.status, "en_attente"),
+        inArray(
+          careRequestApplications.profileId,
+          db
+            .select({ id: professionalProfiles.id })
+            .from(professionalProfiles)
+            .where(eq(professionalProfiles.userId, userId)),
+        ),
+        suspendedAtExactly(userId, at),
+      ),
+    )
+    .returning({ id: careRequestApplications.id });
+}
+
 /** An answer as the family compares it. */
 export type Applicant = {
   applicationId: string;
@@ -174,11 +201,12 @@ export type Applicant = {
   note: Note;
 };
 
-/** Only answers still waiting, of professionals still validated, on her own request. */
+/** Only answers still waiting, of professionals still validated and not suspended (D-134), on her own request. */
 function waitingOnHers(userId: string) {
   return and(
     eq(careRequestApplications.status, "en_attente"),
     eq(professionalProfiles.status, "valide"),
+    notSuspended(professionalProfiles.userId),
     eq(careRequests.familyUserId, userId),
   );
 }

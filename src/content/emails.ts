@@ -20,6 +20,12 @@ export const emails = catalogue({
       pied: "Vous recevez cet e-mail parce qu'un compte Berceo est associé à cette adresse.",
     },
 
+    /** Le message d'une fondatrice depuis le back-office (back-office-admin, D-138). */
+    contact: {
+      /** @relecture Surya — sous le message écrit par l'équipe, la réponse part à son adresse. */
+      repondre: "Pour nous répondre, répondez simplement à cet e-mail.",
+    },
+
     bienvenueFamille: {
       objet: "Bienvenue sur Berceo, {prenom} 🤍",
       corps:

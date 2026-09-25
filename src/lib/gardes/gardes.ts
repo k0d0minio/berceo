@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import {
@@ -264,63 +264,4 @@ export async function gardeNotice(bookingId: string): Promise<GardeNotice | null
 /** The fee of one of her gardes, for the fee line of her page. */
 export async function gardeFee(bookingId: string): Promise<BookingFee | null> {
   return (await bookingFees([bookingId])).get(bookingId) ?? null;
-}
-
-/** A reported absence, as the founders read it (D-106): both full names, who reported, the fee. */
-export type AbsenceRow = {
-  id: string;
-  nightDate: string;
-  startTime: string;
-  reportedAt: Date;
-  /** The side recorded absent; the other one reported it. */
-  absent: BookingSide;
-  family: string;
-  professional: string;
-  fee: BookingFee | null;
-};
-
-/** How many absences the list holds, for the admin home's link. */
-export async function absenceCount(): Promise<number> {
-  const [row] = await db.select({ n: count() }).from(bookings).where(eq(bookings.cancellationKind, "absence"));
-  return row?.n ?? 0;
-}
-
-/** Every reported absence, newest first (the list is read-only; the refund is on /admin/paiements). */
-export async function reportedAbsences(): Promise<AbsenceRow[]> {
-  const rows = await db
-    .select({
-      id: bookings.id,
-      nightDate: careRequests.nightDate,
-      startTime: careRequests.startTime,
-      reportedAt: bookings.cancelledAt,
-      absent: bookings.cancelledBy,
-      familyFirst: familyUser.firstName,
-      familyLast: familyUser.lastName,
-      professionalFirst: professionalUser.firstName,
-      professionalLast: professionalUser.lastName,
-    })
-    .from(bookings)
-    .innerJoin(careRequests, eq(careRequests.id, bookings.requestId))
-    .innerJoin(familyUser, eq(familyUser.id, bookings.familyUserId))
-    .innerJoin(professionalProfiles, eq(professionalProfiles.id, bookings.profileId))
-    .innerJoin(professionalUser, eq(professionalUser.id, professionalProfiles.userId))
-    .where(eq(bookings.cancellationKind, "absence"))
-    .orderBy(desc(bookings.cancelledAt));
-  const fees = await bookingFees(rows.map((row) => row.id));
-  return rows.flatMap((row) =>
-    row.reportedAt && row.absent
-      ? [
-          {
-            id: row.id,
-            nightDate: row.nightDate,
-            startTime: row.startTime,
-            reportedAt: row.reportedAt,
-            absent: row.absent,
-            family: `${row.familyFirst} ${row.familyLast}`.trim(),
-            professional: `${row.professionalFirst} ${row.professionalLast}`.trim(),
-            fee: fees.get(row.id) ?? null,
-          },
-        ]
-      : [],
-  );
 }

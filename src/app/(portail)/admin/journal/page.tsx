@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AdminShell } from "@/components/admin/admin-shell";
 import { JournalTable } from "@/components/admin/journal-table";
-import { SpaceShell } from "@/components/shell/space-shell";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { readJournal } from "@/lib/admin/journal";
 import { journalPage } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
-import { SPACES } from "@/lib/auth/routing";
+import { ADMIN_JOURNAL_PATH } from "@/lib/admin/paths";
 
 const a = words(admin);
 
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const JOURNAL = `${SPACES.admin}/journal`;
+const JOURNAL = ADMIN_JOURNAL_PATH;
 const link = "text-corps font-semibold text-encre-sauge underline underline-offset-4";
 
 /*
@@ -37,10 +37,7 @@ export default async function JournalPage({
   const { entries, pages } = await readJournal(page);
 
   return (
-    <SpaceShell user={user} title={a.journal.titre}>
-      <Link href={SPACES.admin} className={`self-start ${link}`}>
-        {a.journal.retour}
-      </Link>
+    <AdminShell user={user} title={a.journal.titre} current="journal">
       {entries.length === 0 ? (
         <p className="text-corps text-encre-taupe">{a.journal.vide}</p>
       ) : (
@@ -61,6 +58,6 @@ export default async function JournalPage({
           ) : null}
         </nav>
       ) : null}
-    </SpaceShell>
+    </AdminShell>
   );
 }

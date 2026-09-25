@@ -4,15 +4,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { AdminShell } from "@/components/admin/admin-shell";
 import { DecisionPanel } from "@/components/admin/decision-panel";
 import { DocumentView } from "@/components/admin/document-view";
 import { JournalTable } from "@/components/admin/journal-table";
-import { SpaceShell } from "@/components/shell/space-shell";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { professionnelle } from "@/content/professionnelle";
 import { db, users } from "@/db";
 import { fullName, journalFor } from "@/lib/admin/journal";
+import { ADMIN_FILES_PATH } from "@/lib/admin/paths";
 import { isHeldStudent } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
@@ -78,9 +79,9 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
   const unset = a.dossier.nonRenseigne;
 
   return (
-    <SpaceShell user={user} title={fill(a.dossier.titre, { nom: name })}>
+    <AdminShell user={user} title={fill(a.dossier.titre, { nom: name })} current="dossiers">
       <Link
-        href={SPACES.admin}
+        href={ADMIN_FILES_PATH}
         className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
       >
         {a.dossier.retour}
@@ -183,6 +184,6 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         reviewedAt={profile.reviewedAt?.toISOString() ?? null}
         held={isHeldStudent(profile, admitted)}
       />
-    </SpaceShell>
+    </AdminShell>
   );
 }

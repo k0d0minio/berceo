@@ -5,6 +5,7 @@ import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db, professionalCommunes, professionalProfiles, users, type Profession } from "@/db";
 import { NO_NOTE, notesOfProfiles, type Note } from "@/lib/avis/ratings";
 import { nextAvailableNights } from "@/lib/disponibilites/nights";
+import { notSuspended } from "@/lib/auth/suspension";
 import { photoId } from "@/lib/reservations/answers";
 
 import { orderProfessionals } from "./rules";
@@ -15,8 +16,8 @@ import { orderProfessionals } from "./rules";
  * `teaserColumns` is the whole list of what leaves for a public page, and
  * `cardColumns` adds her photo for a signed-in family: never her surname,
  * e-mail, phone, INAMI number, rate, documents or declarations (the tests hold
- * both lists). Only a `valide` profile exists here; any other status reads as
- * unknown (D-75). The note comes from `src/lib/avis/`, the nights from
+ * both lists). Only a `valide` profile of an account that is not suspended
+ * exists here; anything else reads as unknown (D-75, D-134). The note comes from `src/lib/avis/`, the nights from
  * `src/lib/disponibilites/`; this module computes neither.
  */
 
@@ -45,7 +46,8 @@ export type Teaser = {
 /** A signed-in family's card: the teaser, her photo and her next nights. */
 export type Card = Teaser & { photoId: string | null; nights: string[] };
 
-const isValid = eq(professionalProfiles.status, "valide");
+// Validated and not suspended (D-134): a suspended professional reads as unknown too.
+const isValid = and(eq(professionalProfiles.status, "valide"), notSuspended(professionalProfiles.userId));
 
 async function communesOf(profileIds: readonly string[]): Promise<Map<string, string[]>> {
   const map = new Map<string, string[]>(profileIds.map((id) => [id, []]));

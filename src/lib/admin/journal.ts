@@ -1,6 +1,6 @@
 import "server-only";
 
-import { count, desc, eq } from "drizzle-orm";
+import { count, desc, eq, sql, type SQL } from "drizzle-orm";
 
 import { adminJournal, db, type AdminAction, type AdminJournalEntry } from "@/db";
 
@@ -46,6 +46,23 @@ export function journalInsert(entry: NewJournalEntry) {
     adminName: entry.admin?.name ?? null,
     detail: entry.detail ?? null,
   });
+}
+
+/**
+ * The same insert as a statement that writes the entry only when `condition`
+ * holds, for a batch whose earlier statement may not have taken (a second
+ * founder acted first): the entry and the change it records stand or fall
+ * together (back-office-admin).
+ */
+export function journalInsertIf(entry: NewJournalEntry, condition: SQL) {
+  return db.execute<{ id: string }>(sql`
+    insert into ${adminJournal} (occurred_at, action, subject_user_id, subject_name, admin_user_id, admin_name, detail)
+    select ${(entry.at ?? new Date()).toISOString()}::timestamptz, ${entry.action}::admin_action,
+           ${entry.subject?.id ?? null}::uuid, ${entry.subject?.name ?? null}::text,
+           ${entry.admin?.id ?? null}::uuid, ${entry.admin?.name ?? null}::text, ${entry.detail ?? null}::text
+    where ${condition}
+    returning id
+  `);
 }
 
 /** One page of the journal, newest first. */

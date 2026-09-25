@@ -1,0 +1,9 @@
+## 2026-09-25T20:55:00Z session — psql to the run's Neon branch hung until the tool's timeout
+psql "$DATABASE_URL" -Atc "select table_name from information_schema.tables where table_schema='neon_auth'"
+(no output; moved to background after 120 s, then exit 2)
+- resolved: the cloud session reaches Neon only over HTTPS through the agent proxy; plain Postgres TCP (psql, drizzle-kit's pg driver) never connects. Query the run's branch with @neondatabase/serverless from a throwaway `scripts/.probe-*.mts` run by `npx tsx`, as the existing learned rule says; `drizzle-kit migrate` works because it picks the serverless driver.
+
+## 2026-09-25T21:06:10Z session — probe: bookings_report_handled_by_users_id_fk refused a marker
+insert or update on table "bookings" violates foreign key constraint "bookings_report_handled_by_users_id_fk"
+Key (report_handled_by)=(54ebc96f-…) is not present in table "users".
+- resolved: the probe passed a random admin id; the marker's foreign key is right, and the probe now uses the branch's real admin row. No code change.
