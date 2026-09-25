@@ -21,6 +21,7 @@ import {
   DECLARATIONS,
   DECLARATIONS_VERSION,
   REQUIREMENTS,
+  canResend,
   canSubmit,
   changeNeedsReview,
   checkProfile,
@@ -472,4 +473,38 @@ export async function reopenFile(): Promise<void> {
       );
   }
   redirect(`${ONBOARDING}/profil`);
+}
+
+// ---------------------------------------------------------------------------
+// Answering a complément (verification-back-office, D-50)
+// ---------------------------------------------------------------------------
+
+export type ResendState = { message?: "incomplet" | "generique" };
+
+/**
+ * "Renvoyer mon dossier": a complete file asked for a complément goes back to
+ * the founders. `submitted_at` stays, so the file keeps its place in the
+ * queue, and the declarations are not asked again.
+ */
+export async function resendFile(_previous: ResendState): Promise<ResendState> {
+  const user = await professional();
+  if (!user) return { message: "generique" };
+
+  const file = await loadFile(user.id);
+  if (!canResend(file.state)) return { message: "incomplet" };
+
+  let moved: { id: string }[];
+  try {
+    moved = await db
+      .update(professionalProfiles)
+      .set({ status: "en_attente", updatedAt: new Date() })
+      .where(and(eq(professionalProfiles.id, file.profile.id), eq(professionalProfiles.status, "complement_demande")))
+      .returning({ id: professionalProfiles.id });
+  } catch (error) {
+    console.error("[onboarding] file not sent back", { profileId: file.profile.id, error });
+    return { message: "generique" };
+  }
+  if (moved.length === 0) return { message: "incomplet" };
+
+  redirect(`${SPACE}?renvoye=1`);
 }

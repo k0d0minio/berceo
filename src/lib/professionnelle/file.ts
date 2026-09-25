@@ -48,8 +48,23 @@ export async function ensureProfile(userId: string): Promise<ProfessionalProfile
 }
 
 export async function loadFile(userId: string): Promise<ProfessionalFile> {
-  const profile = await ensureProfile(userId);
+  return loadFileOf(await ensureProfile(userId));
+}
 
+/**
+ * A file by its profile id, for the founders' review (verification-back-office);
+ * null when there is no such profile. Never creates one.
+ */
+export async function loadFileById(profileId: string): Promise<ProfessionalFile | null> {
+  const [profile] = await db
+    .select()
+    .from(professionalProfiles)
+    .where(eq(professionalProfiles.id, profileId))
+    .limit(1);
+  return profile ? loadFileOf(profile) : null;
+}
+
+async function loadFileOf(profile: ProfessionalProfile): Promise<ProfessionalFile> {
   const [communes, documents, declarations] = await Promise.all([
     db
       .select({ ins: professionalCommunes.communeIns })

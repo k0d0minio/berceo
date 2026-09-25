@@ -167,10 +167,34 @@ export const professionnelle = catalogue({
         "Votre dossier est bien reçu. Nous le vérifierons dans les 24 heures ouvrables. Vous recevrez un e-mail dès que votre profil sera activé.",
       /** @relecture Surya — lien de l'espace vers le dossier. */
       modifierDossier: "Modifier mon dossier",
-      /** @relecture Surya — dossier validé (le message de validation lui-même vient du stub 5). */
-      valide: "Votre profil est validé.",
-      /** @relecture Surya — dossier refusé, en lecture seule. */
-      refuse: "Votre dossier ne peut plus être modifié. Pour toute question, contactez l'équipe Berceo.",
+      /** Le message du guide à la validation du profil. */
+      valide:
+        "Votre profil Berceo a été validé. Vous pouvez désormais accéder aux demandes de garde dans votre zone. Bienvenue dans le réseau.",
+      /** @relecture Surya — dossier refusé, en lecture seule (D-53 ; pas d'adresse de contact, D-51). */
+      refuse: "Votre dossier a été examiné et ne peut pas être activé. Il ne peut plus être modifié.",
+      /** @relecture Surya — le motif sous le refus ou la demande de complément. */
+      motif: "Motif : {motif}",
+      /** @relecture Surya — complément demandé, dans l'espace. */
+      complement:
+        "Pour finaliser votre inscription, nous avons besoin d'un complément. Modifiez votre dossier, puis renvoyez-le.",
+      /** @relecture Surya — dossier d'étudiante retenu par le réglage (D-7, D-52). */
+      etudiantes:
+        "Berceo n'accueille pas encore les étudiantes sages-femmes. Votre dossier est bien reçu et reste en attente jusqu'à ce que ce soit le cas. Vous n'avez rien à faire.",
+    },
+
+    /** Répondre à une demande de complément (D-50). */
+    renvoi: {
+      /** @relecture Surya — en tête de la page du dossier. */
+      titre: "Un complément vous est demandé",
+      /** @relecture Surya — ce que fait le bouton. */
+      aide: "Une fois votre dossier complété, renvoyez-le à l'équipe Berceo. Il garde sa place dans la file.",
+      /** @relecture Surya — le bouton. */
+      bouton: "Renvoyer mon dossier",
+      enCours: "Envoi en cours",
+      /** @relecture Surya — après le renvoi, dans l'espace. */
+      envoye: "Votre dossier est renvoyé. Nous le vérifierons à nouveau dans les 24 heures ouvrables.",
+      /** @relecture Surya — dossier incomplet ou déjà renvoyé. */
+      incomplet: "Votre dossier n'est pas complet. Vérifiez votre profil et vos justificatifs, puis réessayez.",
     },
 
     reouverture: {

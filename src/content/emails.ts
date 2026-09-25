@@ -27,6 +27,39 @@ export const emails = catalogue({
       cta: "Publier ma première demande",
     },
 
+    /** La validation du profil professionnel (le guide, verbatim, D-8 : aucune mention d'assurance). */
+    profilValide: {
+      objet: "Votre profil Berceo est activé",
+      corps:
+        "Votre dossier a été vérifié. Votre profil est maintenant visible et vous pouvez accéder aux demandes de garde dans votre zone. Bienvenue dans le réseau.",
+      cta: "Voir les demandes disponibles",
+    },
+
+    /**
+     * La demande de complément. Le corps est celui du guide, sans l'adresse de
+     * contact que Berceo n'a pas encore (D-51). {motif} est le motif des fondatrices.
+     */
+    complementDemande: {
+      /** @relecture Surya — objet de l'e-mail de demande de complément. */
+      objet: "Votre dossier Berceo : un complément est nécessaire",
+      corps:
+        "Nous avons bien reçu votre dossier. Pour finaliser votre inscription, nous avons besoin d'un complément : {motif}.",
+      /** @relecture Surya — la dernière phrase du guide, sans « à l'adresse [email] ou » (D-51). */
+      suite: "Merci de nous transmettre ce document via votre espace personnel.",
+      /** @relecture Surya — bouton vers le dossier. */
+      cta: "Compléter mon dossier",
+    },
+
+    /** Le refus. Le corps est celui du guide, sans la phrase de contact (D-51). */
+    profilRefuse: {
+      /** @relecture Surya — objet de l'e-mail de refus. */
+      objet: "Votre dossier Berceo",
+      corps:
+        "Nous avons examiné votre dossier avec attention. Malheureusement, nous ne sommes pas en mesure d'activer votre profil pour la raison suivante : {motif}.",
+      /** @relecture Surya — bouton vers l'espace. */
+      cta: "Voir mon espace",
+    },
+
     verification: {
       /** @relecture Surya — objet de l'e-mail de vérification. */
       objet: "Confirmez votre adresse e-mail",

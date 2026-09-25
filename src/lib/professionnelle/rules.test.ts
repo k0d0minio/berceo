@@ -7,6 +7,7 @@ import {
   areDocumentsComplete,
   canOpenStep,
   canReadFile,
+  canResend,
   canSubmit,
   changeNeedsReview,
   checkProfile,
@@ -278,5 +279,21 @@ describe("who reads a file", () => {
     expect(canReadFile(owner, null)).toBe(false);
     expect(canReadFile(owner, { id: "parent-1", role: "parent" })).toBe(false);
     expect(canReadFile(owner, { id: "user-2", role: "professionnel" })).toBe(false);
+  });
+});
+
+describe("sending a file back after a complément (verification-back-office)", () => {
+  it("sends back a complete file that was asked for a complément", () => {
+    expect(canResend({ ...complete, status: "complement_demande" })).toBe(true);
+  });
+
+  it("refuses from any other state", () => {
+    for (const status of ["brouillon", "en_attente", "valide", "refuse"] as const) {
+      expect(canResend({ ...complete, status })).toBe(false);
+    }
+  });
+
+  it("refuses an incomplete file", () => {
+    expect(canResend({ ...complete, status: "complement_demande", files: { photo: 1 } })).toBe(false);
   });
 });

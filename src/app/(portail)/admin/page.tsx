@@ -1,12 +1,15 @@
 import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
+import Link from "next/link";
 
+import { QueueTable } from "@/components/admin/queue-table";
 import { StudentsSwitch } from "@/components/admin/students-switch";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { admin } from "@/content/admin";
 import { comptes } from "@/content/comptes";
 import { words } from "@/content/locale";
 import { db, users } from "@/db";
+import { loadQueue } from "@/lib/admin/review";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { studentsSetting } from "@/lib/settings";
@@ -29,13 +32,14 @@ const dateTime = new Intl.DateTimeFormat("fr-BE", {
 
 /*
  * The founders' back-office. Anyone but an admin, signed in or not, gets a 404
- * (D-33). Its first tool is the students switch (D-7); the verification queue
- * and the rest arrive with stubs 5 and 14.
+ * (D-33). It opens on the verification queue (verification-back-office), then
+ * the settings (the students switch, D-7) and the journal; the dashboard and
+ * the rest arrive with stub 14.
  */
 export default async function AdminPage() {
   const user = await requireAccess(SPACES.admin);
 
-  const setting = await studentsSetting();
+  const [setting, queue] = await Promise.all([studentsSetting(), loadQueue()]);
   const [author] = setting.updatedBy
     ? await db
         .select({ firstName: users.firstName, lastName: users.lastName })
@@ -52,9 +56,16 @@ export default async function AdminPage() {
 
   return (
     <SpaceShell user={user} title={t.espaces.admin.title}>
-      <p className="max-w-2xl text-intro text-taupe">{t.espaces.admin.vide}</p>
+      <h2 className="font-display text-h2 text-sauge">{a.file.titre}</h2>
+      <QueueTable rows={queue} studentsAdmitted={setting.value} />
       <h2 className="font-display text-h2 text-sauge">{a.reglages.titre}</h2>
       <StudentsSwitch value={setting.value} changed={changed} />
+      <Link
+        href={`${SPACES.admin}/journal`}
+        className="self-start text-corps font-semibold text-sauge underline underline-offset-4"
+      >
+        {a.file.lienJournal}
+      </Link>
     </SpaceShell>
   );
 }
