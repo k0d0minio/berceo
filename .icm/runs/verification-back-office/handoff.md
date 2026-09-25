@@ -6,18 +6,15 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. The operator reads the spec (`02_define/output/spec.md`, or the Spec block of https://github.com/k0d0minio/berceo/pull/39) and ticks **Spec approved** in the PR body.
+2. Then `/pipeline build verification-back-office`, following `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** on https://github.com/k0d0minio/berceo/pull/39.
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not start Build before the Spec approved box is ticked, and never tick it.
+- Do not add a contact address to any e-mail (D-51); do not add a new profile state for held student files (D-52).
+- Do not write production's Neon project or Vercel Production variables (`CRON_SECRET` in Production is the operator's).

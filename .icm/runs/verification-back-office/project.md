@@ -13,9 +13,13 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Only `valide` profiles may ever be shown to anyone but their owner and the admins; this run shows none to families.
+- The journal has no update or delete path, in code or in the database (trigger); names are snapshots, no foreign keys.
+- No contact address is invented (AGENTS.md standing rule): the complément and refusal e-mails omit the guide's `[email]` sentences.
+- Red and green only in confirmation dialogs (D-24); every word in `src/content/` (D-19); no insurance wording (D-8).
+- Every server action checks the admin role at runtime (Learned rules).
+- Production's Neon project and Vercel Production variables are never written from a run: `CRON_SECRET` in Production is the operator's.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read Surya's guide (verification tool, e-mails, back-office sections), the onboarding spec and decisions, and the schema, rules, settings, e-mail and file-serving code to fix states, routes and the data model.

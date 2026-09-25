@@ -40,3 +40,12 @@ decision made mid-run has one home.
 
 - <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
   make is a spec gap: say so in `notes.md` → Notes for Release>
+
+## Made in Define (2026-09-25)
+
+- D-50 — After "Demander un complément", she edits her file and clicks "Renvoyer mon dossier": the file returns to `en_attente` with its original `submitted_at`, keeps its place in the queue, and reads "Complément reçu". No new declarations. Operator, Define.
+- D-51 — The complément and refusal e-mails omit the guide's `[email]` contact sentences until Berceo publishes an address; a tweak adds them then. Operator, Define.
+- D-52 — With the students switch off, a student file is held without a new state: it stays `en_attente`, the queue reads "Étudiantes non admises", "Valider" is refused (UI and server), the other two actions stay. Turning the switch on releases it at its original place. Operator, Define.
+- D-53 — A refusal is final: the file stays locked, the account stays, she reads the reason; no founder reversal in this run. Operator, Define.
+- D-54 — `admin_journal` is immutable by a database trigger refusing `UPDATE` and `DELETE`, and keeps the account and the administrator as ids plus name snapshots without foreign keys, so a later account deletion never rewrites it. The students switch and the purge write to it too. Define.
+- D-55 — The 30-day purge of a refused file (D-41) is a daily Vercel cron calling a route guarded by `CRON_SECRET`; it deletes every file, photo included, and keeps the profile, declarations and journal. Cron runs on production only, so uat proves it by a direct call. Define.
