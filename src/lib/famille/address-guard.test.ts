@@ -3,7 +3,7 @@ import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { communeColumns } from "./profile";
+import { bookingAddressColumns, communeColumns } from "./profile";
 
 /**
  * Spec (D-15): the family's address never reaches a professional or a
@@ -39,5 +39,12 @@ describe("the family's address", () => {
     expect(columns).not.toContain("house_number");
     expect(columns).not.toContain("box");
     expect(columns).not.toContain("context");
+  });
+
+  // Spec (candidature-et-reservation, D-15, D-77): the booked professional reads
+  // the address, and only through this reader; it never carries the context line.
+  it("leaves through the booking reader as the address and its place, nothing more", () => {
+    const columns = Object.values(bookingAddressColumns).map((column) => column.name);
+    expect(columns.sort()).toEqual(["box", "house_number", "locality", "postcode", "street"]);
   });
 });

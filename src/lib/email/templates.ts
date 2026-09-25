@@ -199,3 +199,351 @@ export function profileRefusedEmail(input: {
     }),
   };
 }
+
+/** One request as the e-mails name it: its commune, its night, its children. */
+export type RequestSummary = { commune: string; nuit: string; enfants: string; date: string };
+
+/** A new urgent request in her communes, sent at once (D-61). */
+export function urgentRequestEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  url: string;
+  request: RequestSummary;
+}): RenderedEmail {
+  const u = t.demandeUrgente;
+  const { commune, nuit, enfants, date } = input.request;
+  return {
+    subject: fill(u.objet, { commune, date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(u.corps, { commune, nuit, enfants }), u.appel],
+      cta: { label: u.cta, href: input.url },
+    }),
+  };
+}
+
+/** The daily digest of the normal requests published in her communes (D-61). */
+export function requestDigestEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  url: string;
+  requests: readonly RequestSummary[];
+}): RenderedEmail {
+  const r = t.resumeDemandes;
+  const n = String(input.requests.length);
+  const one = input.requests.length === 1;
+  return {
+    subject: one ? r.objetUne : fill(r.objet, { n }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [
+        one ? r.introUne : fill(r.intro, { n }),
+        ...input.requests.map(({ commune, nuit, enfants }) => fill(r.ligne, { commune, nuit, enfants })),
+      ],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** A new answer to her request (the guide's « Nouvelle candidature (famille) »). */
+export function newAnswerEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: { prenom: string; profession: string };
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.nouvelleReponse;
+  const { prenom, profession } = input.professionnelle;
+  return {
+    subject: fill(r.objet, { prenom }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom, profession, date: input.date })],
+      cta: { label: fill(r.cta, { prenom }), href: input.url },
+    }),
+  };
+}
+
+/** Her booking is confirmed (the guide, without its insurance sentence, D-8). */
+export function bookingFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: string;
+  date: string;
+  heure: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.reservationFamille;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure })],
+      cta: { label: r.cta, href: input.url },
+      note: t.cadre,
+    }),
+  };
+}
+
+/** A paid fee whose booking could no longer be made: the fee is refunded in full (frais-de-service, D-103). */
+export function refundFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  date: string;
+  /** « 4,11 € ». */
+  montant: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.remboursementFamille;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { date: input.date }), fill(r.remboursement, { montant: input.montant })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** Her garde is confirmed; the family's address waits on her booking page (D-72). */
+export function bookingProfessionalEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  prenomFamille: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.reservationProfessionnelle;
+  return {
+    subject: fill(r.objet, { date: input.date, prenomFamille: input.prenomFamille }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { date: input.date })],
+      cta: { label: r.cta, href: input.url },
+      note: t.cadre,
+    }),
+  };
+}
+
+/** The family cancelled the garde: to the professional (cycle-de-garde-et-annulation, D-105). */
+export function gardeCancelledByFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  prenomFamille: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.annulationParFamille;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenomFamille: input.prenomFamille, date: input.date })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/**
+ * The professional cancelled the garde: to the family, saying her fee is
+ * refunded, or being refunded while Stripe has not done it, when she paid one
+ * (D-2), and that she can republish (D-107).
+ */
+export function gardeCancelledByProfessionalEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: string;
+  date: string;
+  /** The fee's state: refunded at Stripe, being refunded, or none paid. */
+  refund: "fait" | "enCours" | null;
+  url: string;
+}): RenderedEmail {
+  const r = t.annulationParProfessionnelle;
+  const refund = input.refund === "fait" ? [r.remboursement] : input.refund === "enCours" ? [r.remboursementEnCours] : [];
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [
+        fill(r.corps, { prenom: input.professionnelle, date: input.date }),
+        ...refund,
+        r.suite,
+      ],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** An absence reported: to the side recorded absent (D-106). `auteur` is who reported it. */
+export function absenceReportedEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  auteur: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.absence;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom: input.auteur, date: input.date })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** The reminder of the day before, to the family (D-108), with the platform line (D-111). */
+export function reminderFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: string;
+  date: string;
+  heure: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.rappelFamille;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure })],
+      cta: { label: r.cta, href: input.url },
+      note: t.cadre,
+    }),
+  };
+}
+
+/** The reminder of the day before, to the professional (D-108), with the platform line (D-111). */
+export function reminderProfessionalEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  prenomFamille: string;
+  date: string;
+  heure: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.rappelProfessionnelle;
+  return {
+    subject: fill(r.objet, { date: input.date, prenomFamille: input.prenomFamille }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenomFamille: input.prenomFamille, date: input.date, heure: input.heure })],
+      cta: { label: r.cta, href: input.url },
+      note: t.cadre,
+    }),
+  };
+}
+
+/** The invitation to rate a terminée garde, to the family (avis-etoiles, D-120): the guide's e-mail, verbatim. */
+export function ratingFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.avisFamille;
+  return {
+    subject: fill(r.objet, { prenom: input.professionnelle }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom: input.professionnelle })],
+      cta: { label: r.cta, href: input.url },
+      note: t.avisDelai,
+    }),
+  };
+}
+
+/** The invitation to rate a terminée garde, to the professional (avis-etoiles, D-120). */
+export function ratingProfessionalEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  prenomFamille: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.avisProfessionnelle;
+  return {
+    subject: fill(r.objet, { prenomFamille: input.prenomFamille }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenomFamille: input.prenomFamille, date: input.date })],
+      cta: { label: r.cta, href: input.url },
+      note: t.avisDelai,
+    }),
+  };
+}
+
+/** Her answer was declined: another professional chosen, the request republished or cancelled. */
+export function notRetainedEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  url: string;
+  request: RequestSummary;
+}): RenderedEmail {
+  const r = t.nonRetenue;
+  const { commune, nuit, date } = input.request;
+  return {
+    subject: fill(r.objet, { date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { commune, nuit }), r.suite],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** A request sent to her in priority (D-71). No family name. */
+export function priorityRequestEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  url: string;
+  request: RequestSummary;
+}): RenderedEmail {
+  const r = t.prioritaire;
+  const { commune, nuit, enfants } = input.request;
+  return {
+    subject: r.objet,
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { commune, nuit, enfants }), r.suite],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** A new message in the conversation (messagerie, D-90): who wrote and for which night, never the text. */
+export function newMessageEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  auteur: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.nouveauMessage;
+  return {
+    subject: fill(r.objet, { prenom: input.auteur }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom: input.auteur, date: input.date })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}

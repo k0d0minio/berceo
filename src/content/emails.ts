@@ -60,6 +60,188 @@ export const emails = catalogue({
       cta: "Voir mon espace",
     },
 
+    demandeUrgente: {
+      /** @relecture Surya — objet de l'e-mail d'une demande urgente, envoyé tout de suite (D-61). */
+      objet: "Demande urgente à {commune} pour le {date}",
+      /** @relecture Surya — corps : la nuit et les enfants. */
+      corps: "Une famille de {commune} cherche une professionnelle pour la nuit du {nuit}. {enfants}.",
+      /** @relecture Surya — l'invitation à répondre vite. */
+      appel: "Si vous êtes disponible, consultez la demande dès que possible.",
+      cta: "Voir les demandes disponibles",
+    },
+
+    resumeDemandes: {
+      /** @relecture Surya — objet du résumé quotidien, une seule demande (D-61). */
+      objetUne: "Une nouvelle demande de garde dans votre zone",
+      /** @relecture Surya — objet du résumé quotidien, plusieurs demandes. */
+      objet: "{n} nouvelles demandes de garde dans votre zone",
+      /** @relecture Surya — introduction, une seule demande. */
+      introUne: "Une nouvelle demande a été publiée dans les communes où vous intervenez.",
+      /** @relecture Surya — introduction, plusieurs demandes. */
+      intro: "{n} nouvelles demandes ont été publiées dans les communes où vous intervenez.",
+      /** @relecture Surya — une ligne par demande. */
+      ligne: "{commune}, nuit du {nuit}. {enfants}.",
+      cta: "Voir les demandes disponibles",
+    },
+
+    /**
+     * Nouvelle candidature (famille), le guide verbatim, un point ajouté à la fin
+     * du corps. {profession} est écrite en minuscules au milieu de la phrase.
+     */
+    nouvelleReponse: {
+      objet: "{prenom} a répondu à votre demande",
+      corps: "{prenom}, {profession}, a postulé pour votre garde du {date}. Consultez son profil et confirmez votre choix.",
+      cta: "Voir le profil de {prenom}",
+    },
+
+    /** Confirmation de réservation (famille), le guide sans sa phrase sur l'assurance (D-8, D-78). */
+    reservationFamille: {
+      objet: "Votre garde du {date} est confirmée ✓",
+      corps: "Tout est prêt. {prenom} sera chez vous le {date} à partir de {heure}. L'adresse lui a été transmise.",
+      cta: "Voir les détails de ma réservation",
+    },
+
+    /** @relecture Surya — la garde payée n'a pas pu être réservée, les frais sont remboursés (frais-de-service, D-103). */
+    remboursementFamille: {
+      objet: "Votre garde du {date} n'a pas pu être confirmée",
+      corps:
+        "Votre paiement est arrivé alors que la demande ou la réponse de la professionnelle avait changé. La garde du {date} n'a donc pas pu être réservée.",
+      remboursement: "Les frais de service de {montant} vous sont intégralement remboursés.",
+      cta: "Voir ma demande",
+    },
+
+    /** Confirmation de réservation (professionnelle), le guide ; « Bonne nuit ! » perd son point d'exclamation (D-78). */
+    reservationProfessionnelle: {
+      objet: "Garde confirmée : {date} chez {prenomFamille}",
+      /** @relecture Surya — « Bonne nuit. » au lieu de « Bonne nuit ! » (D-78). */
+      corps:
+        "Votre garde du {date} est confirmée. L'adresse et les coordonnées de la famille vous ont été transmises. Bonne nuit.",
+      cta: "Voir les détails de la garde",
+    },
+
+    /**
+     * @relecture Surya — le « Rappel cadre plateforme » (D-111), d'après la consigne du guide pour
+     * la page Tarifs (« Rappeler que la rémunération de la professionnelle se fait directement.
+     * Berceo est un intermédiaire. »), sans mention d'assurance (D-8). Sous le bouton des deux
+     * confirmations et des deux rappels, et nulle part ailleurs.
+     */
+    cadre:
+      "Berceo est un intermédiaire : la rémunération de la professionnelle se fait directement entre vous, après la garde.",
+
+    /** La famille a annulé la garde : à la professionnelle (D-105). */
+    annulationParFamille: {
+      /** @relecture Surya — objet. */
+      objet: "Garde du {date} annulée",
+      /** @relecture Surya — corps. */
+      corps: "{prenomFamille} a annulé la garde du {date}. Vous n'êtes plus attendue cette nuit-là.",
+      /** @relecture Surya — bouton vers ses gardes. */
+      cta: "Voir mes gardes",
+    },
+
+    /** La professionnelle a annulé la garde : à la famille, les frais remboursés (D-2, D-105). */
+    annulationParProfessionnelle: {
+      /** @relecture Surya — objet. */
+      objet: "Votre garde du {date} est annulée",
+      /** @relecture Surya — corps. */
+      corps: "{prenom} a annulé la garde du {date}.",
+      /** @relecture Surya — le remboursement, une fois fait chez Stripe. */
+      remboursement: "Les frais de service de 3 % vous sont intégralement remboursés.",
+      /** @relecture Surya — le remboursement, pas encore confirmé chez Stripe. */
+      remboursementEnCours: "Le remboursement intégral de vos frais de service de 3 % est en cours.",
+      /** @relecture Surya — la suite : republier (D-107). */
+      suite: "Vous pouvez republier votre demande depuis votre réservation pour trouver une autre professionnelle.",
+      /** @relecture Surya — bouton vers la réservation. */
+      cta: "Voir ma réservation",
+    },
+
+    /** Une absence signalée : à la partie déclarée absente (D-106). */
+    absence: {
+      /** @relecture Surya — objet. */
+      objet: "Une absence a été signalée pour la garde du {date}",
+      /** @relecture Surya — corps : qui l'a signalée, et la suite. */
+      corps:
+        "{prenom} nous a signalé votre absence lors de la garde du {date}. La garde est enregistrée comme annulée et l'équipe Berceo va examiner la situation.",
+      /** @relecture Surya — bouton vers la garde. */
+      cta: "Voir la garde",
+    },
+
+    /** Le rappel de la veille (D-108) : à la famille. */
+    rappelFamille: {
+      /** @relecture Surya — objet. */
+      objet: "Rappel : votre garde du {date}",
+      /** @relecture Surya — corps. */
+      corps: "{prenom} sera chez vous demain, le {date}, à partir de {heure}.",
+      /** Guide — le bouton de la confirmation de réservation (famille). */
+      cta: "Voir les détails de ma réservation",
+    },
+
+    /** Le rappel de la veille (D-108) : à la professionnelle. */
+    rappelProfessionnelle: {
+      /** @relecture Surya — objet. */
+      objet: "Rappel : votre garde du {date} chez {prenomFamille}",
+      /** @relecture Surya — corps. */
+      corps: "Vous êtes attendue demain, le {date}, à partir de {heure}, chez {prenomFamille}.",
+      /** Guide — le bouton de la confirmation de réservation (professionnelle). */
+      cta: "Voir les détails de la garde",
+    },
+
+    /** Guide — « Demande d'avis post-garde (famille) », verbatim (avis-etoiles, D-120). */
+    avisFamille: {
+      objet: "Votre garde avec {prenom} est terminée : partagez votre retour",
+      corps:
+        "La garde de {prenom} s'est terminée. Votre retour nous aide à maintenir la qualité du réseau Berceo. Cela prend moins de 2 minutes.",
+      cta: "Laisser un avis",
+    },
+
+    /** La demande d'avis à la professionnelle (avis-etoiles, D-120), sur le modèle de celle de la famille. */
+    avisProfessionnelle: {
+      /** @relecture Surya — objet. */
+      objet: "Votre garde chez {prenomFamille} est terminée : partagez votre retour",
+      /** @relecture Surya — corps. */
+      corps:
+        "Votre garde du {date} chez {prenomFamille} s'est terminée. Votre retour nous aide à maintenir la qualité du réseau Berceo. Cela prend moins de 2 minutes.",
+      /** Guide — le bouton de la demande d'avis (famille). */
+      cta: "Laisser un avis",
+    },
+
+    /** @relecture Surya — le délai pour donner son avis (D-117), sous le bouton des deux demandes d'avis. */
+    avisDelai: "Vous pouvez donner votre avis pendant 14 jours.",
+
+    /** Une réponse déclinée : une autre professionnelle choisie, la demande republiée ou annulée (D-70, D-76). */
+    nonRetenue: {
+      /** @relecture Surya — objet. */
+      objet: "Votre disponibilité pour la garde du {date}",
+      /** @relecture Surya — corps : la famille a fait un autre choix ou la demande est close. */
+      corps:
+        "La famille de {commune} a fait un autre choix pour la nuit du {nuit}, ou sa demande n'est plus ouverte. Merci pour votre disponibilité.",
+      /** @relecture Surya — la suite. */
+      suite: "D'autres demandes vous attendent peut-être dans votre zone.",
+      cta: "Voir les demandes disponibles",
+    },
+
+    /** Une demande envoyée en priorité à une professionnelle (D-71). Aucun nom de famille. */
+    prioritaire: {
+      /** @relecture Surya — objet. */
+      objet: "Une famille vous envoie sa demande en priorité",
+      /** @relecture Surya — corps : la nuit et les enfants. */
+      corps: "Une famille de {commune} vous a choisie pour la nuit du {nuit}. {enfants}.",
+      /** @relecture Surya — la demande reste visible des autres (le guide, « La mise en relation »). */
+      suite:
+        "Sa demande reste visible des autres professionnelles de sa zone jusqu'à ce qu'elle confirme une réservation.",
+      /** @relecture Surya — bouton vers la liste. */
+      cta: "Voir la demande",
+    },
+
+    /** Un nouveau message dans la conversation (messagerie, D-90) : un avis, jamais le texte du message. */
+    nouveauMessage: {
+      /** @relecture Surya — objet, avec le prénom de qui a écrit. */
+      objet: "{prenom} vous a écrit",
+      /** @relecture Surya — corps : qui, et pour quelle garde. */
+      corps: "{prenom} vous a écrit au sujet de la garde du {date}. Vous pouvez lui répondre sur Berceo.",
+      /** @relecture Surya — bouton vers la conversation. */
+      cta: "Lire le message",
+    },
+
     verification: {
       /** @relecture Surya — objet de l'e-mail de vérification. */
       objet: "Confirmez votre adresse e-mail",

@@ -30,10 +30,10 @@ function StudentsSwitch({
 
   return (
     <section className="flex flex-col gap-4 rounded-carte border border-solid border-perle bg-blanc p-8">
-      <h2 className="font-display text-h3 text-sauge">{t.titre}</h2>
-      <p className="max-w-2xl text-corps text-taupe">{t.description}</p>
-      <p className="text-corps font-semibold text-taupe">{value ? t.active : t.desactive}</p>
-      <p className="text-legende text-taupe">
+      <h2 className="font-display text-h3 text-encre-sauge">{t.titre}</h2>
+      <p className="max-w-2xl text-corps text-encre-taupe">{t.description}</p>
+      <p className="text-corps font-semibold text-encre-taupe">{value ? t.active : t.desactive}</p>
+      <p className="text-legende text-encre-taupe">
         {changed ? fill(t.modifie, { date: changed.date, nom: changed.name }) : t.jamais}
       </p>
       {failed ? <FormMessage>{t.erreur}</FormMessage> : null}

@@ -2,13 +2,14 @@ import * as React from "react"
 import Link from "next/link"
 
 import { BerceoLogomark } from "@/components/berceo-logo"
-import { MobileMenu, type MenuLink } from "@/components/shell/mobile-menu"
+import { Badge, MobileMenu, type MenuLink } from "@/components/shell/mobile-menu"
 import { portal } from "@/content/portal"
 import { words } from "@/content/locale"
 
 /*
  * The signed-in portal's frame: the logomark in the header, the portal's
- * navigation (passed in — each feature brings its own entries), and the page
+ * navigation (passed in — each feature brings its own entries, a count
+ * beside one when it has one), and the page
  * on white below. On desktop the navigation sits in the header; below md it
  * opens from the menu button. `actions` is the header's right-hand slot
  * (sign-out, later the account).
@@ -34,7 +35,7 @@ function PortalShell({
           <Link
             href={home}
             aria-label={t.header.homeLabel}
-            className="shrink-0 rounded-md text-sauge"
+            className="shrink-0 rounded-md text-encre-sauge"
           >
             <BerceoLogomark className="h-12 w-auto" />
           </Link>
@@ -45,9 +46,10 @@ function PortalShell({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="block rounded-capsule px-4 py-2 font-display text-nav text-sauge transition-colors duration-200 ease-out hover:bg-beurre"
+                    className="flex items-center gap-2 rounded-capsule px-4 py-2 font-display text-nav text-encre-sauge transition-colors duration-200 ease-out hover:bg-beurre"
                   >
                     {item.label}
+                    {item.badge && item.badge.count > 0 ? <Badge {...item.badge} /> : null}
                   </Link>
                 </li>
               ))}

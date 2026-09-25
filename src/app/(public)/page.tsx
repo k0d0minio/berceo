@@ -29,10 +29,13 @@ export const metadata = pageMetadata(t.meta, "/");
 export default function AccueilPage() {
   return (
     <>
-      <section className="mx-auto grid max-w-6xl gap-10 px-4 pt-8 pb-14 md:grid-cols-2 md:items-center md:px-8 md:pt-14 md:pb-20">
+      {/* Stacked below lg; from lg the text takes all but the photo's 22rem, which keeps the 88-character H1 to 4 lines at 60 px (premier-ecran, D-6). Below 360 px, « professionnelles » needs 294 px even at the DA's 38 px floor, so the gutter narrows to 12 px there (operator, 2026-09-25). */}
+      <section className="mx-auto grid max-w-6xl gap-10 px-4 pt-8 pb-14 max-[22.5rem]:px-3 md:px-8 md:pt-14 md:pb-20 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="flex flex-col gap-6">
-          <h1 className="font-display text-h1 text-sauge">{t.hero.title}</h1>
-          <p className="text-intro">{t.hero.message}</p>
+          <h1 className="font-display text-h1 text-balance text-encre-sauge max-[22.5rem]:text-[2.375rem]">
+            {t.hero.title}
+          </h1>
+          <p className="max-w-xl text-intro">{t.hero.message}</p>
           {/* The message above names health professionals, so the family door may say "gardienne de la nuit" (D-25). */}
           <CtaPair
             family={{
@@ -44,12 +47,18 @@ export default function AccueilPage() {
               href: c.pages.inscriptionProfessionnelle.href,
             }}
           />
-          <p className="flex items-start gap-3 font-semibold text-sauge">
+          <p className="flex items-start gap-3 font-semibold text-encre-sauge">
             <ShieldCheckIcon aria-hidden className="mt-0.5 size-6 shrink-0" />
             {t.hero.reassurance}
           </p>
         </div>
-        <Photo photo={p.bebeEndormi} preload />
+        {/* The portrait crop keeps the fist and the mouth in frame. */}
+        <Photo
+          photo={p.bebeEndormi}
+          preload
+          fillHeight
+          className="lg:object-[30%_50%]"
+        />
       </section>
 
       <VitrineSection title={t.etapes.title} tone="perle">
@@ -58,7 +67,7 @@ export default function AccueilPage() {
           <li>
             <Link
               href={c.pages.commentCaMarche.href}
-              className="font-semibold text-sauge underline underline-offset-4"
+              className="font-semibold text-encre-sauge underline underline-offset-4"
             >
               {t.etapes.liens.commentCaMarche}
             </Link>
@@ -66,7 +75,7 @@ export default function AccueilPage() {
           <li>
             <Link
               href={c.pages.tarifs.href}
-              className="font-semibold text-sauge underline underline-offset-4"
+              className="font-semibold text-encre-sauge underline underline-offset-4"
             >
               {t.etapes.liens.tarifs}
             </Link>
@@ -79,10 +88,9 @@ export default function AccueilPage() {
         className="md:grid md:grid-cols-2 md:items-center md:gap-12 md:[&>h2]:col-span-2"
       >
         <div className="flex flex-col gap-4">
+          {/* Body size, not intro: beside the photo that is about 60 to 65 characters a line (blocs-accueil D-18). */}
           {t.gardiennes.paragraphs.map((paragraph) => (
-            <p key={paragraph} className="text-intro">
-              {paragraph}
-            </p>
+            <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
         <Photo photo={p.mainDoigt} />
@@ -98,7 +106,10 @@ export default function AccueilPage() {
       </VitrineSection>
 
       <StripedSection>
-        <h2 className="font-display text-h2">{t.professionnelles.title}</h2>
+        {/* Below md this heading sets at 26 px: at 32 px its shortest two-line split needs 380 px, and a phone's block gives 318 (blocs-accueil D-20). */}
+        <h2 className="font-display text-h2 text-balance max-md:text-[1.625rem]">
+          {t.professionnelles.title}
+        </h2>
         <p>{t.professionnelles.text}</p>
         <Button asChild variant="taupe">
           <Link href={c.pages.inscriptionProfessionnelle.href}>

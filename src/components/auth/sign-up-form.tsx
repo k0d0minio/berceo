@@ -90,7 +90,7 @@ function SignUpForm({
       />
 
       <div className="flex flex-col gap-2">
-        <label className="flex items-start gap-3 text-corps text-taupe">
+        <label className="flex items-start gap-3 text-corps text-encre-taupe">
           <input
             type="checkbox"
             name="consentement"
@@ -101,18 +101,18 @@ function SignUpForm({
           />
           <span>
             {t.inscription.consentement.avant}
-            <Link href={pages.conditionsGenerales.href} className="text-sauge underline">
+            <Link href={pages.conditionsGenerales.href} className="text-encre-sauge underline">
               {t.inscription.consentement.cgu}
             </Link>
             {t.inscription.consentement.entre}
-            <Link href={pages.confidentialite.href} className="text-sauge underline">
+            <Link href={pages.confidentialite.href} className="text-encre-sauge underline">
               {t.inscription.consentement.confidentialite}
             </Link>
             {t.inscription.consentement.apres}
           </span>
         </label>
         {e.consentement ? (
-          <p id="champ-consentement-erreur" className="px-8 text-legende font-semibold text-taupe">
+          <p id="champ-consentement-erreur" className="px-8 text-legende font-semibold text-encre-taupe">
             {fieldError(e.consentement)}
           </p>
         ) : null}
@@ -122,9 +122,9 @@ function SignUpForm({
         {pending ? t.inscription.enCours : t.inscription.bouton}
       </Button>
 
-      <p className="text-corps text-taupe">
+      <p className="text-corps text-encre-taupe">
         {t.inscription.dejaInscrit}{" "}
-        <Link href="/connexion" className="text-sauge underline">
+        <Link href="/connexion" className="text-encre-sauge underline">
           {t.inscription.seConnecter}
         </Link>
       </p>

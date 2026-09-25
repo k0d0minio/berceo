@@ -25,7 +25,7 @@ function Field({
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-corps font-semibold text-taupe">
+      <label htmlFor={id} className="text-corps font-semibold text-encre-taupe">
         {label}
       </label>
       <Input
@@ -36,12 +36,12 @@ function Field({
         {...input}
       />
       {help ? (
-        <p id={helpId} className="px-6 text-legende text-taupe">
+        <p id={helpId} className="px-6 text-legende text-encre-taupe">
           {help}
         </p>
       ) : null}
       {error ? (
-        <p id={errorId} className="px-6 text-legende font-semibold text-taupe">
+        <p id={errorId} className="px-6 text-legende font-semibold text-encre-taupe">
           {error}
         </p>
       ) : null}
@@ -52,7 +52,7 @@ function Field({
 /** A message for the whole form, read out when it appears. */
 function FormMessage({ children }: { children: React.ReactNode }) {
   return (
-    <p role="alert" className="rounded-carte bg-perle px-6 py-4 text-corps text-taupe">
+    <p role="alert" className="rounded-carte bg-perle px-6 py-4 text-corps text-encre-taupe">
       {children}
     </p>
   )

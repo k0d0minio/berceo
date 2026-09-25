@@ -37,6 +37,12 @@ export const admin = catalogue({
       },
       /** @relecture Surya — lien vers le journal. */
       lienJournal: "Journal des actions administratives",
+      /** @relecture Surya — lien vers les paiements (frais-de-service). */
+      lienPaiements: "Paiements des frais de service",
+      /** @relecture Surya — lien vers les absences signalées, avec leur nombre (cycle-de-garde-et-annulation). */
+      lienAbsences: "Absences signalées ({n})",
+      /** @relecture Surya — lien vers les avis, avec leur nombre (avis-etoiles). */
+      lienAvis: "Avis après les gardes ({n})",
     },
 
     /** La page d'un dossier. */
@@ -159,6 +165,7 @@ export const admin = catalogue({
         profil_refuse: "Profil refusé",
         reglage_etudiantes: "Réglage : étudiantes sages-femmes",
         documents_supprimes: "Documents supprimés",
+        frais_rembourses: "Frais de service remboursés",
       },
       /** @relecture Surya — détail du réglage et de la purge. */
       details: {
@@ -210,6 +217,147 @@ export const admin = catalogue({
       },
       /** @relecture Surya — échec de l'enregistrement. */
       erreur: "Le réglage n'a pas pu être enregistré. Réessayez dans un instant.",
+    },
+
+    /** Les avis après les gardes (avis-etoiles, G-03, D-118), en lecture seule. */
+    avis: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Avis après les gardes",
+      /** @relecture Surya — ce que la page montre. */
+      intro:
+        "Chaque avis donné par une famille ou une professionnelle, le plus récent en premier, publié ou non. Un avis compte dans la note dès que les deux côtés ont donné le leur, ou 14 jours après la garde.",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        donne: "Donné le",
+        garde: "Garde",
+        par: "Par",
+        sur: "Sur",
+        notes: "Étoiles",
+        moyenne: "Moyenne",
+        etat: "État",
+      },
+      /** @relecture Surya — le rôle de chaque personne. */
+      roles: {
+        famille: "famille",
+        professionnelle: "professionnelle",
+      },
+      /** @relecture Surya — une personne et son rôle. */
+      personne: "{nom} ({role})",
+      /** @relecture Surya — la nuit et la commune de la garde. */
+      nuit: "{date}, {commune}",
+      /** @relecture Surya — un critère et sa note. */
+      critere: "{critere} : {n}",
+      /** @relecture Surya — l'état de publication (D-116). */
+      etats: {
+        publiee: "Publiée",
+        enAttente: "En attente de publication",
+        annulee: "Garde annulée, ne compte pas",
+      },
+      /** @relecture Surya — aucun avis encore. */
+      vide: "Aucun avis pour l'instant.",
+      /** @relecture Surya — pagination. */
+      pages: {
+        precedente: "Page précédente",
+        suivante: "Page suivante",
+        position: "Page {page}",
+      },
+      /** @relecture Surya — retour à l'accueil de l'administration. */
+      retour: "Revenir à l'administration",
+    },
+
+    /** Les absences signalées sur une garde (cycle-de-garde-et-annulation, D-106), en lecture seule. */
+    absences: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Absences signalées",
+      /** @relecture Surya — ce que la page permet, et où rembourser. */
+      intro:
+        "Chaque absence signalée par une famille ou une professionnelle, la plus récente en premier. La garde est enregistrée comme annulée. Les frais ne sont jamais remboursés d'office : le remboursement se fait depuis la page des paiements.",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        signalee: "Signalée le",
+        nuit: "Nuit",
+        famille: "Famille",
+        professionnelle: "Professionnelle",
+        absente: "Absente",
+        frais: "Frais",
+      },
+      /** @relecture Surya — qui est déclarée absente. */
+      cote: {
+        famille: "La famille",
+        professionnelle: "La professionnelle",
+      },
+      /** @relecture Surya — pas de frais payés (réservation antérieure aux frais). */
+      sansFrais: "Aucun",
+      /** @relecture Surya — lien vers les paiements. */
+      lienPaiements: "Voir les paiements",
+      /** @relecture Surya — liste vide, retour. */
+      vide: "Aucune absence n'a été signalée.",
+      retour: "Revenir aux dossiers en attente",
+    },
+
+    /** Les frais de service payés par les familles (frais-de-service, D-101, D-93). */
+    paiements: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Paiements des frais de service",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        date: "Date",
+        famille: "Famille",
+        professionnelle: "Professionnelle",
+        nuit: "Nuit",
+        tarif: "Tarif",
+        frais: "Frais",
+        statut: "Statut",
+        reference: "Référence Stripe",
+      },
+      /** Le tarif et les frais, l'euro après le nombre. */
+      montant: "{montant} €",
+      /** @relecture Surya — les statuts d'un paiement. */
+      statuts: {
+        en_attente: "Paiement en cours",
+        payee: "Payés",
+        expiree: "Abandonnés",
+        echouee: "Échoués",
+        remboursee: "Remboursés",
+        remboursement_echoue: "Remboursement échoué",
+      },
+      /** @relecture Surya — pourquoi les frais ont été remboursés. */
+      raisons: {
+        annulation_professionnelle: "annulation par la professionnelle",
+        reservation_impossible: "réservation devenue impossible",
+        berceo: "remboursés par Berceo",
+        stripe: "remboursés depuis Stripe",
+      },
+      /** @relecture Surya — date et raison d'un remboursement. */
+      rembourse: "le {date}, {raison}",
+      /** @relecture Surya — compte supprimé depuis. */
+      inconnu: "Compte supprimé",
+      /** @relecture Surya — le bouton et sa confirmation (D-24). */
+      rembourser: "Rembourser les frais",
+      confirmation: {
+        titre: "Rembourser les frais de {nom}",
+        description:
+          "Les frais de service de {montant} seront intégralement remboursés à la famille. La garde n'est pas annulée. Le motif sera inscrit au journal.",
+        motif: "Motif",
+        motifAide: "Le motif reste interne à Berceo.",
+        oui: "Oui, rembourser",
+        non: "Non, ne rien changer",
+      },
+      /** @relecture Surya — le détail de la ligne du journal. */
+      detailJournal: "{montant} €, {motif}",
+      /** @relecture Surya — résultats du bouton. */
+      resultats: {
+        rembourses: "Les frais ont été remboursés.",
+        echec: "Stripe n'a pas pu rembourser ces frais. Réessayez dans un instant.",
+        statut: "Ces frais ne peuvent pas être remboursés.",
+        generique: "Le remboursement n'a pas pu être fait. Réessayez dans un instant.",
+      },
+      /** @relecture Surya — liste vide, pagination, retour. */
+      vide: "Aucun paiement enregistré.",
+      precedente: "Page précédente",
+      suivante: "Page suivante",
+      page: "Page {n}",
+      retour: "Revenir aux dossiers en attente",
     },
   },
 });

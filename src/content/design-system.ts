@@ -29,6 +29,10 @@ export const designSystem = catalogue({
         { token: "taupe", name: "Gris taupe", role: "Couleur de soutien, surface éditoriale", share: "15 %" },
         { token: "perle", name: "Gris perle", role: "Fond discret", share: "5 %" },
         { token: "beurre", name: "Jaune beurre", role: "Couleur d'accent", share: "5 %" },
+        /** @relecture Surya — les deux encres (finition-accueil D-1), explication interne. */
+        { token: "encre-sauge", name: "Encre sauge", role: "Titres, liens et boutons pleins qui portent un texte blanc", share: "" },
+        /** @relecture Surya — explication interne. */
+        { token: "encre-taupe", name: "Encre taupe", role: "Texte courant sur fond blanc et gris perle", share: "" },
       ],
     },
 
@@ -65,7 +69,8 @@ export const designSystem = catalogue({
         blanc: "Sur fond blanc",
         raye: "Sur le motif rayé",
         sauge: "Sur fond vert sauge",
-        taupe: "Sur fond gris taupe",
+        /** @relecture Surya — explication interne. */
+        taupe: "Dans le bloc blanc sur le motif rayé",
       },
       sample: "Je cherche une garde de nuit",
       /** The DA's own column names (Boutons et actions, p. 23). */
@@ -120,6 +125,18 @@ export const designSystem = catalogue({
       title: "Mon espace",
       /** @relecture Surya — explication interne. */
       text: "Les écrans de l'espace connecté prendront place ici.",
+      disponibilites: {
+        /** @relecture Surya — page interne, non indexée. */
+        title: "Prochaines disponibilités",
+        /** @relecture Surya — explication interne (D-69). */
+        text: "Le bloc vu par les familles sur le profil d'une professionnelle, avec des nuits indiquées puis sans aucune.",
+      },
+      avis: {
+        /** @relecture Surya — page interne, non indexée. */
+        title: "Les étoiles",
+        /** @relecture Surya — explication interne (avis-etoiles). */
+        text: "Une note avec son nombre de gardes, une personne sans note encore, et un critère du formulaire d'avis.",
+      },
     },
   },
 });

@@ -67,6 +67,84 @@ describe("each role lands on its own space (spec)", () => {
     });
   });
 
+  it.each([
+    "/espace/famille/demandes",
+    "/espace/famille/demandes/nouvelle",
+    "/espace/famille/demandes/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10/modifier",
+  ])("opens the family's requests to a parent only: %s", (path) => {
+    expect(accessFor("parent", path)).toEqual({ kind: "allow" });
+    expect(accessFor("professionnel", path)).toEqual({ kind: "redirect", to: "/espace/professionnelle" });
+    expect(accessFor("admin", path)).toEqual({ kind: "redirect", to: "/admin" });
+    expect(accessFor(null, path)).toEqual({
+      kind: "redirect",
+      to: `/connexion?retour=${encodeURIComponent(path)}`,
+    });
+  });
+
+  it("opens the requests of a professional's zone to a professional only", () => {
+    const path = "/espace/professionnelle/demandes";
+    expect(accessFor("professionnel", path)).toEqual({ kind: "allow" });
+    expect(accessFor("parent", path)).toEqual({ kind: "redirect", to: "/espace/famille" });
+    expect(accessFor("admin", path)).toEqual({ kind: "redirect", to: "/admin" });
+    expect(accessFor(null, path)).toEqual({
+      kind: "redirect",
+      to: "/connexion?retour=%2Fespace%2Fprofessionnelle%2Fdemandes",
+    });
+  });
+
+  // Spec (candidature-et-reservation): the family's bookings, a professional's
+  // full profile and the priority page are a parent's; the gardes a professional's.
+  it.each([
+    "/espace/famille/reservations",
+    "/espace/famille/reservations/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10",
+    "/espace/famille/professionnelles/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10",
+    "/espace/famille/professionnelles/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10/priorite",
+    // avis-etoiles: the family's rating form.
+    "/espace/famille/reservations/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10/avis",
+  ])("opens the family's bookings and the professionals' profiles to a parent only: %s", (path) => {
+    expect(accessFor("parent", path)).toEqual({ kind: "allow" });
+    expect(accessFor("professionnel", path)).toEqual({ kind: "redirect", to: "/espace/professionnelle" });
+    expect(accessFor("admin", path)).toEqual({ kind: "redirect", to: "/admin" });
+    expect(accessFor(null, path)).toEqual({
+      kind: "redirect",
+      to: `/connexion?retour=${encodeURIComponent(path)}`,
+    });
+  });
+
+  it.each([
+    "/espace/professionnelle/gardes",
+    "/espace/professionnelle/gardes/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10",
+    // avis-etoiles: the professional's rating form.
+    "/espace/professionnelle/gardes/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10/avis",
+  ])("opens a professional's gardes to a professional only: %s", (path) => {
+    expect(accessFor("professionnel", path)).toEqual({ kind: "allow" });
+    expect(accessFor("parent", path)).toEqual({ kind: "redirect", to: "/espace/famille" });
+    expect(accessFor("admin", path)).toEqual({ kind: "redirect", to: "/admin" });
+    expect(accessFor(null, path)).toEqual({
+      kind: "redirect",
+      to: `/connexion?retour=${encodeURIComponent(path)}`,
+    });
+  });
+
+  // Spec (avis-etoiles, G-03): the founders' list of ratings is an admin's; /admin stays a 404 to anyone else (D-33).
+  it("answers 404 on /admin/avis to anyone but an admin", () => {
+    expect(accessFor("admin", "/admin/avis")).toEqual({ kind: "allow" });
+    for (const role of ["parent", "professionnel", null] as const) {
+      expect(accessFor(role, "/admin/avis")).toEqual({ kind: "not-found" });
+    }
+  });
+
+  it("opens « Mes disponibilités » to a professional only", () => {
+    const path = "/espace/professionnelle/disponibilites";
+    expect(accessFor("professionnel", path)).toEqual({ kind: "allow" });
+    expect(accessFor("parent", path)).toEqual({ kind: "redirect", to: "/espace/famille" });
+    expect(accessFor("admin", path)).toEqual({ kind: "redirect", to: "/admin" });
+    expect(accessFor(null, path)).toEqual({
+      kind: "redirect",
+      to: "/connexion?retour=%2Fespace%2Fprofessionnelle%2Fdisponibilites",
+    });
+  });
+
   it("does not mistake a lookalike path for a space", () => {
     expect(accessFor("admin", "/administration")).toEqual({
       kind: "redirect",

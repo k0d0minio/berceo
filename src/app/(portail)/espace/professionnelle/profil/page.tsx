@@ -65,7 +65,7 @@ export default async function DossierPage() {
       {profile.status === "complement_demande" ? <ResendForm reason={profile.reviewReason} /> : null}
       <ReopenDialog />
 
-      <h2 className="font-display text-h2 text-sauge">{t.etapes.titres.profil}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{t.etapes.titres.profil}</h2>
       <ProfileForm
         mode="dossier"
         professions={professions}
@@ -76,7 +76,7 @@ export default async function DossierPage() {
 
       {profile.profession ? (
         <>
-          <h2 className="font-display text-h2 text-sauge">{t.etapes.titres.justificatifs}</h2>
+          <h2 className="font-display text-h2 text-encre-sauge">{t.etapes.titres.justificatifs}</h2>
           <DocumentsForm
             mode="dossier"
             locked={locked}
@@ -87,10 +87,10 @@ export default async function DossierPage() {
         </>
       ) : null}
 
-      <h2 className="font-display text-h2 text-sauge">{t.declarations.acceptees}</h2>
+      <h2 className="font-display text-h2 text-encre-sauge">{t.declarations.acceptees}</h2>
       <ul className="flex flex-col gap-3">
         {latest.map((d, i) => (
-          <li key={i} className="flex flex-col gap-1 rounded-carte bg-perle px-6 py-4 text-corps text-taupe">
+          <li key={i} className="flex flex-col gap-1 rounded-carte bg-perle px-6 py-4 text-corps text-encre-taupe">
             <span>{t.declarations.textes[d.declaration as keyof typeof t.declarations.textes]}</span>
             <span className="text-legende">{fill(t.declarations.accepteeLe, { date: date.format(d.acceptedAt) })}</span>
           </li>
