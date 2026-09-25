@@ -6,18 +6,16 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Once **Spec approved** is ticked on https://github.com/k0d0minio/berceo/pull/51, run `build back-office-admin` (complex spec: open the session on `opus`).
+2. Build follows `plan.md` pass by pass; the schema pass first (`.icm/skills/database-migration/`).
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: read the spec and tick **Spec approved** in the body of PR #51.
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not tick either gate checkbox.
+- Do not start Build before the tick.
+- Do not hard-delete a `users` row, cancel a confirmed garde on suspension, or touch the journal trigger (D-134, D-136, D-54).
+- Do not re-run `new-run.sh`: changes to the spec go through `revise back-office-admin "<what>"`.

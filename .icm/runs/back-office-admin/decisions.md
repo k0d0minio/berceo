@@ -38,5 +38,12 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-132 — One admin navigation; `/admin` becomes « Vue d'ensemble »; the queue and the students switch move to `/admin/dossiers`; `/admin/absences` redirects to `/admin/signalements`. Define.
+- D-133 — Each overview block is one query shared with its list, so number and list cannot disagree. « Paiements récents » is the last 7 days by payment instant. Define.
+- D-134 — Suspension freezes the account: sign-in refused, hidden everywhere, waiting answers withdrawn and open requests cancelled at once, confirmed gardes left as they are and listed in the dialog for the founders to handle. Operator, Define, 2026-09-25.
+- D-135 — Reactivation restores access and visibility, not what the suspension withdrew. Define.
+- D-136 — Deletion is anonymisation, allowed only on a suspended account with no upcoming garde, confirmed by typing the last name; the Neon Auth identity is deleted so the e-mail can sign up again. Operator, Define, 2026-09-25.
+- D-137 — A deleted account's records (requests, answers, bookings, payments, conversations, ratings, journal) stay under « Compte supprimé »; its documents, profile details, communes, availability and family profile are deleted. Define.
+- D-138 — « Contacter l'utilisateur » sends an in-app e-mail from the transactional sender with Reply-To the founder's own account address, journaled with its subject only. Operator, Define, 2026-09-25.
+- D-139 — « Signalements à traiter » counts cancelled gardes and reported absences not yet marked handled; « Marquer comme traité » is journaled and not reversible. Operator, Define, 2026-09-25.
+- D-140 — One migration: suspension and deletion columns on `users`, the handled marker on `bookings`, five new `admin_action` values. Define.
