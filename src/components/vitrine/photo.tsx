@@ -17,7 +17,7 @@ function Photo({
   preload = false,
   fillHeight = false,
   sizes = fillHeight
-    ? "(min-width: 64rem) 62rem, 100vw"
+    ? "(min-width: 64rem) 72rem, 100vw"
     : "(min-width: 48rem) 50vw, 100vw",
   className,
 }: {

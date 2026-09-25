@@ -8,10 +8,10 @@ import { words } from "@/content/locale"
 
 /*
  * The public header: the wordmark home, the vitrine's pages, the two account
- * entries. The full row needs about 1,070 px, which only the max-w-6xl
+ * entries. The full row needs about 1,075 px, which only the max-w-6xl
  * container at xl gives, so below xl the pages and entries move into the menu
  * panel (premier-ecran). Links never wrap; the capsules keep their height and
- * type, and only their side padding tightens here.
+ * type, and only their side padding tightens here, to the DA's 24 px floor.
  */
 function PublicHeader() {
   const t = words(common)
@@ -54,7 +54,7 @@ function PublicHeader() {
 
         <div className="hidden items-center gap-3 xl:flex">
           {accounts.map((account) => (
-            <Button key={account.href} asChild className="px-5">
+            <Button key={account.href} asChild className="px-6">
               <Link href={account.href}>{account.label}</Link>
             </Button>
           ))}
