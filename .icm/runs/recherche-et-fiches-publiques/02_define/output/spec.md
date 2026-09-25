@@ -39,7 +39,7 @@ ties by first name, then by profile id so the order is stable. No sort control, 
 zone (the guide: « Ne pas proposer de filtres par note, par prix ou par type de profil »).
 
 **The search, signed in (D-11).** `/espace/famille/recherche`, reachable from the family space's
-navigation (« Rechercher », `@relecture Surya`) and from the family home. The guide's field,
+navigation (« Trouver une professionnelle », D-25) and from the family home. The guide's field,
 verbatim: label « Votre commune ou code postal », placeholder « Ex : Ixelles, Waterloo, 1000... »
 rendered with the guide's three dots (the only ellipsis the guide itself writes; `recherche.test.ts`
 allows it on that one entry), button « Rechercher ». The field suggests localities as the family

@@ -38,5 +38,10 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-123 — Search results and commune pages order professionals by soonest indicative night, then those with none, ties by first name then profile id. No sort control. Operator, Define 2026-09-25.
+- D-124 — The no-result text drops the guide's clause on neighbouring zones (a request reaches only professionals who declared its commune): « … elle sera visible dès qu'une professionnelle couvrira votre commune », `@relecture Surya`. Operator, Define 2026-09-25.
+- D-125 — The public professional URL is `/professionnelles/[prenom]-[id8]`: first name slug plus the first 8 hex of the profile id; resolved on id8, wrong prénom part redirects permanently. Overrides the guide's `[prenom-nom]` per D-14. Define's choice.
+- D-126 — No photo on any public page; the photo stays behind the free family account. Operator, Define 2026-09-25.
+- D-127 — Every commune of the official list (565) has a `/garde-de-nuit/[commune]` page, served or not; an unserved one shows the no-result message and the sign-up link. Operator, Define 2026-09-25.
+- D-128 — All commune pages are indexable and in the sitemap, served or not. Operator, Define 2026-09-25, knowingly against the guide's thin/duplicate-content warning. No launch-commune narrowing.
+- D-129 — `retour` is carried through family sign-up by a one-day HttpOnly SameSite=Lax cookie read by the e-mail confirmation route; no schema change; another browser lands in her space. Define's choice.

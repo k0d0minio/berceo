@@ -13,9 +13,14 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Only `valide` profiles are ever read by `src/lib/recherche/`; any other status reads as unknown (D-75).
+- No surname, e-mail, phone, INAMI, rate, documents or declarations leave the reader; no photo on a public page (D-14, D-126).
+- The note and gardes count come only from `src/lib/avis/`, the nights only from `src/lib/disponibilites/`; nothing about a care request reads availability.
+- The zone is the only filter; no sort control (D-11, D-123).
+- Every word in `src/content/recherche.ts`, to Surya's guide, `@relecture` where not quoted (D-19); « Trouver une professionnelle » as the nav label (D-25).
+- `safeReturnPath` keeps accepting only space paths; `robots.ts` unchanged (only production crawled).
+- No schema change.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read Surya's editorial guide (« La recherche », the SEO chapter), the avis-etoiles spec, `src/lib/auth/` (routing, guard), `src/app/(auth)/actions.ts`, the confirmation route and `src/lib/communes/index.ts` beyond its Inputs, to quote the guide and trace the way back through sign-up.
