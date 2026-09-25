@@ -5,14 +5,17 @@ import { useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { words } from "@/content/locale"
+import { paiement } from "@/content/paiement"
 import { reservations } from "@/content/reservations"
 
 /*
  * « Accepter et réserver » opens « Récapitulatif de votre garde » (the guide,
  * « La réservation »): the date, the hours, the duration, her first name, her
- * profession and her rate, and the line saying the family pays her directly
- * (D-1). Confirming is green, going back red (D-24). No word about insurance
- * (D-8). The booking itself is the server's, which holds every rule again.
+ * profession, her rate and the 3 % service fee, the line saying the family
+ * pays her directly (D-1), then the guide's two fee sentences and where the
+ * fee is paid (frais-de-service). Confirming is green, going back red (D-24).
+ * No word about insurance (D-8). Confirming opens Stripe's page; the booking
+ * is made by the payment, on the server, which holds every rule again (D-102).
  */
 
 export type Recap = {
@@ -22,10 +25,13 @@ export type Recap = {
   prenom: string
   profession: string
   tarif: string
+  /** « 4,11 € », computed on the server from the answer's rate (D-99). */
+  frais: string
 }
 
 function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promise<void> }) {
   const t = words(reservations)
+  const f = words(paiement).recapitulatif
   const l = t.recapitulatif.libelles
   const [pending, startTransition] = useTransition()
   const rows: [string, string][] = [
@@ -35,6 +41,7 @@ function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promi
     [l.professionnelle, recap.prenom],
     [l.profession, recap.profession],
     [l.tarif, recap.tarif],
+    [f.frais, recap.frais],
   ]
 
   return (
@@ -43,7 +50,7 @@ function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promi
       title={t.recapitulatif.titre}
       description={t.recapitulatif.paiement}
       action={{
-        label: t.recapitulatif.confirmer,
+        label: f.confirmer,
         tone: "confirmation",
         onSelect: () => startTransition(onAccept),
       }}
@@ -57,6 +64,11 @@ function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promi
           </div>
         ))}
       </dl>
+      <div className="flex flex-col gap-2 text-legende text-encre-taupe">
+        <p>{f.prelevement}</p>
+        <p>{f.remboursement}</p>
+        <p>{f.stripe}</p>
+      </div>
     </ConfirmDialog>
   )
 }

@@ -37,6 +37,8 @@ export const admin = catalogue({
       },
       /** @relecture Surya — lien vers le journal. */
       lienJournal: "Journal des actions administratives",
+      /** @relecture Surya — lien vers les paiements (frais-de-service). */
+      lienPaiements: "Paiements des frais de service",
     },
 
     /** La page d'un dossier. */
@@ -159,6 +161,7 @@ export const admin = catalogue({
         profil_refuse: "Profil refusé",
         reglage_etudiantes: "Réglage : étudiantes sages-femmes",
         documents_supprimes: "Documents supprimés",
+        frais_rembourses: "Frais de service remboursés",
       },
       /** @relecture Surya — détail du réglage et de la purge. */
       details: {
@@ -210,6 +213,71 @@ export const admin = catalogue({
       },
       /** @relecture Surya — échec de l'enregistrement. */
       erreur: "Le réglage n'a pas pu être enregistré. Réessayez dans un instant.",
+    },
+
+    /** Les frais de service payés par les familles (frais-de-service, D-101, D-93). */
+    paiements: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Paiements des frais de service",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        date: "Date",
+        famille: "Famille",
+        professionnelle: "Professionnelle",
+        nuit: "Nuit",
+        tarif: "Tarif",
+        frais: "Frais",
+        statut: "Statut",
+        reference: "Référence Stripe",
+      },
+      /** Le tarif et les frais, l'euro après le nombre. */
+      montant: "{montant} €",
+      /** @relecture Surya — les statuts d'un paiement. */
+      statuts: {
+        en_attente: "Paiement en cours",
+        payee: "Payés",
+        expiree: "Abandonnés",
+        echouee: "Échoués",
+        remboursee: "Remboursés",
+        remboursement_echoue: "Remboursement échoué",
+      },
+      /** @relecture Surya — pourquoi les frais ont été remboursés. */
+      raisons: {
+        annulation_professionnelle: "annulation par la professionnelle",
+        reservation_impossible: "réservation devenue impossible",
+        berceo: "remboursés par Berceo",
+        stripe: "remboursés depuis Stripe",
+      },
+      /** @relecture Surya — date et raison d'un remboursement. */
+      rembourse: "le {date}, {raison}",
+      /** @relecture Surya — compte supprimé depuis. */
+      inconnu: "Compte supprimé",
+      /** @relecture Surya — le bouton et sa confirmation (D-24). */
+      rembourser: "Rembourser les frais",
+      confirmation: {
+        titre: "Rembourser les frais de {nom}",
+        description:
+          "Les frais de service de {montant} seront intégralement remboursés à la famille. La garde n'est pas annulée. Le motif sera inscrit au journal.",
+        motif: "Motif",
+        motifAide: "Le motif reste interne à Berceo.",
+        oui: "Oui, rembourser",
+        non: "Non, ne rien changer",
+      },
+      /** @relecture Surya — le détail de la ligne du journal. */
+      detailJournal: "{montant} €, {motif}",
+      /** @relecture Surya — résultats du bouton. */
+      resultats: {
+        rembourses: "Les frais ont été remboursés.",
+        echec: "Stripe n'a pas pu rembourser ces frais. Réessayez dans un instant.",
+        statut: "Ces frais ne peuvent pas être remboursés.",
+        generique: "Le remboursement n'a pas pu être fait. Réessayez dans un instant.",
+      },
+      /** @relecture Surya — liste vide, pagination, retour. */
+      vide: "Aucun paiement enregistré.",
+      precedente: "Page précédente",
+      suivante: "Page suivante",
+      page: "Page {n}",
+      retour: "Revenir aux dossiers en attente",
     },
   },
 });
