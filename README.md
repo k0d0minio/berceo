@@ -26,7 +26,8 @@ npm run dev      # http://localhost:3000
 | [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
 | [src/lib/professionnelle/](src/lib/professionnelle/), [src/lib/documents/](src/lib/documents/) | The professional's file: its rules, the private document bucket and `/api/fichiers/[id]`. |
 | [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' review: the queue and decision rules, the admin journal, the purge of refused files. See **The founders' verification** below. |
-| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files, guarded by `CRON_SECRET`. |
+| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`) and the daily digest of new requests (`.github/workflows/demandes-digest.yml`), both guarded by `CRON_SECRET`. |
+| [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
 | [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
@@ -103,6 +104,9 @@ The platform's data starts here: one Neon Postgres database, read through
   The founders' review (0004): `review_reason` and `reviewed_at` on `professional_profiles`, and
   `admin_journal`, one row per admin action, which a trigger keeps append-only (no `UPDATE`,
   `DELETE` or `TRUNCATE`) and which names people by id and name without foreign keys.
+  `care_requests` (0005): a family's night, its start, children, baby's age, the commune copied
+  from her profile, the urgent flag, when the no-medical-condition box was ticked, and
+  `digest_sent_at`; at most one open request per family and night.
   Identity itself lives in Neon Auth's `neon_auth` schema, which Neon manages and Drizzle never
   declares.
 - **Client:** `src/db/index.ts` — a lazily-initialized Drizzle client on Neon's serverless HTTP
@@ -173,6 +177,32 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   list and Eurostat's LAU list for Belgium, plus the 2025 mergers' codes listed in the script;
   its header records the sources and the date. Regenerate it by hand when bpost or Statbel
   publish a change; never edit it.
+
+## The care request
+
+- **The family's pages:** `/espace/famille/demandes` (« Mes demandes »), `/nouvelle` (the
+  guide's form) and `/nouvelle?urgente=1` (« Publier une demande urgente »), `/[id]` (one request,
+  cancel through the confirmation dialog) and `/[id]/modifier`. Both publish buttons also sit on
+  `/espace/famille`. A normal request is for the day after tomorrow up to day 56, an urgent one
+  for tonight or tomorrow night (D-60), in Brussels time; the urgency and the commune are fixed
+  at publication. Without a commune in her profile she is sent to `/espace/famille/profil?completer=1`.
+- **The professional's list:** `/espace/professionnelle/demandes` — open requests whose night
+  has not started, in the communes she serves, urgent first then newest; a profile that is not
+  `valide` sees a line instead. The card (`src/components/demandes/request-card.tsx`) shows the
+  commune, the night (start + 11 h) and the children, never the family: `cardColumns` in
+  `src/lib/demandes/requests.ts` is what a professional's query selects, and a test holds it.
+- **The rules:** `src/lib/demandes/rules.ts` (pure: date windows, start times 18:00 to 23:00 by
+  half hour, age 0–12 semaines or 1–24 mois, a night started, the digest's 18:00 gate),
+  `validation.ts` (the form), `format.ts` (« Un bébé de trois mois », « 30/09/2026 de 20h00 à
+  7h00 »). Words in `src/content/demandes.ts`; e-mails in `src/content/emails.ts`.
+- **E-mails (D-61):** an urgent request e-mails every validated professional serving its commune
+  right after publication (`after()`, `notifyUrgentRequest`). Normal requests go out in one
+  digest a day: `POST /api/cron/demandes-digest`, bearer `CRON_SECRET`, sends from 18:00 in
+  Brussels only, once a day at most, and puts each request in one digest at most. **Scheduling (D-62):**
+  `.github/workflows/demandes-digest.yml` calls the route on UAT and production at 16:00 and
+  17:00 UTC (and on demand), with the repository secret `CRON_SECRET`; Vercel Cron is not
+  used because it never runs on the `uat` environment. One value serves both environments
+  (D-68): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets.
 
 ## The professional's onboarding and documents
 

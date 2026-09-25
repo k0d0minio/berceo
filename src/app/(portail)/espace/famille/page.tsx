@@ -4,15 +4,18 @@ import Link from "next/link";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { comptes } from "@/content/comptes";
+import { demandes } from "@/content/demandes";
 import { famille } from "@/content/famille";
 import { words } from "@/content/locale";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
+import { FAMILY_REQUESTS_PATH, NEW_REQUEST_PATH, NEW_URGENT_REQUEST_PATH } from "@/lib/demandes/paths";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyCommune } from "@/lib/famille/profile";
 
 const t = words(comptes);
 const f = words(famille).accueil;
+const d = words(demandes);
 
 export const metadata: Metadata = {
   title: t.meta.espace,
@@ -23,7 +26,7 @@ export const dynamic = "force-dynamic";
 
 /*
  * The parent's space. Until her commune is saved it asks her to complete her
- * profile; her requests arrive with stub 7.
+ * profile. The two ways to publish (D-60) and her requests are one tap away.
  */
 export default async function EspaceFamillePage() {
   const user = await requireAccess(SPACES.parent);
@@ -40,7 +43,21 @@ export default async function EspaceFamillePage() {
           </Button>
         </section>
       )}
-      <p className="max-w-2xl text-intro text-taupe">{t.espaces.famille.vide}</p>
+      <p className="max-w-2xl text-intro text-taupe">{d.famille.accueil}</p>
+      <div className="flex flex-wrap gap-3">
+        <Button asChild>
+          <Link href={NEW_REQUEST_PATH}>{d.boutons.publier}</Link>
+        </Button>
+        <Button asChild variant="raye">
+          <Link href={NEW_URGENT_REQUEST_PATH}>{d.boutons.publierUrgente}</Link>
+        </Button>
+      </div>
+      <Link
+        href={FAMILY_REQUESTS_PATH}
+        className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+      >
+        {d.famille.titre}
+      </Link>
     </SpaceShell>
   );
 }

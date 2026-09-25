@@ -11,18 +11,26 @@
  * communes she serves, the documents she uploaded and the declarations she
  * accepted, each append-only where the history matters. `app_settings` holds
  * the founders' switches, and `admin_journal` every admin action, immutable.
+ *
+ * A care request (demande-de-garde) is a family's night: its date, start time,
+ * children and commune, never its address or anything about health (D-20).
  */
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
+  date,
   index,
   integer,
   jsonb,
   pgEnum,
   pgTable,
   primaryKey,
+  smallint,
   text,
+  time,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -301,6 +309,88 @@ export const professionalDeclarations = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// Care requests
+// ---------------------------------------------------------------------------
+
+/**
+ * `ouverte` until the family cancels it. `attribuee` arrives with
+ * candidature-et-reservation, the time-driven statuses with
+ * cycle-de-garde-et-annulation (D-17).
+ */
+export const careRequestStatusEnum = pgEnum("care_request_status", ["ouverte", "annulee"]);
+
+/** The guide's two options: « Un bébé », « Jumeaux ». */
+export const careRequestChildrenEnum = pgEnum("care_request_children", ["un_bebe", "jumeaux"]);
+
+export const babyAgeUnitEnum = pgEnum("baby_age_unit", ["semaines", "mois"]);
+
+/**
+ * One night a family asks for (D-20). The commune is copied from her profile
+ * when she publishes (D-63), so a later change of profile never moves it, and
+ * no address column exists here: a professional only ever learns the commune
+ * (D-15). The rules that depend on today (the date windows, a night already
+ * started) live in `src/lib/demandes/rules.ts`; the checks below hold the rest.
+ * The end of the night is start + 11 hours, never stored.
+ */
+export const careRequests = pgTable(
+  "care_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    familyUserId: uuid("family_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: careRequestStatusEnum("status").notNull().default("ouverte"),
+    /** Fixed at publication (D-60): tonight or tomorrow night. */
+    urgent: boolean("urgent").notNull(),
+    nightDate: date("night_date").notNull(),
+    /** A half hour from 18:00 to 23:00, stored as `HH:MM:SS`. */
+    startTime: time("start_time").notNull(),
+    children: careRequestChildrenEnum("children").notNull(),
+    babyAgeValue: smallint("baby_age_value").notNull(),
+    babyAgeUnit: babyAgeUnitEnum("baby_age_unit").notNull(),
+    communeIns: text("commune_ins").notNull(),
+    postcode: text("postcode").notNull(),
+    locality: text("locality").notNull(),
+    /** When the family ticked « Mon enfant n'a pas de condition médicale particulière… ». */
+    noMedicalConditionAt: timestamp("no_medical_condition_at", { withTimezone: true }).notNull(),
+    /** Set when a daily digest carried it (normal requests only); null until then. */
+    digestSentAt: timestamp("digest_sent_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("care_requests_commune_status_night_idx").on(
+      table.communeIns,
+      table.status,
+      table.nightDate,
+    ),
+    index("care_requests_family_user_id_idx").on(table.familyUserId),
+    // A family holds at most one open request per night (D-65).
+    uniqueIndex("care_requests_one_open_per_night")
+      .on(table.familyUserId, table.nightDate)
+      .where(sql`${table.status} = 'ouverte'`),
+    // What the next digest has to carry.
+    index("care_requests_digest_pending_idx")
+      .on(table.createdAt)
+      .where(sql`${table.digestSentAt} IS NULL AND NOT ${table.urgent}`),
+    check(
+      "care_requests_start_time_slot",
+      sql`${table.startTime} BETWEEN '18:00' AND '23:00' AND date_part('minute', ${table.startTime}) IN (0, 30) AND date_part('second', ${table.startTime}) = 0`,
+    ),
+    check(
+      "care_requests_baby_age_range",
+      sql`(${table.babyAgeUnit} = 'semaines' AND ${table.babyAgeValue} BETWEEN 0 AND 12) OR (${table.babyAgeUnit} = 'mois' AND ${table.babyAgeValue} BETWEEN 1 AND 24)`,
+    ),
+    check(
+      "care_requests_cancelled_at",
+      sql`(${table.status} = 'annulee') = (${table.cancelledAt} IS NOT NULL)`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------
 
@@ -369,3 +459,7 @@ export type AdminAction = (typeof adminActionEnum.enumValues)[number];
 export type AdminJournalEntry = typeof adminJournal.$inferSelect;
 export type Declaration = (typeof declarationEnum.enumValues)[number];
 export type ProfessionalDocument = typeof professionalDocuments.$inferSelect;
+export type CareRequest = typeof careRequests.$inferSelect;
+export type CareRequestStatus = (typeof careRequestStatusEnum.enumValues)[number];
+export type CareRequestChildren = (typeof careRequestChildrenEnum.enumValues)[number];
+export type BabyAgeUnit = (typeof babyAgeUnitEnum.enumValues)[number];
