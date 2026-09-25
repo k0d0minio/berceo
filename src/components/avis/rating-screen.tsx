@@ -6,9 +6,10 @@ import { fill, words } from "@/content/locale"
 import type { RatingSide } from "@/db/schema"
 import { formatDate } from "@/lib/demandes/format"
 import type { RatingTarget } from "@/lib/avis/ratings"
-import { CRITERIA, rateRefusal, type RatingState } from "@/lib/avis/rules"
+import { rateRefusal, type RatingState } from "@/lib/avis/rules"
 import { brusselsNow } from "@/lib/demandes/rules"
 
+import { criteriaLabels } from "./criteria"
 import { RatingForm } from "./rating-form"
 import { GivenRating } from "./stars"
 
@@ -19,12 +20,6 @@ import { GivenRating } from "./stars"
  * the line saying an avis cannot be changed (D-117). The other side's rating
  * is never read here.
  */
-
-/** The criteria labels of the side that rates, in the order of the scores. */
-export function criteriaLabels(side: RatingSide): string[] {
-  const labels = words(avis).criteres[side] as Record<string, string>
-  return (CRITERIA[side] as readonly string[]).map((key) => labels[key])
-}
 
 function RatingScreen({
   side,

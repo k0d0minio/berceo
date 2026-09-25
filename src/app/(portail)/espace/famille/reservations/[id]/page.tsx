@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FormMessage } from "@/components/auth/field";
-import { criteriaLabels } from "@/components/avis/rating-screen";
+import { criteriaLabels } from "@/components/avis/criteria";
 import { GivenRating } from "@/components/avis/stars";
 import { CancelGarde, ReportAbsence, RepublishGarde } from "@/components/gardes/garde-dialogs";
 import { GardeStateMark } from "@/components/gardes/garde-state";

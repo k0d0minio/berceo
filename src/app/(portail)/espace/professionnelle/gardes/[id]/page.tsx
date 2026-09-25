@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FormMessage } from "@/components/auth/field";
-import { criteriaLabels } from "@/components/avis/rating-screen";
+import { criteriaLabels } from "@/components/avis/criteria";
 import { GivenRating, NoteDisplay } from "@/components/avis/stars";
 import { RequestCard } from "@/components/demandes/request-card";
 import { CancelGarde, ReportAbsence } from "@/components/gardes/garde-dialogs";

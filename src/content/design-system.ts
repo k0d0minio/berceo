@@ -131,6 +131,12 @@ export const designSystem = catalogue({
         /** @relecture Surya — explication interne (D-69). */
         text: "Le bloc vu par les familles sur le profil d'une professionnelle, avec des nuits indiquées puis sans aucune.",
       },
+      avis: {
+        /** @relecture Surya — page interne, non indexée. */
+        title: "Les étoiles",
+        /** @relecture Surya — explication interne (avis-etoiles). */
+        text: "Une note avec son nombre de gardes, une personne sans note encore, et un critère du formulaire d'avis.",
+      },
     },
   },
 });

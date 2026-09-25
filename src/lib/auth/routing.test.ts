@@ -99,6 +99,8 @@ describe("each role lands on its own space (spec)", () => {
     "/espace/famille/reservations/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10",
     "/espace/famille/professionnelles/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10",
     "/espace/famille/professionnelles/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10/priorite",
+    // avis-etoiles: the family's rating form.
+    "/espace/famille/reservations/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10/avis",
   ])("opens the family's bookings and the professionals' profiles to a parent only: %s", (path) => {
     expect(accessFor("parent", path)).toEqual({ kind: "allow" });
     expect(accessFor("professionnel", path)).toEqual({ kind: "redirect", to: "/espace/professionnelle" });
@@ -112,6 +114,8 @@ describe("each role lands on its own space (spec)", () => {
   it.each([
     "/espace/professionnelle/gardes",
     "/espace/professionnelle/gardes/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10",
+    // avis-etoiles: the professional's rating form.
+    "/espace/professionnelle/gardes/0b8f3c3e-2a51-4a7e-9d33-5d2f3b1c9a10/avis",
   ])("opens a professional's gardes to a professional only: %s", (path) => {
     expect(accessFor("professionnel", path)).toEqual({ kind: "allow" });
     expect(accessFor("parent", path)).toEqual({ kind: "redirect", to: "/espace/famille" });
@@ -120,6 +124,14 @@ describe("each role lands on its own space (spec)", () => {
       kind: "redirect",
       to: `/connexion?retour=${encodeURIComponent(path)}`,
     });
+  });
+
+  // Spec (avis-etoiles, G-03): the founders' list of ratings is an admin's; /admin stays a 404 to anyone else (D-33).
+  it("answers 404 on /admin/avis to anyone but an admin", () => {
+    expect(accessFor("admin", "/admin/avis")).toEqual({ kind: "allow" });
+    for (const role of ["parent", "professionnel", null] as const) {
+      expect(accessFor(role, "/admin/avis")).toEqual({ kind: "not-found" });
+    }
   });
 
   it("opens « Mes disponibilités » to a professional only", () => {
