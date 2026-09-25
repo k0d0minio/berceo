@@ -7,12 +7,16 @@ import { RequestCard } from "@/components/demandes/request-card";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { fill, words } from "@/content/locale";
+import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { conversationOfBooking } from "@/lib/messagerie/conversations";
+import { conversationPath } from "@/lib/messagerie/paths";
 import { professionalBooking } from "@/lib/reservations/bookings";
 import { PROFESSIONAL_BOOKINGS_PATH, professionalBookingPath } from "@/lib/reservations/paths";
 
 const t = words(reservations);
+const m = words(messagerie);
 
 export const metadata: Metadata = {
   title: t.meta.garde,
@@ -44,6 +48,7 @@ export default async function GardePage({ params }: { params: Promise<{ id: stri
   if (!booking) notFound();
 
   const { family } = booking;
+  const conversationId = await conversationOfBooking(user.id, "professionnelle", id);
   const address = family.address;
 
   return (
@@ -79,6 +84,13 @@ export default async function GardePage({ params }: { params: Promise<{ id: stri
         </dl>
       </section>
       <div className="flex flex-wrap gap-3">
+        {conversationId ? (
+          <Button asChild>
+            <Link href={conversationPath("professionnelle", conversationId)} prefetch={false}>
+              {m.liens.voir}
+            </Link>
+          </Button>
+        ) : null}
         <Button asChild variant="raye">
           <Link href={PROFESSIONAL_BOOKINGS_PATH}>{t.gardes.retour}</Link>
         </Button>

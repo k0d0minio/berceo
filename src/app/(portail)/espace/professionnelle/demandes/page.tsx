@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { FormMessage } from "@/components/auth/field";
 import { RequestCard } from "@/components/demandes/request-card";
@@ -7,16 +8,20 @@ import { Button } from "@/components/ui/button";
 import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
 import { words } from "@/content/locale";
+import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
 import { professionalRequests } from "@/lib/demandes/requests";
+import { conversationsOfRequests } from "@/lib/messagerie/conversations";
+import { conversationPath } from "@/lib/messagerie/paths";
 
 import { answerRequestAction, withdrawAnswerAction } from "./actions";
 
 const t = words(demandes);
 const r = words(reservations).professionnelle;
 const c = words(comptes);
+const m = words(messagerie);
 
 export const metadata: Metadata = {
   title: t.meta.professionnelle,
@@ -52,6 +57,9 @@ export default async function DemandesProfessionnellePage({
   const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);
   const view = await professionalRequests(user.id);
   const notice = message(await searchParams);
+  const conversationIds = view.validated
+    ? await conversationsOfRequests(user.id, view.requests.map((request) => request.id))
+    : new Map<string, string>();
 
   return (
     <SpaceShell user={user} title={t.professionnelle.titre}>
@@ -77,11 +85,20 @@ export default async function DemandesProfessionnellePage({
                       note={answered ? r.repondu : undefined}
                       footer={
                         answered ? (
-                          <form action={withdrawAnswerAction.bind(null, request.id)}>
-                            <Button type="submit" variant="raye">
-                              {r.retirer}
-                            </Button>
-                          </form>
+                          <>
+                            {conversationIds.has(request.id) ? (
+                              <Button asChild>
+                                <Link href={conversationPath("professionnelle", conversationIds.get(request.id)!)} prefetch={false}>
+                                  {m.liens.voir}
+                                </Link>
+                              </Button>
+                            ) : null}
+                            <form action={withdrawAnswerAction.bind(null, request.id)}>
+                              <Button type="submit" variant="raye">
+                                {r.retirer}
+                              </Button>
+                            </form>
+                          </>
                         ) : (
                           <form action={answerRequestAction.bind(null, request.id)}>
                             <Button type="submit">{r.disponible}</Button>

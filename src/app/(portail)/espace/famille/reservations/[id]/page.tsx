@@ -7,8 +7,11 @@ import { ProfessionalPhoto } from "@/components/reservations/professional-photo"
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { fill, words } from "@/content/locale";
+import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { conversationOfBooking } from "@/lib/messagerie/conversations";
+import { conversationPath } from "@/lib/messagerie/paths";
 import { cardTitle } from "@/lib/demandes/format";
 import { familyBooking } from "@/lib/reservations/bookings";
 import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
@@ -20,6 +23,7 @@ import {
 } from "@/lib/reservations/paths";
 
 const t = words(reservations);
+const m = words(messagerie);
 
 export const metadata: Metadata = {
   title: t.meta.reservation,
@@ -49,6 +53,7 @@ export default async function ReservationPage({
   if (!booking) notFound();
 
   const { request, professional } = booking;
+  const conversationId = await conversationOfBooking(user.id, "famille", id);
   const night = recapNight(request.nightDate, request.startTime);
   const l = t.recapitulatif.libelles;
   const rows: [string, string][] = [
@@ -96,7 +101,14 @@ export default async function ReservationPage({
         <p className="text-corps text-taupe">{t.recapitulatif.paiement}</p>
       </article>
       <div className="flex flex-wrap gap-3">
-        <Button asChild>
+        {conversationId ? (
+          <Button asChild>
+            <Link href={conversationPath("famille", conversationId)} prefetch={false}>
+              {fill(m.liens.ecrire, { prenom: professional.firstName })}
+            </Link>
+          </Button>
+        ) : null}
+        <Button asChild variant="raye">
           <Link href={professionalProfilePath(professional.profileId)}>{t.famille.voirProfil}</Link>
         </Button>
         <Button asChild variant="raye">
