@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  bookingFamilyEmail,
+  bookingProfessionalEmail,
   complementRequestedEmail,
   escapeHtml,
+  newAnswerEmail,
+  notRetainedEmail,
+  priorityRequestEmail,
   profileRefusedEmail,
   profileValidatedEmail,
   requestDigestEmail,
@@ -48,6 +53,26 @@ const all: [string, RenderedEmail][] = [
   ["refusal", profileRefusedEmail({ siteUrl: SITE, prenom: "Julie", reason: "Le diplôme", url: `${SITE}/espace/professionnelle` })],
   ["urgent request", urgentRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES })],
   ["digest", requestDigestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, requests: [IXELLES, UCCLE] })],
+  [
+    "new answer",
+    newAnswerEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      professionnelle: { prenom: "Emma", profession: "sage-femme" },
+      date: "30/09/2026",
+      url: `${SITE}/espace/famille/professionnelles/p1?demande=r1`,
+    }),
+  ],
+  [
+    "booking (family)",
+    bookingFamilyEmail({ siteUrl: SITE, prenom: "Julie", professionnelle: "Emma", date: "30/09/2026", heure: "20h00", url: `${SITE}/b` }),
+  ],
+  [
+    "booking (professional)",
+    bookingProfessionalEmail({ siteUrl: SITE, prenom: "Julie", prenomFamille: "Sophie", date: "30/09/2026", url: `${SITE}/g` }),
+  ],
+  ["not retained", notRetainedEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES })],
+  ["priority request", priorityRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES })],
 ];
 
 describe.each(all)("%s e-mail", (_name, email) => {
@@ -173,5 +198,74 @@ describe("digest e-mail", () => {
     const email = requestDigestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, requests: [IXELLES] });
     expect(email.subject).toBe("Une nouvelle demande de garde dans votre zone");
     expect(email.text).toContain("Une nouvelle demande a été publiée");
+  });
+});
+
+/**
+ * Spec (candidature-et-reservation, D-8, D-71, D-78): the guide's answer and
+ * booking e-mails verbatim, the family's without its insurance sentence, the
+ * professional's ending « Bonne nuit. »; the priority e-mail names no family.
+ */
+describe("the answer and the booking e-mails", () => {
+  it("tells the family who answered, for which night, with a button to her profile", () => {
+    const url = `${SITE}/espace/famille/professionnelles/p1?demande=r1`;
+    const email = newAnswerEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      professionnelle: { prenom: "Emma", profession: "sage-femme" },
+      date: "30/09/2026",
+      url,
+    });
+    expect(email.subject).toBe("Emma a répondu à votre demande");
+    expect(email.text).toContain(
+      "Emma, sage-femme, a postulé pour votre garde du 30/09/2026. Consultez son profil et confirmez votre choix.",
+    );
+    expect(email.text).toContain(`Voir le profil de Emma : ${url}`);
+  });
+
+  it("confirms the family's booking without the insurance sentence", () => {
+    const email = bookingFamilyEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      professionnelle: "Emma",
+      date: "30/09/2026",
+      heure: "20h00",
+      url: `${SITE}/b`,
+    });
+    expect(email.subject).toBe("Votre garde du 30/09/2026 est confirmée ✓");
+    expect(email.text).toContain(
+      "Tout est prêt. Emma sera chez vous le 30/09/2026 à partir de 20h00. L'adresse lui a été transmise.",
+    );
+    expect(email.text).toContain(`Voir les détails de ma réservation : ${SITE}/b`);
+    expect(email.text.toLowerCase()).not.toMatch(/assur|couvert/);
+  });
+
+  it("confirms the professional's garde, ending « Bonne nuit. »", () => {
+    const email = bookingProfessionalEmail({
+      siteUrl: SITE,
+      prenom: "Emma",
+      prenomFamille: "Sophie",
+      date: "30/09/2026",
+      url: `${SITE}/g`,
+    });
+    expect(email.subject).toBe("Garde confirmée : 30/09/2026 chez Sophie");
+    expect(email.text).toContain(
+      "Votre garde du 30/09/2026 est confirmée. L'adresse et les coordonnées de la famille vous ont été transmises. Bonne nuit.",
+    );
+    expect(email.text).toContain(`Voir les détails de la garde : ${SITE}/g`);
+  });
+
+  it("tells a declined professional the night and leads to the list", () => {
+    const email = notRetainedEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES });
+    expect(email.subject).toBe("Votre disponibilité pour la garde du 30/09/2026");
+    expect(email.text).toContain("30/09/2026 de 20h00 à 7h00");
+    expect(email.text).toContain(`Voir les demandes disponibles : ${LIST}`);
+  });
+
+  it("sends a priority request with the night and the children, and no family name", () => {
+    const email = priorityRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES });
+    expect(email.subject).toBe("Une famille vous envoie sa demande en priorité");
+    expect(email.text).toContain("Une famille de Ixelles vous a choisie pour la nuit du 30/09/2026 de 20h00 à 7h00. Un bébé de trois mois.");
+    expect(email.text).toContain(`Voir la demande : ${LIST}`);
   });
 });

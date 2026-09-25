@@ -246,3 +246,105 @@ export function requestDigestEmail(input: {
     }),
   };
 }
+
+/** A new answer to her request (the guide's « Nouvelle candidature (famille) »). */
+export function newAnswerEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: { prenom: string; profession: string };
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.nouvelleReponse;
+  const { prenom, profession } = input.professionnelle;
+  return {
+    subject: fill(r.objet, { prenom }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom, profession, date: input.date })],
+      cta: { label: fill(r.cta, { prenom }), href: input.url },
+    }),
+  };
+}
+
+/** Her booking is confirmed (the guide, without its insurance sentence, D-8). */
+export function bookingFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: string;
+  date: string;
+  heure: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.reservationFamille;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** Her garde is confirmed; the family's address waits on her booking page (D-72). */
+export function bookingProfessionalEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  prenomFamille: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.reservationProfessionnelle;
+  return {
+    subject: fill(r.objet, { date: input.date, prenomFamille: input.prenomFamille }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { date: input.date })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** Her answer was declined: another professional chosen, the request republished or cancelled. */
+export function notRetainedEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  url: string;
+  request: RequestSummary;
+}): RenderedEmail {
+  const r = t.nonRetenue;
+  const { commune, nuit, date } = input.request;
+  return {
+    subject: fill(r.objet, { date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { commune, nuit }), r.suite],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** A request sent to her in priority (D-71). No family name. */
+export function priorityRequestEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  url: string;
+  request: RequestSummary;
+}): RenderedEmail {
+  const r = t.prioritaire;
+  const { commune, nuit, enfants } = input.request;
+  return {
+    subject: r.objet,
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { commune, nuit, enfants }), r.suite],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}

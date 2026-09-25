@@ -437,11 +437,17 @@ export function uploadMatches(
   return size > 0 && size <= limit && sniffType(head) === declaredType;
 }
 
-/** Who may read a file: its owner and the admins, nobody else. */
+/**
+ * Who may read a file: its owner and the admins; and, for her photo only, a
+ * signed-in family once her profile is validated (candidature-et-reservation,
+ * D-75). Her documents stay the owner's and the admins', whoever asks.
+ */
 export function canReadFile(
   ownerUserId: string,
   viewer: { id: string; role: "parent" | "professionnel" | "admin" } | null,
+  file?: { kind: DocumentKind; profileStatus: ProfileStatus },
 ): boolean {
   if (!viewer) return false;
-  return viewer.role === "admin" || viewer.id === ownerUserId;
+  if (viewer.role === "admin" || viewer.id === ownerUserId) return true;
+  return viewer.role === "parent" && file?.kind === "photo" && file.profileStatus === "valide";
 }

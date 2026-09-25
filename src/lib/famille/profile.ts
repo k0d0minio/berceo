@@ -1,9 +1,10 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
-import { db, familyProfiles, users } from "@/db";
+import { bookings, db, familyProfiles, professionalProfiles, users } from "@/db";
 import { findLocality, type Locality } from "@/lib/communes";
+import { hasAddress } from "@/lib/reservations/rules";
 
 import type { ProfileValues } from "./validation";
 
@@ -15,9 +16,11 @@ import type { ProfileValues } from "./validation";
  * - `ownFamilyProfile` — everything, for the family's own profile page.
  * - `familyCommune` — the commune only, for everything else (the space's home
  *   today; a request's commune and the search later).
- *
- * Revealing the address to a professional once a booking is confirmed is
- * candidature-et-reservation's; it adds its reader here.
+ * - `familyHasAddress` — whether she gave a street and a number, never what
+ *   they are: accepting an answer needs one (D-77).
+ * - `bookingAddress` — the address of a confirmed booking, for the
+ *   professional booked and nobody else, read live from the profile (D-15,
+ *   D-77): a booking never holds a copy.
  */
 
 export type OwnFamilyProfile = {
@@ -63,6 +66,52 @@ export async function familyCommune(userId: string): Promise<FamilyCommune | nul
     .select(communeColumns)
     .from(familyProfiles)
     .where(eq(familyProfiles.userId, userId))
+    .limit(1);
+  return row ?? null;
+}
+
+/** Whether her profile holds a street and a house number (D-77). Nothing else leaves. */
+export async function familyHasAddress(userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ street: familyProfiles.street, houseNumber: familyProfiles.houseNumber })
+    .from(familyProfiles)
+    .where(eq(familyProfiles.userId, userId))
+    .limit(1);
+  return hasAddress(row ?? null);
+}
+
+export type BookingAddress = {
+  street: string | null;
+  houseNumber: string | null;
+  box: string | null;
+  postcode: string;
+  locality: string;
+};
+
+/** The columns `bookingAddress` selects: the address and its place, never the context line. */
+export const bookingAddressColumns = {
+  street: familyProfiles.street,
+  houseNumber: familyProfiles.houseNumber,
+  box: familyProfiles.box,
+  postcode: familyProfiles.postcode,
+  locality: familyProfiles.locality,
+};
+
+/**
+ * The family's address for the booking `bookingId`, only when the professional
+ * whose user id is `professionalUserId` is the one booked. Anyone else, and an
+ * unknown booking, reads null: the booking's own ownership is the gate.
+ */
+export async function bookingAddress(
+  bookingId: string,
+  professionalUserId: string,
+): Promise<BookingAddress | null> {
+  const [row] = await db
+    .select(bookingAddressColumns)
+    .from(bookings)
+    .innerJoin(professionalProfiles, eq(professionalProfiles.id, bookings.profileId))
+    .innerJoin(familyProfiles, eq(familyProfiles.userId, bookings.familyUserId))
+    .where(and(eq(bookings.id, bookingId), eq(professionalProfiles.userId, professionalUserId)))
     .limit(1);
   return row ?? null;
 }

@@ -12,6 +12,7 @@ import {
   isAgeInRange,
   isChangeable,
   isDateInWindow,
+  isEditable,
   isDigestTime,
   isStartTime,
 } from "./rules";
@@ -121,6 +122,25 @@ describe("a night that has started", () => {
     expect(isChangeable(ahead, evening)).toBe(true);
     expect(displayStatus({ ...ahead, status: "annulee" }, evening)).toBe("annulee");
     expect(isChangeable({ ...ahead, status: "annulee" }, evening)).toBe(false);
+  });
+
+  // Spec (candidature-et-reservation): an « attribuée » request can no longer be
+  // edited, cancelled or republished; a request with a pending answer cannot be
+  // edited, and can once republishing has cleared it (D-76).
+  it("keeps a booked request « attribuée », changeable by nobody", () => {
+    const booked = { status: "attribuee" as const, nightDate: "2026-09-26", startTime: "20:00:00" };
+    expect(displayStatus(booked, evening)).toBe("attribuee");
+    expect(isChangeable(booked, evening)).toBe(false);
+    expect(isEditable(booked, 0, evening)).toBe(false);
+  });
+
+  it("locks editing while an answer is pending, not cancelling", () => {
+    const ahead = { status: "ouverte" as const, nightDate: "2026-09-26", startTime: "20:00:00" };
+    expect(isEditable(ahead, 1, evening)).toBe(false);
+    expect(isChangeable(ahead, evening)).toBe(true);
+    expect(isEditable(ahead, 0, evening)).toBe(true);
+    const started = { ...ahead, nightDate: "2026-09-25" };
+    expect(isEditable(started, 0, evening)).toBe(false);
   });
 });
 

@@ -138,21 +138,45 @@ export function isDigestTime(now: Date): boolean {
   return brusselsNow(now).hour >= DIGEST_HOUR;
 }
 
-/** What the family sees: the stored status, or « passée » once an open night has started. */
-export type DisplayStatus = "ouverte" | "annulee" | "passee";
+/** A request's stored status (candidature-et-reservation adds `attribuee`). */
+export type RequestStatus = "ouverte" | "annulee" | "attribuee";
+
+/**
+ * What the family sees: the stored status, or « passée » once an open night
+ * has started. A booked request stays « attribuée »: its garde's own states
+ * come with cycle-de-garde-et-annulation.
+ */
+export type DisplayStatus = "ouverte" | "annulee" | "attribuee" | "passee";
 
 export function displayStatus(
-  request: { status: "ouverte" | "annulee"; nightDate: string; startTime: string },
+  request: { status: RequestStatus; nightDate: string; startTime: string },
   now: Date,
 ): DisplayStatus {
-  if (request.status === "annulee") return "annulee";
+  if (request.status !== "ouverte") return request.status;
   return hasNightStarted(request.nightDate, request.startTime, now) ? "passee" : "ouverte";
 }
 
-/** Only an open request whose night has not started can be edited or cancelled. */
+/**
+ * Only an open request whose night has not started can be cancelled or
+ * republished. A booked one (`attribuee`) cannot: cancelling a confirmed
+ * garde is cycle-de-garde-et-annulation's.
+ */
 export function isChangeable(
-  request: { status: "ouverte" | "annulee"; nightDate: string; startTime: string },
+  request: { status: RequestStatus; nightDate: string; startTime: string },
   now: Date,
 ): boolean {
   return displayStatus(request, now) === "ouverte";
+}
+
+/**
+ * Editing needs more: no answer may be waiting on it, or what the
+ * professionals said yes to would move under them (D-76). Republishing
+ * declines the waiting answers and opens editing again.
+ */
+export function isEditable(
+  request: { status: RequestStatus; nightDate: string; startTime: string },
+  pendingAnswers: number,
+  now: Date,
+): boolean {
+  return isChangeable(request, now) && pendingAnswers === 0;
 }

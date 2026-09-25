@@ -219,3 +219,9 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - Build a link sent to other people (an e-mail) from the host the request reached, never from the client's `Origin` header, whose scheme and path the caller chooses. (`FAILURE.md` — demande-de-garde)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - Test calendar or date-grid layout from several start weekdays, including one where a month begins in the first row, and head each month's own block rather than a week row. (`FAILURE.md` — disponibilites-indicatives)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Before Build numbers a decision, read the highest `D-n` on `main` and on every open run's branch, the same as Define does. (`FAILURE.md` — candidature-et-reservation)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- A rule a pure module states must be held again in the SQL of every write it governs (an UPDATE's WHERE, not a read before it); review each write path against the rules list before the flip. (`FAILURE.md` — candidature-et-reservation)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- Never use an enum value added by `ALTER TYPE … ADD VALUE` in a check, index or default of the same Drizzle migration; Postgres refuses it in that transaction, so put that use in the next migration. (`FAILURE.md` — candidature-et-reservation)

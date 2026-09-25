@@ -10,12 +10,14 @@ import { homeFor } from "@/lib/auth/routing"
 import { FAMILY_REQUESTS_PATH, PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths"
 import { AVAILABILITY_PATH } from "@/lib/disponibilites/paths"
 import { PROFILE_PATH } from "@/lib/famille/paths"
+import { FAMILY_BOOKINGS_PATH, PROFESSIONAL_BOOKINGS_PATH } from "@/lib/reservations/paths"
 
 /*
  * A signed-in space: the portal shell with the role's home and the role's own
- * entries (a parent's requests and profile, a professional's requests and
- * availability), the sign-out dialog wired to the session, and the greeting by
- * first name. Each feature stub adds its own navigation entries.
+ * entries (a parent's requests, bookings and profile, a professional's
+ * requests, gardes and availability), the sign-out dialog wired to the
+ * session, and the greeting by first name. Each feature stub adds its own
+ * navigation entries.
  */
 function SpaceShell({
   user,
@@ -38,12 +40,14 @@ function SpaceShell({
         ...(user.role === "parent"
           ? [
               { label: t.navDemandesFamille, href: FAMILY_REQUESTS_PATH },
+              { label: t.navReservations, href: FAMILY_BOOKINGS_PATH },
               { label: t.navProfil, href: PROFILE_PATH },
             ]
           : []),
         ...(user.role === "professionnel"
           ? [
               { label: t.navDemandesProfessionnelle, href: PROFESSIONAL_REQUESTS_PATH },
+              { label: t.navGardes, href: PROFESSIONAL_BOOKINGS_PATH },
               { label: t.navDisponibilites, href: AVAILABILITY_PATH },
             ]
           : []),
