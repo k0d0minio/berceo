@@ -49,6 +49,8 @@ export const demandes = catalogue({
       /** @relecture Surya — ce que couvre une demande urgente (D-50). */
       introUrgente:
         "Une demande urgente concerne une garde ce soir ou demain soir. Les professionnelles de votre zone sont prévenues tout de suite.",
+      /** @relecture Surya — première option de la liste des heures. */
+      choisirHeure: "Choisissez une heure",
       /** @relecture Surya — titre du formulaire de modification. */
       titreModification: "Modifier votre demande",
 

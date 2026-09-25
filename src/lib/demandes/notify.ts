@@ -2,7 +2,6 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
-import { SPACES } from "@/lib/auth/routing";
 import { communeName } from "@/lib/communes";
 import { sendEmail } from "@/lib/email/send";
 import {
@@ -12,6 +11,7 @@ import {
 } from "@/lib/email/templates";
 
 import { childrenLine, formatDate, nightLine } from "./format";
+import { PROFESSIONAL_REQUESTS_PATH } from "./paths";
 import {
   claimDigestRequests,
   professionalsServing,
@@ -29,7 +29,6 @@ import { brusselsNow, isDigestTime } from "./rules";
  * request.
  */
 
-export const REQUESTS_PATH = `${SPACES.professionnel}/demandes`;
 
 function summary(request: RequestCard): RequestSummary {
   return {
@@ -59,7 +58,7 @@ export async function notifyUrgentRequest(requestId: string, siteUrl: string): P
     if (!request || !request.urgent || request.status !== "ouverte") return;
 
     const recipients = dedupe(await professionalsServing([request.communeIns]));
-    const url = `${siteUrl}${REQUESTS_PATH}`;
+    const url = `${siteUrl}${PROFESSIONAL_REQUESTS_PATH}`;
     const results = await Promise.allSettled(
       recipients.map((r) =>
         sendEmail(
@@ -110,7 +109,7 @@ export async function sendRequestDigest(now: Date, siteUrl: string): Promise<Dig
   }
 
   const day = brusselsNow(now).date;
-  const url = `${siteUrl}${REQUESTS_PATH}`;
+  const url = `${siteUrl}${PROFESSIONAL_REQUESTS_PATH}`;
   const sends = [...byProfessional.values()].map(({ recipient, communes }) => {
     const hers = claimed
       .filter((r) => communes.has(r.communeIns))
