@@ -6,15 +6,15 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Once **Spec approved** is ticked on https://github.com/k0d0minio/berceo/pull/50: `/pipeline build recherche-et-fiches-publiques`, executing `plan.md` pass by pass.
+1. The operator smokes the preview https://berceo-git-claude-intelligent-pascal-ivo3n0-kodominio.vercel.app: /espace/famille/recherche (as a family: bare, a picked locality, a postcode, a name, an unknown text, a commune with nobody), a public page /professionnelles/<prenom>-<id8> (and a wrong first-name part), /garde-de-nuit/ixelles and an empty commune, /sitemap.xml, the sign-up way back (full profile signed out → sign-in → create an account → confirm in the same browser), all at 320–360 px.
+2. Once **Ready to merge** is ticked on https://github.com/k0d0minio/berceo/pull/50: `/pipeline release recherche-et-fiches-publiques`.
 
 ## Blockers
 
-- blocked on operator: read the spec and tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/50.
+- blocked on operator: smoke the preview and tick **Ready to merge** in the body of https://github.com/k0d0minio/berceo/pull/50.
 
 ## Do not
 
-- Do not tick either gate box, and do not start Build before the tick.
-- Do not add a schema change or migration; the way back through sign-up is a cookie (D-129).
-- Do not show a photo, rate or availability on a public page (D-126, D-14).
-- Do not touch back-office-admin's files; suspension filtering is its job.
+- Do not tick either gate box.
+- Do not re-add a pnpm or yarn lockfile; the repo installs with npm (error.log rule).
+- Do not add a schema change; the way back is a cookie (D-129).

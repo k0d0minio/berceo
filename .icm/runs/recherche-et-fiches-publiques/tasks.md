@@ -35,4 +35,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] The public professional page, the commune pages and the sitemap
 - [x] The way back through sign-up (`src/lib/auth/retour.ts`, actions, pages, confirmation route) with its tests
 - [x] README section and AGENTS row
-- [ ] Ready flip, full gate green
+- [x] Ready flip, full gate green

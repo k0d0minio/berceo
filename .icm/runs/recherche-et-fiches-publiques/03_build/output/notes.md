@@ -1,7 +1,7 @@
 # Build notes: recherche-et-fiches-publiques
 
-- commits: d27432e feat — search by commune, public teaser and commune pages, the way back through sign-up
-- ci: pending (see status.md)
+- commits: d27432e feat (search, public pages, way back) · merge of main · fix: remove the stray pnpm-lock.yaml · 2d02b6b test: fresh response per call in the confirmation route test
+- ci: GREEN on 2d02b6b — Vercel pass, Quality (advisory) pass
 
 ## What changed
 
@@ -36,6 +36,8 @@
 - [x] Design system, README, AGENTS.
 
 ## Notes for Release
+
+- This PR deletes `pnpm-lock.yaml`, which main's 5877c2e added beside `package-lock.json`: Vercel switched to pnpm on it and failed every build, main's production and UAT included. The operator chose the deletion (2026-09-25); main stays red until this PR merges.
 
 - D-130 and D-131 are Build's (spec gaps): the sitemap's rendering and the search URL's display parameters.
 - Some commune titles exceed the guide's 60 characters (« Garde de nuit à domicile à Beveren-Kruibeke-Zwijndrecht | Berceo » is 65). The spec fixed the pattern; Surya's review of `meta.communeTitre` is the lever.

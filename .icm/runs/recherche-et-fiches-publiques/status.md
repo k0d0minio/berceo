@@ -4,7 +4,7 @@ Where the run is, in five lines. Updated at every stage start and stop, and when
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: build
-- step: 12 (full gate RED on the base branch's pnpm-lock.yaml — fix pushed)
-- ci: RED → re-reading
+- step: done
+- ci: GREEN (full gate, 2d02b6b)
 - blocked: no
 - updated: 2026-09-25
