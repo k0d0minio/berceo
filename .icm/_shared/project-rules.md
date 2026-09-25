@@ -236,3 +236,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - before shipping a vitrine layout change, measure it at 320 px as well as 390: a no-wrap capsule (Button is `whitespace-nowrap`) wider than 288 px widens its grid column and scrolls the page sideways. (`measure.mjs on neen: `/ n {"hscroll":true, … "colw":n}` — documentel`, seen 1× — premier-ecran; src/app, src/components)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When a spec names a narrowest width and a type floor for a heading, Define measures the heading's longest word at that floor against the column that width leaves (after gutters), and settles the conflict before approval. (`FAILURE.md` — premier-ecran)
