@@ -7,28 +7,34 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Definition of done
 
-- [ ] On a 360 px wide phone, a family whose garde is terminée opens « Laisser un avis » from « Mes réservations », scores « Ponctualité », « Communication », « Soin » and « Confiance » with the stars, sends, and sees the stars she gave, read-only, on her booking page, with no horizontal scroll.
-- [ ] A professional does the same from « Mes gardes » with « Accueil », « Communication », « Clarté des consignes » and « Respect du cadre ».
-- [ ] The form has no textarea and no text input, and the `ratings` table has no text column (a test on the schema and one on the rendered form hold both).
-- [ ] The server action refuses, and stores nothing for, another user's booking, a garde not yet terminée, an annulée garde, a closed window, a second rating from the same side, and a missing, non-integer or out-of-range score. A forged side or rated user in the form is ignored.
-- [ ] Each side can rate a given garde at most once. Two concurrent submissions store one rating (the unique constraint).
-- [ ] « Laisser un avis » shows only on terminée, non-annulée gardes, inside the 14 days after their end, for a side that has not rated. Opening the form outside those conditions shows the reason line and no form.
-- [ ] A rating given while the other side has not rated counts in no note. It counts as soon as the other side rates, or once 14 days have passed since the garde's end, with no action by anyone.
-- [ ] A professional's note on her full profile and on the family's answer cards equals the mean of every criterion score of her published ratings, to one decimal with a comma. With no published rating, the no-note line shows and no zero.
-- [ ] The gardes count equals the person's terminée, non-annulée bookings, counts a garde from the hour it becomes terminée whether or not it is rated, and is hidden at zero.
-- [ ] Each request card in the professional's list shows the publishing family's note and gardes count, and still no family name, e-mail, phone or address. Her garde page shows the family's note.
-- [ ] Each side's home shows their own note and gardes count, never an individual rating. Neither side can read the other side's scores for a garde anywhere.
-- [ ] When a garde becomes terminée, the next hourly pass sends the family the guide's post-garde e-mail verbatim, and sends the professional hers. Each links to its form. A garde gets at most one e-mail per side across any number of passes. A side that has already rated is not invited. A garde whose window closed before its first pass gets none. An annulée garde gets none.
-- [ ] The invitation route refuses a call without the right `CRON_SECRET`. The workflow calls uat and production hourly, and skips with a warning when the secret is missing.
-- [ ] `/admin/avis` lists every rating, published or not, newest first, 50 per page. Each row shows the garde, both sides' names and roles, the four labelled scores, the mean and the publication state. It is reachable from the admin home, and a parent or professional opening it is sent to their own space.
-- [ ] The star input is operable by keyboard alone. Each star has a 44 × 44 px target and an accessible name. The note display's accessible name reads « Note X,Y sur 5 ».
-- [ ] Unit tests cover the rules module: the window edges (end, end + 14 days, across a daylight-saving change), `canRate` for each refusal, `isPublished` for each of its three paths (both rated, window closed, neither), the note's mean and rounding (including 4,95 and a single rating), and score validation.
+- [x] On a 360 px wide phone, a family whose garde is terminée opens « Laisser un avis » from « Mes réservations », scores « Ponctualité », « Communication », « Soin » and « Confiance » with the stars, sends, and sees the stars she gave, read-only, on her booking page, with no horizontal scroll.
+- [x] A professional does the same from « Mes gardes » with « Accueil », « Communication », « Clarté des consignes » and « Respect du cadre ».
+- [x] The form has no textarea and no text input, and the `ratings` table has no text column (a test on the schema and one on the rendered form hold both).
+- [x] The server action refuses, and stores nothing for, another user's booking, a garde not yet terminée, an annulée garde, a closed window, a second rating from the same side, and a missing, non-integer or out-of-range score. A forged side or rated user in the form is ignored.
+- [x] Each side can rate a given garde at most once. Two concurrent submissions store one rating (the unique constraint).
+- [x] « Laisser un avis » shows only on terminée, non-annulée gardes, inside the 14 days after their end, for a side that has not rated. Opening the form outside those conditions shows the reason line and no form.
+- [x] A rating given while the other side has not rated counts in no note. It counts as soon as the other side rates, or once 14 days have passed since the garde's end, with no action by anyone.
+- [x] A professional's note on her full profile and on the family's answer cards equals the mean of every criterion score of her published ratings, to one decimal with a comma. With no published rating, the no-note line shows and no zero.
+- [x] The gardes count equals the person's terminée, non-annulée bookings, counts a garde from the hour it becomes terminée whether or not it is rated, and is hidden at zero.
+- [x] Each request card in the professional's list shows the publishing family's note and gardes count, and still no family name, e-mail, phone or address. Her garde page shows the family's note.
+- [x] Each side's home shows their own note and gardes count, never an individual rating. Neither side can read the other side's scores for a garde anywhere.
+- [x] When a garde becomes terminée, the next hourly pass sends the family the guide's post-garde e-mail verbatim, and sends the professional hers. Each links to its form. A garde gets at most one e-mail per side across any number of passes. A side that has already rated is not invited. A garde whose window closed before its first pass gets none. An annulée garde gets none.
+- [x] The invitation route refuses a call without the right `CRON_SECRET`. The workflow calls uat and production hourly, and skips with a warning when the secret is missing.
+- [x] `/admin/avis` lists every rating, published or not, newest first, 50 per page. Each row shows the garde, both sides' names and roles, the four labelled scores, the mean and the publication state. It is reachable from the admin home, and a parent or professional opening it is sent to their own space.
+- [x] The star input is operable by keyboard alone. Each star has a 44 × 44 px target and an accessible name. The note display's accessible name reads « Note X,Y sur 5 ».
+- [x] Unit tests cover the rules module: the window edges (end, end + 14 days, across a daylight-saving change), `canRate` for each refusal, `isPublished` for each of its three paths (both rated, window closed, neither), the note's mean and rounding (including 4,95 and a single rating), and score validation.
 - [ ] The migration is generated by drizzle-kit, the journal test passes, and a preview build applies it to its own Neon branch with `db:verify` passing.
-- [ ] Every visible word lives in `src/content/`. Entries not quoted from the guide carry `@relecture Surya`. `src/content/avis.test.ts` passes: no `!`, `…` or `—`, no price, no insurance wording, and the guide's lines verbatim.
-- [ ] `routing.test.ts` covers both form routes and `/admin/avis`.
-- [ ] `/design-system/portail` shows the star input, a sample note and the no-note state.
-- [ ] README has a « The ratings » section and `AGENTS.md` a routing row.
+- [x] Every visible word lives in `src/content/`. Entries not quoted from the guide carry `@relecture Surya`. `src/content/avis.test.ts` passes: no `!`, `…` or `—`, no price, no insurance wording, and the guide's lines verbatim.
+- [x] `routing.test.ts` covers both form routes and `/admin/avis`.
+- [x] `/design-system/portail` shows the star input, a sample note and the no-note state.
+- [x] README has a « The ratings » section and `AGENTS.md` a routing row.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Merge main (cycle-de-garde landed), renumber D-105–D-111 → D-115–D-121, notes Pass 0
+- [x] Schema, migration `0011_avis`, rules and their tests (68ec440)
+- [x] Data module `src/lib/avis/ratings.ts`, proved on Neon (19efff1)
+- [x] Words, components, the two form routes, the note surfaces (690aa53)
+- [x] Invitations (templates, notify, route, workflow), `/admin/avis`, design system, README, AGENTS (4a94fa3)
+- [x] The no-text tests, build notes
+- [ ] Pre-flip check, merge main, flip ready, full verdict
