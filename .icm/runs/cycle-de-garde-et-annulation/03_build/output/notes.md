@@ -1,7 +1,7 @@
 # Build notes: cycle-de-garde-et-annulation
 
 - commits: 0b7e001 (schema + migration 0010), 515e7f0 (the garde's life: rules, writes, words, e-mails, pages, admin list, reminder route and workflow), then the run files
-- ci: see status.md (settled by `ci-status.sh` after the ready flip)
+- ci: GREEN on 148cfdc (full gate: Vercel preview; the advisory quality job also passed on the draft head faa1626)
 
 ## What changed
 
