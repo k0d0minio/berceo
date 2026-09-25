@@ -6,18 +6,16 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Once **Spec approved** is ticked on k0d0minio/berceo#47: `/pipeline build blocs-accueil`,
+   and follow `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/47
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not change a word in `src/content/` or a colour token (D-5; encres-contraste owns colour).
+- Do not touch the header or the hero (premier-ecran, merged in k0d0minio/berceo#46).
+- Do not change `card.tsx`'s default spacing for every card; set the reason cards' rhythm from `reason-grid.tsx`.
+- Do not tick a gate box.

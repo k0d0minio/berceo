@@ -13,9 +13,12 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- No word changes: `src/content/` stays untouched (D-5); no sixth reason card.
+- No colour changes: colour tokens in `src/app/globals.css` and the ink classes stay (encres-contraste owns them); `contrast.test.ts` and `vitrine.test.ts` stay green.
+- The type tokens (`--taille-*`) keep their values: every band fits at the DA's sizes.
+- Fixes live in the shared components (D-4): `step-list.tsx`, `reason-grid.tsx`, `striped-section.tsx`; `card.tsx`'s default rhythm stays for the portal.
+- The header and the hero are premier-ecran's (merged, k0d0minio/berceo#46) — not touched here.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read the four shared components, the homepage and its content catalogue, and the type tokens beyond its Inputs, to size the layouts and settle the stub's two open points and the stripes' alignment with arithmetic rather than guesses.

@@ -19,5 +19,6 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-9 — The reason cards run in two columns from md; an odd last card spans the full row, its paragraph held to 75 characters a line. Operator's choice in Define, 2026-09-25, over three-plus-two and centred layouts: titles get room for one line at the DA's H3 size.
+- D-10 — Both Gardiennes paragraphs drop to body size. Operator's choice in Define, 2026-09-25, over an intro-size first paragraph: body size lands in the DA's 60–75 characters a line beside the photo.
+- D-11 — The stripes' white block aligns left, H2, paragraph and button together. Define, 2026-09-25: the 280-character paragraph cannot fit three lines at 75 characters, so centring cannot meet the DA's rule; the operator chose one alignment for the whole block.
