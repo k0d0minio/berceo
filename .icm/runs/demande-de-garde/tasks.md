@@ -34,4 +34,9 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Schema and migration: `care_requests` + three enums, `drizzle/0004_care_requests.sql` (c4ac24f)
+- [x] Rules, wording, validation and their tests: `src/lib/demandes/{rules,format,validation}.ts`, `src/content/demandes.ts` (e83cd9c)
+- [x] Data module, urgent e-mail and digest: `src/lib/demandes/{requests,notify}.ts`, `src/lib/email/templates.ts`, `src/content/emails.ts`, tests (4fce3c7)
+- [x] Family pages, professional list, nav, home links, routing and catalogue tests (06230d4)
+- [x] Digest route + test, `.github/workflows/demandes-digest.yml`, `CRON_SECRET` in `.env.example`, README and AGENTS (a8d5e45)
+- [x] Build notes, decisions, flip ready
