@@ -28,6 +28,7 @@ npm run dev      # http://localhost:3000
 | [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' review: the queue and decision rules, the admin journal, the purge of refused files. See **The founders' verification** below. |
 | [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`) and the daily digest of new requests (`.github/workflows/demandes-digest.yml`), both guarded by `CRON_SECRET`. |
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
+| [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
 | [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
@@ -107,6 +108,12 @@ The platform's data starts here: one Neon Postgres database, read through
   `care_requests` (0005): a family's night, its start, children, baby's age, the commune copied
   from her profile, the urgent flag, when the no-medical-condition box was ticked, and
   `digest_sent_at`; at most one open request per family and night.
+  Answers and bookings (0006): `care_request_status` gains `attribuee`; `care_requests` gains
+  its priority professional (`priority_profile_id`, `priority_sent_at`, set once) and
+  `republished_at` / `republish_count`; `care_request_applications` is one answer per
+  professional and request (`application_status`: `en_attente`, `retenue`, `non_retenue`,
+  `retiree`), with the rate she answered at; `bookings` is one per request and one per
+  professional and night, with that rate, and no address.
   Identity itself lives in Neon Auth's `neon_auth` schema, which Neon manages and Drizzle never
   declares.
 - **Client:** `src/db/index.ts` — a lazily-initialized Drizzle client on Neon's serverless HTTP
@@ -203,6 +210,40 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   17:00 UTC (and on demand), with the repository secret `CRON_SECRET`; Vercel Cron is not
   used because it never runs on the `uat` environment. One value serves both environments
   (D-68): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets.
+
+## The answer and the booking
+
+- **The professional answers** on `/espace/professionnelle/demandes`: each card carries her rate
+  (« 150 € pour la garde de nuit ») and « Je suis disponible pour cette garde »; once answered,
+  « Retirer ma disponibilité » (D-73). Her list holds the open requests ahead in her communes
+  and those sent to her in priority wherever they are, priority first; never one she was
+  declined on nor one on a night she is booked. `answerRequest` in
+  `src/lib/reservations/answers.ts` checks the rules (`rules.ts`) and the INSERT holds them
+  again. The rate is frozen on the answer (D-74). Each answer e-mails the family.
+- **The family chooses** on `/espace/famille/demandes/[id]`: « Les professionnelles qui ont
+  répondu à votre demande », each with « Voir le profil complet » and « Accepter et réserver »,
+  which opens « Récapitulatif de votre garde ». `acceptAnswer` in `bookings.ts` is one
+  transaction (`db.batch`): the answer `retenue`, the booking, the request `attribuee`, the other
+  waiting answers `non_retenue`, her other answers that night `retiree`; the unique indexes turn
+  two clicks racing into one booking and a « conflit ». Accepting needs the family's street and
+  number (D-77). Both sides get the guide's confirmation, the others « not retained ».
+  Frais-de-service puts the payment before `acceptAnswer`.
+- **Republish and edit (D-70, D-76):** a request with a waiting answer cannot be edited;
+  « Republier ma demande » declines the waiting answers and sends the request out again (the
+  urgent e-mail at once, or the next digest, which carries a request republished since its last
+  one). Cancelling declines the waiting answers too.
+- **The full profile (D-75):** `/espace/famille/professionnelles/[id]`, any signed-in family, any
+  `valide` profile; `profileColumns` in `profiles.ts` is all that leaves (a test holds it). Her
+  photo is served to parents by `/api/fichiers/[id]`; her documents never are.
+- **The priority request (D-71):** `/espace/famille/professionnelles/[id]/priorite` sends one of
+  the family's open requests, or a new one (`/nouvelle?pour=<id>`), to her « en priorité »: set
+  once, she is e-mailed at once and sees it first even outside her communes; nobody else waits.
+- **The bookings:** « Mes réservations » (`/espace/famille/reservations`, the récapitulatif, the
+  professional's phone, re-contact in priority) and « Mes gardes »
+  (`/espace/professionnelle/gardes`). The family's name, address and phone reach the
+  professional only on her own booking's page; the address is read live through
+  `bookingAddress` in `src/lib/famille/profile.ts`, still the only reader of `family_profiles`.
+- **Words:** `src/content/reservations.ts`; e-mails in `src/content/emails.ts`.
 
 ## The professional's onboarding and documents
 

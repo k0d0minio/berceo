@@ -46,5 +46,5 @@ step, so a resuming session can pick up the first unticked line.
 - [x] 5. Words: `src/content/reservations.ts`, `demandes.ts` additions, catalogue tests
 - [x] 6. Professional pages: list card actions, « Mes gardes » and a booking, nav, home link
 - [x] 7. Family pages: answers, accept, republish, full profile, priority, « Mes réservations », file route, nav, routing test
-- [ ] 8. Docs: README section, AGENTS.md row
+- [x] 8. Docs: README section, AGENTS.md row
 - [ ] 9. Notes, pre-flip check, merge main, flip ready, full verdict
