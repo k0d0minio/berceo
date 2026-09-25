@@ -56,3 +56,15 @@
 - Tests and the typecheck were written, not run locally, per the repo rule, and pass in the quality job; the data layer was proved against `run/candidature-et-reservation` with throwaway probes (deleted).
 
 Context budget: read `src/lib/documents/serve.ts`, `src/components/ui/confirm-dialog.tsx` and Drizzle's neon-http batch source beyond the touches, to wire the photo rule, the two dialogs and a transaction the HTTP driver can run.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on aad5fe4 (ci-status.sh, full gate: Vercel pass, Quality (advisory) pass); re-read after the last push below
+- reviews: code high (10 findings: 6 fixed in eb1c129, 4 parked; the fix commit re-reviewed at low, no finding) · security security-check.sh --branch --audit: OK + /security-review — no finding at the reporting bar (e-mail links built from the request's host noted at 4/10, pre-existing pattern) · production-readiness n/a — the skill is not installed in this session; DB and env were read by check-migrations.sh, env.sh and probes on the run's Neon branch · readiness env.sh audit --changed: OK
+- parked: .icm/intake/triage/reservations-deux-gardes-meme-nuit.md, reservations-reponse-suspendue.md, reservations-regles-non-appelees.md, reservations-compte-reponses-une-demande.md
+- migrations: skip — check-migrations.sh reads no stamped migrations (Drizzle journal); `0007_candidature_reservation` regenerated after main's `0006`, run branch reset, preview branch deleted and rebuilt
+- learned: none from retrospective.sh (no error.log); 3 rules in FAILURE.md, copied by close-out.sh
+- docs: no docs impact (`.icm/docs` unchanged; README and AGENTS updated in this PR) · announce: deferred to promotion
+
+Context budget: /code-review and /security-review read the whole branch diff, beyond the Inputs table.
