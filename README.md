@@ -195,9 +195,9 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   digest a day: `POST /api/cron/demandes-digest`, bearer `CRON_SECRET`, sends from 18:00 in
   Brussels only and puts each request in one digest at most. **Scheduling (D-52):**
   `.github/workflows/demandes-digest.yml` calls the route on UAT and production at 16:00 and
-  17:00 UTC (and on demand), with the repository secrets `CRON_SECRET_UAT` and
-  `CRON_SECRET_PRODUCTION`; Vercel Cron is not used because it never runs on the `uat`
-  environment. Set the same value as `CRON_SECRET` on each Vercel environment.
+  17:00 UTC (and on demand), with the repository secret `CRON_SECRET`; Vercel Cron is not
+  used because it never runs on the `uat` environment. One value serves both environments
+  (D-58): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets.
 
 ## The professional's onboarding and documents
 

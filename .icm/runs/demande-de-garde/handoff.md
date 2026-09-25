@@ -15,7 +15,7 @@ stops, so nothing is carried in anyone's head.
 ## Blockers
 
 - blocked on operator: tick **Ready to merge** in the body of https://github.com/k0d0minio/berceo/pull/40 after the smoke
-- `CRON_SECRET` is not set on Vercel (`env.sh audit --changed` → GAPS 1); Release re-asks it as stop class 3. blocked on operator: set `CRON_SECRET` on the Vercel project `berceo` for Production and for the `uat` / Preview environments.
+- `CRON_SECRET` is not set on Vercel (`env.sh audit --changed` → GAPS 1); Release re-asks it as stop class 3. blocked on operator: set one `CRON_SECRET` value on the Vercel project `berceo` for Production and for the `uat` / Preview environments, and the same value as the GitHub repository secret `CRON_SECRET` (D-58).
 
 ## Do not
 

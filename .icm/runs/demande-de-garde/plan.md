@@ -49,8 +49,8 @@ reality disagrees with it — never left describing a plan that was abandoned.
    own origin — done when: the route's tests prove 401 without the secret, nothing before 18:00,
    one e-mail per professional after, nothing on a second call.
 8. **The schedule** — `.github/workflows/demandes-digest.yml` (`0 16,17 * * *` +
-   `workflow_dispatch`, POST to UAT and production with `CRON_SECRET_UAT` /
-   `CRON_SECRET_PRODUCTION`, skip with a warning when a secret is missing), `CRON_SECRET` in
+   `workflow_dispatch`, POST to UAT and production with the one repository secret `CRON_SECRET` (D-58),
+   skip with a warning when it is missing), `CRON_SECRET` in
    `.env.example` — done when: the workflow file is valid (CI's lint of workflows, if any) and a
    manual dispatch after merge is listed as an operator step.
 9. **Docs** — README « The care request » section and the `AGENTS.md` routing row — done when:

@@ -48,7 +48,8 @@
 
 - **D-56 is a spec gap:** the digest's idempotency key adds a hash of the request ids to the spec's `digest-<professional>-<day>`, and requests are claimed before sending (a failed send is not retried). Reviewers should check the claim-then-send trade-off.
 - Editing a normal request re-applies its window from the day of the edit, as the spec says: a request made for the day after tomorrow cannot be edited the next day without moving its date later. Flag it to the founders if they find it odd.
-- `CRON_SECRET` is missing on Vercel (`env.sh audit --changed` → GAPS 1): the route answers 401 until the operator sets it on each environment, and the workflow skips an environment until `CRON_SECRET_UAT` / `CRON_SECRET_PRODUCTION` exist in GitHub. Nothing else depends on it.
+- `CRON_SECRET` is missing on Vercel (`env.sh audit --changed` → GAPS 1): the route answers 401 until the operator sets it on each environment, and the workflow skips both calls until the repository secret `CRON_SECRET` exists in GitHub, one value for all (D-58). Nothing else depends on it.
+- **D-58 is a change after approval:** the spec's Proposed change and its workflow criterion still name `CRON_SECRET_UAT` / `CRON_SECRET_PRODUCTION`; the operator chose one shared `CRON_SECRET` after Build. The code, workflow, README and `.env.example` follow D-58.
 - The professional's list can only be smoke-tested with a profile set to `valide` by hand on the preview's Neon branch, until verification-back-office merges.
 - `format.sh` and `lint.sh` are not wired in this repo (SKIP): the post-flip advisory quality job is the first lint/typecheck/test read of this code.
 - Context budget: read the family-profile and onboarding code (forms, shell, guard, templates, tests) as patterns, beyond `touches:`.

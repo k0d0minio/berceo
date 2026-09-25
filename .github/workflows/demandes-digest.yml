@@ -5,8 +5,9 @@
 # route on both. It runs at 16:00 and 17:00 UTC: the route sends only from
 # 18:00 in Brussels (16:00 UTC in summer, 17:00 UTC in winter) and puts each
 # request in one digest at most, so the other call of the day sends nothing.
-# Each environment has its own secret; one that is missing is skipped with a
-# warning, never a failure, so UAT can run before production has one.
+# One secret, CRON_SECRET, is shared by both environments (D-58): the same
+# value is set on each Vercel environment and as this repository's secret.
+# While it is missing the run is skipped with a warning, never a failure.
 name: Demandes digest
 
 on:
@@ -31,19 +32,16 @@ jobs:
         include:
           - environment: uat
             url: https://uat.berceo.be
-            secret: CRON_SECRET_UAT
           - environment: production
             url: https://www.berceo.be
-            secret: CRON_SECRET_PRODUCTION
     steps:
       - name: Call the digest route
         env:
-          CRON_SECRET: ${{ secrets[matrix.secret] }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
           URL: ${{ matrix.url }}
-          SECRET_NAME: ${{ matrix.secret }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
-            echo "::warning::$SECRET_NAME is not set: the $URL digest is skipped."
+            echo "::warning::CRON_SECRET is not set: the $URL digest is skipped."
             exit 0
           fi
           curl --fail-with-body --silent --show-error --max-time 60 \
