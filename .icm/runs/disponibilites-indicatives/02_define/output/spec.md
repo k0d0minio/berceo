@@ -28,11 +28,11 @@ block and its data read; those two stubs mount the block (D-69).
 Dates are calendar dates in Europe/Brussels, computed with the existing helpers of
 `src/lib/demandes/rules.ts` (`brusselsNow`, `addDays`), never re-implemented.
 
-**Two states (D-72).** A night is either marked available or not. « Disponible » marks it,
+**Two states (D-81).** A night is either marked available or not. « Disponible » marks it,
 « Indisponible » clears the mark. Only available nights are stored; an unmarked night and a night
 marked « Indisponible » are the same thing. Families only ever see available nights.
 
-**The window (D-70).** A professional can mark any night from tonight to today + 56 days
+**The window (D-79).** A professional can mark any night from tonight to today + 56 days
 included (57 nights), the same last day as a normal care request (`NORMAL_LAST_DAY`), so every
 night a family can ask for can be marked. Tonight stays markable until midnight in Brussels. A
 night before today is neither shown nor accepted; stored nights that fall behind today are ignored
@@ -72,7 +72,7 @@ The page, top to bottom, in the guide's words verbatim:
 A save that fails (a date outside the window, a status no longer `valide`) changes nothing and
 says why in a form message; the calendar keeps her selection.
 
-**The family-facing block — « Prochaines disponibilités » (D-71).** A server component in
+**The family-facing block — « Prochaines disponibilités » (D-80).** A server component in
 `src/components/disponibilites/` that takes the list of dates to show and renders:
 
 - the heading « Prochaines disponibilités »;
@@ -159,7 +159,7 @@ states, the window, the block and who mounts it) and the routing row in `AGENTS.
 - Any filter, sort or match on availability: search results, the professional's request list, the e-mails (the guide and D-12: indicative only).
 - Any binding booking from the calendar; a night marked available is never a commitment.
 - Recurring patterns (« every Friday »), time ranges inside a night, daytime slots.
-- A three-state night (« Indisponible » stored apart from unmarked) (D-72).
+- A three-state night (« Indisponible » stored apart from unmarked) (D-81).
 - Nights beyond today + 56 days; purging nights that fell behind today.
 - Reminders to update the calendar, e-mails of any kind, calendar export or sync (iCal, Google).
 - The calendar before validation, and availability in the admin back-office.
@@ -167,6 +167,6 @@ states, the window, the block and who mounts it) and the routing row in `AGENTS.
 
 ## Open questions
 
-- none. Non-blocking notes: the placement (D-69), the 56-day window (D-70), the five nights shown (D-71) and the two-state night (D-72) are the operator's answers in this Define session, 2026-09-25; `revise` changes them. messagerie may add a migration in parallel; the two must be generated one after the other on the merged tree. The decision ids D-69 to D-72 are the next free ones on `main`; a run defined in parallel that takes the same ids renumbers at its merge, as demande-de-garde did.
+- none. Non-blocking notes: the placement (D-69), the 56-day window (D-79), the five nights shown (D-80) and the two-state night (D-81) are the operator's answers in this Define session, 2026-09-25; `revise` changes them. messagerie may add a migration in parallel; the two must be generated one after the other on the merged tree. The decision ids D-69 to D-81 are the next free ones on `main`; a run defined in parallel that takes the same ids renumbers at its merge, as demande-de-garde did.
 
 Context budget: read Surya's editorial guide (« Les disponibilités », « La recherche ») and the professional's space and `src/lib/demandes/rules.ts` beyond the Inputs table, to quote the guide exactly and to reuse the Brussels date helpers.

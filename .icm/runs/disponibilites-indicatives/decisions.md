@@ -39,6 +39,7 @@ decision made mid-run has one home.
 ## Made in this run
 
 - D-69 — This run builds the « Prochaines disponibilités » block, its read and a preview on the professional's own page; candidature-et-reservation and recherche-et-fiches-publiques mount it on the family-facing full profile and cards. No family-facing page exists yet. Operator, Define, 2026-09-25.
-- D-70 — A professional marks nights from tonight to today + 56 days (Brussels), the last day of a normal care request. Operator, Define, 2026-09-25.
-- D-71 — « Prochaines disponibilités » shows the next five marked nights from tonight; with none, a line saying none is indicated and a request can still be sent. Operator, Define, 2026-09-25.
-- D-72 — A night is two-state: marked available or not. « Indisponible » clears the mark; only available nights are stored. Operator, Define, 2026-09-25.
+- D-79 — A professional marks nights from tonight to today + 56 days (Brussels), the last day of a normal care request. Operator, Define, 2026-09-25.
+- D-80 — « Prochaines disponibilités » shows the next five marked nights from tonight; with none, a line saying none is indicated and a request can still be sent. Operator, Define, 2026-09-25.
+- D-81 — A night is two-state: marked available or not. « Indisponible » clears the mark; only available nights are stored. Operator, Define, 2026-09-25.
+- Renumbered in Build, 2026-09-25: Define numbered the last three D-70, D-71 and D-72, which candidature-et-reservation (defined in parallel, `claude/kind-faraday-8m50tu`) had also taken (its D-70 to D-78). This run's are now D-79, D-80 and D-81; D-69 stands. No decision changed.

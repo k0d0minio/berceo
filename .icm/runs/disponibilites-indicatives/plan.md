@@ -56,4 +56,4 @@ reality disagrees with it — never left describing a plan that was abandoned.
   23:30 UTC in summer shows the wrong first night.
 - **Smoke on UAT needs a `valide` profile**: verification-back-office is merged, so a founder can
   validate a test professional from `/admin`; no database edit needed.
-- **Decision ids D-69 to D-72** may collide with a run defined in parallel; renumber at the merge.
+- **Decision ids D-69 to D-81** may collide with a run defined in parallel; renumber at the merge.
