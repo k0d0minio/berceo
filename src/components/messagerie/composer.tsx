@@ -8,15 +8,14 @@ import { Button } from "@/components/ui/button"
 import { words } from "@/content/locale"
 import { messagerie } from "@/content/messagerie"
 import type { SendState } from "@/lib/messagerie/actions"
-import { MESSAGE_MAX } from "@/lib/messagerie/rules"
 
 /*
  * The field and « Envoyer » (E-01). Each message gets its id here, as it
  * leaves: a send retried after a failure or clicked twice carries the same id,
  * and the server inserts it once. The id changes, and the field empties, only
  * once the server says this message was sent. The button waits while a send
- * is in flight. Plain text; the length rule is the server's, the browser's
- * limit only a courtesy.
+ * is in flight. Plain text; the length rule is the server's alone (the
+ * browser's `maxLength` counts an emoji as two, the rule as one).
  */
 
 const t = words(messagerie)
@@ -52,7 +51,6 @@ function Composer({ action }: { action: (state: SendState, form: FormData) => Pr
         id="champ-message"
         name="message"
         rows={4}
-        maxLength={MESSAGE_MAX}
         value={text}
         onChange={(event) => setText(event.target.value)}
         aria-invalid={state.error === "vide" || state.error === "tropLong" ? true : undefined}

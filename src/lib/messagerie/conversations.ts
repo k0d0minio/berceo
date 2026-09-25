@@ -105,14 +105,15 @@ export function withConversation(answerInsert: SQL, at: string): SQL {
  * For the booking's batch, after the booking is made: Berceo's « excellente
  * garde » in the booked answer's conversation, and in no other (D-87). An
  * answer without a conversation (none should remain after the migration)
- * gets one here. Nothing happens when the booking was not made.
+ * gets one here. Nothing happens when this batch did not make the booking
+ * (a second click finds the first one's booking, confirmed at another moment).
  */
 export function bonneGardeStatement(applicationId: string, at: string): SQL {
   return sql`
     with conversation as (
       insert into conversations (application_id, request_id, profile_id, family_user_id, last_message_at, created_at, updated_at)
       select b.application_id, b.request_id, b.profile_id, b.family_user_id, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
-      from bookings b where b.application_id = ${applicationId}
+      from bookings b where b.application_id = ${applicationId} and b.confirmed_at = ${at}::timestamptz
       on conflict (application_id) do update
         set last_message_at = excluded.last_message_at, updated_at = excluded.updated_at
       returning id
