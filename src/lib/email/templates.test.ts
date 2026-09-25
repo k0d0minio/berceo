@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import {
   escapeHtml,
+  requestDigestEmail,
   resetPasswordEmail,
+  urgentRequestEmail,
   verificationEmail,
   welcomeFamilyEmail,
   type RenderedEmail,
+  type RequestSummary,
 } from "./templates";
 
 /**
@@ -16,10 +19,26 @@ import {
 
 const SITE = "https://uat.berceo.be";
 
+const IXELLES: RequestSummary = {
+  commune: "Ixelles",
+  nuit: "30/09/2026 de 20h00 à 7h00",
+  enfants: "Un bébé de trois mois",
+  date: "30/09/2026",
+};
+const UCCLE: RequestSummary = {
+  commune: "Uccle",
+  nuit: "02/10/2026 de 21h00 à 8h00",
+  enfants: "Jumeaux de six semaines",
+  date: "02/10/2026",
+};
+const LIST = `${SITE}/espace/professionnelle/demandes`;
+
 const all: [string, RenderedEmail][] = [
   ["verification", verificationEmail({ siteUrl: SITE, prenom: "Julie", url: `${SITE}/v?token=a` })],
   ["reset", resetPasswordEmail({ siteUrl: SITE, prenom: "Julie", url: `${SITE}/r?token=a` })],
   ["welcome", welcomeFamilyEmail({ siteUrl: SITE, prenom: "Julie", url: `${SITE}/espace/famille` })],
+  ["urgent request", urgentRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES })],
+  ["digest", requestDigestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, requests: [IXELLES, UCCLE] })],
 ];
 
 describe.each(all)("%s e-mail", (_name, email) => {
@@ -66,5 +85,38 @@ describe("escaping", () => {
     expect(escapeHtml(`<b>"Jo" & 'Al'</b>`)).toBe("&lt;b&gt;&quot;Jo&quot; &amp; &#39;Al&#39;&lt;/b&gt;");
     const email = welcomeFamilyEmail({ siteUrl: SITE, prenom: "<script>", url: `${SITE}/e` });
     expect(email.html).not.toContain("<script>");
+  });
+});
+
+describe("urgent request e-mail", () => {
+  const email = urgentRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES });
+
+  it("says it is urgent, where and when, in its subject", () => {
+    expect(email.subject).toBe("Demande urgente à Ixelles pour le 30/09/2026");
+  });
+
+  it("names the night and the children, and leads to the list", () => {
+    expect(email.text).toContain("pour la nuit du 30/09/2026 de 20h00 à 7h00. Un bébé de trois mois.");
+    expect(email.text).toContain(`Voir les demandes disponibles : ${LIST}`);
+  });
+
+  it("carries no price (D-3, D-4)", () => {
+    expect(email.text).not.toContain("€");
+  });
+});
+
+describe("digest e-mail", () => {
+  it("lists every request once, with a subject that counts them", () => {
+    const email = requestDigestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, requests: [IXELLES, UCCLE] });
+    expect(email.subject).toBe("2 nouvelles demandes de garde dans votre zone");
+    expect(email.text).toContain("Ixelles, nuit du 30/09/2026 de 20h00 à 7h00. Un bébé de trois mois.");
+    expect(email.text).toContain("Uccle, nuit du 02/10/2026 de 21h00 à 8h00. Jumeaux de six semaines.");
+    expect(email.text).toContain(`Voir les demandes disponibles : ${LIST}`);
+  });
+
+  it("speaks of one request when there is one", () => {
+    const email = requestDigestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, requests: [IXELLES] });
+    expect(email.subject).toBe("Une nouvelle demande de garde dans votre zone");
+    expect(email.text).toContain("Une nouvelle demande a été publiée");
   });
 });

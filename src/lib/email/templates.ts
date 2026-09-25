@@ -138,3 +138,50 @@ export function welcomeFamilyEmail(input: {
     }),
   };
 }
+
+/** One request as the e-mails name it: its commune, its night, its children. */
+export type RequestSummary = { commune: string; nuit: string; enfants: string; date: string };
+
+/** A new urgent request in her communes, sent at once (D-51). */
+export function urgentRequestEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  url: string;
+  request: RequestSummary;
+}): RenderedEmail {
+  const u = t.demandeUrgente;
+  const { commune, nuit, enfants, date } = input.request;
+  return {
+    subject: fill(u.objet, { commune, date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(u.corps, { commune, nuit, enfants }), u.appel],
+      cta: { label: u.cta, href: input.url },
+    }),
+  };
+}
+
+/** The daily digest of the normal requests published in her communes (D-51). */
+export function requestDigestEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  url: string;
+  requests: readonly RequestSummary[];
+}): RenderedEmail {
+  const r = t.resumeDemandes;
+  const n = String(input.requests.length);
+  const one = input.requests.length === 1;
+  return {
+    subject: one ? r.objetUne : fill(r.objet, { n }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [
+        one ? r.introUne : fill(r.intro, { n }),
+        ...input.requests.map(({ commune, nuit, enfants }) => fill(r.ligne, { commune, nuit, enfants })),
+      ],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
