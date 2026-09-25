@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  absenceReportedEmail,
   bookingFamilyEmail,
   bookingProfessionalEmail,
   complementRequestedEmail,
   escapeHtml,
+  gardeCancelledByFamilyEmail,
+  gardeCancelledByProfessionalEmail,
   newAnswerEmail,
   newMessageEmail,
   notRetainedEmail,
@@ -12,6 +15,8 @@ import {
   profileRefusedEmail,
   profileValidatedEmail,
   refundFamilyEmail,
+  reminderFamilyEmail,
+  reminderProfessionalEmail,
   requestDigestEmail,
   resetPasswordEmail,
   urgentRequestEmail,
@@ -82,6 +87,30 @@ const all: [string, RenderedEmail][] = [
   [
     "new message",
     newMessageEmail({ siteUrl: SITE, prenom: "Julie", auteur: "Emma", date: "30/09/2026", url: `${SITE}/espace/famille/messages/c1` }),
+  ],
+  [
+    "garde cancelled by the family",
+    gardeCancelledByFamilyEmail({ siteUrl: SITE, prenom: "Julie", prenomFamille: "Sophie", date: "30/09/2026", url: `${SITE}/g` }),
+  ],
+  [
+    "garde cancelled by the professional",
+    gardeCancelledByProfessionalEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      professionnelle: "Emma",
+      date: "30/09/2026",
+      refund: "fait",
+      url: `${SITE}/b`,
+    }),
+  ],
+  ["absence reported", absenceReportedEmail({ siteUrl: SITE, prenom: "Julie", auteur: "Emma", date: "30/09/2026", url: `${SITE}/b` })],
+  [
+    "reminder (family)",
+    reminderFamilyEmail({ siteUrl: SITE, prenom: "Julie", professionnelle: "Emma", date: "30/09/2026", heure: "20h00", url: `${SITE}/b` }),
+  ],
+  [
+    "reminder (professional)",
+    reminderProfessionalEmail({ siteUrl: SITE, prenom: "Julie", prenomFamille: "Sophie", date: "30/09/2026", heure: "20h00", url: `${SITE}/g` }),
   ],
 ];
 
@@ -300,5 +329,70 @@ describe("the new-message e-mail (messagerie, D-90)", () => {
       "Sophie vous a écrit au sujet de la garde du 30/09/2026. Vous pouvez lui répondre sur Berceo.",
     );
     expect(email.text).toContain(`Lire le message : ${url}`);
+  });
+});
+
+/**
+ * Spec (cycle-de-garde-et-annulation, D-2, D-105 to D-108, D-111): each
+ * cancellation e-mails the other side; the family's says the fee is refunded
+ * only when she paid one; the absent side is told an absence was recorded; the
+ * reminder of the day before goes to both; both confirmations and both
+ * reminders carry the platform line, with no insurance wording, and nothing
+ * else does.
+ */
+describe("the garde's e-mails (cycle-de-garde-et-annulation)", () => {
+  const CADRE =
+    "Berceo est un intermédiaire : la rémunération de la professionnelle se fait directement entre vous, après la garde.";
+
+  it("carries the platform line in both confirmations and both reminders only", () => {
+    const withLine = ["booking (family)", "booking (professional)", "reminder (family)", "reminder (professional)"];
+    for (const [name, email] of all) {
+      expect(email.text.includes(CADRE)).toBe(withLine.includes(name));
+    }
+    expect(CADRE.toLowerCase()).not.toMatch(/assur|couvert/);
+  });
+
+  it("tells the professional the family cancelled, and leads to her gardes", () => {
+    const email = gardeCancelledByFamilyEmail({ siteUrl: SITE, prenom: "Emma", prenomFamille: "Sophie", date: "30/09/2026", url: `${SITE}/g` });
+    expect(email.subject).toBe("Garde du 30/09/2026 annulée");
+    expect(email.text).toContain("Sophie a annulé la garde du 30/09/2026.");
+    expect(email.text).toContain(`Voir mes gardes : ${SITE}/g`);
+  });
+
+  it("tells the family the professional cancelled, and the refund only as far as Stripe made it", () => {
+    const input = { siteUrl: SITE, prenom: "Julie", professionnelle: "Emma", date: "30/09/2026", url: `${SITE}/b` };
+    const refunded = gardeCancelledByProfessionalEmail({ ...input, refund: "fait" });
+    expect(refunded.subject).toBe("Votre garde du 30/09/2026 est annulée");
+    expect(refunded.text).toContain("Emma a annulé la garde du 30/09/2026.");
+    expect(refunded.text).toContain("Les frais de service de 3 % vous sont intégralement remboursés.");
+    expect(refunded.text).toContain("republier votre demande");
+    const pending = gardeCancelledByProfessionalEmail({ ...input, refund: "enCours" }).text;
+    expect(pending).toContain("est en cours");
+    expect(pending).not.toContain("vous sont intégralement remboursés");
+    expect(gardeCancelledByProfessionalEmail({ ...input, refund: null }).text).not.toMatch(/rembours/);
+  });
+
+  it("tells the absent side who reported the absence, for which night", () => {
+    const email = absenceReportedEmail({ siteUrl: SITE, prenom: "Julie", auteur: "Emma", date: "30/09/2026", url: `${SITE}/b` });
+    expect(email.subject).toBe("Une absence a été signalée pour la garde du 30/09/2026");
+    expect(email.text).toContain("Emma nous a signalé votre absence lors de la garde du 30/09/2026.");
+  });
+
+  it("reminds each side of tomorrow's garde, the hour and the other's first name", () => {
+    const family = reminderFamilyEmail({ siteUrl: SITE, prenom: "Julie", professionnelle: "Emma", date: "30/09/2026", heure: "20h00", url: `${SITE}/b` });
+    expect(family.subject).toBe("Rappel : votre garde du 30/09/2026");
+    expect(family.text).toContain("Emma sera chez vous demain, le 30/09/2026, à partir de 20h00.");
+    expect(family.text).toContain(`Voir les détails de ma réservation : ${SITE}/b`);
+    const professional = reminderProfessionalEmail({
+      siteUrl: SITE,
+      prenom: "Emma",
+      prenomFamille: "Sophie",
+      date: "30/09/2026",
+      heure: "20h00",
+      url: `${SITE}/g`,
+    });
+    expect(professional.subject).toBe("Rappel : votre garde du 30/09/2026 chez Sophie");
+    expect(professional.text).toContain("Vous êtes attendue demain, le 30/09/2026, à partir de 20h00, chez Sophie.");
+    expect(professional.text).toContain(`Voir les détails de la garde : ${SITE}/g`);
   });
 });

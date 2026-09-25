@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { FormMessage } from "@/components/auth/field";
 import { CancelRequest } from "@/components/demandes/cancel-request";
+import { GardeStateMark } from "@/components/gardes/garde-state";
 import { RequestCard } from "@/components/demandes/request-card";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
@@ -28,6 +29,7 @@ import { feeLine } from "@/lib/paiements/format";
 import { PAYMENT_RETURN_PATH } from "@/lib/paiements/paths";
 import { isSessionId } from "@/lib/paiements/rules";
 import { familyAnswers } from "@/lib/reservations/answers";
+import { gardeState } from "@/lib/gardes/rules";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
 import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import { familyBookingPath, professionalProfilePath } from "@/lib/reservations/paths";
@@ -109,10 +111,11 @@ export default async function DemandePage({
   const notice = message(query);
   const open = isChangeable(request, now);
   const facts = { ...request, priorityProfileId: null };
-  const [answers, hasAddress, bookingId] = await Promise.all([
+  const [answers, hasAddress, booking] = await Promise.all([
     open ? familyAnswers(user.id, request.id) : Promise.resolve([]),
     open ? familyHasAddress(user.id) : Promise.resolve(false),
-    request.status === "attribuee" ? bookingOfRequest(user.id, request.id) : Promise.resolve(null),
+    // A booked request, and one whose garde was cancelled since (D-110), link to the garde.
+    request.status !== "ouverte" ? bookingOfRequest(user.id, request.id) : Promise.resolve(null),
   ]);
   const night = recapNight(request.nightDate, request.startTime);
   const conversationIds = await conversationsOfAnswers(user.id, answers.map((answer) => answer.applicationId));
@@ -136,10 +139,13 @@ export default async function DemandePage({
         <RequestCard request={request} status={displayStatus(request, now)} />
       </div>
 
-      {bookingId ? (
-        <div className="flex flex-wrap gap-3">
+      {booking ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <GardeStateMark
+            state={gardeState({ status: booking.status, nightDate: request.nightDate, startTime: request.startTime }, now)}
+          />
           <Button asChild>
-            <Link href={familyBookingPath(bookingId)}>{r.famille.voirReservation}</Link>
+            <Link href={familyBookingPath(booking.id)}>{r.famille.voirReservation}</Link>
           </Button>
         </div>
       ) : null}

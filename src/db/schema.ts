@@ -505,11 +505,26 @@ export const careRequestApplications = pgTable(
 );
 
 /**
+ * A garde's stored status (D-109): `confirmee` from the payment, `annulee` once
+ * either side cancels it or reports the other absent. À venir, en cours and
+ * terminée are read from the night and the clock (`src/lib/gardes/rules.ts`),
+ * never stored.
+ */
+export const bookingStatusEnum = pgEnum("booking_status", ["confirmee", "annulee"]);
+
+/** One side of a garde: the side a cancellation is recorded against (D-105, D-106). */
+export const bookingSideEnum = pgEnum("booking_side", ["famille", "professionnelle"]);
+
+/** How a garde ended early: cancelled before its start, or an absence reported after it (D-106). */
+export const cancellationKindEnum = pgEnum("cancellation_kind", ["annulation", "absence"]);
+
+/**
  * The night two people agreed on. Made from one answer, for one request, and
- * one per professional per night (D-73). It carries no address: the
- * professional reads the family's through `src/lib/famille/` (D-77). Its
- * status, cancellation and the time-driven states come with
- * cycle-de-garde-et-annulation.
+ * one confirmed garde per professional per night (D-73). It carries no
+ * address: the professional reads the family's through `src/lib/famille/`
+ * (D-77). `src/lib/gardes/` writes its cancellation: `cancelled_by` is the side
+ * responsible (the absent one for an absence), `cancelled_by_user_id` who
+ * clicked (D-105, D-106).
  */
 export const bookings = pgTable(
   "bookings",
@@ -533,12 +548,35 @@ export const bookings = pgTable(
     nightDate: date("night_date").notNull(),
     nightRateEur: integer("night_rate_eur").notNull(),
     confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull().defaultNow(),
+    status: bookingStatusEnum("status").notNull().default("confirmee"),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    cancelledBy: bookingSideEnum("cancelled_by"),
+    cancelledByUserId: uuid("cancelled_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    cancellationKind: cancellationKindEnum("cancellation_kind"),
+    /** When the reminder of the day before claimed it (D-108); null until then. */
+    reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex("bookings_profile_night_key").on(table.profileId, table.nightDate),
+    // One confirmed garde per professional per night: a cancelled one frees it.
+    uniqueIndex("bookings_profile_night_key")
+      .on(table.profileId, table.nightDate)
+      .where(sql`${table.status} = 'confirmee'`),
     index("bookings_family_night_idx").on(table.familyUserId, table.nightDate),
+    // What the next reminder has to carry.
+    index("bookings_reminder_pending_idx")
+      .on(table.nightDate)
+      .where(sql`${table.status} = 'confirmee' AND ${table.reminderSentAt} IS NULL`),
+    // The founders' list of reported absences.
+    index("bookings_absence_idx")
+      .on(table.cancelledAt)
+      .where(sql`${table.cancellationKind} = 'absence'`),
     check("bookings_night_rate_range", sql`${table.nightRateEur} BETWEEN 100 AND 300`),
+    check("bookings_cancelled_at", sql`(${table.status} = 'annulee') = (${table.cancelledAt} IS NOT NULL)`),
+    check(
+      "bookings_cancellation",
+      sql`(${table.cancelledAt} IS NULL) = (${table.cancelledBy} IS NULL) AND (${table.cancelledAt} IS NULL) = (${table.cancellationKind} IS NULL)`,
+    ),
   ],
 );
 
@@ -798,6 +836,9 @@ export type BabyAgeUnit = (typeof babyAgeUnitEnum.enumValues)[number];
 export type CareRequestApplication = typeof careRequestApplications.$inferSelect;
 export type ApplicationStatus = (typeof applicationStatusEnum.enumValues)[number];
 export type Booking = typeof bookings.$inferSelect;
+export type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
+export type BookingSide = (typeof bookingSideEnum.enumValues)[number];
+export type CancellationKind = (typeof cancellationKindEnum.enumValues)[number];
 export type Conversation = typeof conversations.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type MessageAuthor = (typeof messageAuthorEnum.enumValues)[number];
