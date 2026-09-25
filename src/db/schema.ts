@@ -20,6 +20,9 @@
  *
  * A professional's indicative availability (disponibilites-indicatives) is the
  * nights she marked available; nothing about a care request reads it (D-12).
+ *
+ * The service fee (frais-de-service) is one `payments` row per Stripe
+ * Checkout opened, linked to the booking its payment made (D-90, D-93).
  */
 import { sql } from "drizzle-orm";
 import {
@@ -536,6 +539,96 @@ export const bookings = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// The service fee
+// ---------------------------------------------------------------------------
+
+/**
+ * A fee's life (D-90 to D-94): `en_attente` while its Checkout is open (read as
+ * expired once `expires_at` passes, D-92); `payee` once Stripe reports it paid;
+ * `expiree` when abandoned or expired; `echouee` when an asynchronous payment
+ * failed; `remboursee` once refunded; `remboursement_echoue` when Stripe
+ * reported the refund failed.
+ */
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "en_attente",
+  "payee",
+  "expiree",
+  "echouee",
+  "remboursee",
+  "remboursement_echoue",
+]);
+
+/**
+ * Why a fee was refunded (D-94): the professional cancelled (stub 11), the
+ * booking could no longer be made (D-91), the founders' button (D-89), or a
+ * refund made in Stripe's dashboard.
+ */
+export const refundReasonEnum = pgEnum("refund_reason", [
+  "annulation_professionnelle",
+  "reservation_impossible",
+  "berceo",
+  "stripe",
+]);
+
+/**
+ * One row per Stripe Checkout opened for the 3 % fee (D-87, D-93). The fee is
+ * a money record: every link is set null, never cascaded, so deleting an
+ * account never deletes what was paid, and the night and the rate are kept
+ * on the row. Only `src/lib/paiements/` reads and writes it.
+ */
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requestId: uuid("request_id").references(() => careRequests.id, { onDelete: "set null" }),
+    applicationId: uuid("application_id").references(() => careRequestApplications.id, {
+      onDelete: "set null",
+    }),
+    familyUserId: uuid("family_user_id").references(() => users.id, { onDelete: "set null" }),
+    /** The booking this payment made, once made (D-90). */
+    bookingId: uuid("booking_id")
+      .unique()
+      .references(() => bookings.id, { onDelete: "set null" }),
+    nightDate: date("night_date").notNull(),
+    /** The answer's rate the fee was computed from (D-74). */
+    nightRateEur: integer("night_rate_eur").notNull(),
+    /** 3 % of the rate, in cents: rate × 3 (D-87). */
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency").notNull().default("eur"),
+    status: paymentStatusEnum("status").notNull().default("en_attente"),
+    stripeSessionId: text("stripe_session_id").notNull().unique(),
+    stripePaymentIntentId: text("stripe_payment_intent_id"),
+    stripeRefundId: text("stripe_refund_id"),
+    /** When the Checkout closes on its own (30 minutes, D-92). */
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    refundedAt: timestamp("refunded_at", { withTimezone: true }),
+    refundReason: refundReasonEnum("refund_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    // One open Checkout per request (D-92).
+    uniqueIndex("payments_one_open_per_request")
+      .on(table.requestId)
+      .where(sql`${table.status} = 'en_attente'`),
+    index("payments_created_at_idx").on(table.createdAt),
+    index("payments_payment_intent_idx").on(table.stripePaymentIntentId),
+    check("payments_amount_range", sql`${table.amountCents} BETWEEN 300 AND 900`),
+    check("payments_currency", sql`${table.currency} = 'eur'`),
+    check(
+      "payments_paid_at",
+      sql`(${table.status} IN ('payee', 'remboursee', 'remboursement_echoue')) = (${table.paidAt} IS NOT NULL)`,
+    ),
+    check("payments_refund_pair", sql`(${table.refundedAt} IS NULL) = (${table.refundReason} IS NULL)`),
+    check(
+      "payments_refunded",
+      sql`${table.status} NOT IN ('remboursee', 'remboursement_echoue') OR ${table.refundedAt} IS NOT NULL`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------
 
@@ -561,6 +654,7 @@ export const adminActionEnum = pgEnum("admin_action", [
   "profil_refuse",
   "reglage_etudiantes",
   "documents_supprimes",
+  "frais_rembourses",
 ]);
 
 /**
@@ -612,3 +706,6 @@ export type BabyAgeUnit = (typeof babyAgeUnitEnum.enumValues)[number];
 export type CareRequestApplication = typeof careRequestApplications.$inferSelect;
 export type ApplicationStatus = (typeof applicationStatusEnum.enumValues)[number];
 export type Booking = typeof bookings.$inferSelect;
+export type Payment = typeof payments.$inferSelect;
+export type PaymentStatus = (typeof paymentStatusEnum.enumValues)[number];
+export type RefundReason = (typeof refundReasonEnum.enumValues)[number];

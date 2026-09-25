@@ -57,6 +57,13 @@
       "when": 1790340283687,
       "tag": "0007_candidature_reservation",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790346018982,
+      "tag": "0008_frais_de_service",
+      "breakpoints": true
     }
   ]
 }
