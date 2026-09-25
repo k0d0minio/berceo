@@ -45,6 +45,9 @@ export const paiement = catalogue({
       /** @relecture Surya — payé, mais la garde ne peut plus être réservée (D-91). */
       rembourse:
         "Votre garde n'a pas pu être confirmée : la demande ou la réponse a changé pendant le paiement. Les frais de service vous sont intégralement remboursés.",
+      /** @relecture Surya — payé, pas réservable, et Stripe a refusé le remboursement : l'équipe s'en occupe. */
+      remboursementEnAttente:
+        "Votre garde n'a pas pu être confirmée : la demande ou la réponse a changé pendant le paiement. Le remboursement des frais de service n'a pas encore abouti, l'équipe Berceo s'en occupe.",
       /** @relecture Surya — paiement abandonné ou refusé. */
       abandonne: "Le paiement n'a pas abouti. Votre demande reste ouverte.",
       /** @relecture Surya — la page de paiement n'a pas pu s'ouvrir. */

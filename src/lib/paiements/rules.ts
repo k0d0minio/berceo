@@ -8,6 +8,11 @@ import type { PaymentStatus, RefundReason } from "@/db/schema";
  * to the spec; `./payments.ts` holds them again in its SQL.
  */
 
+/** A Stripe Checkout session id, test or live: the only form the return pages accept. */
+export function isSessionId(value: string | null | undefined): value is string {
+  return typeof value === "string" && /^cs_(test|live)_[A-Za-z0-9]+$/.test(value);
+}
+
 /** The fee: 3 % of the night rate, all-in, VAT included (D-2, D-87). */
 export const FEE_PERCENT = 3;
 

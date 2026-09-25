@@ -31,6 +31,8 @@ function destination(result: ConfirmResult, sessionId: string): string {
         : FAMILY_REQUESTS_PATH;
     case "remboursee":
       return request(result.requestId, "rembourse");
+    case "remboursementEnAttente":
+      return request(result.requestId, "remboursementEnAttente");
     case "nonPayee":
       return request(result.requestId, "abandonne");
     case "inconnue":
@@ -48,8 +50,12 @@ export async function GET(request: Request): Promise<Response> {
   let result: ConfirmResult;
   try {
     result = await confirmPayment(sessionId, await siteOrigin(), new Date());
-  } catch {
-    // Logged with ids by confirmPayment; the webhook's retry finishes the job.
+  } catch (error) {
+    // The payment stays paid and unbooked: the webhook's retry or « Actualiser » settles it.
+    console.error("[paiements] return page could not settle", {
+      requestId: owner.requestId,
+      error: error instanceof Error ? error.name : typeof error,
+    });
     result = { kind: "enCours", requestId: owner.requestId };
   }
 

@@ -8,6 +8,7 @@ import {
   eurosFromCents,
   feeCents,
   isRefundable,
+  isSessionId,
   refundKey,
   refundSync,
 } from "./rules";
@@ -60,6 +61,17 @@ describe("an open Checkout (D-92)", () => {
     const past = new Date("2026-10-01T19:00:00Z");
     expect(effectiveStatus({ status: "payee", expiresAt: past }, now)).toBe("payee");
     expect(effectiveStatus({ status: "remboursee", expiresAt: past }, now)).toBe("remboursee");
+  });
+});
+
+describe("a Checkout session id", () => {
+  it("accepts Stripe's test and live ids and nothing else", () => {
+    expect(isSessionId("cs_test_a1B2c3")).toBe(true);
+    expect(isSessionId("cs_live_a1B2c3")).toBe(true);
+    expect(isSessionId("")).toBe(false);
+    expect(isSessionId(null)).toBe(false);
+    expect(isSessionId("cs_test_a1/../x")).toBe(false);
+    expect(isSessionId("pi_test_a1B2c3")).toBe(false);
   });
 });
 

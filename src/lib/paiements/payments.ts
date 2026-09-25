@@ -35,6 +35,7 @@ import {
   eurosFromCents,
   feeCents,
   isRefundable,
+  isSessionId,
   PAYMENTS_PAGE_SIZE,
   REFUNDABLE,
   refundFailed,
@@ -70,7 +71,6 @@ function logError(what: string, context: Record<string, unknown>, error?: unknow
   });
 }
 
-const SESSION_ID = /^cs_(test|live)_[A-Za-z0-9]+$/;
 
 // ---------------------------------------------------------------------------
 // Opening a Checkout
@@ -221,6 +221,8 @@ export type ConfirmResult =
   | { kind: "reservee"; bookingId: string; requestId: string | null }
   | { kind: "enCours"; requestId: string | null }
   | { kind: "remboursee"; requestId: string | null }
+  /** Paid, not bookable, and Stripe refused the refund: the founders see it on /admin/paiements. */
+  | { kind: "remboursementEnAttente"; requestId: string | null }
   | { kind: "nonPayee"; requestId: string | null }
   | { kind: "inconnue" };
 
@@ -234,7 +236,9 @@ function outcome(row: Pick<Payment, "status" | "bookingId" | "requestId">): Conf
       return row.bookingId ? { kind: "reservee", bookingId: row.bookingId, requestId } : { kind: "remboursee", requestId };
     // A refund Stripe refused is not a refund: the founders see it on /admin/paiements.
     case "remboursement_echoue":
-      return row.bookingId ? { kind: "reservee", bookingId: row.bookingId, requestId } : { kind: "enCours", requestId };
+      return row.bookingId
+        ? { kind: "reservee", bookingId: row.bookingId, requestId }
+        : { kind: "remboursementEnAttente", requestId };
     default:
       return { kind: "nonPayee", requestId };
   }
@@ -261,7 +265,7 @@ function paymentIntentId(value: string | { id: string } | null): string | null {
  * refund has one Stripe idempotency key.
  */
 export async function confirmPayment(sessionId: string, siteUrl: string, now: Date): Promise<ConfirmResult> {
-  if (!SESSION_ID.test(sessionId)) return { kind: "inconnue" };
+  if (!isSessionId(sessionId)) return { kind: "inconnue" };
   const row = await paymentBySession(sessionId);
   if (!row) return { kind: "inconnue" };
   if (row.status === "payee" && !row.bookingId) return settle(row, siteUrl, now);
@@ -319,17 +323,19 @@ async function settle(payment: Payment, siteUrl: string, now: Date): Promise<Con
 
   const refund = await refundFee(payment.id, "reservation_impossible", now);
   if (!refund.ok) {
+    // A paid fee neither booked nor refunded: never silent, the founders must see it.
+    logError("paid fee neither booked nor refunded", { paymentId: payment.id, reason: refund.reason });
     const [again] = await db.select().from(payments).where(eq(payments.id, payment.id)).limit(1);
     return again ? outcome(again) : { kind: "inconnue" };
   }
-  if (refund.status !== "remboursee") return { kind: "enCours", requestId };
+  if (refund.status !== "remboursee") return { kind: "remboursementEnAttente", requestId };
   if (refund.recorded) after(() => notifyRefund(payment.id, siteUrl));
   return { kind: "remboursee", requestId };
 }
 
 /** The webhook's word on a Checkout that closed unpaid: `expiree` or `echouee`, only from `en_attente`. */
 export async function markSession(sessionId: string, status: "expiree" | "echouee"): Promise<void> {
-  if (!SESSION_ID.test(sessionId)) return;
+  if (!isSessionId(sessionId)) return;
   await db
     .update(payments)
     .set({ status, updatedAt: new Date() })
@@ -426,7 +432,7 @@ export async function refundFee(
         update payments
         set status = ${status}::payment_status, stripe_refund_id = ${refund.id}, refunded_at = ${at}::timestamptz,
             refund_reason = ${reason}::refund_reason, updated_at = ${at}::timestamptz
-        where id = ${payment.id} and status in ('payee', 'remboursement_echoue')
+        where id = ${payment.id} and status in ('payee', 'remboursement_echoue') -- REFUNDABLE, ./rules.ts
         returning id
       )
       insert into admin_journal (occurred_at, action, subject_user_id, subject_name, admin_user_id, admin_name, detail)
@@ -500,7 +506,7 @@ export async function syncRefund(refund: Stripe.Refund): Promise<void> {
 export async function paymentOwner(
   sessionId: string,
 ): Promise<{ familyUserId: string | null; requestId: string | null } | null> {
-  if (!SESSION_ID.test(sessionId)) return null;
+  if (!isSessionId(sessionId)) return null;
   const row = await paymentBySession(sessionId);
   return row ? { familyUserId: row.familyUserId, requestId: row.requestId } : null;
 }

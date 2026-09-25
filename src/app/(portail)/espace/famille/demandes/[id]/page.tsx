@@ -23,6 +23,7 @@ import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyHasAddress } from "@/lib/famille/profile";
 import { feeLine } from "@/lib/paiements/format";
 import { PAYMENT_RETURN_PATH } from "@/lib/paiements/paths";
+import { isSessionId } from "@/lib/paiements/rules";
 import { familyAnswers } from "@/lib/reservations/answers";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
 import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
@@ -57,9 +58,8 @@ type Notice = {
   session?: string;
 };
 
-const SESSION_ID = /^cs_(test|live)_[A-Za-z0-9]+$/;
 
-const PAYMENT_NOTICES = ["enCours", "rembourse", "abandonne", "erreur"] as const;
+const PAYMENT_NOTICES = ["enCours", "rembourse", "remboursementEnAttente", "abandonne", "erreur"] as const;
 
 function message(notice: Notice): string | null {
   if (notice.publiee === "urgente") return t.confirmations.publieeUrgente;
@@ -118,7 +118,7 @@ export default async function DemandePage({
       {query.paiement === "enCours" ? (
         <Link
           href={
-            query.session && SESSION_ID.test(query.session)
+            isSessionId(query.session)
               ? `${PAYMENT_RETURN_PATH}?session_id=${query.session}`
               : familyRequestPath(request.id)
           }
