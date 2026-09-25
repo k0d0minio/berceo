@@ -48,3 +48,11 @@ decision made mid-run has one home.
 - D-92 — One open checkout per request (partial unique index); a new one expires the previous at Stripe. A checkout lasts 30 minutes; a row `en_attente` past its `expires_at` is read as expired without a cron. Abandoning leaves the request and the answers untouched. Define, 2026-09-25.
 - D-93 — `payments` holds one row per checkout opened, linked to its booking once made, read only by admins at `/admin/paiements`; families and professionals see no payment history and no receipt (I-05 NON). Define, 2026-09-25.
 - D-94 — `refundFee(paymentId, reason, by?)` is the one refund path: the full fee only, a `payee` row only, one Stripe idempotency key per payment; reasons `annulation_professionnelle` (stub 11 calls it), `reservation_impossible`, `berceo`, `stripe`. It never touches the booking. Define, 2026-09-25.
+
+*Build, 2026-09-25 — numbered from D-95: the sibling run messagerie also used D-87 to D-91 (see FAILURE.md); the run that merges second renumbers.*
+
+- D-95 — Dashboard refunds reach the record through `refund.created`, `refund.updated` and `refund.failed`, not `charge.refunded` as spec §6 named it: the Refund object carries its own id and status, which the record keeps. The app marks its own refunds with the metadata `source: berceo`, so the webhook leaves them to `refundFee`, which knows their reason. Build, 2026-09-25 (a spec gap: the event was named, the race with the app's own refunds was not).
+- D-96 — Every link on `payments` (request, answer, family, booking) is `ON DELETE SET NULL`, with the night and the rate copied on the row: a money record outlives an account's deletion. Build, 2026-09-25.
+- D-97 — The payment row is written just after Stripe returns the Checkout, not before (spec §3's order): its id is generated first and sent as `client_reference_id` and metadata, so every row carries its session id (NOT NULL, unique). A row refused by the one-open index expires its fresh Checkout at once. Build, 2026-09-25.
+- D-98 — A paid Checkout whose settling throws (a database error) is put back to `expiree`, not `en_attente`, so Stripe's webhook retry can take it again without colliding with a Checkout the family opened meanwhile. Build, 2026-09-25.
+

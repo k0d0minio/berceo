@@ -13,12 +13,12 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-25 — Define numbered D-87 to D-94 over ids a sibling run had taken the same day
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: Build's check of every open branch found `messagerie` (branch `claude/tender-albattani-vje2w4`, defined the same day) using D-87 to D-91 for its own decisions; this run's Define had read only `main` and the archive before numbering D-87 to D-94.
+- why: Define skipped the learned rule « read the highest `D-n` on `main` and on every open run's branch »; the sibling's branch existed when this run was defined.
+- fixed by: nothing renumbered yet — neither run has merged. Build numbered its own decisions from D-95, clear of both; whichever of the two merges second renumbers its colliding ids (Notes for Release).
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- Before Define numbers a decision, list every remote branch (`git branch -r`) and grep each for its highest `D-n`; a same-day sibling's branch counts even before it has a PR.

@@ -24,4 +24,11 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Schema and migration: `payments`, `payment_status`, `refund_reason`, `frais_rembourses` (0008, applied on run/frais-de-service)
+- [x] Pure rules and their tests: `src/lib/paiements/rules.ts`, the words in `src/content/paiement.ts`
+- [x] Stripe client, the payments module, the webhook's signature check: `src/lib/paiements/`, `.env.example`
+- [x] The booking seam and the refund e-mail: `src/lib/reservations/bookings.ts`, `notify.ts`, `src/content/emails.ts`, `src/lib/email/templates.ts`
+- [x] The webhook route: `src/app/api/webhooks/stripe/route.ts`
+- [x] The family's flow: the action, the return and abandon routes, the request page's messages, the summary dialog
+- [x] The admin page and its refund button: `src/app/(portail)/admin/paiements/`, `src/components/admin/`, `src/content/admin.ts`
+- [x] Docs: README « The service fee », AGENTS.md routing row
