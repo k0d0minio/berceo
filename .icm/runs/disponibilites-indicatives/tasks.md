@@ -30,3 +30,11 @@ step, so a resuming session can pick up the first unticked line.
 ## Queue
 
 - [ ] <task — small enough for one commit; name the file or area>
+
+- [x] Schema: `professional_availability` + migration `0006_professional_availability` (applied and verified on `run/disponibilites-indicatives`)
+- [ ] Rules module `src/lib/disponibilites/rules.ts` + `format.ts` and their tests
+- [ ] Data module `src/lib/disponibilites/nights.ts`
+- [ ] Words `src/content/disponibilites.ts`, the nav label, `disponibilites.test.ts`
+- [ ] The family-facing block + `/design-system/portail`
+- [ ] The professional's page, calendar, server action, nav entry, home link, `routing.test.ts`
+- [ ] README section and `AGENTS.md` row
