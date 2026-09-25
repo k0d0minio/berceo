@@ -40,3 +40,13 @@
 - The butter hover's edge is below 3:1 against white and sage by the spec's decision; the test documents it and does not assert it.
 - `README.md` → the design system section and `AGENTS.md`'s light-DA line mention the palette; Release should add the two inks there.
 - Nothing ran locally: no `node_modules` in the session and the repo's rule is that CI is the source of truth. The test's arithmetic was mirrored in Python; its TypeScript compiles only in the advisory job.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on f524f16 (ci-status.sh, full gate: Vercel and Quality (advisory)); re-read after the last push
+- reviews: code medium (/code-review — no findings) · security security-check.sh --branch --audit: OK · /security-review n/a (no auth, payments, PII or route policy touched) · /production-readiness n/a (no DB, auth, payments or env var touched) · readiness env.sh audit --changed: OK
+- parked: none from the reviews (Build parked emails-encres-contraste.md)
+- migrations: skip — none of this run's own
+- learned: 1 rule, from FAILURE.md, through close-out.sh (no error.log — retrospective.sh SKIP)
+- docs: README.md (the design system section: the inks, the test, the button rows) and AGENTS.md (the light-DA standing rule) · announce: deferred to promotion
