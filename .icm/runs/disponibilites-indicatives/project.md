@@ -13,9 +13,16 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Availability filters nothing and blocks nothing (D-12): no file under `src/lib/demandes/`, no
+  e-mail and no digest reads `professional_availability`.
+- Two states only (D-72): only available nights are stored; « Indisponible » deletes.
+- The window is tonight to today + 56 days, Brussels (D-70); dates reuse `src/lib/demandes/rules.ts`.
+- No family-facing page mounts the block in this run (D-69); stubs 8 and 15 do.
+- Only a `valide` profile marks nights, and `nextAvailableNights` returns none for any other.
+- Words from the guide verbatim; everything else `@relecture Surya` (D-19); no red or green (D-24).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read Surya's editorial guide (« Les disponibilités », « La recherche» in
+  `.icm/processed/2026-09-23-guidelines-ditoriale-seo-berceo.txt`), the professional's space pages
+  and `src/lib/demandes/rules.ts`, to quote the guide exactly and reuse the Brussels date helpers.

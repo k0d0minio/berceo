@@ -163,7 +163,7 @@ states, the window, the block and who mounts it) and the routing row in `AGENTS.
 - Nights beyond today + 56 days; purging nights that fell behind today.
 - Reminders to update the calendar, e-mails of any kind, calendar export or sync (iCal, Google).
 - The calendar before validation, and availability in the admin back-office.
-- Scope decisions this run neither builds nor changes: D-1 to D-6, D-10, D-11, D-13 to D-18, D-20, D-22, D-23, D-25 to D-27.
+- Scope decisions this run neither builds nor changes: D-1, D-2, D-3, D-4, D-5, D-6, D-10, D-11, D-13, D-14, D-15, D-16, D-17, D-18, D-20, D-22, D-23, D-25, D-26, D-27.
 
 ## Open questions
 
