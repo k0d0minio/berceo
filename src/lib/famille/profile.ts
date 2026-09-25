@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 
 import { bookings, db, familyProfiles, professionalProfiles, users } from "@/db";
 import { findLocality, type Locality } from "@/lib/communes";
+import { hasAddress } from "@/lib/reservations/rules";
 
 import type { ProfileValues } from "./validation";
 
@@ -76,7 +77,7 @@ export async function familyHasAddress(userId: string): Promise<boolean> {
     .from(familyProfiles)
     .where(eq(familyProfiles.userId, userId))
     .limit(1);
-  return Boolean(row?.street?.trim() && row.houseNumber?.trim());
+  return hasAddress(row ?? null);
 }
 
 export type BookingAddress = {

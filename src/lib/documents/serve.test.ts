@@ -57,10 +57,12 @@ describe("serveFile", () => {
     expect(d.read).not.toHaveBeenCalled();
   });
 
-  it("streams a validated professional's photo to a parent", async () => {
-    const photo: StoredFile = { ...file, kind: "photo", contentType: "image/webp", fileName: "photo.webp" };
+  it("streams a validated professional's photo to a parent, without the file's name", async () => {
+    const photo: StoredFile = { ...file, kind: "photo", contentType: "image/webp", fileName: "Sophie-Dupont.webp" };
     const d = deps({ id: "parent", role: "parent" }, photo);
-    expect((await serveFile(ID, d)).status).toBe(200);
+    const response = await serveFile(ID, d);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-disposition")).not.toContain("Dupont");
   });
 
   it.each<[string, StoredFile, Viewer]>([

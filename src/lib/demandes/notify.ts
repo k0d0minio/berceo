@@ -56,7 +56,8 @@ export function logFailures(what: string, results: PromiseSettledResult<unknown>
 
 /**
  * One e-mail per validated professional serving the urgent request's commune,
- * but those declined on it. Each republication is a new send: its count keys it.
+ * but those declined on it and the one it was sent to in priority, who has her
+ * own e-mail (D-71). Each republication is a new send: its count keys it.
  */
 export async function notifyUrgentRequest(requestId: string, siteUrl: string): Promise<void> {
   try {
@@ -65,7 +66,7 @@ export async function notifyUrgentRequest(requestId: string, siteUrl: string): P
 
     const declined = await declinedPairs([request.id]);
     const recipients = dedupe(await professionalsServing([request.communeIns])).filter(
-      (r) => !declined.has(`${request.id}:${r.profileId}`),
+      (r) => !declined.has(`${request.id}:${r.profileId}`) && r.profileId !== request.priorityProfileId,
     );
     const url = `${siteUrl}${PROFESSIONAL_REQUESTS_PATH}`;
     const round = request.republishCount > 0 ? `-r${request.republishCount}` : "";

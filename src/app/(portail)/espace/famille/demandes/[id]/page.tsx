@@ -45,6 +45,8 @@ type Notice = {
   annulee?: string;
   republiee?: string;
   erreur?: string;
+  /** A refused booking or republication: `src/content/reservations.ts`'s own words. */
+  refus?: string;
 };
 
 function message(notice: Notice): string | null {
@@ -53,12 +55,12 @@ function message(notice: Notice): string | null {
   if (notice.modifiee === "1") return t.confirmations.modifiee;
   if (notice.annulee === "1") return t.confirmations.annulee;
   if (notice.republiee === "1") return r.republication.faite;
-  const error = notice.erreur;
-  if (error === "nonModifiable") return t.erreurs.nonModifiable;
-  if (error && Object.hasOwn(r.famille.erreurs, error)) {
-    return r.famille.erreurs[error as keyof typeof r.famille.erreurs];
+  const refusal = notice.refus;
+  if (refusal && Object.hasOwn(r.famille.erreurs, refusal)) {
+    return r.famille.erreurs[refusal as keyof typeof r.famille.erreurs];
   }
-  if (error) return c.erreurs.generique;
+  if (notice.erreur === "nonModifiable") return t.erreurs.nonModifiable;
+  if (refusal || notice.erreur) return c.erreurs.generique;
   return null;
 }
 

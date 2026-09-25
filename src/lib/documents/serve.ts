@@ -60,11 +60,16 @@ export async function serveFile(id: string, deps: ServeDeps): Promise<Response> 
   const body = await deps.read(file.storageKey);
   if (!body) return notFound();
 
+  // A family reads her photo, never the name she gave the file: it may carry her
+  // surname, which a family does not learn before a booking (D-75).
+  const owner = viewer.role === "admin" || viewer.id === file.ownerUserId;
+  const fileName = owner ? file.fileName : "photo";
+
   return new Response(body, {
     status: 200,
     headers: {
       "content-type": file.contentType,
-      "content-disposition": disposition(file.fileName),
+      "content-disposition": disposition(fileName),
       // Private to this session: never stored by a shared cache.
       "cache-control": "private, no-store",
       "x-content-type-options": "nosniff",

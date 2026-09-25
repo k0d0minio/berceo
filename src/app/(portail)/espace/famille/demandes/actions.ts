@@ -180,7 +180,8 @@ export async function acceptAnswerAction(requestId: string, applicationId: strin
     redirect(`${familyRequestPath(id)}?erreur=generique`);
   }
 
-  if (!result.ok) redirect(`${familyRequestPath(id)}?erreur=${result.reason}`);
+  // Its own key: « nonModifiable » here is about booking, not about editing.
+  if (!result.ok) redirect(`${familyRequestPath(id)}?refus=${result.reason}`);
 
   const origin = await siteOrigin();
   const { bookingId, declined } = result;
@@ -208,7 +209,7 @@ export async function republishRequestAction(requestId: string): Promise<void> {
     redirect(`${familyRequestPath(id)}?erreur=generique`);
   }
 
-  if (!result.ok) redirect(`${familyRequestPath(id)}?erreur=republication`);
+  if (!result.ok) redirect(`${familyRequestPath(id)}?refus=republication`);
 
   const origin = await siteOrigin();
   const { urgent, declined } = result;

@@ -173,7 +173,12 @@ function changeable(userId: string, id: string) {
 
 export type ChangeResult = "ok" | "nonModifiable" | "doublon";
 
-/** Saves an edit: the night, the start, the children, the age. Never the commune or the urgency. */
+/**
+ * Saves an edit: the night, the start, the children, the age. Never the
+ * commune or the urgency, and never while a validated professional's answer
+ * waits on it (D-76, D-85): the lock is held in the UPDATE itself, so an answer
+ * given while the form was open still wins.
+ */
 export async function updateRequest(
   userId: string,
   id: string,
@@ -185,7 +190,24 @@ export async function updateRequest(
     const updated = await db
       .update(careRequests)
       .set({ ...values, updatedAt: now })
-      .where(changeable(userId, id))
+      .where(
+        and(
+          changeable(userId, id),
+          notExists(
+            db
+              .select({ id: careRequestApplications.id })
+              .from(careRequestApplications)
+              .innerJoin(professionalProfiles, eq(professionalProfiles.id, careRequestApplications.profileId))
+              .where(
+                and(
+                  eq(careRequestApplications.requestId, id),
+                  eq(careRequestApplications.status, "en_attente"),
+                  eq(professionalProfiles.status, "valide"),
+                ),
+              ),
+          ),
+        ),
+      )
       .returning({ id: careRequests.id });
     return updated.length > 0 ? "ok" : "nonModifiable";
   } catch (error) {
@@ -266,14 +288,47 @@ export async function setPriority(
             .from(professionalProfiles)
             .where(and(eq(professionalProfiles.id, profileId), eq(professionalProfiles.status, "valide"))),
         ),
+        reachableBy(profileId),
       ),
     )
     .returning({ id: careRequests.id });
   return updated.length > 0 ? "ok" : "nonModifiable";
 }
 
-/** Her requests that can still be sent in priority: open, ahead, never sent to anyone. */
-export async function priorityCandidates(userId: string): Promise<RequestCard[]> {
+/**
+ * A request this professional could still answer: she was not declined on it
+ * and holds no booking that night. Sending her anything else in priority would
+ * e-mail her a request her list hides (D-70, D-73).
+ */
+function reachableBy(profileId: string) {
+  return and(
+    notExists(
+      db
+        .select({ id: careRequestApplications.id })
+        .from(careRequestApplications)
+        .where(
+          and(
+            eq(careRequestApplications.requestId, careRequests.id),
+            eq(careRequestApplications.profileId, profileId),
+            eq(careRequestApplications.status, "non_retenue"),
+          ),
+        ),
+    ),
+    notExists(
+      db
+        .select({ id: bookings.id })
+        .from(bookings)
+        .where(and(eq(bookings.profileId, profileId), eq(bookings.nightDate, careRequests.nightDate))),
+    ),
+  );
+}
+
+/**
+ * Her requests that can still be sent in priority to `profileId`: open, ahead,
+ * never sent to anyone, and ones this professional could still answer.
+ */
+export async function priorityCandidates(userId: string, profileId: string): Promise<RequestCard[]> {
+  if (!UUID.test(profileId)) return [];
   return db
     .select(cardColumns)
     .from(careRequests)
@@ -283,6 +338,7 @@ export async function priorityCandidates(userId: string): Promise<RequestCard[]>
         eq(careRequests.status, "ouverte"),
         nightAhead,
         isNull(careRequests.prioritySentAt),
+        reachableBy(profileId),
       ),
     )
     .orderBy(careRequests.nightDate, careRequests.startTime);

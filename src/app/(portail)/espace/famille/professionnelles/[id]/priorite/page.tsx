@@ -50,7 +50,7 @@ export default async function PrioritePage({
   if (!(await familyCommune(user.id))) redirect(`${PROFILE_PATH}?completer=1`);
 
   const notice = await searchParams;
-  const candidates = await priorityCandidates(user.id);
+  const candidates = await priorityCandidates(user.id, profile.id);
   const pour = `pour=${profile.id}`;
 
   return (

@@ -163,6 +163,21 @@ describe("the urgent e-mail", () => {
     expect(key).toBe("demande-r9-p-julie-r2");
   });
 
+  it("leaves out the professional it was sent to in priority, who gets her own e-mail (D-71)", async () => {
+    requestForNotice.mockResolvedValue({
+      ...request("r9", "21009"),
+      urgent: true,
+      status: "ouverte",
+      priorityProfileId: "p-julie",
+      republishCount: 0,
+    });
+    professionalsServing.mockResolvedValue([julie, { ...emma, communeIns: "21009" }]);
+
+    await notifyUrgentRequest("r9", SITE);
+
+    expect(sendEmail.mock.calls.map(([to]) => to)).toEqual([emma.email]);
+  });
+
   it("sends nothing for a cancelled or a normal request", async () => {
     requestForNotice.mockResolvedValue({ ...request("r9", "21009"), urgent: true, status: "annulee" });
     await notifyUrgentRequest("r9", SITE);
