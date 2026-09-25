@@ -8,8 +8,10 @@ import { words } from "@/content/locale"
 
 /*
  * The public header: the wordmark home, the vitrine's pages, the two account
- * entries. Below lg (four links and two capsules do not fit a tablet line)
- * the pages and entries move into the menu panel.
+ * entries. The full row needs about 1,070 px, which only the max-w-6xl
+ * container at xl gives, so below xl the pages and entries move into the menu
+ * panel (premier-ecran). Links never wrap; the capsules keep their height and
+ * type, and only their side padding tightens here.
  */
 function PublicHeader() {
   const t = words(common)
@@ -26,7 +28,7 @@ function PublicHeader() {
 
   return (
     <header className="bg-blanc">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-4 md:px-8 md:py-6">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-8 md:py-6">
         <Link
           href="/"
           aria-label={t.header.homeLabel}
@@ -35,13 +37,13 @@ function PublicHeader() {
           <BerceoWordmark aria-hidden className="w-32 md:w-36" />
         </Link>
 
-        <nav aria-label={t.header.navLabel} className="hidden lg:block">
-          <ul className="flex items-center gap-6">
+        <nav aria-label={t.header.navLabel} className="hidden xl:block">
+          <ul className="flex items-center gap-4">
             {links.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="font-display text-nav text-encre-sauge underline-offset-4 hover:underline"
+                  className="font-display text-nav whitespace-nowrap text-encre-sauge underline-offset-4 hover:underline"
                 >
                   {link.label}
                 </Link>
@@ -50,15 +52,15 @@ function PublicHeader() {
           </ul>
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-3 xl:flex">
           {accounts.map((account) => (
-            <Button key={account.href} asChild>
+            <Button key={account.href} asChild className="px-5">
               <Link href={account.href}>{account.label}</Link>
             </Button>
           ))}
         </div>
 
-        <div className="lg:hidden">
+        <div className="xl:hidden">
           <MobileMenu
             links={links}
             labels={{
