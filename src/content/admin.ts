@@ -41,6 +41,8 @@ export const admin = catalogue({
       lienPaiements: "Paiements des frais de service",
       /** @relecture Surya — lien vers les absences signalées, avec leur nombre (cycle-de-garde-et-annulation). */
       lienAbsences: "Absences signalées ({n})",
+      /** @relecture Surya — lien vers les avis, avec leur nombre (avis-etoiles). */
+      lienAvis: "Avis après les gardes ({n})",
     },
 
     /** La page d'un dossier. */
@@ -215,6 +217,52 @@ export const admin = catalogue({
       },
       /** @relecture Surya — échec de l'enregistrement. */
       erreur: "Le réglage n'a pas pu être enregistré. Réessayez dans un instant.",
+    },
+
+    /** Les avis après les gardes (avis-etoiles, G-03, D-118), en lecture seule. */
+    avis: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Avis après les gardes",
+      /** @relecture Surya — ce que la page montre. */
+      intro:
+        "Chaque avis donné par une famille ou une professionnelle, le plus récent en premier, publié ou non. Un avis compte dans la note dès que les deux côtés ont donné le leur, ou 14 jours après la garde.",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        donne: "Donné le",
+        garde: "Garde",
+        par: "Par",
+        sur: "Sur",
+        notes: "Étoiles",
+        moyenne: "Moyenne",
+        etat: "État",
+      },
+      /** @relecture Surya — le rôle de chaque personne. */
+      roles: {
+        famille: "famille",
+        professionnelle: "professionnelle",
+      },
+      /** @relecture Surya — une personne et son rôle. */
+      personne: "{nom} ({role})",
+      /** @relecture Surya — la nuit et la commune de la garde. */
+      nuit: "{date}, {commune}",
+      /** @relecture Surya — un critère et sa note. */
+      critere: "{critere} : {n}",
+      /** @relecture Surya — l'état de publication (D-116). */
+      etats: {
+        publiee: "Publiée",
+        enAttente: "En attente de publication",
+        annulee: "Garde annulée, ne compte pas",
+      },
+      /** @relecture Surya — aucun avis encore. */
+      vide: "Aucun avis pour l'instant.",
+      /** @relecture Surya — pagination. */
+      pages: {
+        precedente: "Page précédente",
+        suivante: "Page suivante",
+        position: "Page {page}",
+      },
+      /** @relecture Surya — retour à l'accueil de l'administration. */
+      retour: "Revenir à l'administration",
     },
 
     /** Les absences signalées sur une garde (cycle-de-garde-et-annulation, D-106), en lecture seule. */

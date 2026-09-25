@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { OwnNote } from "@/components/avis/stars";
 import { FormMessage } from "@/components/auth/field";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { reservations } from "@/content/reservations";
 import { isHeldStudent } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
+import { noteOfUser } from "@/lib/avis/ratings";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
 import { AVAILABILITY_PATH } from "@/lib/disponibilites/paths";
 import { PROFESSIONAL_BOOKINGS_PATH } from "@/lib/reservations/paths";
@@ -43,7 +45,8 @@ export const dynamic = "force-dynamic";
  * validated, the reason of a complément or a refusal, and why a student file
  * waits while students are not admitted. Once validated, it also links to the
  * requests in her communes (demande-de-garde), to « Mes disponibilités »
- * (disponibilites-indicatives) and to her gardes (candidature-et-reservation).
+ * (disponibilites-indicatives) and to her gardes (candidature-et-reservation),
+ * and shows her own note and gardes count (avis-etoiles, D-121).
  */
 export default async function EspaceProfessionnellePage({
   searchParams,
@@ -71,6 +74,7 @@ export default async function EspaceProfessionnellePage({
             ? p.messages.etudiantes
             : t.espaces.professionnelle.enAttente;
   const showReason = (status === "refuse" || status === "complement_demande") && reviewReason;
+  const note = status === "valide" ? await noteOfUser(user.id) : null;
 
   return (
     <SpaceShell user={user}>
@@ -100,6 +104,7 @@ export default async function EspaceProfessionnellePage({
           </Button>
         ) : null}
       </div>
+      {note ? <OwnNote note={note} /> : null}
     </SpaceShell>
   );
 }

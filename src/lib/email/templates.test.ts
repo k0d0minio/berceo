@@ -14,6 +14,8 @@ import {
   priorityRequestEmail,
   profileRefusedEmail,
   profileValidatedEmail,
+  ratingFamilyEmail,
+  ratingProfessionalEmail,
   refundFamilyEmail,
   reminderFamilyEmail,
   reminderProfessionalEmail,
@@ -111,6 +113,11 @@ const all: [string, RenderedEmail][] = [
   [
     "reminder (professional)",
     reminderProfessionalEmail({ siteUrl: SITE, prenom: "Julie", prenomFamille: "Sophie", date: "30/09/2026", heure: "20h00", url: `${SITE}/g` }),
+  ],
+  ["rating (family)", ratingFamilyEmail({ siteUrl: SITE, prenom: "Julie", professionnelle: "Emma", url: `${SITE}/b/avis` })],
+  [
+    "rating (professional)",
+    ratingProfessionalEmail({ siteUrl: SITE, prenom: "Julie", prenomFamille: "Sophie", date: "30/09/2026", url: `${SITE}/g/avis` }),
   ],
 ];
 
@@ -394,5 +401,31 @@ describe("the garde's e-mails (cycle-de-garde-et-annulation)", () => {
     expect(professional.subject).toBe("Rappel : votre garde du 30/09/2026 chez Sophie");
     expect(professional.text).toContain("Vous êtes attendue demain, le 30/09/2026, à partir de 20h00, chez Sophie.");
     expect(professional.text).toContain(`Voir les détails de la garde : ${SITE}/g`);
+  });
+});
+
+describe("the invitation to rate (avis-etoiles, D-120)", () => {
+  it("sends the family the guide's post-garde e-mail verbatim, with the 14 days", () => {
+    const email = ratingFamilyEmail({ siteUrl: SITE, prenom: "Julie", professionnelle: "Emma", url: `${SITE}/b/avis` });
+    expect(email.subject).toBe("Votre garde avec Emma est terminée : partagez votre retour");
+    expect(email.text).toContain(
+      "La garde de Emma s'est terminée. Votre retour nous aide à maintenir la qualité du réseau Berceo. Cela prend moins de 2 minutes.",
+    );
+    expect(email.text).toContain(`Laisser un avis : ${SITE}/b/avis`);
+    expect(email.text).toContain("Vous pouvez donner votre avis pendant 14 jours.");
+  });
+
+  it("sends the professional hers, naming the family and the night", () => {
+    const email = ratingProfessionalEmail({
+      siteUrl: SITE,
+      prenom: "Emma",
+      prenomFamille: "Sophie",
+      date: "30/09/2026",
+      url: `${SITE}/g/avis`,
+    });
+    expect(email.subject).toBe("Votre garde chez Sophie est terminée : partagez votre retour");
+    expect(email.text.startsWith("Bonjour Emma,")).toBe(true);
+    expect(email.text).toContain("Votre garde du 30/09/2026 chez Sophie s'est terminée.");
+    expect(email.text).toContain(`Laisser un avis : ${SITE}/g/avis`);
   });
 });

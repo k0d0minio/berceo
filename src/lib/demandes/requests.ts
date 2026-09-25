@@ -12,6 +12,7 @@ import {
   users,
   type ApplicationStatus,
 } from "@/db";
+import { familyNotesOfRequests, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { familyCommune } from "@/lib/famille/profile";
 
 import { isChangeable, TIME_ZONE, type RequestStatus } from "./rules";
@@ -393,10 +394,15 @@ export async function priorityCandidates(userId: string, profileId: string): Pro
 // The professional
 // ---------------------------------------------------------------------------
 
-/** A request on her list: the card, whether it was sent to her in priority, and her answer. */
+/**
+ * A request on her list: the card, whether it was sent to her in priority, her
+ * answer, and the publishing family's note and gardes count (avis-etoiles,
+ * D-118), never who the family is.
+ */
 export type ProfessionalRequest = RequestCard & {
   priority: boolean;
   answer: ApplicationStatus | null;
+  family: Note;
 };
 
 export type ProfessionalView =
@@ -472,7 +478,12 @@ export async function professionalRequests(userId: string): Promise<Professional
     )
     .orderBy(desc(priority), desc(careRequests.urgent), desc(careRequests.createdAt));
 
-  return { validated: true, nightRateEur: profile.nightRateEur, requests };
+  const notes = await familyNotesOfRequests(requests.map((request) => request.id));
+  return {
+    validated: true,
+    nightRateEur: profile.nightRateEur,
+    requests: requests.map((request) => ({ ...request, family: notes.get(request.id) ?? NO_NOTE })),
+  };
 }
 
 export type Recipient = { profileId: string; email: string; firstName: string; communeIns: string };

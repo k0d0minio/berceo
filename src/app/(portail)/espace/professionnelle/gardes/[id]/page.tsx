@@ -4,16 +4,24 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FormMessage } from "@/components/auth/field";
+import { criteriaLabels } from "@/components/avis/criteria";
+import { GivenRating, NoteDisplay } from "@/components/avis/stars";
 import { RequestCard } from "@/components/demandes/request-card";
 import { CancelGarde, ReportAbsence } from "@/components/gardes/garde-dialogs";
 import { GardeStateMark } from "@/components/gardes/garde-state";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
+import { avis } from "@/content/avis";
 import { gardes } from "@/content/gardes";
 import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { professionalRatingPath } from "@/lib/avis/paths";
+import { familyNotesOfRequests, NO_NOTE, ratingsGiven } from "@/lib/avis/ratings";
+import { canRate } from "@/lib/avis/rules";
+import { formatDate } from "@/lib/demandes/format";
+import { brusselsNow } from "@/lib/demandes/rules";
 import { conversationOfBooking } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
 import { cancelledLine } from "@/lib/gardes/format";
@@ -65,6 +73,10 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
  * The garde's life (cycle-de-garde-et-annulation): its state (D-109);
  * « Annuler la garde » until the start hour (D-105); « Signaler une absence »
  * from it until 24 hours after the night (D-106); once cancelled, who and when.
+ *
+ * The ratings (avis-etoiles): the family's note beside her name (D-118);
+ * « Laisser un avis » while she may rate it, then the stars she gave, never
+ * the family's rating of her (D-117).
  */
 export default async function GardePage({
   params,
@@ -85,6 +97,12 @@ export default async function GardePage({
   const now = new Date();
   const facts = { status: booking.garde.status, nightDate: booking.request.nightDate, startTime: booking.request.startTime };
   const cancelled = cancelledLine(booking.garde, "professionnelle", family.firstName);
+  const [familyNotes, given] = await Promise.all([
+    familyNotesOfRequests([booking.request.id]),
+    ratingsGiven("professionnelle", [booking.id]),
+  ]);
+  const familyNote = familyNotes.get(booking.request.id) ?? NO_NOTE;
+  const myRating = given.get(booking.id) ?? null;
 
   return (
     <SpaceShell user={user} title={t.meta.garde}>
@@ -98,6 +116,9 @@ export default async function GardePage({
         <h2 className="font-display text-h3 text-encre-sauge uppercase">{t.gardes.famille}</h2>
         <dl className="flex flex-col gap-4">
           <Row label={t.gardes.nom}>{`${family.firstName} ${family.lastName}`}</Row>
+          <Row label={words(avis).note.famille}>
+            <NoteDisplay note={familyNote} />
+          </Row>
           <Row label={t.gardes.adresse}>
             {address ? (
               <>
@@ -123,7 +144,20 @@ export default async function GardePage({
           </Row>
         </dl>
       </section>
+      {myRating ? (
+        <GivenRating
+          labels={criteriaLabels("professionnelle")}
+          scores={myRating.scores}
+          date={formatDate(brusselsNow(myRating.createdAt).date)}
+          className="max-w-2xl rounded-carte bg-perle px-6 py-6 md:px-8"
+        />
+      ) : null}
       <div className="flex flex-wrap gap-3">
+        {canRate(facts, myRating !== null, now) ? (
+          <Button asChild>
+            <Link href={professionalRatingPath(booking.id)}>{words(avis).lien}</Link>
+          </Button>
+        ) : null}
         {conversationId ? (
           <Button asChild>
             <Link href={conversationPath("professionnelle", conversationId)} prefetch={false}>

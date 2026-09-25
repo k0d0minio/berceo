@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { NoteDisplay } from "@/components/avis/stars";
 import { FormMessage } from "@/components/auth/field";
 import { RequestCard } from "@/components/demandes/request-card";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
+import { avis } from "@/content/avis";
 import { words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
@@ -84,26 +86,29 @@ export default async function DemandesProfessionnellePage({
                       rate={view.nightRateEur}
                       note={answered ? r.repondu : undefined}
                       footer={
-                        answered ? (
-                          <>
-                            {conversationIds.has(request.id) ? (
-                              <Button asChild>
-                                <Link href={conversationPath("professionnelle", conversationIds.get(request.id)!)} prefetch={false}>
-                                  {m.liens.voir}
-                                </Link>
-                              </Button>
-                            ) : null}
-                            <form action={withdrawAnswerAction.bind(null, request.id)}>
-                              <Button type="submit" variant="raye">
-                                {r.retirer}
-                              </Button>
+                        <>
+                          <NoteDisplay note={request.family} label={words(avis).note.famille} className="w-full" />
+                          {answered ? (
+                            <>
+                              {conversationIds.has(request.id) ? (
+                                <Button asChild>
+                                  <Link href={conversationPath("professionnelle", conversationIds.get(request.id)!)} prefetch={false}>
+                                    {m.liens.voir}
+                                  </Link>
+                                </Button>
+                              ) : null}
+                              <form action={withdrawAnswerAction.bind(null, request.id)}>
+                                <Button type="submit" variant="raye">
+                                  {r.retirer}
+                                </Button>
+                              </form>
+                            </>
+                          ) : (
+                            <form action={answerRequestAction.bind(null, request.id)}>
+                              <Button type="submit">{r.disponible}</Button>
                             </form>
-                          </>
-                        ) : (
-                          <form action={answerRequestAction.bind(null, request.id)}>
-                            <Button type="submit">{r.disponible}</Button>
-                          </form>
-                        )
+                          )}
+                        </>
                       }
                     />
                   </li>

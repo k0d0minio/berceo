@@ -447,6 +447,47 @@ export function reminderProfessionalEmail(input: {
   };
 }
 
+/** The invitation to rate a terminée garde, to the family (avis-etoiles, D-120): the guide's e-mail, verbatim. */
+export function ratingFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.avisFamille;
+  return {
+    subject: fill(r.objet, { prenom: input.professionnelle }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom: input.professionnelle })],
+      cta: { label: r.cta, href: input.url },
+      note: t.avisDelai,
+    }),
+  };
+}
+
+/** The invitation to rate a terminée garde, to the professional (avis-etoiles, D-120). */
+export function ratingProfessionalEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  prenomFamille: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.avisProfessionnelle;
+  return {
+    subject: fill(r.objet, { prenomFamille: input.prenomFamille }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenomFamille: input.prenomFamille, date: input.date })],
+      cta: { label: r.cta, href: input.url },
+      note: t.avisDelai,
+    }),
+  };
+}
+
 /** Her answer was declined: another professional chosen, the request republished or cancelled. */
 export function notRetainedEmail(input: {
   siteUrl: string;

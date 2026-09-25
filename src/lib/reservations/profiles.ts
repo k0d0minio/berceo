@@ -10,6 +10,7 @@ import {
   type Experience,
   type Profession,
 } from "@/db";
+import { notesOfProfiles, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { UUID } from "@/lib/demandes/requests";
 
 import { photoId } from "./answers";
@@ -43,6 +44,8 @@ export type PublicProfile = {
   photoId: string | null;
   /** The communes she serves, by INS code. */
   communes: string[];
+  /** Her note and gardes count (avis-etoiles, D-119), read by `src/lib/avis/`. */
+  note: Note;
 };
 
 /** A validated professional's profile, or null: any other status reads as unknown (D-75). */
@@ -56,9 +59,12 @@ export async function publicProfile(profileId: string): Promise<PublicProfile | 
     .limit(1);
   if (!row) return null;
 
-  const communes = await db
-    .select({ ins: professionalCommunes.communeIns })
-    .from(professionalCommunes)
-    .where(eq(professionalCommunes.profileId, profileId));
-  return { ...row, communes: communes.map((c) => c.ins) };
+  const [communes, notes] = await Promise.all([
+    db
+      .select({ ins: professionalCommunes.communeIns })
+      .from(professionalCommunes)
+      .where(eq(professionalCommunes.profileId, profileId)),
+    notesOfProfiles([profileId]),
+  ]);
+  return { ...row, communes: communes.map((c) => c.ins), note: notes.get(profileId) ?? NO_NOTE };
 }

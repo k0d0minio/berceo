@@ -27,6 +27,10 @@
  *
  * The service fee (frais-de-service) is one `payments` row per Stripe
  * Checkout opened, linked to the booking its payment made (D-102, D-93).
+ *
+ * After a garde each side rates the other with stars (avis-etoiles, D-18):
+ * `ratings`, four whole scores and no text, and `rating_invitations`, the
+ * e-mail that asked for them, once per garde and side.
  */
 import { sql } from "drizzle-orm";
 import {
@@ -759,6 +763,67 @@ export const payments = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// Ratings
+// ---------------------------------------------------------------------------
+
+/** The side of the person who rates: the family rates the professional, and the other way round. */
+export const ratingSideEnum = pgEnum("rating_side", ["famille", "professionnelle"]);
+
+/**
+ * One side's stars on one garde (D-18, D-115): four criteria, each 1 to 5, in
+ * the order `src/lib/avis/rules.ts` fixes for the side; never any text. One
+ * per side per garde, never edited (D-117). It counts in the rated person's
+ * note once both sides have rated or 14 days after the night ends (D-116),
+ * read at query time. `src/lib/avis/` is its only reader and writer.
+ */
+export const ratings = pgTable(
+  "ratings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    raterSide: ratingSideEnum("rater_side").notNull(),
+    raterUserId: uuid("rater_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ratedUserId: uuid("rated_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    score1: smallint("score_1").notNull(),
+    score2: smallint("score_2").notNull(),
+    score3: smallint("score_3").notNull(),
+    score4: smallint("score_4").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("ratings_booking_side_key").on(table.bookingId, table.raterSide),
+    index("ratings_rated_user_idx").on(table.ratedUserId),
+    index("ratings_created_idx").on(table.createdAt),
+    check("ratings_score_1", sql`${table.score1} BETWEEN 1 AND 5`),
+    check("ratings_score_2", sql`${table.score2} BETWEEN 1 AND 5`),
+    check("ratings_score_3", sql`${table.score3} BETWEEN 1 AND 5`),
+    check("ratings_score_4", sql`${table.score4} BETWEEN 1 AND 5`),
+  ],
+);
+
+/**
+ * The invitation to rate a garde, once per garde and side (D-120): the row is
+ * the claim, taken just before the send and removed when the send fails.
+ */
+export const ratingInvitations = pgTable(
+  "rating_invitations",
+  {
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    side: ratingSideEnum("side").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.bookingId, table.side] })],
+);
+
+// ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------
 
@@ -846,3 +911,5 @@ export type BerceoMessage = (typeof berceoMessageEnum.enumValues)[number];
 export type Payment = typeof payments.$inferSelect;
 export type PaymentStatus = (typeof paymentStatusEnum.enumValues)[number];
 export type RefundReason = (typeof refundReasonEnum.enumValues)[number];
+export type Rating = typeof ratings.$inferSelect;
+export type RatingSide = (typeof ratingSideEnum.enumValues)[number];
