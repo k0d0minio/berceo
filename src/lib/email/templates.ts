@@ -369,3 +369,23 @@ export function priorityRequestEmail(input: {
     }),
   };
 }
+
+/** A new message in the conversation (messagerie, D-90): who wrote and for which night, never the text. */
+export function newMessageEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  auteur: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.nouveauMessage;
+  return {
+    subject: fill(r.objet, { prenom: input.auteur }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom: input.auteur, date: input.date })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}

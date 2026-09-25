@@ -14,6 +14,7 @@ import {
 } from "@/db";
 import { cardColumns, isUniqueViolation, nightAhead, UUID, type RequestCard } from "@/lib/demandes/requests";
 import { bookingAddress, familyHasAddress, type BookingAddress } from "@/lib/famille/profile";
+import { bonneGardeStatement } from "@/lib/messagerie/conversations";
 
 import { photoId } from "./answers";
 import { acceptRefusal, type AcceptRefusal } from "./rules";
@@ -97,7 +98,8 @@ export type AcceptResult =
  * 3. the request becomes `attribuee`, 4. the other waiting answers on it
  *    `non_retenue` (returned, to be told), 5. her waiting answers on other
  *    requests that night `retiree` (D-73), 6. the payment points at the
- *    booking: each only if the booking exists.
+ *    booking: each only if the booking exists; 7. Berceo's « excellente
+ *    garde » in the booked answer's conversation (messagerie).
  *
  * Two payments racing on one request, or two requests booking one
  * professional for one night, end with one booking and a « conflit »; the
@@ -221,6 +223,8 @@ export async function acceptAnswer(
           and p.status = 'payee'
           and p.booking_id is null
       `),
+      // Berceo's « excellente garde » in the booked answer's conversation (messagerie, D-87).
+      db.execute(bonneGardeStatement(applicationId, at)),
     ]);
 
     const [booking] = made.rows;

@@ -6,6 +6,7 @@ import {
   complementRequestedEmail,
   escapeHtml,
   newAnswerEmail,
+  newMessageEmail,
   notRetainedEmail,
   priorityRequestEmail,
   profileRefusedEmail,
@@ -77,6 +78,10 @@ const all: [string, RenderedEmail][] = [
   [
     "fee refunded",
     refundFamilyEmail({ siteUrl: SITE, prenom: "Julie", date: "30/09/2026", montant: "4,11 €", url: `${SITE}/d` }),
+  ],
+  [
+    "new message",
+    newMessageEmail({ siteUrl: SITE, prenom: "Julie", auteur: "Emma", date: "30/09/2026", url: `${SITE}/espace/famille/messages/c1` }),
   ],
 ];
 
@@ -282,5 +287,18 @@ describe("the fee's refund e-mail (frais-de-service, D-91)", () => {
     expect(email.text).toContain("La garde du 30/09/2026 n'a donc pas pu être réservée.");
     expect(email.text).toContain("Les frais de service de 4,11 € vous sont intégralement remboursés.");
     expect(email.text).toContain(`Voir ma demande : ${SITE}/d`);
+  });
+});
+
+describe("the new-message e-mail (messagerie, D-90)", () => {
+  const url = `${SITE}/espace/professionnelle/messages/c1`;
+  const email = newMessageEmail({ siteUrl: SITE, prenom: "Emma", auteur: "Sophie", date: "30/09/2026", url });
+
+  it("names who wrote and the night, and links to the conversation", () => {
+    expect(email.subject).toBe("Sophie vous a écrit");
+    expect(email.text).toContain(
+      "Sophie vous a écrit au sujet de la garde du 30/09/2026. Vous pouvez lui répondre sur Berceo.",
+    );
+    expect(email.text).toContain(`Lire le message : ${url}`);
   });
 });

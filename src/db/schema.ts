@@ -21,6 +21,10 @@
  * A professional's indicative availability (disponibilites-indicatives) is the
  * nights she marked available; nothing about a care request reads it (D-12).
  *
+ * Each answer carries one conversation between the family and the
+ * professional (`conversations`, `messages`, messagerie), open until the
+ * night ends (D-89).
+ *
  * The service fee (frais-de-service) is one `payments` row per Stripe
  * Checkout opened, linked to the booking its payment made (D-90, D-93).
  */
@@ -539,6 +543,93 @@ export const bookings = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// Conversations
+// ---------------------------------------------------------------------------
+
+/** Who wrote a message: one of the two people, or Berceo's own two (D-87). */
+export const messageAuthorEnum = pgEnum("message_author", ["berceo", "famille", "professionnelle"]);
+
+/**
+ * Berceo's two messages (D-87), stored as keys and rendered from
+ * `src/content/messagerie.ts`, so a revision of the words reaches every
+ * conversation: the guide's amorce when she answers, the cahier des charges'
+ * « excellente garde » when the family books her.
+ */
+export const berceoMessageEnum = pgEnum("berceo_message", ["amorce", "bonne_garde"]);
+
+/**
+ * One conversation per answer (D-16, D-91): the family who owns the request
+ * and the professional who answered it, nobody else. It is made with the
+ * answer, and a re-answer after a withdrawal finds the same one. The request,
+ * the profile and the family are copied from the answer for the list queries.
+ * Each side's read marker is the last time it opened the conversation; whether
+ * it still accepts messages is read from the request (D-89), never stored.
+ */
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    applicationId: uuid("application_id")
+      .notNull()
+      .unique()
+      .references(() => careRequestApplications.id, { onDelete: "cascade" }),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => careRequests.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => professionalProfiles.id, { onDelete: "cascade" }),
+    familyUserId: uuid("family_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    familyLastReadAt: timestamp("family_last_read_at", { withTimezone: true }),
+    professionalLastReadAt: timestamp("professional_last_read_at", { withTimezone: true }),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("conversations_family_last_message_idx").on(table.familyUserId, table.lastMessageAt),
+    index("conversations_profile_last_message_idx").on(table.profileId, table.lastMessageAt),
+    index("conversations_request_id_idx").on(table.requestId),
+  ],
+);
+
+/**
+ * A message: the people's carry their text (1 to 2 000 characters, plain) and
+ * the id their browser gave it, so a retried send inserts once; Berceo's carry
+ * a key and no text, at most one of each per conversation.
+ */
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    author: messageAuthorEnum("author").notNull(),
+    body: text("body"),
+    berceoKey: berceoMessageEnum("berceo_key"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("messages_conversation_created_idx").on(table.conversationId, table.createdAt),
+    uniqueIndex("messages_one_berceo_key")
+      .on(table.conversationId, table.berceoKey)
+      .where(sql`${table.berceoKey} IS NOT NULL`),
+    check(
+      "messages_berceo_key",
+      sql`(${table.author} = 'berceo') = (${table.berceoKey} IS NOT NULL)`,
+    ),
+    check("messages_body_or_key", sql`(${table.body} IS NULL) = (${table.berceoKey} IS NOT NULL)`),
+    check(
+      "messages_body_length",
+      sql`${table.body} IS NULL OR char_length(${table.body}) BETWEEN 1 AND 2000`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // The service fee
 // ---------------------------------------------------------------------------
 
@@ -707,6 +798,10 @@ export type BabyAgeUnit = (typeof babyAgeUnitEnum.enumValues)[number];
 export type CareRequestApplication = typeof careRequestApplications.$inferSelect;
 export type ApplicationStatus = (typeof applicationStatusEnum.enumValues)[number];
 export type Booking = typeof bookings.$inferSelect;
+export type Conversation = typeof conversations.$inferSelect;
+export type Message = typeof messages.$inferSelect;
+export type MessageAuthor = (typeof messageAuthorEnum.enumValues)[number];
+export type BerceoMessage = (typeof berceoMessageEnum.enumValues)[number];
 export type Payment = typeof payments.$inferSelect;
 export type PaymentStatus = (typeof paymentStatusEnum.enumValues)[number];
 export type RefundReason = (typeof refundReasonEnum.enumValues)[number];

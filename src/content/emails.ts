@@ -144,6 +144,16 @@ export const emails = catalogue({
       cta: "Voir la demande",
     },
 
+    /** Un nouveau message dans la conversation (messagerie, D-90) : un avis, jamais le texte du message. */
+    nouveauMessage: {
+      /** @relecture Surya — objet, avec le prénom de qui a écrit. */
+      objet: "{prenom} vous a écrit",
+      /** @relecture Surya — corps : qui, et pour quelle garde. */
+      corps: "{prenom} vous a écrit au sujet de la garde du {date}. Vous pouvez lui répondre sur Berceo.",
+      /** @relecture Surya — bouton vers la conversation. */
+      cta: "Lire le message",
+    },
+
     verification: {
       /** @relecture Surya — objet de l'e-mail de vérification. */
       objet: "Confirmez votre adresse e-mail",

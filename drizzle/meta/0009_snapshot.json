@@ -1,6 +1,6 @@
 {
-  "id": "8191566f-9276-469a-8dc8-3e087979eab9",
-  "prevId": "82f3e3d5-ba3d-4c98-b39c-789bc869c62c",
+  "id": "19ded68a-9bc2-49fc-a3d5-b5987ce4a678",
+  "prevId": "8191566f-9276-469a-8dc8-3e087979eab9",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1219,6 +1219,276 @@
       },
       "isRLSEnabled": false
     },
+    "public.payments": {
+      "name": "payments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "application_id": {
+          "name": "application_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "family_user_id": {
+          "name": "family_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "booking_id": {
+          "name": "booking_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "night_date": {
+          "name": "night_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "night_rate_eur": {
+          "name": "night_rate_eur",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_cents": {
+          "name": "amount_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'eur'"
+        },
+        "status": {
+          "name": "status",
+          "type": "payment_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'en_attente'"
+        },
+        "stripe_session_id": {
+          "name": "stripe_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stripe_payment_intent_id": {
+          "name": "stripe_payment_intent_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stripe_refund_id": {
+          "name": "stripe_refund_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paid_at": {
+          "name": "paid_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refunded_at": {
+          "name": "refunded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refund_reason": {
+          "name": "refund_reason",
+          "type": "refund_reason",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "payments_one_open_per_request": {
+          "name": "payments_one_open_per_request",
+          "columns": [
+            {
+              "expression": "request_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"payments\".\"status\" = 'en_attente'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "payments_created_at_idx": {
+          "name": "payments_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "payments_payment_intent_idx": {
+          "name": "payments_payment_intent_idx",
+          "columns": [
+            {
+              "expression": "stripe_payment_intent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "payments_request_id_care_requests_id_fk": {
+          "name": "payments_request_id_care_requests_id_fk",
+          "tableFrom": "payments",
+          "tableTo": "care_requests",
+          "columnsFrom": [
+            "request_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "payments_application_id_care_request_applications_id_fk": {
+          "name": "payments_application_id_care_request_applications_id_fk",
+          "tableFrom": "payments",
+          "tableTo": "care_request_applications",
+          "columnsFrom": [
+            "application_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "payments_family_user_id_users_id_fk": {
+          "name": "payments_family_user_id_users_id_fk",
+          "tableFrom": "payments",
+          "tableTo": "users",
+          "columnsFrom": [
+            "family_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "payments_booking_id_bookings_id_fk": {
+          "name": "payments_booking_id_bookings_id_fk",
+          "tableFrom": "payments",
+          "tableTo": "bookings",
+          "columnsFrom": [
+            "booking_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "payments_booking_id_unique": {
+          "name": "payments_booking_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "booking_id"
+          ]
+        },
+        "payments_stripe_session_id_unique": {
+          "name": "payments_stripe_session_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "stripe_session_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "payments_amount_range": {
+          "name": "payments_amount_range",
+          "value": "\"payments\".\"amount_cents\" BETWEEN 300 AND 900"
+        },
+        "payments_currency": {
+          "name": "payments_currency",
+          "value": "\"payments\".\"currency\" = 'eur'"
+        },
+        "payments_paid_at": {
+          "name": "payments_paid_at",
+          "value": "(\"payments\".\"status\" IN ('payee', 'remboursee', 'remboursement_echoue')) = (\"payments\".\"paid_at\" IS NOT NULL)"
+        },
+        "payments_refund_pair": {
+          "name": "payments_refund_pair",
+          "value": "(\"payments\".\"refunded_at\" IS NULL) = (\"payments\".\"refund_reason\" IS NULL)"
+        },
+        "payments_refunded": {
+          "name": "payments_refunded",
+          "value": "\"payments\".\"status\" NOT IN ('remboursee', 'remboursement_echoue') OR \"payments\".\"refunded_at\" IS NOT NULL"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "public.professional_availability": {
       "name": "professional_availability",
       "schema": "",
@@ -1832,7 +2102,8 @@
         "complement_demande",
         "profil_refuse",
         "reglage_etudiantes",
-        "documents_supprimes"
+        "documents_supprimes",
+        "frais_rembourses"
       ]
     },
     "public.application_status": {
@@ -1925,6 +2196,18 @@
         "professionnelle"
       ]
     },
+    "public.payment_status": {
+      "name": "payment_status",
+      "schema": "public",
+      "values": [
+        "en_attente",
+        "payee",
+        "expiree",
+        "echouee",
+        "remboursee",
+        "remboursement_echoue"
+      ]
+    },
     "public.profession": {
       "name": "profession",
       "schema": "public",
@@ -1944,6 +2227,16 @@
         "complement_demande",
         "valide",
         "refuse"
+      ]
+    },
+    "public.refund_reason": {
+      "name": "refund_reason",
+      "schema": "public",
+      "values": [
+        "annulation_professionnelle",
+        "reservation_impossible",
+        "berceo",
+        "stripe"
       ]
     },
     "public.user_role": {
