@@ -62,3 +62,14 @@ Recorded here rather than ticked on the PR (a learned rule: a session's ticks th
 - No linter or formatter is wired for this project (`lint.sh`, `format.sh` → SKIP); the advisory quality job after the flip is the first typecheck and test run.
 
 Context budget: read `src/lib/gardes/` (rules, gardes, notify), the reminder route and workflow, the e-mail templates and their tests, and the pages each surface touches, beyond the Inputs table; the spec's touches named the pages, and the garde state is that module's.
+
+## Release
+
+- gate: Ready to merge ticked, which authorises the merge
+- ci: GREEN on f517217 (full gate); read again after the last push (the head that merged is the close-out commit)
+- reviews: code medium (`/code-review` on origin/main...HEAD, no bugs found) · security `security-check.sh --branch --audit`: OK (npm audit clean) + /security-review: no finding (SQL all bound, every write and read scoped to the session's own garde, admin list admin-only, e-mail HTML escaped, CRON_SECRET compared in constant time) · readiness `env.sh audit --changed`: OK · /production-readiness n/a: no such skill ships in this repo or this session. The code review, the migration applied on the run's Neon branch and on the preview, and the env audit cover its ground (DB, env).
+- parked: avis-invitation-claim-edges.md (a failed release of an invitation claim loses that invitation; a booking that vanishes between claim and send counts as sent)
+- merge of main: up to date at Release; main was merged at Build (cycle-de-garde, #48)
+- migrations: skip. `check-migrations.sh` reads Drizzle's journal as SKIP; `0011_avis` comes after main's `0010` and was applied on the run's Neon branch and by the preview build with `db:verify`
+- learned: skip, no error.log. FAILURE.md carries two learned rules for the close-out
+- docs: README « The ratings » (plus the where-things-live and cron rows), AGENTS routing and data-model rows (at Build); no page under `.icm/docs` changes · announce: deferred to promotion
