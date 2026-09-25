@@ -227,3 +227,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - Never use an enum value added by `ALTER TYPE … ADD VALUE` in a check, index or default of the same Drizzle migration; Postgres refuses it in that transaction, so put that use in the next migration. (`FAILURE.md` — candidature-et-reservation)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - When a spec changes colours platform-wide, Define lists every text and surface pair from every component under `src/components/ui/` that sets its own background (the confirmation dialog, the translucent veil included), and measures each proposed value on every surface the change moves text onto. (`FAILURE.md` — encres-contraste)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- After merging `main` at Release, grep the branch's new files for every pattern a repo-wide source test on `main` refuses (for example `src/app/contrast.test.ts`), since the advisory job only reads it after the push. (`FAILURE.md` — messagerie)

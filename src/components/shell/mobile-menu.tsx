@@ -11,10 +11,22 @@ import { Button } from "@/components/ui/button"
  * The navigation below the md breakpoint, shared by the public header and the
  * portal shell: a capsule menu button opens a white panel over a pearl veil.
  * Radix keeps focus inside the panel, Escape closes it, focus returns to the
- * button. Following a link closes the panel.
+ * button. Following a link closes the panel. A link's count shows beside it
+ * and, added up, on the menu button.
  */
 
-type MenuLink = { label: string; href: string }
+/** A link; `badge` is a count beside it (the unread conversations), hidden at zero. */
+type MenuLink = { label: string; href: string; badge?: { count: number; label: string } }
+
+/** The count beside a link: butter yellow, like the other marks; its words for screen readers. */
+function Badge({ count, label }: { count: number; label: string }) {
+  return (
+    <span className="inline-flex min-w-6 items-center justify-center rounded-capsule bg-beurre px-2 font-sans text-legende font-semibold text-encre-taupe">
+      <span aria-hidden>{count}</span>
+      <span className="sr-only">{label}</span>
+    </span>
+  )
+}
 
 function MobileMenu({
   links,
@@ -27,12 +39,26 @@ function MobileMenu({
   actions?: readonly MenuLink[]
 }) {
   const [open, setOpen] = React.useState(false)
+  const badges = links.flatMap((link) => (link.badge && link.badge.count > 0 ? [link.badge] : []))
+  const total = badges.reduce((sum, badge) => sum + badge.count, 0)
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger asChild>
-        <Button size="icon" aria-label={labels.open}>
+        <Button
+          size="icon"
+          aria-label={[labels.open, ...badges.map((badge) => badge.label)].join(", ")}
+          className="relative"
+        >
           <MenuIcon aria-hidden />
+          {total > 0 ? (
+            <span
+              aria-hidden
+              className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-capsule bg-beurre px-1.5 font-sans text-legende font-semibold text-encre-taupe"
+            >
+              {total}
+            </span>
+          ) : null}
         </Button>
       </DialogPrimitive.Trigger>
       <DialogPrimitive.Portal>
@@ -58,9 +84,10 @@ function MobileMenu({
                   <Link
                     href={link.href}
                     onClick={() => setOpen(false)}
-                    className="block rounded-capsule px-4 py-3 font-display text-nav text-encre-sauge transition-colors duration-200 ease-out hover:bg-beurre"
+                    className="flex items-center gap-2 rounded-capsule px-4 py-3 font-display text-nav text-encre-sauge transition-colors duration-200 ease-out hover:bg-beurre"
                   >
                     {link.label}
+                    {link.badge && link.badge.count > 0 ? <Badge {...link.badge} /> : null}
                   </Link>
                 </li>
               ))}
@@ -83,4 +110,4 @@ function MobileMenu({
   )
 }
 
-export { MobileMenu, type MenuLink }
+export { Badge, MobileMenu, type MenuLink }

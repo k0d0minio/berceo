@@ -13,6 +13,7 @@ import {
 } from "@/db";
 import { cardColumns, isUniqueViolation, nightAhead, UUID, type RequestCard } from "@/lib/demandes/requests";
 import { bookingAddress, familyHasAddress, type BookingAddress } from "@/lib/famille/profile";
+import { bonneGardeStatement } from "@/lib/messagerie/conversations";
 
 import { photoId } from "./answers";
 import { acceptRefusal, type AcceptRefusal } from "./rules";
@@ -40,7 +41,9 @@ export type AcceptResult =
  *    her that night, which rolls the whole batch back;
  * 3. the request becomes `attribuee`, 4. the other waiting answers on it
  *    `non_retenue` (returned, to be told), 5. her waiting answers on other
- *    requests that night `retiree` (D-73): each only if the booking exists.
+ *    requests that night `retiree` (D-73): each only if the booking exists;
+ * 6. Berceo's « excellente garde » in the booked answer's conversation
+ *    (messagerie, D-87).
  *
  * Two families' clicks racing on one request, or two requests booking one
  * professional for one night, end with one booking and a « conflit ».
@@ -163,6 +166,8 @@ export async function acceptAnswer(
           and r.id = a.request_id
           and r.night_date = b.night_date
       `),
+      // Berceo's « excellente garde » in the booked answer's conversation (messagerie, D-87).
+      db.execute(bonneGardeStatement(applicationId, at)),
     ]);
 
     const [booking] = made.rows;
