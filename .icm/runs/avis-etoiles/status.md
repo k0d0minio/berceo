@@ -5,6 +5,6 @@ flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-pr
 
 - phase: build
 - step: passes 1–10 committed; pre-flip check next
-- ci: none yet (draft)
+- ci: draft GREEN on d396c3e; flipped ready, full verdict pending
 - blocked: no
 - updated: 2026-09-25
