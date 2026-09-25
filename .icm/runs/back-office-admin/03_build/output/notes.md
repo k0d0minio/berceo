@@ -41,4 +41,5 @@ Proven against the run's Neon branch (a UAT copy) with throwaway probes, never c
 - Deviations from the plan: the `/design-system/portail` showcase was not extended (no new primitive: the admin pages reuse Table, Button, Input and ConfirmDialog); README and AGENTS.md are Release's.
 - A deleted account's messages stay in its conversations, readable to the other side under « Compte supprimé » (spec, Out of scope).
 - The admin catalogue's `absences` section and the old home's `lien*` keys are gone with the pages that used them.
+- `main` brought the epic `professionnelle-invalidee-consequences` (withdraw a professional's waiting answers when her profile leaves `valide`). It is a separate trigger from suspension, but `suspensionWithdrawsAnswers` in `src/lib/reservations/answers.ts` is the same write and a ready precedent for its first stub.
 - Context budget: over the Inputs table — the modules each reader lives in were read to hold the suspension there, and the `neon_auth` schema was read on the branch.
