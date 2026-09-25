@@ -5,7 +5,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { careRequests, db, professionalCommunes, professionalProfiles, users } from "@/db";
 import { familyCommune } from "@/lib/famille/profile";
 
-import { isChangeable, TIME_ZONE } from "./rules";
+import { isChangeable, TIME_ZONE, type RequestStatus } from "./rules";
 import type { RequestValues } from "./validation";
 
 /**
@@ -50,7 +50,7 @@ export type RequestCard = {
   createdAt: Date;
 };
 
-export type FamilyRequest = RequestCard & { status: "ouverte" | "annulee" };
+export type FamilyRequest = RequestCard & { status: RequestStatus };
 
 /** The night has not started yet, in Brussels (`date + time` is a local timestamp). */
 const nightAhead = sql`(${careRequests.nightDate} + ${careRequests.startTime}) > (now() AT TIME ZONE ${TIME_ZONE})`;
@@ -252,7 +252,7 @@ export async function professionalsServing(communes: string[]): Promise<Recipien
 /** A request by id, whoever published it, for the urgent e-mail. Card columns only. */
 export async function requestForNotice(
   id: string,
-): Promise<(RequestCard & { status: "ouverte" | "annulee" }) | null> {
+): Promise<(RequestCard & { status: RequestStatus }) | null> {
   const [row] = await db.select(familyColumns).from(careRequests).where(eq(careRequests.id, id)).limit(1);
   return row ?? null;
 }

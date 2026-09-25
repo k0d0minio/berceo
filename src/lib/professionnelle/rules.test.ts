@@ -280,6 +280,19 @@ describe("who reads a file", () => {
     expect(canReadFile(owner, { id: "parent-1", role: "parent" })).toBe(false);
     expect(canReadFile(owner, { id: "user-2", role: "professionnel" })).toBe(false);
   });
+
+  // Spec (candidature-et-reservation, D-75): a signed-in parent reads a
+  // validated professional's photo, never her documents, never a photo of a
+  // profile that is not validated.
+  it("lets a parent read a validated professional's photo, and nothing else", () => {
+    const parent = { id: "parent-1", role: "parent" } as const;
+    expect(canReadFile(owner, parent, { kind: "photo", profileStatus: "valide" })).toBe(true);
+    expect(canReadFile(owner, parent, { kind: "diplome", profileStatus: "valide" })).toBe(false);
+    expect(canReadFile(owner, parent, { kind: "attestation_inscription", profileStatus: "valide" })).toBe(false);
+    expect(canReadFile(owner, parent, { kind: "photo", profileStatus: "en_attente" })).toBe(false);
+    expect(canReadFile(owner, null, { kind: "photo", profileStatus: "valide" })).toBe(false);
+    expect(canReadFile(owner, { id: "user-2", role: "professionnel" }, { kind: "photo", profileStatus: "valide" })).toBe(false);
+  });
 });
 
 describe("sending a file back after a complément (verification-back-office)", () => {

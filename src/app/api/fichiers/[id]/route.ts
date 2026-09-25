@@ -7,7 +7,8 @@ import { readObject } from "@/lib/documents/storage";
 
 /*
  * A professional's document or photo, streamed from the private bucket to its
- * owner or an admin; 404 to anyone else. The rule and its tests are in
+ * owner or an admin, her photo also to a family once she is validated; 404 to
+ * anyone else. The rule and its tests are in
  * src/lib/documents/serve.ts; this file wires the session, the database and
  * the bucket.
  */
@@ -26,6 +27,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       const [row] = await db
         .select({
           ownerUserId: professionalProfiles.userId,
+          kind: professionalDocuments.kind,
+          profileStatus: professionalProfiles.status,
           storageKey: professionalDocuments.storageKey,
           contentType: professionalDocuments.contentType,
           fileName: professionalDocuments.fileName,

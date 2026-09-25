@@ -5,6 +5,9 @@ import { serveFile, type ServeDeps, type StoredFile, type Viewer } from "./serve
 /**
  * Spec: `/api/fichiers/[id]` returns the file to its owner and to an admin,
  * and 404 to a signed-out visitor, a parent, and another professional.
+ * candidature-et-reservation (D-75): a validated professional's photo also
+ * goes to a signed-in parent; her documents, and the photo of a profile that
+ * is not validated, still answer 404.
  */
 
 const ID = "7d5f7a38-2d0c-4c4e-9b7e-5f3b0f1d2a11";
@@ -12,6 +15,8 @@ const OWNER = "owner-user";
 
 const file: StoredFile = {
   ownerUserId: OWNER,
+  kind: "diplome",
+  profileStatus: "valide",
   storageKey: "profils/p1/k1",
   contentType: "application/pdf",
   fileName: "diplôme.pdf",
@@ -49,6 +54,22 @@ describe("serveFile", () => {
     const d = deps(viewer);
     const response = await serveFile(ID, d);
     expect(response.status).toBe(404);
+    expect(d.read).not.toHaveBeenCalled();
+  });
+
+  it("streams a validated professional's photo to a parent", async () => {
+    const photo: StoredFile = { ...file, kind: "photo", contentType: "image/webp", fileName: "photo.webp" };
+    const d = deps({ id: "parent", role: "parent" }, photo);
+    expect((await serveFile(ID, d)).status).toBe(200);
+  });
+
+  it.each<[string, StoredFile, Viewer]>([
+    ["a parent, for the photo of a profile not validated", { ...file, kind: "photo", profileStatus: "en_attente" }, { id: "parent", role: "parent" }],
+    ["a signed-out visitor, for a validated photo", { ...file, kind: "photo" }, null],
+    ["another professional, for a validated photo", { ...file, kind: "photo" }, { id: "someone-else", role: "professionnel" }],
+  ])("answers 404 to %s", async (_who, found, viewer) => {
+    const d = deps(viewer, found);
+    expect((await serveFile(ID, d)).status).toBe(404);
     expect(d.read).not.toHaveBeenCalled();
   });
 
