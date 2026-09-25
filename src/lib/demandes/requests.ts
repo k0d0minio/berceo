@@ -262,6 +262,41 @@ export async function cancelRequest(
   };
 }
 
+/**
+ * The request side of a cancelled garde (D-110): its booked request becomes
+ * `annulee` in the garde's own statement (`src/lib/gardes/`), only when the
+ * garde `bookingId` was cancelled at `at` by that statement, so its
+ * conversations close at once (D-89) and nothing else changes it.
+ */
+export function cancelBookedRequestStatement(bookingId: string, at: string) {
+  return sql`
+    update care_requests r
+    set status = 'annulee', cancelled_at = ${at}::timestamptz, updated_at = ${at}::timestamptz
+    from bookings b
+    where b.id = ${bookingId}
+      and b.request_id = r.id
+      and b.status = 'annulee'
+      and b.cancelled_at = ${at}::timestamptz
+      and r.status = 'attribuee'
+  `;
+}
+
+/** Her open request for `nightDate`, if any (D-65: at most one): republishing a garde links to it instead. */
+export async function openRequestOn(userId: string, nightDate: string): Promise<string | null> {
+  const [row] = await db
+    .select({ id: careRequests.id })
+    .from(careRequests)
+    .where(
+      and(
+        eq(careRequests.familyUserId, userId),
+        eq(careRequests.nightDate, nightDate),
+        eq(careRequests.status, "ouverte"),
+      ),
+    )
+    .limit(1);
+  return row?.id ?? null;
+}
+
 export type PriorityResult = "ok" | "nonModifiable";
 
 /**
@@ -297,7 +332,7 @@ export async function setPriority(
 
 /**
  * A request this professional could still answer: she was not declined on it
- * and holds no booking that night. Sending her anything else in priority would
+ * and holds no confirmed garde that night (a cancelled one frees it). Sending her anything else in priority would
  * e-mail her a request her list hides (D-70, D-73).
  */
 function reachableBy(profileId: string) {
@@ -318,7 +353,13 @@ function reachableBy(profileId: string) {
       db
         .select({ id: bookings.id })
         .from(bookings)
-        .where(and(eq(bookings.profileId, profileId), eq(bookings.nightDate, careRequests.nightDate))),
+        .where(
+          and(
+            eq(bookings.profileId, profileId),
+            eq(bookings.nightDate, careRequests.nightDate),
+            eq(bookings.status, "confirmee"),
+          ),
+        ),
     ),
   );
 }
@@ -415,7 +456,13 @@ export async function professionalRequests(userId: string): Promise<Professional
           db
             .select({ id: bookings.id })
             .from(bookings)
-            .where(and(eq(bookings.profileId, profile.id), eq(bookings.nightDate, careRequests.nightDate))),
+            .where(
+              and(
+                eq(bookings.profileId, profile.id),
+                eq(bookings.nightDate, careRequests.nightDate),
+                eq(bookings.status, "confirmee"),
+              ),
+            ),
         ),
       ),
     )

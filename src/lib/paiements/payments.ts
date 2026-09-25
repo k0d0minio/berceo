@@ -511,6 +511,31 @@ export async function paymentOwner(
   return row ? { familyUserId: row.familyUserId, requestId: row.requestId } : null;
 }
 
+export type BookingFee = { id: string; status: PaymentStatus; amountCents: number };
+
+/**
+ * The fee that made each of these bookings, by booking id: a cancelled garde's
+ * page says whether it was refunded, the professional's cancellation refunds it
+ * (cycle-de-garde-et-annulation, D-2), the founders' absences list shows it. A
+ * booking made before the fee existed has none.
+ */
+export async function bookingFees(bookingIds: string[]): Promise<Map<string, BookingFee>> {
+  const ids = bookingIds.filter((id) => UUID.test(id));
+  if (ids.length === 0) return new Map();
+  const rows = await db
+    .select({
+      bookingId: payments.bookingId,
+      id: payments.id,
+      status: payments.status,
+      amountCents: payments.amountCents,
+    })
+    .from(payments)
+    .where(inArray(payments.bookingId, ids));
+  return new Map(
+    rows.flatMap(({ bookingId, ...fee }) => (bookingId ? [[bookingId, fee] as const] : [])),
+  );
+}
+
 export type AdminPayment = Pick<
   Payment,
   | "id"

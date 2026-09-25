@@ -1,0 +1,57 @@
+# The reminder of the day before a garde (cycle-de-garde-et-annulation, D-108).
+#
+# Vercel Cron runs only on production deployments, never on the `uat` custom
+# environment the founders test on, so the schedule lives here and calls the
+# route on both. It runs at 08:00 and 09:00 UTC: the route sends only between
+# 10:00 and 10:59 in Brussels (08:00 UTC in summer, 09:00 UTC in winter), and
+# each garde is claimed once, so the other call of the day sends nothing.
+# It shares the digest's secret, CRON_SECRET (D-68): the same value is set on
+# each Vercel environment and as this repository's secret. While it is missing
+# the run is skipped with a warning, never a failure; so is a 404 from an
+# environment the route has not reached yet.
+name: Gardes rappel
+
+on:
+  schedule:
+    - cron: "0 8,9 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: gardes-rappel
+  cancel-in-progress: false
+
+jobs:
+  reminder:
+    name: Rappel (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: uat
+            url: https://uat.berceo.be
+          - environment: production
+            url: https://www.berceo.be
+    steps:
+      - name: Call the reminder route
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          URL: ${{ matrix.url }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::warning::CRON_SECRET is not set: the $URL reminder is skipped."
+            exit 0
+          fi
+          # Until the batch carrying the route is promoted, production answers 404: skipped, not failed.
+          code=$(curl --silent --show-error --max-time 60 -o response.json -w "%{http_code}" \
+            -X POST -H "Authorization: Bearer $CRON_SECRET" \
+            "$URL/api/cron/gardes-rappel")
+          cat response.json; echo
+          if [ "$code" = "404" ]; then
+            echo "::warning::$URL has no reminder route yet: skipped."
+            exit 0
+          fi
+          [ "$code" = "200" ] || { echo "::error::$URL answered $code"; exit 1; }

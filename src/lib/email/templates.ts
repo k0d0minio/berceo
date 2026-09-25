@@ -285,6 +285,7 @@ export function bookingFamilyEmail(input: {
       prenom: input.prenom,
       paragraphs: [fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure })],
       cta: { label: r.cta, href: input.url },
+      note: t.cadre,
     }),
   };
 }
@@ -326,6 +327,119 @@ export function bookingProfessionalEmail(input: {
       prenom: input.prenom,
       paragraphs: [fill(r.corps, { date: input.date })],
       cta: { label: r.cta, href: input.url },
+      note: t.cadre,
+    }),
+  };
+}
+
+/** The family cancelled the garde: to the professional (cycle-de-garde-et-annulation, D-105). */
+export function gardeCancelledByFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  prenomFamille: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.annulationParFamille;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenomFamille: input.prenomFamille, date: input.date })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/**
+ * The professional cancelled the garde: to the family, saying the fee is
+ * refunded when she paid one (D-2), and that she can republish (D-107).
+ */
+export function gardeCancelledByProfessionalEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: string;
+  date: string;
+  refunded: boolean;
+  url: string;
+}): RenderedEmail {
+  const r = t.annulationParProfessionnelle;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [
+        fill(r.corps, { prenom: input.professionnelle, date: input.date }),
+        ...(input.refunded ? [r.remboursement] : []),
+        r.suite,
+      ],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** An absence reported: to the side recorded absent (D-106). `auteur` is who reported it. */
+export function absenceReportedEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  auteur: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.absence;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom: input.auteur, date: input.date })],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
+/** The reminder of the day before, to the family (D-108), with the platform line (D-111). */
+export function reminderFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: string;
+  date: string;
+  heure: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.rappelFamille;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure })],
+      cta: { label: r.cta, href: input.url },
+      note: t.cadre,
+    }),
+  };
+}
+
+/** The reminder of the day before, to the professional (D-108), with the platform line (D-111). */
+export function reminderProfessionalEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  prenomFamille: string;
+  date: string;
+  heure: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.rappelProfessionnelle;
+  return {
+    subject: fill(r.objet, { date: input.date, prenomFamille: input.prenomFamille }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { prenomFamille: input.prenomFamille, date: input.date, heure: input.heure })],
+      cta: { label: r.cta, href: input.url },
+      note: t.cadre,
     }),
   };
 }

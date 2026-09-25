@@ -119,6 +119,70 @@ export const emails = catalogue({
       cta: "Voir les détails de la garde",
     },
 
+    /**
+     * @relecture Surya — le « Rappel cadre plateforme » (D-111), d'après la consigne du guide pour
+     * la page Tarifs (« Rappeler que la rémunération de la professionnelle se fait directement.
+     * Berceo est un intermédiaire. »), sans mention d'assurance (D-8). Sous le bouton des deux
+     * confirmations et des deux rappels, et nulle part ailleurs.
+     */
+    cadre:
+      "Berceo est un intermédiaire : la rémunération de la professionnelle se fait directement entre vous, après la garde.",
+
+    /** La famille a annulé la garde : à la professionnelle (D-105). */
+    annulationParFamille: {
+      /** @relecture Surya — objet. */
+      objet: "Garde du {date} annulée",
+      /** @relecture Surya — corps. */
+      corps: "{prenomFamille} a annulé la garde du {date}. Vous n'êtes plus attendue cette nuit-là.",
+      /** @relecture Surya — bouton vers ses gardes. */
+      cta: "Voir mes gardes",
+    },
+
+    /** La professionnelle a annulé la garde : à la famille, les frais remboursés (D-2, D-105). */
+    annulationParProfessionnelle: {
+      /** @relecture Surya — objet. */
+      objet: "Votre garde du {date} est annulée",
+      /** @relecture Surya — corps. */
+      corps: "{prenom} a annulé la garde du {date}.",
+      /** @relecture Surya — le remboursement, seulement quand des frais ont été payés. */
+      remboursement: "Les frais de service de 3 % vous sont intégralement remboursés.",
+      /** @relecture Surya — la suite : republier (D-107). */
+      suite: "Vous pouvez republier votre demande depuis votre réservation pour trouver une autre professionnelle.",
+      /** @relecture Surya — bouton vers la réservation. */
+      cta: "Voir ma réservation",
+    },
+
+    /** Une absence signalée : à la partie déclarée absente (D-106). */
+    absence: {
+      /** @relecture Surya — objet. */
+      objet: "Une absence a été signalée pour la garde du {date}",
+      /** @relecture Surya — corps : qui l'a signalée, et la suite. */
+      corps:
+        "{prenom} nous a signalé votre absence lors de la garde du {date}. La garde est enregistrée comme annulée et l'équipe Berceo va examiner la situation.",
+      /** @relecture Surya — bouton vers la garde. */
+      cta: "Voir la garde",
+    },
+
+    /** Le rappel de la veille (D-108) : à la famille. */
+    rappelFamille: {
+      /** @relecture Surya — objet. */
+      objet: "Rappel : votre garde du {date}",
+      /** @relecture Surya — corps. */
+      corps: "{prenom} sera chez vous demain, le {date}, à partir de {heure}.",
+      /** Guide — le bouton de la confirmation de réservation (famille). */
+      cta: "Voir les détails de ma réservation",
+    },
+
+    /** Le rappel de la veille (D-108) : à la professionnelle. */
+    rappelProfessionnelle: {
+      /** @relecture Surya — objet. */
+      objet: "Rappel : votre garde du {date} chez {prenomFamille}",
+      /** @relecture Surya — corps. */
+      corps: "Vous êtes attendue demain, le {date}, à partir de {heure}, chez {prenomFamille}.",
+      /** Guide — le bouton de la confirmation de réservation (professionnelle). */
+      cta: "Voir les détails de la garde",
+    },
+
     /** Une réponse déclinée : une autre professionnelle choisie, la demande republiée ou annulée (D-70, D-76). */
     nonRetenue: {
       /** @relecture Surya — objet. */

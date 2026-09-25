@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { RequestCard } from "@/components/demandes/request-card";
+import { GardeStateMark } from "@/components/gardes/garde-state";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
 import { hasNightStarted } from "@/lib/demandes/rules";
+import { gardeState } from "@/lib/gardes/rules";
 import { professionalBookings, type ProfessionalBooking } from "@/lib/reservations/bookings";
 import { PROFESSIONAL_BOOKINGS_PATH, professionalBookingPath } from "@/lib/reservations/paths";
 
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-function List({ title, items }: { title: string; items: ProfessionalBooking[] }) {
+function List({ title, items, now }: { title: string; items: ProfessionalBooking[]; now: Date }) {
   if (items.length === 0) return null;
   return (
     <section className="flex flex-col gap-4">
@@ -31,12 +33,20 @@ function List({ title, items }: { title: string; items: ProfessionalBooking[] })
               request={booking.request}
               rate={booking.nightRateEur}
               footer={
-                <Link
-                  href={professionalBookingPath(booking.id)}
-                  className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
-                >
-                  {t.gardes.voir}
-                </Link>
+                <>
+                  <GardeStateMark
+                    state={gardeState(
+                      { status: booking.garde.status, nightDate: booking.request.nightDate, startTime: booking.request.startTime },
+                      now,
+                    )}
+                  />
+                  <Link
+                    href={professionalBookingPath(booking.id)}
+                    className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+                  >
+                    {t.gardes.voir}
+                  </Link>
+                </>
               }
             />
           </li>
@@ -48,7 +58,7 @@ function List({ title, items }: { title: string; items: ProfessionalBooking[] })
 
 /*
  * « Mes gardes »: her bookings, coming nights first by date, then past ones,
- * latest first. The card is the night, the commune and the children; the
+ * latest first, each with its state (D-109). The card is the night, the commune and the children; the
  * family's name, address and phone wait on each garde's own page (D-15, D-72).
  */
 export default async function GardesPage() {
@@ -63,8 +73,8 @@ export default async function GardesPage() {
     <SpaceShell user={user} title={t.gardes.titre}>
       <p className="max-w-2xl text-intro text-encre-taupe">{t.gardes.intro}</p>
       {all.length === 0 ? <p className="max-w-2xl text-corps text-encre-taupe">{t.gardes.vide}</p> : null}
-      <List title={t.gardes.aVenir} items={coming} />
-      <List title={t.gardes.passees} items={past} />
+      <List title={t.gardes.aVenir} items={coming} now={now} />
+      <List title={t.gardes.passees} items={past} now={now} />
     </SpaceShell>
   );
 }

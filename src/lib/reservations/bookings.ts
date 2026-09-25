@@ -10,6 +10,9 @@ import {
   payments,
   professionalProfiles,
   users,
+  type BookingSide,
+  type BookingStatus,
+  type CancellationKind,
   type Profession,
 } from "@/db";
 import { cardColumns, isUniqueViolation, nightAhead, UUID, type RequestCard } from "@/lib/demandes/requests";
@@ -236,16 +239,38 @@ export async function acceptAnswer(
   }
 }
 
-/** The booking made from one of her requests, if any: the request page links to it. */
-export async function bookingOfRequest(userId: string, requestId: string): Promise<string | null> {
+/** The booking made from one of her requests, if any: the request page links to it and shows its state. */
+export async function bookingOfRequest(
+  userId: string,
+  requestId: string,
+): Promise<{ id: string; status: BookingStatus } | null> {
   if (!UUID.test(requestId)) return null;
   const [row] = await db
-    .select({ id: bookings.id })
+    .select({ id: bookings.id, status: bookings.status })
     .from(bookings)
     .where(and(eq(bookings.requestId, requestId), eq(bookings.familyUserId, userId)))
     .limit(1);
-  return row?.id ?? null;
+  return row ?? null;
 }
+
+/**
+ * A garde's stored status and, once cancelled, who it is recorded against,
+ * how and when (cycle-de-garde-et-annulation, D-105, D-106). Both sides read
+ * it; the state shown is `gardeState` in `src/lib/gardes/rules.ts`.
+ */
+export type GardeRecord = {
+  status: BookingStatus;
+  cancelledAt: Date | null;
+  cancelledBy: BookingSide | null;
+  cancellationKind: CancellationKind | null;
+};
+
+const gardeColumns = {
+  status: bookings.status,
+  cancelledAt: bookings.cancelledAt,
+  cancelledBy: bookings.cancelledBy,
+  cancellationKind: bookings.cancellationKind,
+};
 
 /** The professional booked, as the family sees her (D-72: her phone, never her surname). */
 export type BookedProfessional = {
@@ -260,6 +285,7 @@ export type FamilyBooking = {
   request: RequestCard;
   nightRateEur: number;
   confirmedAt: Date;
+  garde: GardeRecord;
   professional: BookedProfessional;
 };
 
@@ -267,6 +293,7 @@ const familyBookingColumns = {
   id: bookings.id,
   nightRateEur: bookings.nightRateEur,
   confirmedAt: bookings.confirmedAt,
+  garde: gardeColumns,
   request: cardColumns,
   professional: {
     profileId: professionalProfiles.id,
@@ -310,12 +337,14 @@ export type ProfessionalBooking = {
   request: RequestCard;
   nightRateEur: number;
   confirmedAt: Date;
+  garde: GardeRecord;
 };
 
 const professionalBookingColumns = {
   id: bookings.id,
   nightRateEur: bookings.nightRateEur,
   confirmedAt: bookings.confirmedAt,
+  garde: gardeColumns,
   request: cardColumns,
 };
 
@@ -341,7 +370,8 @@ export type BookedFamily = {
 /**
  * One of her bookings with the family's name, phone and address, or null:
  * another professional's booking reads the same as an unknown one. The
- * address comes from `src/lib/famille/`, live, gated by the same ownership.
+ * address comes from `src/lib/famille/`, live, gated by the same ownership,
+ * and only while the garde is confirmed and its night not ended (D-110).
  */
 export async function professionalBooking(
   userId: string,
