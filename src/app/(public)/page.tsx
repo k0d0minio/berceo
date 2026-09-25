@@ -88,10 +88,9 @@ export default function AccueilPage() {
         className="md:grid md:grid-cols-2 md:items-center md:gap-12 md:[&>h2]:col-span-2"
       >
         <div className="flex flex-col gap-4">
+          {/* Body size, not intro: beside the photo that is about 60 to 65 characters a line (blocs-accueil D-18). */}
           {t.gardiennes.paragraphs.map((paragraph) => (
-            <p key={paragraph} className="text-intro">
-              {paragraph}
-            </p>
+            <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
         <Photo photo={p.mainDoigt} />
@@ -107,7 +106,10 @@ export default function AccueilPage() {
       </VitrineSection>
 
       <StripedSection>
-        <h2 className="font-display text-h2">{t.professionnelles.title}</h2>
+        {/* Below md this heading sets at 26 px: at 32 px its shortest two-line split needs 380 px, and a phone's block gives 318 (blocs-accueil D-20). */}
+        <h2 className="font-display text-h2 text-balance max-md:text-[1.625rem]">
+          {t.professionnelles.title}
+        </h2>
         <p>{t.professionnelles.text}</p>
         <Button asChild variant="taupe">
           <Link href={c.pages.inscriptionProfessionnelle.href}>
