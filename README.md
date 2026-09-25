@@ -26,10 +26,11 @@ npm run dev      # http://localhost:3000
 | [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
 | [src/lib/professionnelle/](src/lib/professionnelle/), [src/lib/documents/](src/lib/documents/) | The professional's file: its rules, the private document bucket and `/api/fichiers/[id]`. |
 | [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' review: the queue and decision rules, the admin journal, the purge of refused files. See **The founders' verification** below. |
-| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`) and the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`), all guarded by `CRON_SECRET`. |
+| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`), the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`) and the hourly invitation to rate a finished garde (`.github/workflows/avis-invitations.yml`), all guarded by `CRON_SECRET`. |
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
 | [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
 | [src/lib/gardes/](src/lib/gardes/), [src/components/gardes/](src/components/gardes/) | The garde's life after its booking: its state by the clock, cancelling, reporting an absence, republishing, the reminder of the day before, the founders' list of absences. See **The garde's life** below. |
+| [src/lib/avis/](src/lib/avis/), [src/components/avis/](src/components/avis/) | The stars after a garde: the rating form of each side, the note and gardes count wherever they show, the invitation e-mail, the founders' list. See **The ratings** below. |
 | [src/lib/messagerie/](src/lib/messagerie/), [src/components/messagerie/](src/components/messagerie/) | The conversation per answer: its rules, reads and writes, the send action, the new-message e-mail. See **The conversation** below. |
 | [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
 | [src/lib/paiements/](src/lib/paiements/), [src/app/api/webhooks/stripe/](src/app/api/webhooks/stripe/) | The 3 % service fee through Stripe: the Checkout, the webhook, refunds, the founders' list. See **The service fee** below. |
@@ -299,6 +300,45 @@ in `src/lib/reservations/bookings.ts`.
   button of both confirmations and both reminders.
 - **Words:** `src/content/gardes.ts` (every entry `@relecture`), the e-mails in
   `src/content/emails.ts`, the admin list in `src/content/admin.ts`.
+
+## The ratings
+
+After a garde each side rates the other with stars, never a word of text (avis-etoiles, D-18,
+D-115 to D-122). `src/lib/avis/` holds the rules (`rules.ts`, pure and tested) and the only reads
+and writes of `ratings` and `rating_invitations` (`ratings.ts`); every rule is held again in the
+SQL of the statement it governs. The garde's state is `src/lib/gardes/`'s, never re-derived.
+
+- **Who rates what (D-115):** the family rates the professional on Ponctualité, Communication,
+  Soin and Confiance; the professional rates the family on Accueil, Communication, Clarté des
+  consignes and Respect du cadre. 1 to 5 whole stars each, all four required, stored as
+  `score_1` … `score_4` in the order `CRITERIA` fixes. The table has no text column.
+- **When (D-117, D-122):** once per side, from the moment the garde is terminée until 14 days
+  after the night's end, never on an annulée garde, never edited. The insert holds all of it
+  (`on conflict do nothing` on the unique garde and side). An absence reported after the end
+  cancels the garde: its ratings stay stored, show on `/admin/avis` as not counting, and count
+  nowhere.
+- **Double-blind (D-116):** a rating counts once the other side has rated too, or once the 14
+  days are over, computed at read time. Nobody but the founders ever reads a single rating; each
+  side sees only the stars it gave.
+- **The note and the gardes count (D-119):** `notesOfUsers` returns the mean of every published
+  criterion score to one decimal (« 4,6 », `NoteDisplay`), or « Pas encore de note », and the
+  person's terminée, non-annulée gardes, hidden at zero. Shown on the full profile and the answer
+  cards (`PublicProfile.note`, `Applicant.note`), on the professional's request cards and garde
+  page as the family's (`ProfessionalRequest.family`, keyed by request so the family's id never
+  leaves, D-118), and on each side's own home (D-121).
+- **The form:** `/espace/famille/reservations/[id]/avis` and `/espace/professionnelle/gardes/[id]/avis`,
+  reached by « Laisser un avis » on both lists and both garde pages and from the e-mail. The side
+  is the route's, the user the session's; only four whole numbers are read from the form.
+- **The invitation (D-120):** `.github/workflows/avis-invitations.yml` calls
+  `POST /api/cron/avis-invitations` (bearer `CRON_SECRET`) every hour at :17 on UAT and
+  production. Each side of each terminée garde inside its window, not yet invited and not yet
+  rated, is claimed in `rating_invitations` just before its e-mail (the family's is the guide's
+  « Demande d'avis post-garde », verbatim) and released if the send fails. No reminder.
+- **The founders' list (G-03, D-118):** `/admin/avis`, linked with its count from `/admin`, every
+  rating newest first, 50 a page, both full names, the four scores, the mean and whether it is
+  published. Read-only.
+- **Words:** `src/content/avis.ts` (every entry `@relecture` but « Laisser un avis »), the
+  e-mails in `src/content/emails.ts`, the admin list in `src/content/admin.ts`.
 
 ## The service fee
 

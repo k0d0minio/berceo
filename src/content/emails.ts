@@ -185,6 +185,28 @@ export const emails = catalogue({
       cta: "Voir les détails de la garde",
     },
 
+    /** Guide — « Demande d'avis post-garde (famille) », verbatim (avis-etoiles, D-120). */
+    avisFamille: {
+      objet: "Votre garde avec {prenom} est terminée : partagez votre retour",
+      corps:
+        "La garde de {prenom} s'est terminée. Votre retour nous aide à maintenir la qualité du réseau Berceo. Cela prend moins de 2 minutes.",
+      cta: "Laisser un avis",
+    },
+
+    /** La demande d'avis à la professionnelle (avis-etoiles, D-120), sur le modèle de celle de la famille. */
+    avisProfessionnelle: {
+      /** @relecture Surya — objet. */
+      objet: "Votre garde chez {prenomFamille} est terminée : partagez votre retour",
+      /** @relecture Surya — corps. */
+      corps:
+        "Votre garde du {date} chez {prenomFamille} s'est terminée. Votre retour nous aide à maintenir la qualité du réseau Berceo. Cela prend moins de 2 minutes.",
+      /** Guide — le bouton de la demande d'avis (famille). */
+      cta: "Laisser un avis",
+    },
+
+    /** @relecture Surya — le délai pour donner son avis (D-117), sous le bouton des deux demandes d'avis. */
+    avisDelai: "Vous pouvez donner votre avis pendant 14 jours.",
+
     /** Une réponse déclinée : une autre professionnelle choisie, la demande republiée ou annulée (D-70, D-76). */
     nonRetenue: {
       /** @relecture Surya — objet. */
