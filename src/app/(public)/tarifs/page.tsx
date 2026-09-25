@@ -34,7 +34,7 @@ export default function TarifsPage() {
       <PageHeader
         title={t.title}
         intro={t.intro}
-        aside={<Photo photo={p.oursBerceau} preload />}
+        aside={<Photo photo={p.oursBerceau} preload fillHeight />}
       />
 
       <VitrineSection tone="perle">

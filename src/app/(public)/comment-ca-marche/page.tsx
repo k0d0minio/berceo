@@ -25,7 +25,7 @@ export default function CommentCaMarchePage() {
       <PageHeader
         title={t.title}
         intro={t.intro}
-        aside={<Photo photo={p.mainsPieds} preload />}
+        aside={<Photo photo={p.mainsPieds} preload fillHeight />}
       />
 
       <VitrineSection title={t.familles.title} tone="perle">
