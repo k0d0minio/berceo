@@ -253,3 +253,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - this repo installs with npm only (package-lock.json); a pnpm-lock.yaml or yarn.lock in the tree switches Vercel's package manager and breaks every build. (`ERR_PNPM_OUTDATED_LOCKFILE`, seen 1× — recherche-et-fiches-publiques; root, src/app, src/components, src/content)
+<!-- Retrospective Learned Rule [2026-09-25] -->
+- When a change must hide an account (suspended, deleted) everywhere, list its readers by the table it lives on (`users`, `professional_profiles` joins), in every module including `src/lib/admin/`, not by one status predicate; then hold each one out in the SQL of the read and of the write it guards. (`FAILURE.md` — back-office-admin)
