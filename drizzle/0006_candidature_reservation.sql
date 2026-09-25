@@ -30,6 +30,7 @@ CREATE TABLE "care_request_applications" (
 --> statement-breakpoint
 ALTER TABLE "care_requests" ADD COLUMN "priority_profile_id" uuid;--> statement-breakpoint
 ALTER TABLE "care_requests" ADD COLUMN "priority_sent_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "care_requests" ADD COLUMN "republished_at" timestamp with time zone;--> statement-breakpoint
 ALTER TABLE "care_requests" ADD COLUMN "republish_count" smallint DEFAULT 0 NOT NULL;--> statement-breakpoint
 ALTER TABLE "bookings" ADD CONSTRAINT "bookings_request_id_care_requests_id_fk" FOREIGN KEY ("request_id") REFERENCES "public"."care_requests"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "bookings" ADD CONSTRAINT "bookings_application_id_care_request_applications_id_fk" FOREIGN KEY ("application_id") REFERENCES "public"."care_request_applications"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

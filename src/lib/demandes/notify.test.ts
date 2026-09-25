@@ -11,15 +11,22 @@ import type { Recipient, RequestCard } from "./requests";
  * never throws. The database and Resend are mocked at their boundaries.
  */
 
-const { claimDigestRequests, digestSentOn, professionalsServing, requestForNotice, sendEmail } = vi.hoisted(() => ({
+const { claimDigestRequests, declinedPairs, digestSentOn, professionalsServing, requestForNotice, sendEmail } = vi.hoisted(() => ({
   claimDigestRequests: vi.fn<() => Promise<RequestCard[]>>(),
+  declinedPairs: vi.fn<(ids: string[]) => Promise<Set<string>>>(),
   digestSentOn: vi.fn<(day: string) => Promise<boolean>>(),
   professionalsServing: vi.fn<(communes: string[]) => Promise<Recipient[]>>(),
   requestForNotice: vi.fn(),
   sendEmail: vi.fn<(to: string, email: { subject: string; text: string }, key?: string) => Promise<void>>(),
 }));
 
-vi.mock("./requests", () => ({ claimDigestRequests, digestSentOn, professionalsServing, requestForNotice }));
+vi.mock("./requests", () => ({
+  claimDigestRequests,
+  declinedPairs,
+  digestSentOn,
+  professionalsServing,
+  requestForNotice,
+}));
 vi.mock("@/lib/email/send", () => ({ sendEmail }));
 
 const SITE = "https://uat.berceo.be";
@@ -51,6 +58,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   sendEmail.mockResolvedValue(undefined);
   digestSentOn.mockResolvedValue(false);
+  declinedPairs.mockResolvedValue(new Set());
 });
 
 describe("the daily digest", () => {
@@ -102,6 +110,20 @@ describe("the daily digest", () => {
     expect(sendEmail.mock.calls.map(([to]) => to)).toEqual([julie.email]);
   });
 
+  // Spec (candidature-et-reservation, D-70): a republished normal request is
+  // carried by the next digest to everyone but the professionals declined on it.
+  it("skips a professional on the requests she was declined on", async () => {
+    claimDigestRequests.mockResolvedValue([request("r1", "21009"), request("r2", "21009")]);
+    professionalsServing.mockResolvedValue([julie, { ...emma, communeIns: "21009" }]);
+    declinedPairs.mockResolvedValue(new Set(["r1:p-julie", "r1:p-emma", "r2:p-emma"]));
+
+    expect(await sendRequestDigest(AFTER_SIX, SITE)).toEqual({ requests: 2, professionals: 1, failed: 0 });
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const [to, email] = sendEmail.mock.calls[0];
+    expect(to).toBe(julie.email);
+    expect(email.subject).toBe("Une nouvelle demande de garde dans votre zone");
+  });
+
   it("counts a failed send without throwing", async () => {
     claimDigestRequests.mockResolvedValue([request("r1", "21009")]);
     professionalsServing.mockResolvedValue([julie]);
@@ -124,6 +146,21 @@ describe("the urgent e-mail", () => {
     expect(to).toBe(julie.email);
     expect(email.subject).toBe("Demande urgente à Ixelles pour le 30/09/2026");
     expect(key).toBe("demande-r9-p-julie");
+  });
+
+  // Spec (candidature-et-reservation, D-70): republishing an urgent request
+  // e-mails the serving professionals again at once, not the declined ones.
+  it("goes again after a republication, keyed by its round, never to a declined professional", async () => {
+    requestForNotice.mockResolvedValue({ ...request("r9", "21009"), urgent: true, status: "ouverte", republishCount: 2 });
+    professionalsServing.mockResolvedValue([julie, { ...emma, communeIns: "21009" }]);
+    declinedPairs.mockResolvedValue(new Set(["r9:p-emma"]));
+
+    await notifyUrgentRequest("r9", SITE);
+
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const [to, , key] = sendEmail.mock.calls[0];
+    expect(to).toBe(julie.email);
+    expect(key).toBe("demande-r9-p-julie-r2");
   });
 
   it("sends nothing for a cancelled or a normal request", async () => {

@@ -371,7 +371,12 @@ export const careRequests = pgTable(
       onDelete: "set null",
     }),
     prioritySentAt: timestamp("priority_sent_at", { withTimezone: true }),
-    /** How many times the family republished it (D-70); keys the urgent e-mail again. */
+    /**
+     * When the family last republished it, and how many times (D-70): a normal
+     * one republished after its digest is carried by the next one, and the
+     * count keys the urgent e-mail again.
+     */
+    republishedAt: timestamp("republished_at", { withTimezone: true }),
     republishCount: smallint("republish_count").notNull().default(0),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
