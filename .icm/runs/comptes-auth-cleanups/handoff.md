@@ -8,7 +8,7 @@ stops, so nothing is carried in anyone's head.
 
 1. Operator: read `02_define/output/spec.md` and tick **Spec approved** on https://github.com/k0d0minio/berceo/pull/52.
 2. Then `/pipeline build comptes-auth-cleanups` — first renumber D-144/D-145 in `decisions.md` and the spec to the next free ids on `main` (they collide with `reservations-reponse-suspendue`), then execute `plan.md` pass by pass.
-3. Previews fail at provisioning until the stale `preview/claude/*` branches in the `uat-berceo` Neon project are deleted (10-branch cap) — see the PR comment; the ready flip needs a preview.
+3. The 10-branch cap on the `uat-berceo` Neon project was hit on 2026-09-26 (9 stale `preview/claude/*` branches, deleted that day). Every pushed branch gets a Neon preview branch, so it recurs as runs pile up: a preview failing in about 1 s with `Resource provisioning failed` means the cap again.
 
 ## Blockers
 
