@@ -10,6 +10,7 @@ import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { NEW_REQUEST_PATH, NEW_URGENT_REQUEST_PATH } from "@/lib/demandes/paths";
 import { priorityCandidates } from "@/lib/demandes/requests";
 import { PROFILE_PATH } from "@/lib/famille/paths";
@@ -44,12 +45,12 @@ export default async function PrioritePage({
   searchParams: Promise<{ envoyee?: string; erreur?: string }>;
 }) {
   const { id } = await params;
-  const user = await requireAccess(priorityPath(id));
+  const notice = await searchParams;
+  const user = await requireAccess(withQuery(priorityPath(id), notice));
   const profile = await publicProfile(id);
   if (!profile) notFound();
   if (!(await familyCommune(user.id))) redirect(`${PROFILE_PATH}?completer=1`);
 
-  const notice = await searchParams;
   const candidates = await priorityCandidates(user.id, profile.id);
   const pour = `pour=${profile.id}`;
 
