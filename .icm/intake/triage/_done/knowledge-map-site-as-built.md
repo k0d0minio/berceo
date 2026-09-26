@@ -1,4 +1,5 @@
 # Stub: The knowledge map still describes the holding page
+> Done elsewhere — retired 2026-09-26 (estate audit): fixed by 99f1fcf (#37) — `.icm/_shared/knowledge-map.md` no longer says holding.
 
 - lane: chore
 - found-by: vitrine-publique release · 2026-09-24
