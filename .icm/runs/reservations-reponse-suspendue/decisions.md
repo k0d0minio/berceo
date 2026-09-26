@@ -12,6 +12,6 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- D-144 — The only path out of `valide` today is the professional's own reopening (`reopenFile`, `valide → brouillon`); the founders' review decides only `en_attente` and `complement_demande` files and answers need `valide`, so `src/lib/admin/review.ts` carries no withdrawal. Define, 2026-09-26.
-- D-145 — The reopen dialog tells her, before she confirms, that her waiting availabilities will be withdrawn (one sentence, `@relecture`). Operator's call, Define, 2026-09-26.
-- D-146 — A one-off data migration withdraws the `en_attente` answers of every profile already out of `valide`, so no row from before the fix can come back. Operator's call, Define, 2026-09-26.
+- D-146 — The only path out of `valide` today is the professional's own reopening (`reopenFile`, `valide → brouillon`); the founders' review decides only `en_attente` and `complement_demande` files and answers need `valide`, so `src/lib/admin/review.ts` carries no withdrawal. Define, 2026-09-26.
+- D-147 — The reopen dialog tells her, before she confirms, that her waiting availabilities will be withdrawn (one sentence, `@relecture`). Operator's call, Define, 2026-09-26.
+- D-148 — A one-off data migration withdraws the `en_attente` answers of every profile already out of `valide`, so no row from before the fix can come back. Operator's call, Define, 2026-09-26.

@@ -10,10 +10,12 @@ stops, so nothing is carried in anyone's head.
 
 ## Blockers
 
+- Vercel preview deploys fail with "Resource provisioning failed" on every branch pushed since 12:11 UTC (see `error.log`); not this diff. Build's ready flip needs a green deploy, so check it before flipping.
 - blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/54
 
 ## Do not
 
-- Do not touch `src/lib/admin/review.ts` (D-144) or the suspension path (D-134).
+- Do not touch `src/lib/admin/review.ts` (D-146) or the suspension path (D-134).
 - Do not touch the conversations: that is `messagerie-profil-non-valide`, the epic's second stub.
 - Do not tick either gate box.
+- Before Build lands decisions, re-check the next free `D-n` against open runs (`comptes-auth-cleanups` holds D-144/D-145).

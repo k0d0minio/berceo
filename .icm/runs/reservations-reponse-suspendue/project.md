@@ -14,11 +14,11 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 ## Constraints
 
 - Withdrawal is silent and uses the existing `retiree` state (D-73); no new status, no e-mail.
-- Only `reopenFile` triggers it (D-144); suspension already withdraws (D-134) and is not touched.
+- Only `reopenFile` triggers it (D-146); suspension already withdraws (D-134) and is not touched.
 - The status change and the withdrawal land in one write, and only when the status actually moved.
 - Conversations are the epic's second stub (`messagerie-profil-non-valide`): not touched here.
-- The backfill migration is data-only and idempotent (D-146).
+- The backfill migration is data-only and idempotent (D-148).
 
 ## Context budget
 
-- Define read review.ts, admin/rules.ts, answers.ts, professionnelle/rules.ts, espace/professionnelle/actions.ts and accounts.ts to establish D-144; the cahier des charges (icm-board) was not read.
+- Define read review.ts, admin/rules.ts, answers.ts, professionnelle/rules.ts, espace/professionnelle/actions.ts and accounts.ts to establish D-146; the cahier des charges (icm-board) was not read.

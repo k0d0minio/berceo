@@ -18,7 +18,7 @@ point is that the same trigger is handled once and consistently.
 
 ## Proposed change
 
-**The trigger (D-144).** A profile leaves `valide` in exactly one place today: the professional's
+**The trigger (D-146).** A profile leaves `valide` in exactly one place today: the professional's
 own « Modifier ma profession ou mes justificatifs » (`reopenFile`,
 `src/app/(portail)/espace/professionnelle/actions.ts`), which moves the file `valide → brouillon`.
 The founders' review (`src/lib/admin/review.ts`) never does: it decides only on `en_attente` and
@@ -42,13 +42,13 @@ the status change.
 (the upsert that re-opens a `retiree` answer), at her current rate, on the request's current night.
 Nothing new to build.
 
-**The dialog (D-145).** The reopen confirmation dialog (`professionnelle.reouverture.description`)
+**The dialog (D-147).** The reopen confirmation dialog (`professionnelle.reouverture.description`)
 gains one sentence saying her waiting availabilities will be withdrawn, marked `@relecture`, in the
 guide's register (vouvoiement, no `!`, `…` or `—`). Proposed wording:
 « Vos disponibilités en attente de réponse seront retirées. » Build may adjust the wording within
 those rules; `vitrine.test.ts` holds the mechanical part.
 
-**The existing rows (D-146).** A one-off Drizzle data migration sets `retiree` (and `updated_at`)
+**The existing rows (D-148).** A one-off Drizzle data migration sets `retiree` (and `updated_at`)
 on every `care_request_applications` row in `en_attente` whose profile is not `valide`, so a
 profile that left `valide` before this fix carries no hidden answer either. It is idempotent and
 touches no schema.
@@ -75,4 +75,4 @@ touches no schema.
 
 - none
 
-Context budget: read `src/lib/admin/review.ts`, `src/lib/admin/rules.ts`, parts of `src/lib/reservations/answers.ts`, `src/lib/professionnelle/rules.ts`, `src/app/(portail)/espace/professionnelle/actions.ts` and `src/lib/admin/accounts.ts` to establish the only trigger (D-144); the cahier des charges lives outside this repo (icm-board) and was not read.
+Context budget: read `src/lib/admin/review.ts`, `src/lib/admin/rules.ts`, parts of `src/lib/reservations/answers.ts`, `src/lib/professionnelle/rules.ts`, `src/app/(portail)/espace/professionnelle/actions.ts` and `src/lib/admin/accounts.ts` to establish the only trigger (D-146); the cahier des charges lives outside this repo (icm-board) and was not read.
