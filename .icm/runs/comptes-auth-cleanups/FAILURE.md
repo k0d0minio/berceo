@@ -13,12 +13,18 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-26 — every preview failed at provisioning, no build log
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: from 12:10 UTC every Vercel preview (this run's draft and two sibling runs') ended `BUILD_FAILED — Resource provisioning failed` within a second, with an empty build log; `main`'s production deploy was READY.
+- why: the `uat-berceo` Neon project held 10 branches (`main` + 9 `preview/claude/*` the Vercel integration made at 11:02 for old proposal-era branches), Neon's per-project cap, so the integration could not create one for a new preview branch. `Neon cleanup` only deletes on PR close; those branches had no PR to close.
+- fixed by: the operator's go-ahead, then deleting the 9 stale preview branches through the Neon connection; the next push built (81f846f).
+
+### 2026-09-26 — decision ids collided with a sibling Define
+
+- what happened: this run's Define numbered D-144/D-145 while `reservations-reponse-suspendue` took D-144 to D-146 in the same minutes.
+- why: the ids were read from `main` only, not from every remote branch right before the commit (a Learned rule this repo already holds).
+- fixed by: marked provisional at Define, renumbered D-149/D-150 at Build after grepping every remote branch (D-148 highest).
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- When every preview fails within seconds with `Resource provisioning failed` and an empty build log, count the branches of the `uat-berceo` Neon project before touching code: at 10 the Vercel integration cannot create a preview branch, and the stale `preview/*` ones are deleted with the operator's go-ahead.

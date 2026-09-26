@@ -32,3 +32,14 @@ Recorded here, not ticked on the PR (Learned rule: a session's ticks are refused
 - Without `pathnameOf()` in the guard, a query on a space's own root (`/espace/professionnelle?envoye=1`) would miss `within()` and bounce the owner home in a loop; the guard now strips before both `accessFor` calls. The payment return route already passed `?session_id=`, which only worked because its path sits below the space root.
 - The way back now also carries one-shot notices (`?publiee=1`, `?erreur=…`) into `retour`; after sign-in the page shows that notice once more. Harmless, but the reviewer may prefer a notice-free retour on those pages; the spec asked for every page.
 - D-149 uses `siteUrl` (production) on every environment; `src/lib/site-origin.ts` (`siteOrigin()`, the host the request reached) exists and would point UAT at UAT. The webhook ignores the value, so the spec's choice stands; if the UAT reset smoke shows `[comptes] reset request failed` (Neon refusing a `redirectTo` outside its trusted domains), that helper is the fix.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 7138b2b (ci-status.sh, full gate); re-read after the last push before the merge
+- reviews: code low (/code-review on PR 52: no findings) · security security-check.sh --branch --audit: OK (gitleaks absent, built-in patterns only; npm audit clean) + /security-review — no findings (withQuery encodes, safeReturnPath unchanged on every retour reader, Drizzle parameterises the lookup) · readiness env.sh audit --changed: OK · /production-readiness n/a — not shipped in this repo's skills
+- parked: none
+- migrations: skip — none of this run's own
+- learned: skip — no error.log; 1 rule from FAILURE.md via close-out (the Neon preview-branch cap)
+- docs: README.md → Accounts and e-mail (the one lookup, the guard's path and query) · announce: deferred to promotion
+

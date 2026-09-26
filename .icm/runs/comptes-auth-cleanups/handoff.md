@@ -6,15 +6,12 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: smoke the preview https://berceo-git-claude-cool-cannon-poc3zn-kodominio.vercel.app — as a signed-in family open `/espace/famille/recherche?commune=<x>` and a notice URL such as `/espace/famille/profil?completer=1` (the page, not a redirect); request a password reset and check the e-mail arrives with a link to `/nouveau-mot-de-passe` (if it does not, look for `[comptes] reset request failed` in the logs — see notes.md → Notes for Release).
-2. Operator: tick **Ready to merge** in the body of https://github.com/k0d0minio/berceo/pull/52, then `/pipeline release comptes-auth-cleanups`.
+1. Merged and archived; nothing to pick up. The batch reaches production with the next promotion (`promote status`).
 
 ## Blockers
 
-- blocked on operator: smoke the preview and tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/52.
+- none
 
 ## Do not
 
-- Do not tick either gate on the PR.
-- Do not start `comptes-orphaned-auth-identity` or `comptes-welcome-email-no-retry` on this branch.
-- Do not change `/admin` pages or `src/proxy.ts`.
+- Do not re-open this run; the next stubs of the epic (`comptes-orphaned-auth-identity`, `comptes-welcome-email-no-retry`) build on `userByAuthId()` from `main`.
