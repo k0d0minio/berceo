@@ -13,9 +13,15 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- No schema change, no migration: the lock is the profile row, the key is already `unique`.
+- The photo takes the lock but keeps no count; its single slot is `onboarding-double-photo-race`'s.
+- `removeDocuments` / `removeFile` belong to `onboarding-orphaned-objects`; do not touch them.
+- A same-key refusal never deletes the object and answers `echec` (operator's decision in Define).
+- The proof runs on a Neon branch of the non-production project, never UAT's or production's
+  database.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- The cahier des charges the Define map names lives in icm-board, unreachable from the cloud
+  session; personas and touches came from the stub, `AGENTS.md` and greps of the actions file,
+  `rules.ts`, `src/db/index.ts` and `bookings.ts` (the `for update` batch precedent).

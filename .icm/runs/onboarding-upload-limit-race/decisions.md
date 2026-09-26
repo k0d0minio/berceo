@@ -8,9 +8,13 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none — the epic was cut from release-review findings, with no `scope.md`.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- run D-1 — the limit is held by a `for update` lock on the profile row taken earlier in the same
+  `db.batch` as a guarded insert; a lone guarded `INSERT … SELECT` is not enough under READ
+  COMMITTED. Define.
+- run D-2 — the same-key double confirm is folded into this run (operator's answer in Define): the
+  guard also refuses a key already recorded, and that refusal never deletes the object and
+  answers `echec`, like today's pre-check. Define.
