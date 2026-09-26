@@ -68,4 +68,4 @@ A chore — no persona sees a new behaviour except the way back keeping its quer
 
 ## Open questions
 
-- none — the two choices the stub left open were settled with the operator on 2026-09-26: `redirectTo` uses `siteUrl` (not dropped), and the query reaches the guard through its callers (not a proxy header).
+- none — the two choices the stub left open were settled with the operator on 2026-09-26: `redirectTo` uses `siteUrl`, not dropped (D-144), and the query reaches the guard through its callers, not a proxy header (D-145).
