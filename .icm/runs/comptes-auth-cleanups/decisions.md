@@ -12,5 +12,7 @@ decision made mid-run has one home.
 
 ## Made in this run
 
+Provisional numbers: the concurrent `reservations-reponse-suspendue` run claimed D-144 to D-146 at the same time. Build renumbers these to the next free ids on `main` and updates the spec's reference.
+
 - D-144 — `requestPasswordReset` passes `${siteUrl}/nouveau-mot-de-passe` as `redirectTo` rather than dropping it; the webhook ignores it either way. The operator's choice in Define, 2026-09-26.
 - D-145 — the query reaches `requireAccess` through its callers (the `/espace` pages that read `searchParams`), not a proxy header; the guard strips it before the role check. The operator's choice in Define, 2026-09-26.

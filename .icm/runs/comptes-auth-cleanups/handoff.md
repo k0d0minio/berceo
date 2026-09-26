@@ -7,7 +7,8 @@ stops, so nothing is carried in anyone's head.
 ## Next steps
 
 1. Operator: read `02_define/output/spec.md` and tick **Spec approved** on https://github.com/k0d0minio/berceo/pull/52.
-2. Then `/pipeline build comptes-auth-cleanups` — execute `plan.md` pass by pass.
+2. Then `/pipeline build comptes-auth-cleanups` — first renumber D-144/D-145 in `decisions.md` and the spec to the next free ids on `main` (they collide with `reservations-reponse-suspendue`), then execute `plan.md` pass by pass.
+3. Previews fail at provisioning until the stale `preview/claude/*` branches in the `uat-berceo` Neon project are deleted (10-branch cap) — see the PR comment; the ready flip needs a preview.
 
 ## Blockers
 
