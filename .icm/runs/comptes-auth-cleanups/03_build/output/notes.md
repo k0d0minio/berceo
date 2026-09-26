@@ -1,7 +1,7 @@
 # Build notes: comptes-auth-cleanups
 
-- commits: 5e84f36 feat (lookup, reset, guard and pages, tests); run-pack commits around it
-- ci: pending the ready flip (see below)
+- commits: 5e84f36 feat (lookup, reset, guard and pages, tests); run-pack commits around it; 606f704 ready
+- ci: GREEN on 606f704 (full gate: Vercel preview pass; Quality (advisory) pass: ESLint, typecheck, vitest)
 
 ## What changed
 
@@ -21,11 +21,11 @@ Recorded here, not ticked on the PR (Learned rule: a session's ticks are refused
 - [x] `currentUser()`, `signIn` and the confirmer keep every outcome: same branches, only the SELECT moved.
 - [x] The three "no users row" logs are unchanged (`[comptes]` + `authUserId`).
 - [x] `requestPasswordReset` reads no `Origin`; `redirectTo` from `siteUrl`; still `{ sent: true }`.
-- [ ] Query helper unit test — written; passes when the advisory job says so.
-- [ ] `signInWithReturn` with a query + role check on the pathname — written; same.
+- [x] Query helper unit test — `routing.test.ts`, green in the advisory job.
+- [x] `signInWithReturn` with a query + role check on the pathname — `routing.test.ts`, green.
 - [x] All 12 `/espace` pages with `searchParams` pass path + query; no `/admin` page touched.
 - [ ] UAT smoke (family search with `?commune=`, reset e-mail) — the operator's, on the preview.
-- [ ] Existing auth tests unchanged — the advisory job.
+- [x] Existing auth tests unchanged and green in the advisory job.
 
 ## Notes for Release
 

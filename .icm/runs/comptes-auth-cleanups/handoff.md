@@ -6,13 +6,12 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: read `02_define/output/spec.md` and tick **Spec approved** on https://github.com/k0d0minio/berceo/pull/52.
-2. Then `/pipeline build comptes-auth-cleanups` — first renumber D-144/D-145 in `decisions.md` and the spec to the next free ids on `main` (they collide with `reservations-reponse-suspendue`), then execute `plan.md` pass by pass.
-3. The 10-branch cap on the `uat-berceo` Neon project was hit on 2026-09-26 (9 stale `preview/claude/*` branches, deleted that day). Every pushed branch gets a Neon preview branch, so it recurs as runs pile up: a preview failing in about 1 s with `Resource provisioning failed` means the cap again.
+1. Operator: smoke the preview https://berceo-git-claude-cool-cannon-poc3zn-kodominio.vercel.app — as a signed-in family open `/espace/famille/recherche?commune=<x>` and a notice URL such as `/espace/famille/profil?completer=1` (the page, not a redirect); request a password reset and check the e-mail arrives with a link to `/nouveau-mot-de-passe` (if it does not, look for `[comptes] reset request failed` in the logs — see notes.md → Notes for Release).
+2. Operator: tick **Ready to merge** in the body of https://github.com/k0d0minio/berceo/pull/52, then `/pipeline release comptes-auth-cleanups`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/52.
+- blocked on operator: smoke the preview and tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/52.
 
 ## Do not
 
