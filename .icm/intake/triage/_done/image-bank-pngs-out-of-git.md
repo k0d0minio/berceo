@@ -1,4 +1,5 @@
 # Stub: Take the image-bank PNGs out of git
+> Done 2026-09-26 (estate audit, icm-board D47): the image bank moved to icm-board `workspaces/deals/berceo/berceo-platform/raw/image-bank/` and `.icm/raw/**` is ignored here.
 
 - lane: chore
 - found-by: finition-accueil scope (D-7) · 2026-09-25
