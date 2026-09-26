@@ -12,6 +12,13 @@ stops, so nothing is carried in anyone's head.
 ## Blockers
 
 - blocked on operator: tick **Spec approved** on https://github.com/k0d0minio/berceo/pull/53
+- blocked on operator: the Vercel check fails on every new head ("Resource provisioning failed",
+  ~1 s, no build log) — also on #52 and #54. The Neon non-production project
+  (`dawn-scene-70949411`, `uat-berceo`) holds 10 branches, the plan's limit: `main` and nine
+  `preview/claude/*` branches of long-merged work, all created 2026-09-26 11:02. The Neon–Vercel
+  integration cannot create this PR's preview branch. Deleting the stale preview branches
+  (Neon console, or with the operator's go-ahead) clears it; `ci-status.sh` reads RED until then,
+  and Build step 9 cannot flip on a RED.
 
 ## Do not
 
