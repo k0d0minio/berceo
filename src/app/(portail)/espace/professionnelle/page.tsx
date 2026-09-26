@@ -13,7 +13,7 @@ import { professionnelle } from "@/content/professionnelle";
 import { reservations } from "@/content/reservations";
 import { isHeldStudent } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
-import { SPACES } from "@/lib/auth/routing";
+import { SPACES, withQuery } from "@/lib/auth/routing";
 import { noteOfUser } from "@/lib/avis/ratings";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
 import { AVAILABILITY_PATH } from "@/lib/disponibilites/paths";
@@ -53,13 +53,13 @@ export default async function EspaceProfessionnellePage({
 }: {
   searchParams: Promise<{ envoye?: string; renvoye?: string }>;
 }) {
-  const user = await requireAccess(SPACES.professionnel);
+  const params = await searchParams;
+  const user = await requireAccess(withQuery(SPACES.professionnel, params));
   const file = await loadFile(user.id);
   const { status, reviewReason } = file.profile;
 
   if (status === "brouillon") redirect(`${ONBOARDING}/${firstIncompleteStep(file.state)}`);
 
-  const params = await searchParams;
   const justSent = params.envoye === "1";
   const justResent = params.renvoye === "1";
   const held = isHeldStudent(file.profile, await studentsAdmitted());

@@ -63,10 +63,33 @@ export function safeReturnPath(value: string | null | undefined): string | null 
   if (!value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
     return null;
   }
-  const pathname = value.split(/[?#]/)[0];
+  const pathname = pathnameOf(value);
   const isSpace =
     within(pathname, "/espace") || within(pathname, SPACES.admin);
   return isSpace ? value : null;
+}
+
+/** A path without its query or fragment: what the role checks read. */
+export function pathnameOf(path: string): string {
+  return path.split(/[?#]/)[0];
+}
+
+/**
+ * A page's own path with the query it was opened with, for the way back
+ * through sign-in: a family sent to sign in from a search returns to that
+ * search, not the bare page. `undefined` values are dropped, arrays repeated.
+ */
+export function withQuery(
+  path: string,
+  params: Record<string, string | string[] | undefined>,
+): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined) continue;
+    for (const one of Array.isArray(value) ? value : [value]) query.append(key, one);
+  }
+  const search = query.toString();
+  return search ? `${path}?${search}` : path;
 }
 
 export function signInWithReturn(pathname: string): string {
@@ -90,6 +113,6 @@ export function withReturn(page: string, retour: string | null | undefined): str
 /** Where a signed-in `role` lands: back where it was going, if it may, else home. */
 export function landingFor(role: UserRole, retour: string | null | undefined): string {
   const safe = safeReturnPath(retour);
-  if (safe && accessFor(role, safe.split(/[?#]/)[0]).kind === "allow") return safe;
+  if (safe && accessFor(role, pathnameOf(safe)).kind === "allow") return safe;
   return homeFor(role);
 }

@@ -16,6 +16,7 @@ import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { familyRatingPath } from "@/lib/avis/paths";
 import { ratingsGiven } from "@/lib/avis/ratings";
 import { canRate } from "@/lib/avis/rules";
@@ -89,7 +90,8 @@ export default async function ReservationPage({
   searchParams: Promise<Notice>;
 }) {
   const { id } = await params;
-  const user = await requireAccess(familyBookingPath(id));
+  const query = await searchParams;
+  const user = await requireAccess(withQuery(familyBookingPath(id), query));
   const booking = await familyBooking(user.id, id);
   if (!booking) notFound();
 
@@ -105,7 +107,7 @@ export default async function ReservationPage({
     [l.profession, professionLabel(professional.profession)],
     [l.tarif, rateLine(booking.nightRateEur)],
   ];
-  const notice = noticeText(await searchParams, professional.firstName);
+  const notice = noticeText(query, professional.firstName);
   const now = new Date();
   const facts = { status: booking.garde.status, nightDate: request.nightDate, startTime: request.startTime };
   const state = gardeState(facts, now);

@@ -6,6 +6,7 @@ import { SpaceShell } from "@/components/shell/space-shell";
 import { avis } from "@/content/avis";
 import { fill, words } from "@/content/locale";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { professionalRatingPath } from "@/lib/avis/paths";
 import { ratingTarget } from "@/lib/avis/ratings";
 import { professionalBookingPath } from "@/lib/reservations/paths";
@@ -36,10 +37,11 @@ export default async function ProfessionalRatingPage({
   searchParams: Promise<{ merci?: string }>;
 }) {
   const { id } = await params;
-  const user = await requireAccess(professionalRatingPath(id));
+  const query = await searchParams;
+  const user = await requireAccess(withQuery(professionalRatingPath(id), query));
   const target = await ratingTarget("professionnelle", user.id, id);
   if (!target) notFound();
-  const { merci } = await searchParams;
+  const { merci } = query;
 
   return (
     <SpaceShell user={user} title={fill(t.formulaire.titreProfessionnelle, { prenom: target.otherFirstName })}>

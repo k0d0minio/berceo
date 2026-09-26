@@ -162,8 +162,11 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
 
 - **Auth instance:** `src/lib/auth/server.ts` (`getAuth()`, created on first use). Pages and
   actions ask `currentUser()` (`src/lib/auth/current-user.ts`), which joins the session to the
-  `users` row, because the role lives on the row. Spaces call `requireAccess(path)`
-  (`src/lib/auth/guard.ts`); the redirect table is `src/lib/auth/routing.ts`.
+  `users` row, because the role lives on the row; that row is read in one place,
+  `userByAuthId()` (`src/lib/auth/users.ts`). Spaces call `requireAccess(path)`
+  (`src/lib/auth/guard.ts`) with their path and query (`withQuery`): the role is checked on the
+  path, and a sign-in redirect keeps both as `retour`; the redirect table is
+  `src/lib/auth/routing.ts`.
 - **Routes:** `/inscription-famille`, `/inscription-professionnelle`, `/connexion`,
   `/mot-de-passe-oublie`, `/nouveau-mot-de-passe`, `/verification-email` (`src/app/(auth)/`);
   the spaces `/espace/famille`, `/espace/professionnelle`, `/admin` (`src/app/(portail)/`).

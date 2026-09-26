@@ -17,6 +17,7 @@ import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { professionalRatingPath } from "@/lib/avis/paths";
 import { familyNotesOfRequests, NO_NOTE, ratingsGiven } from "@/lib/avis/ratings";
 import { canRate } from "@/lib/avis/rules";
@@ -86,14 +87,15 @@ export default async function GardePage({
   searchParams: Promise<Notice>;
 }) {
   const { id } = await params;
-  const user = await requireAccess(professionalBookingPath(id));
+  const query = await searchParams;
+  const user = await requireAccess(withQuery(professionalBookingPath(id), query));
   const booking = await professionalBooking(user.id, id);
   if (!booking) notFound();
 
   const { family } = booking;
   const conversationId = await conversationOfBooking(user.id, "professionnelle", id);
   const address = family.address;
-  const notice = noticeText(await searchParams);
+  const notice = noticeText(query);
   const now = new Date();
   const facts = { status: booking.garde.status, nightDate: booking.request.nightDate, startTime: booking.request.startTime };
   const cancelled = cancelledLine(booking.garde, "professionnelle", family.firstName);
