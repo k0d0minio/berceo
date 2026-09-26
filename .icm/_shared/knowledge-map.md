@@ -16,11 +16,11 @@ There is no product docs site yet; the platform as built is described at the roo
   what Berceo is, the two hard external dependencies (itsme, the Belgian regulatory context),
   where the effort goes, and the launch blockers (the legal chapter the founders left
   unanswered).
-- The scope of record — `.icm/docs/cahier-des-charges.md`: the founders' annotated cahier des
+- The scope of record — icm-board `workspaces/deals/berceo/berceo-platform/raw/documents/cahier-des-charges.md`: the founders' annotated cahier des
   charges, the specification V1 is measured against. Document verification of professional
   diplomas is out of this version; the platform keeps accounts, night-care requests, the
   selection of a professional, messaging, payment and administration.
-- The founders' answers — `.icm/docs/berceo-answers.pdf`: the 40-page answers document,
+- The founders' answers — icm-board `workspaces/deals/berceo/berceo-platform/raw/documents/berceo-answers.pdf`: the 40-page answers document,
   declared the source of truth (a binary — read it through the summary in `REPORT.md` and quote
   it by section).
 - The questions asked — `.icm/docs/QUESTIONS.md`: the exhaustive discovery questionnaire with
@@ -38,8 +38,10 @@ There is no product docs site yet; the platform as built is described at the roo
 
 | Stage | Reads | Writes |
 | --- | --- | --- |
-| **Scope** (incl. the cut) | may read everything, to check requirements are clear, nothing breaks, and the feature fits what exists; prefers `.icm/docs/REPORT.md` first, then the section of `.icm/docs/cahier-des-charges.md` the story touches, and `.icm/docs/QUESTIONS.md` for what is still open | — (its artifacts are `.icm/runs/<slug>/01_scope/**` + `.icm/intake/<slug>/`) |
-| **Define** | `.icm/docs/cahier-des-charges.md` — the touches and the personas (parent, professionnel, admin) come from it; `AGENTS.md` for the standing rules | — |
+| **Scope** (incl. the cut) | may read everything, to check requirements are clear, nothing breaks, and the feature fits what exists; prefers `.icm/docs/REPORT.md` first, then the section of icm-board `workspaces/deals/berceo/berceo-platform/raw/documents/cahier-des-charges.md` the story touches, and `.icm/docs/QUESTIONS.md` for what is still open | — (its artifacts are `.icm/runs/<slug>/01_scope/**` + `.icm/intake/<slug>/`) |
+| **Define** | icm-board `workspaces/deals/berceo/berceo-platform/raw/documents/cahier-des-charges.md` — the touches and the personas (parent, professionnel, admin) come from it; `AGENTS.md` for the standing rules | — |
 | **Build** | `AGENTS.md` (the code rules `_shared/conventions.md` redirects to) and `README.md` (where things live) | — |
 | **Release** | `README.md` and `AGENTS.md` when a shipped change moves a file or a rule | those pages |
 | **Knowledge lane** | exactly the one page the request names | that page; this map when a page is added or removed |
+
+> 2026-09-26 (icm-board D47): the founders' documents — the answers PDF, the annotated cahier des charges, the brand and art-direction PDFs, the SEO guidelines, the kick-off notes and the image bank — live in icm-board at `workspaces/deals/berceo/berceo-platform/raw/` (documents/, transcripts/, originals/, image-bank/) and were purged from this repository. A session that needs one reads it there, on Jamie's machine, and cites that path.

@@ -32,8 +32,8 @@ answer is here, and it is this repo's own.
 ## Knowledge
 
 - **Docs tree** — `docs_path` is `.icm/docs`: the discovery material the engagement rests on
-  (`REPORT.md`, `cahier-des-charges.md`, `QUESTIONS.md`, `DECOUVERTE-BERCEO.md`,
-  `berceo-answers.pdf`), mapped in `_shared/knowledge-map.md`. There is no product docs site;
+  (`REPORT.md`, icm-board `workspaces/deals/berceo/berceo-platform/raw/documents/cahier-des-charges.md`, `QUESTIONS.md`, `DECOUVERTE-BERCEO.md`,
+  icm-board `workspaces/deals/berceo/berceo-platform/raw/documents/berceo-answers.pdf`), mapped in `_shared/knowledge-map.md`. There is no product docs site;
   the holding page as built is described in `README.md`.
 - **Code rules** — `AGENTS.md` at the root (the file `_shared/conventions.md` redirects to).
 
