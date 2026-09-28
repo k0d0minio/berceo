@@ -17,7 +17,7 @@ import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
 import { gardeState, type GardeState } from "@/lib/gardes/rules";
 import { bookingFees, type BookingFee } from "@/lib/paiements/payments";
 
-import { fullName, type Person } from "./journal";
+import { fullName, journalInsertAfter, type Person } from "./journal";
 import { LIST_PAGE_SIZE, UUID, type BookingFilter, type ReportFilter, type RequestFilter } from "./rules";
 
 /**
@@ -119,7 +119,14 @@ export async function readRequests(
 // Bookings
 // ---------------------------------------------------------------------------
 
-/** Each booking filter in SQL, as `gardeState` reads it by the clock. */
+/**
+ * Each booking filter in SQL, as `gardeState` reads it by the clock, and the
+ * bookings an account is on, on either side. The account page's « gardes à
+ * venir » and its deletion guard read `en-cours` for one account from here too.
+ */
+export function bookingCondition(filter: BookingFilter, accountId: string | null): SQL;
+export function bookingCondition(filter: BookingFilter | null, accountId: string): SQL;
+export function bookingCondition(filter: BookingFilter | null, accountId: string | null): SQL | undefined;
 export function bookingCondition(filter: BookingFilter | null, accountId: string | null): SQL | undefined {
   const confirmed = sql`${bookings.status} = 'confirmee'`;
   const state: Record<BookingFilter, SQL> = {
@@ -323,11 +330,10 @@ export async function readReports(
  */
 export async function markReportHandled(bookingId: string, admin: Person, now: Date): Promise<boolean> {
   if (!UUID.test(bookingId)) return false;
-  const at = now.toISOString();
-  const result = await db.execute<{ id: string }>(sql`
-    with handled as (
+  const result = await journalInsertAfter(
+    sql`handled as (
       update bookings
-      set report_handled_at = ${at}::timestamptz, report_handled_by = ${admin.id}::uuid
+      set report_handled_at = ${now.toISOString()}::timestamptz, report_handled_by = ${admin.id}::uuid
       where id = ${bookingId} and status = 'annulee' and report_handled_at is null
       returning id, family_user_id, profile_id, cancelled_by, night_date
     ),
@@ -336,12 +342,15 @@ export async function markReportHandled(bookingId: string, admin: Person, now: D
       from handled h
       join professional_profiles p on p.id = h.profile_id
       join users u on u.id = case when h.cancelled_by = 'famille' then h.family_user_id else p.user_id end
-    )
-    insert into admin_journal (occurred_at, action, subject_user_id, subject_name, admin_user_id, admin_name, detail)
-    select ${at}::timestamptz, 'signalement_traite'::admin_action, subject.id, subject.name,
-           ${admin.id}::uuid, ${admin.name}::text, to_char(subject.night_date, 'YYYY-MM-DD')
-    from subject
-    returning id
-  `);
+    )`,
+    "subject",
+    {
+      action: "signalement_traite",
+      subject: { id: sql`subject.id`, name: sql`subject.name` },
+      admin,
+      detail: sql`to_char(subject.night_date, 'YYYY-MM-DD')`,
+      at: now,
+    },
+  );
   return result.rows.length > 0;
 }

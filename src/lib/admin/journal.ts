@@ -49,6 +49,33 @@ export function journalInsert(entry: NewJournalEntry) {
 }
 
 /**
+ * The journal's columns and the values of one entry, written once for every
+ * raw-SQL insert below: a value is a JS value (bound) or SQL read off the row
+ * the statement selects from.
+ */
+const JOURNAL_COLUMNS = sql`(occurred_at, action, subject_user_id, subject_name, admin_user_id, admin_name, detail)`;
+
+type JournalValue = string | null | SQL;
+
+export type JournalSelectEntry = {
+  action: AdminAction;
+  subject: { id: JournalValue; name: JournalValue } | null;
+  admin: Person | null;
+  detail?: JournalValue;
+  at: Date;
+};
+
+function bound(value: JournalValue): SQL {
+  return value === null || typeof value === "string" ? sql`${value}` : sql`(${value})`;
+}
+
+function journalSelect(entry: JournalSelectEntry): SQL {
+  return sql`select ${entry.at.toISOString()}::timestamptz, ${entry.action}::admin_action,
+           ${bound(entry.subject?.id ?? null)}::uuid, ${bound(entry.subject?.name ?? null)}::text,
+           ${entry.admin?.id ?? null}::uuid, ${entry.admin?.name ?? null}::text, ${bound(entry.detail ?? null)}::text`;
+}
+
+/**
  * The same insert as a statement that writes the entry only when `condition`
  * holds, for a batch whose earlier statement may not have taken (a second
  * founder acted first): the entry and the change it records stand or fall
@@ -56,11 +83,25 @@ export function journalInsert(entry: NewJournalEntry) {
  */
 export function journalInsertIf(entry: NewJournalEntry, condition: SQL) {
   return db.execute<{ id: string }>(sql`
-    insert into ${adminJournal} (occurred_at, action, subject_user_id, subject_name, admin_user_id, admin_name, detail)
-    select ${(entry.at ?? new Date()).toISOString()}::timestamptz, ${entry.action}::admin_action,
-           ${entry.subject?.id ?? null}::uuid, ${entry.subject?.name ?? null}::text,
-           ${entry.admin?.id ?? null}::uuid, ${entry.admin?.name ?? null}::text, ${entry.detail ?? null}::text
+    insert into ${adminJournal} ${JOURNAL_COLUMNS}
+    ${journalSelect({ ...entry, at: entry.at ?? new Date() })}
     where ${condition}
+    returning id
+  `);
+}
+
+/**
+ * The change and its entry as one statement: `ctes` (without `with`) makes the
+ * change and returns its rows, and one entry is written per row of `source`,
+ * one of those CTEs; the entry's SQL values read that row. No row, no entry
+ * (a second founder acted first). Returns the entries' ids.
+ */
+export function journalInsertAfter(ctes: SQL, source: string, entry: JournalSelectEntry) {
+  return db.execute<{ id: string }>(sql`
+    with ${ctes}
+    insert into ${adminJournal} ${JOURNAL_COLUMNS}
+    ${journalSelect(entry)}
+    from ${sql.identifier(source)}
     returning id
   `);
 }

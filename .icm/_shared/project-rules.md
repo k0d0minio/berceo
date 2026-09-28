@@ -265,3 +265,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - When a stub names where a state transition happens, Define greps every write of that column (`.update(<table>)` and raw `update <table>`) before accepting the list, and writes the real set into the spec. (`FAILURE.md` — reservations-reponse-suspendue)
 <!-- Retrospective Learned Rule [2026-09-28] -->
 - A withdrawal that must catch every row a concurrent writer might add needs that writer to lock the row it checks (`FOR SHARE`), not only a guard in the withdrawing batch. (`FAILURE.md` — reservations-reponse-suspendue)
+<!-- Retrospective Learned Rule [2026-09-28] -->
+- When a stub asks to write a duplicated rule once, Define greps all of `src/` for every copy of it rather than trusting the stub's list, and adds a source test refusing it outside its one home. (`FAILURE.md` — admin-sql-helpers-dedupe)
