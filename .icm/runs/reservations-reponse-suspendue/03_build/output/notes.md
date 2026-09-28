@@ -27,7 +27,19 @@
 
 - Migration 0013 is data-only and forward-only: on UAT it runs at the merge's build, on production at the promotion. Nothing to roll back — a withdrawn answer is re-answered by the professional.
 - The stub also named `src/lib/admin/review.ts`; it is untouched on purpose (D-146: the founders' review never moves a `valide` file).
-- The Vercel previews failed on 2026-09-26 with « Resource provisioning failed » before any build step (`../../error.log`); they built again on 2026-09-28 with no repo change.
+- The Vercel previews failed on 2026-09-26 with « Resource provisioning failed » before any build step (`error.log`); they built again on 2026-09-28 with no repo change.
 - The preview's build runs `db:migrate`, so its database carries migration 0013.
 
 Context budget: loaded `src/lib/auth/suspension.ts` (+ its test, for the built-not-run test pattern), `src/db/index.ts`, `vitest.config.ts`, `scripts/verify-migrations.ts` and the database-migration skill beyond `touches:`.
+
+## Release
+
+- gate: Ready to merge ticked, which authorises the merge
+- ci: GREEN on fac9d80 (full gate: Vercel preview pass, Quality (advisory) pass); read again after the last push (the head that merges is the close-out commit)
+- reviews: code medium (`/code-review` on origin/main...HEAD: no bug; one narrow race parked) · security `security-check.sh --branch --audit`: OK (npm audit clean) · /security-review n/a: the diff touches no auth, payment, PII or route policy (`reopenFile` keeps its professional check unchanged) · readiness `env.sh audit --changed`: OK (one warning: the GitHub secrets surface is not readable with this token) · /production-readiness n/a: no such skill ships in this repo or this session; migration 0013 was applied and proved on the run's Neon branch (`db:migrate`, `db:verify` 14/14, run twice) and applied by the preview build
+- parked: reservations-reponse-pendant-reouverture.md (an answer sent from another tab during the reopen can stay waiting; lock the profile row in `answerRequest`)
+- merge of main: at Build (08061f2, comptes-auth-cleanups, no overlap); up to date at Release
+- migrations: skip. `check-migrations.sh` reads Drizzle's journal as SKIP; `0013_retrait_reponses_profils_non_valides` follows main's `0012`, data-only and forward-only (UAT at the merge's build, production at the promotion)
+- learned: none from error.log (2 entries, each seen once, no `- rule:`); FAILURE.md carries two learned rules for the close-out
+- docs: README « The answer and the booking » (Build); no page under `.icm/docs` changes · announce: deferred to promotion
+- Context budget: within the Inputs table
