@@ -8,9 +8,11 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none — no scope run; the epic was cut from the back-office-admin release review (2026-09-25). D-54 (the append-only journal) and D-133 (one condition per overview block and its list) are inherited from verification-back-office and back-office-admin.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+D-150 was the highest id on `main` and every remote branch on 2026-09-28.
+
+- D-151 — every hand-written `admin_journal` insert moves into `journal.ts`, the two the stub named and the two it missed (`decide` in `review.ts`, the founder refund in `payments.ts`), with a source test refusing the insert anywhere else. The operator's choice in Define, 2026-09-28.
+- D-152 — the CTE acts stay one SQL statement: `journal.ts` gains a CTE-aware helper building the insert-select from the CTE's row, rather than splitting each act into `db.batch` + `journalInsertIf`. The operator's choice in Define, 2026-09-28.

@@ -13,9 +13,13 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- No behaviour change: every SQL statement keeps its semantics, each CTE act stays one
+  statement (D-152), and every journal entry carries the same values as before.
+- `admin_journal` is append-only (D-54, the trigger in `drizzle/0004_verification_back_office.sql`):
+  nothing here updates or deletes it, and no migration is part of this run.
+- The suspension predicate in `decide` and elsewhere is `suspension-one-predicate`'s — leave it
+  as written.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `journal.ts`, `accounts.ts`, `lists.ts`, `review.ts` and the refund in `payments.ts` to find the hand-written inserts and confirm `bookingCondition("en-cours")` equals `gardeAhead` — beyond targeted greps, needed to size the stub's scope question.

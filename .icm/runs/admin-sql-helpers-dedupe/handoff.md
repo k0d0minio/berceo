@@ -6,18 +6,16 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Operator: read `02_define/output/spec.md`, tick **Spec approved** in the body of
+   https://github.com/k0d0minio/berceo/pull/55, then run `/pipeline build admin-sql-helpers-dedupe`.
+2. Build: execute `plan.md` pass by pass, on branch `claude/practical-ritchie-q4k9hh`.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** on https://github.com/k0d0minio/berceo/pull/55.
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not touch the suspension predicates (`suspension-one-predicate` owns them, next in the epic).
+- Do not convert the CTE acts to `db.batch` (D-152) or add a migration.
+- Do not tick either gate on the PR.
