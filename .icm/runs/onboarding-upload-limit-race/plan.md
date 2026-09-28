@@ -12,7 +12,8 @@ reality disagrees with it — never left describing a plan that was abandoned.
    (`ok`, `nombre`, `echec`) and to whether the uploaded object is deleted; unit tests in
    `rules.test.ts`, one per outcome. — done when: `npm test` passes on the rules file and only
    "over the limit" and "failed" delete.
-2. **The locked recording** — `confirmUpload` in
+2. **The locked recording** — a new server module `src/lib/professionnelle/uploads.ts`
+   (`recordUpload`, so the proof calls the real statements) called by `confirmUpload` in
    `src/app/(portail)/espace/professionnelle/actions.ts`: replace the lone `db.insert` with one
    `db.batch` — `select id from professional_profiles where id = $profile for update`, then the
    insert guarded by `count(kind) < FILES_PER_DOCUMENT_MAX` (documents only) and `not exists`

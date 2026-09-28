@@ -18,3 +18,6 @@ decision made mid-run has one home.
 - run D-2 — the same-key double confirm is folded into this run (operator's answer in Define): the
   guard also refuses a key already recorded, and that refusal never deletes the object and
   answers `echec`, like today's pre-check. Define.
+- run D-3 — the locked batch lives in `src/lib/professionnelle/uploads.ts` (`recordUpload`), not
+  inline in the action, so the concurrency proof runs the shipped statements rather than a copy.
+  One file beyond the spec's `touches:`. Build.
