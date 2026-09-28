@@ -1,7 +1,7 @@
 # Build notes: reservations-reponse-suspendue
 
-- commits: bfed69d feat — the helper, `reopenFile`'s batch, the test, the dialog sentence, migration 0013, README
-- ci: see status.md (the draft head owes nothing; the full gate settles after the ready flip)
+- commits: bfed69d feat — the helper, `reopenFile`'s batch, the test, the dialog sentence, migration 0013, README; bce6769 run files; 08061f2 merge of main (comptes-auth-cleanups, no overlap)
+- ci: GREEN on 08061f2 (full gate: Vercel preview pass, Quality (advisory) pass — vitest incl. `reopening.test.ts` and `vitrine.test.ts`)
 
 ## What changed
 
@@ -27,6 +27,7 @@
 
 - Migration 0013 is data-only and forward-only: on UAT it runs at the merge's build, on production at the promotion. Nothing to roll back — a withdrawn answer is re-answered by the professional.
 - The stub also named `src/lib/admin/review.ts`; it is untouched on purpose (D-146: the founders' review never moves a `valide` file).
-- The Vercel previews failed on 2026-09-26 with « Resource provisioning failed » before any build step (see `../../error.log`); if they still do after the flip, that is the blocker, not this diff.
+- The Vercel previews failed on 2026-09-26 with « Resource provisioning failed » before any build step (`../../error.log`); they built again on 2026-09-28 with no repo change.
+- The preview's build runs `db:migrate`, so its database carries migration 0013.
 
 Context budget: loaded `src/lib/auth/suspension.ts` (+ its test, for the built-not-run test pattern), `src/db/index.ts`, `vitest.config.ts`, `scripts/verify-migrations.ts` and the database-migration skill beyond `touches:`.

@@ -24,4 +24,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Dialog sentence in `src/content/professionnelle.ts` (bfed69d)
 - [x] Migration `drizzle/0013_retrait_reponses_profils_non_valides.sql` (bfed69d)
 - [x] README → The answer and the booking (bfed69d)
-- [ ] `vitrine.test.ts` and the new test green in the advisory job after the ready flip
+- [x] `vitrine.test.ts` and the new test green in the advisory job after the ready flip
