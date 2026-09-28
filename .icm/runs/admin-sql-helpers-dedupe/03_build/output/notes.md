@@ -45,3 +45,13 @@ Recorded here, not ticked in the PR body (learned rule, verification-back-office
   `paiements/payments`, `gardes/rules`, `demandes/rules`, none of which import `accounts`).
 - Neither `format.sh` nor `lint.sh` is wired here (both `SKIP`); the advisory job is the first
   lint and typecheck of this diff.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 0772993 (ci-status.sh, full gate: Vercel pass, Quality (advisory) pass); re-read after the last push before the merge
+- reviews: code medium (/code-review: no findings) · security security-check.sh --branch --audit: OK (npm audit clean) + /security-review — no findings (every CTE source name is a literal quoted by `sql.identifier`, every inlined `SQL` value a code literal, every user value bound; each act's guard unchanged) · readiness env.sh audit --changed: OK · /production-readiness n/a — not shipped in this repo's skills; no migration, no env var, no auth change
+- parked: none
+- migrations: skip — none of this run's own
+- learned: skip — no error.log; 1 rule from FAILURE.md via close-out (grep all of `src/` for every copy before deduplicating)
+- docs: README.md → The founders' verification (the journal's one column list and its source test) · announce: deferred to promotion

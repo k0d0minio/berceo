@@ -529,7 +529,9 @@ never touches the money for the night (D-1).
   server, and her space says why. Turning the switch on releases it at its place.
 - **The journal:** `/admin/journal`, newest first, 50 per page. Every admin action writes through
   `src/lib/admin/journal.ts` (the decisions, the students switch, the purge, and the back-office's
-  acts below); the module has no update or delete, and the database refuses both.
+  acts below, the founder's refund included); its column list is written once, and
+  `journal-isolation.test.ts` fails on an `insert into admin_journal` anywhere else. The module
+  has no update or delete, and the database refuses both.
 - **The purge (D-41, D-55):** `/api/cron/purge-dossiers-refuses`, scheduled daily in
   `vercel.json`, deletes every file (documents and photo) of a profile refused more than 30 days
   ago, and any file a deleted account still holds, from the bucket and `professional_documents`,

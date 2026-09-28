@@ -13,12 +13,15 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-28 — the stub named two of the four hand-written journal inserts
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: the stub listed `reactivateAccount` and `markReportHandled`; a grep at Define
+  found the same column list also in `decide` (`src/lib/admin/review.ts`) and the founder refund
+  (`src/lib/paiements/payments.ts`).
+- why: the release review that cut the stub read `accounts.ts` and `lists.ts` only.
+- fixed by: the operator widened the scope at Define (D-151); all four moved, and a source test
+  holds the rule.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- When a stub asks to write a duplicated rule once, Define greps all of `src/` for every copy of it rather than trusting the stub's list, and adds a source test refusing it outside its one home.
