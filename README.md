@@ -252,6 +252,12 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   « Republier ma demande » declines the waiting answers and sends the request out again (the
   urgent e-mail at once, or the next digest, which carries a request republished since its last
   one). Cancelling declines the waiting answers too.
+- **Her profile leaving `valide` (D-146 to D-148):** reopening a validated file (« Modifier ma
+  profession ou mes justificatifs », `reopenFile`) withdraws her waiting answers in the same
+  `db.batch` (`reopeningWithdrawsAnswers` in `answers.ts`), so none comes back on a moved night
+  at her old rate; the dialog says so beforehand. Once validated again she answers afresh.
+  Migration `0013` withdrew the ones left behind before the fix. A suspension withdraws them too
+  (D-134).
 - **The full profile (D-75):** `/espace/famille/professionnelles/[id]`, any signed-in family, any
   `valide` profile; `profileColumns` in `profiles.ts` is all that leaves (a test holds it). Her
   photo is served to parents by `/api/fichiers/[id]`; her documents never are. It mounts

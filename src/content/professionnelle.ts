@@ -202,8 +202,9 @@ export const professionnelle = catalogue({
       bouton: "Modifier ma profession ou mes justificatifs",
       /** @relecture Surya — la confirmation que demande le spec. */
       titre: "Votre profil sera vérifié à nouveau",
+      /** @relecture Surya — la dernière phrase annonce le retrait de ses disponibilités en attente (reservations-reponse-suspendue, D-147). */
       description:
-        "Changer de profession ou de justificatifs demande une nouvelle vérification par l'équipe Berceo. Votre profil restera masqué jusqu'à ce qu'elle soit faite, et vous confirmerez à nouveau vos déclarations.",
+        "Changer de profession ou de justificatifs demande une nouvelle vérification par l'équipe Berceo. Votre profil restera masqué jusqu'à ce qu'elle soit faite, et vous confirmerez à nouveau vos déclarations. Vos disponibilités en attente de réponse seront retirées.",
       confirmer: "Oui, modifier mon dossier",
       annuler: "Non, garder mon profil tel quel",
     },

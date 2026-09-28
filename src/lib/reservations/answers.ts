@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, eq, exists, inArray, sql } from "drizzle-orm";
+import { and, asc, count, eq, exists, inArray, sql, type SQL } from "drizzle-orm";
 
 import {
   careRequestApplications,
@@ -183,6 +183,36 @@ export function suspensionWithdrawsAnswers(userId: string, at: Date) {
             .where(eq(professionalProfiles.userId, userId)),
         ),
         suspendedAtExactly(userId, at),
+      ),
+    )
+    .returning({ id: careRequestApplications.id });
+}
+
+/**
+ * True only inside the batch that moved her profile out of `valide` at exactly
+ * `at` (reservations-reponse-suspendue, D-146): a reopening that changed
+ * nothing, or a profile still `valide`, withdraws nothing.
+ */
+function reopenedAtExactly(profileId: string, at: Date): SQL {
+  return sql`exists (select 1 from professional_profiles as rp where rp.id = ${profileId}::uuid and rp.status <> 'valide' and rp.updated_at = ${at.toISOString()}::timestamptz)`;
+}
+
+/**
+ * A reopening's part here (reservations-reponse-suspendue, D-146): every answer
+ * of hers still waiting becomes `retiree`, as if she had withdrawn it, in the
+ * reopening's own batch and only if that batch moved her profile out of
+ * `valide` at `at`. Once validated again she answers afresh, at her current
+ * rate, on the request's current night.
+ */
+export function reopeningWithdrawsAnswers(profileId: string, at: Date) {
+  return db
+    .update(careRequestApplications)
+    .set({ status: "retiree", updatedAt: at })
+    .where(
+      and(
+        eq(careRequestApplications.status, "en_attente"),
+        eq(careRequestApplications.profileId, profileId),
+        reopenedAtExactly(profileId, at),
       ),
     )
     .returning({ id: careRequestApplications.id });
