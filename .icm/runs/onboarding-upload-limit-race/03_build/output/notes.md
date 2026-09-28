@@ -58,3 +58,13 @@ And a guarded `insert … select … where count < 3` **without** the lock, same
   module may deserve a word there.
 - `onboarding-double-photo-race` (2 of 3) builds on `recordUpload`'s lock: the photo already takes it.
 - The unit tests were written, not run (local test runs are the factory's): the advisory job reads them.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on c451452 (ci-status.sh), re-read after the last push below
+- reviews: code medium — no findings · security security-check.sh --branch --audit: OK · /security-review n/a (no auth, payments, route policy or new PII path; the key-ownership check is unchanged) · /production-readiness n/a (skill not installed here; the DB change is one guarded insert with no schema change, proven on a Neon branch) · readiness env.sh audit --changed: OK
+- parked: none
+- migrations: skip — none of this run's own
+- learned: skip — no error.log (2 rules from FAILURE.md reach project-rules.md through close-out)
+- docs: README.md (The professional's onboarding and documents → the locked recording), AGENTS.md (routing row names `uploads.ts`) · announce: deferred to promotion
