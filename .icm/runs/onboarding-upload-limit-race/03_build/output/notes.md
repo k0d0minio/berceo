@@ -1,7 +1,7 @@
 # Build notes: onboarding-upload-limit-race
 
-- commits: `feat: onboarding-upload-limit-race — record uploads under the profile's lock`
-- ci: pending the ready flip (the draft owes nothing; `format.sh` and `lint.sh` are not wired here, SKIP)
+- commits: `feat: onboarding-upload-limit-race — record uploads under the profile's lock` (6d8e100), the merge of `main` (c72a1b5)
+- ci: GREEN on c72a1b5 — full gate: Vercel preview pass, Quality (advisory) pass; `format.sh` / `lint.sh` not wired here (SKIP); `env.sh audit --changed` OK; `security-check.sh --branch` OK
 
 ## What changed
 
