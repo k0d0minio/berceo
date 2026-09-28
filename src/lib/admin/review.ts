@@ -3,7 +3,6 @@ import "server-only";
 import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import {
-  adminJournal,
   appSettings,
   db,
   professionalDocuments,
@@ -24,7 +23,7 @@ import {
 } from "@/lib/email/templates";
 import { STUDENTS_ADMITTED, studentsAdmitted } from "@/lib/settings";
 
-import { fullName } from "./journal";
+import { fullName, journalInsertAfter } from "./journal";
 import {
   DECISION_ACTION,
   DECISION_STATUS,
@@ -154,7 +153,8 @@ export async function decide(input: DecisionInput, admin: User, siteUrl: string)
   const refused = refuseDecision(decision, file, await studentsAdmitted());
   if (refused) return { ok: false, error: refused };
 
-  const now = new Date().toISOString();
+  const at = new Date();
+  const now = at.toISOString();
   const target = DECISION_STATUS[decision];
   const action = DECISION_ACTION[decision];
   const subjectName = fullName(file);
@@ -162,8 +162,8 @@ export async function decide(input: DecisionInput, admin: User, siteUrl: string)
   try {
     // The same conditions again, inside the statement: the file has not moved since
     // the page was read, and a student is validated only while the switch is on.
-    const result = await db.execute<{ id: string }>(sql`
-      with decided as (
+    const result = await journalInsertAfter(
+      sql`decided as (
         update ${professionalProfiles}
         set status = ${target}::profile_status, review_reason = ${reason}::text,
             reviewed_at = ${now}::timestamptz, updated_at = ${now}::timestamptz
@@ -175,13 +175,16 @@ export async function decide(input: DecisionInput, admin: User, siteUrl: string)
             or profession is distinct from 'etudiante_sage_femme'
             or exists (select 1 from ${appSettings} where key = ${STUDENTS_ADMITTED} and value = 'true'::jsonb))
         returning user_id
-      )
-      insert into ${adminJournal} (occurred_at, action, subject_user_id, subject_name, admin_user_id, admin_name, detail)
-      select ${now}::timestamptz, ${action}::admin_action, decided.user_id, ${subjectName}::text,
-             ${admin.id}::uuid, ${fullName(admin)}::text, ${reason}::text
-      from decided
-      returning id
-    `);
+      )`,
+      "decided",
+      {
+        action,
+        subject: { id: sql`decided.user_id`, name: subjectName },
+        admin: { id: admin.id, name: fullName(admin) },
+        detail: reason,
+        at,
+      },
+    );
     journalId = result.rows[0]?.id;
   } catch (error) {
     console.error("[admin] decision not recorded", { profileId, decision, error });

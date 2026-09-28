@@ -21,7 +21,6 @@ import {
 import { deletedAtExactly, suspendedAtExactly } from "@/lib/auth/suspension";
 import { noteOfUser, type Note } from "@/lib/avis/ratings";
 import { communeName } from "@/lib/communes";
-import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
 import { suspensionCancelsRequests, suspensionDeclinesAnswers } from "@/lib/demandes/requests";
 import { deletionForgetsAvailability } from "@/lib/disponibilites/nights";
 import { deleteObject } from "@/lib/documents/storage";
@@ -30,7 +29,8 @@ import { contactEmail } from "@/lib/email/templates";
 import { deletionForgetsFamilyProfile, familyCommune } from "@/lib/famille/profile";
 import { suspensionWithdrawsAnswers } from "@/lib/reservations/answers";
 
-import { fullName, journalFor, journalInsert, journalInsertIf, type Person } from "./journal";
+import { fullName, journalFor, journalInsert, journalInsertAfter, journalInsertIf, type Person } from "./journal";
+import { bookingCondition } from "./lists";
 import {
   ANONYMISED,
   FOLD_FROM,
@@ -129,16 +129,6 @@ export async function searchAccounts(
   return { rows, pages: Math.max(1, Math.ceil(total.n / LIST_PAGE_SIZE)) };
 }
 
-const localNow = sql`(now() AT TIME ZONE ${TIME_ZONE})`;
-
-/** A confirmed garde whose night has not ended: à venir or en cours. */
-const gardeAhead = sql`(${bookings.status} = 'confirmee' AND (${careRequests.nightDate} + ${careRequests.startTime} + make_interval(hours => ${NIGHT_HOURS}::int)) > ${localNow})`;
-
-/** The bookings this account is on, on either side. */
-function onEitherSide(userId: string): SQL {
-  return sql`(${bookings.familyUserId} = ${userId} OR ${bookings.profileId} IN (select id from professional_profiles where user_id = ${userId}))`;
-}
-
 const otherUser = alias(users, "other_user");
 const professionalUser = alias(users, "professional_user");
 
@@ -171,7 +161,7 @@ export async function upcomingGardes(userId: string): Promise<UpcomingGarde[]> {
     .innerJoin(otherUser, eq(otherUser.id, bookings.familyUserId))
     .innerJoin(professionalProfiles, eq(professionalProfiles.id, bookings.profileId))
     .innerJoin(professionalUser, eq(professionalUser.id, professionalProfiles.userId))
-    .where(and(onEitherSide(userId), gardeAhead))
+    .where(bookingCondition("en-cours", userId))
     .orderBy(careRequests.nightDate, careRequests.startTime);
   return rows.map((row) => {
     const isFamily = row.familyUserId === userId;
@@ -264,7 +254,7 @@ export async function accountView(userId: string): Promise<AccountView | null> {
           .from(careRequestApplications)
           .where(eq(careRequestApplications.profileId, profile.profileId))
       : Promise.resolve([{ n: 0 }]),
-    db.select({ n: count() }).from(bookings).where(onEitherSide(userId)),
+    db.select({ n: count() }).from(bookings).where(bookingCondition(null, userId)),
     upcomingGardes(userId),
     journalFor(userId),
   ]);
@@ -392,21 +382,17 @@ export async function reactivateAccount(userId: string, admin: Person, now: Date
   const refused = reactivateRefusal(account);
   if (refused) return { ok: false, error: refused };
 
-  const at = now.toISOString();
   try {
-    const result = await db.execute<{ id: string }>(sql`
-      with lifted as (
+    const result = await journalInsertAfter(
+      sql`lifted as (
         update ${users}
-        set suspended_at = null, suspended_by = null, updated_at = ${at}::timestamptz
+        set suspended_at = null, suspended_by = null, updated_at = ${now.toISOString()}::timestamptz
         where id = ${userId} and suspended_at is not null and deleted_at is null and role <> 'admin'
         returning id
-      )
-      insert into admin_journal (occurred_at, action, subject_user_id, subject_name, admin_user_id, admin_name)
-      select ${at}::timestamptz, 'compte_reactive'::admin_action, lifted.id, ${fullName(account)}::text,
-             ${admin.id}::uuid, ${admin.name}::text
-      from lifted
-      returning id
-    `);
+      )`,
+      "lifted",
+      { action: "compte_reactive", subject: { id: sql`lifted.id`, name: fullName(account) }, admin, at: now },
+    );
     return result.rows.length > 0 ? { ok: true } : { ok: false, error: "nonSuspendu" };
   } catch (error) {
     console.error("[admin] account not reactivated", { userId, error });
@@ -463,7 +449,7 @@ export async function deleteAccount(
             sql`${users.role} <> 'admin'`,
             sql`not exists (
               select 1 from ${bookings} join ${careRequests} on ${careRequests.id} = ${bookings.requestId}
-              where ${onEitherSide(userId)} and ${gardeAhead}
+              where ${bookingCondition("en-cours", userId)}
             )`,
           ),
         )

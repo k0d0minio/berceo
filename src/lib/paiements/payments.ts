@@ -20,7 +20,7 @@ import {
   type PaymentStatus,
   type RefundReason,
 } from "@/db";
-import type { Person } from "@/lib/admin/journal";
+import { journalInsertAfter, type Person } from "@/lib/admin/journal";
 import { formatDate } from "@/lib/demandes/format";
 import { isUniqueViolation, UUID } from "@/lib/demandes/requests";
 import { acceptAnswer, acceptCheck } from "@/lib/reservations/bookings";
@@ -422,26 +422,28 @@ export async function refundFee(
   let recorded: boolean;
   if (by) {
     const family = row.family;
-    const at = now.toISOString();
     const detail = fill(words(admin).paiements.detailJournal, {
       montant: eurosFromCents(payment.amountCents),
       motif: by.motif,
     });
-    const written = await db.execute<{ id: string }>(sql`
-      with done as (
+    const at = now.toISOString();
+    const written = await journalInsertAfter(
+      sql`done as (
         update payments
         set status = ${status}::payment_status, stripe_refund_id = ${refund.id}, refunded_at = ${at}::timestamptz,
             refund_reason = ${reason}::refund_reason, updated_at = ${at}::timestamptz
         where id = ${payment.id} and status in ('payee', 'remboursement_echoue') -- REFUNDABLE, ./rules.ts
         returning id
-      )
-      insert into admin_journal (occurred_at, action, subject_user_id, subject_name, admin_user_id, admin_name, detail)
-      select ${at}::timestamptz, 'frais_rembourses'::admin_action, ${family?.id ?? null}::uuid,
-             ${family ? `${family.firstName} ${family.lastName}`.trim() : null}, ${by.admin.id}::uuid,
-             ${by.admin.name}, ${detail}
-      from done
-      returning id
-    `);
+      )`,
+      "done",
+      {
+        action: "frais_rembourses",
+        subject: family ? { id: family.id, name: `${family.firstName} ${family.lastName}`.trim() } : null,
+        admin: by.admin,
+        detail,
+        at: now,
+      },
+    );
     recorded = written.rows.length > 0;
   } else {
     const updated = await db
