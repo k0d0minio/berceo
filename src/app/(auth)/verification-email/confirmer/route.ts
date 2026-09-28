@@ -1,10 +1,9 @@
-import { eq } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { db, users } from "@/db";
 import { RETURN_COOKIE, verifiedLanding } from "@/lib/auth/retour";
 import { SIGN_IN_PATH } from "@/lib/auth/routing";
 import { getAuth } from "@/lib/auth/server";
+import { userByAuthId } from "@/lib/auth/users";
 import { sendWelcomeIfDue } from "@/lib/auth/welcome";
 
 /*
@@ -49,7 +48,7 @@ export async function GET(request: NextRequest) {
     return to(request, `${SIGN_IN_PATH}?verifie=1`);
   }
 
-  const [row] = await db.select().from(users).where(eq(users.authUserId, authUserId)).limit(1);
+  const row = await userByAuthId(authUserId);
 
   let response: NextResponse;
   if (!row) {

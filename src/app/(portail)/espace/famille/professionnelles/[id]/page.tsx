@@ -12,6 +12,7 @@ import { words } from "@/content/locale";
 import { professionnelle } from "@/content/professionnelle";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { communeName } from "@/lib/communes";
 import { familyRequestPath } from "@/lib/demandes/paths";
 import { ownRequest } from "@/lib/demandes/requests";
@@ -57,12 +58,13 @@ export default async function ProfilProfessionnellePage({
   searchParams: Promise<{ demande?: string }>;
 }) {
   const { id } = await params;
-  const user = await requireAccess(professionalProfilePath(id));
+  const query = await searchParams;
+  const user = await requireAccess(withQuery(professionalProfilePath(id), query));
   const profile = await publicProfile(id);
   if (!profile) notFound();
 
   // Opened from one of her requests: the accept button, when this professional's answer waits on it.
-  const { demande } = await searchParams;
+  const { demande } = query;
   const now = new Date();
   const request = demande ? await ownRequest(user.id, demande) : null;
   const answer =

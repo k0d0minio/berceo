@@ -1,11 +1,11 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
 import { cache } from "react";
 
-import { db, users, type User } from "@/db";
+import type { User } from "@/db";
 
 import { getAuth } from "./server";
+import { userByAuthId } from "./users";
 
 /**
  * Who is asking, in one read per request: the Neon Auth session joined to the
@@ -36,11 +36,7 @@ export const currentUser = cache(async (): Promise<CurrentUser> => {
     return { status: "unverified", email: identity.email };
   }
 
-  const [row] = await db
-    .select()
-    .from(users)
-    .where(eq(users.authUserId, identity.id))
-    .limit(1);
+  const row = await userByAuthId(identity.id);
 
   if (!row) {
     console.error("[comptes] signed-in identity has no users row", {

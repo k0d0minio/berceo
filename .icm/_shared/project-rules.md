@@ -255,3 +255,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - this repo installs with npm only (package-lock.json); a pnpm-lock.yaml or yarn.lock in the tree switches Vercel's package manager and breaks every build. (`ERR_PNPM_OUTDATED_LOCKFILE`, seen 1× — recherche-et-fiches-publiques; root, src/app, src/components, src/content)
 <!-- Retrospective Learned Rule [2026-09-25] -->
 - When a change must hide an account (suspended, deleted) everywhere, list its readers by the table it lives on (`users`, `professional_profiles` joins), in every module including `src/lib/admin/`, not by one status predicate; then hold each one out in the SQL of the read and of the write it guards. (`FAILURE.md` — back-office-admin)
+<!-- Retrospective Learned Rule [2026-09-26] -->
+- When every preview fails within seconds with `Resource provisioning failed` and an empty build log, count the branches of the `uat-berceo` Neon project before touching code: at 10 the Vercel integration cannot create a preview branch, and the stale `preview/*` ones are deleted with the operator's go-ahead. (`FAILURE.md` — comptes-auth-cleanups)
