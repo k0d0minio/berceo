@@ -257,3 +257,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - When a change must hide an account (suspended, deleted) everywhere, list its readers by the table it lives on (`users`, `professional_profiles` joins), in every module including `src/lib/admin/`, not by one status predicate; then hold each one out in the SQL of the read and of the write it guards. (`FAILURE.md` — back-office-admin)
 <!-- Retrospective Learned Rule [2026-09-26] -->
 - When every preview fails within seconds with `Resource provisioning failed` and an empty build log, count the branches of the `uat-berceo` Neon project before touching code: at 10 the Vercel integration cannot create a preview branch, and the stale `preview/*` ones are deleted with the operator's go-ahead. (`FAILURE.md` — comptes-auth-cleanups)
+<!-- Retrospective Learned Rule [2026-09-28] -->
+- When a stub names where a state transition happens, Define greps every write of that column (`.update(<table>)` and raw `update <table>`) before accepting the list, and writes the real set into the spec. (`FAILURE.md` — reservations-reponse-suspendue)
+<!-- Retrospective Learned Rule [2026-09-28] -->
+- A withdrawal that must catch every row a concurrent writer might add needs that writer to lock the row it checks (`FOR SHARE`), not only a guard in the withdrawing batch. (`FAILURE.md` — reservations-reponse-suspendue)
