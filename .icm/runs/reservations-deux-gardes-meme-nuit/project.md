@@ -13,9 +13,12 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- No data change on any environment (D-155): a duplicate found by the probe is a STOP, not a fix.
+- No new code branch in the writers: publish, edit and `republishGarde` already map a unique violation to « doublon »; the fix is the index.
+- `bookings_family_night_idx` stays non-unique (Out of scope).
+- The epic's other stubs (`reservations-regles-non-appelees`, `reservations-compte-reponses-une-demande`) own `src/lib/reservations/answers.ts`; this run does not touch it.
+- Every word follows D-19; the new text is `@relecture`.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `src/db/schema.ts` (care_requests), `src/lib/demandes/requests.ts`, `src/lib/gardes/gardes.ts` (republishGarde), the family action files and `src/content/demandes.ts` to confirm every writer of a night maps a unique violation to « doublon ».
