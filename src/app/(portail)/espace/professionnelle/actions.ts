@@ -39,6 +39,7 @@ import {
   type ProfileField,
   type UploadError,
 } from "@/lib/professionnelle/rules";
+import { reopeningWithdrawsAnswers } from "@/lib/reservations/answers";
 import { studentsAdmitted } from "@/lib/settings";
 
 /*
@@ -464,12 +465,19 @@ export async function reopenFile(): Promise<void> {
   const file = await loadFile(user.id);
   const next = reopenedStatus(file.profile.status);
   if (next !== file.profile.status) {
-    await db
-      .update(professionalProfiles)
-      .set({ status: next, updatedAt: new Date() })
-      .where(
-        and(eq(professionalProfiles.id, file.profile.id), eq(professionalProfiles.status, file.profile.status)),
-      );
+    // One batch: a profile leaving `valide` takes her waiting answers with it,
+    // so none comes back on a moved night at her old rate (D-146). The
+    // withdrawal applies only if this update moved the status at `now`.
+    const now = new Date();
+    await db.batch([
+      db
+        .update(professionalProfiles)
+        .set({ status: next, updatedAt: now })
+        .where(
+          and(eq(professionalProfiles.id, file.profile.id), eq(professionalProfiles.status, file.profile.status)),
+        ),
+      reopeningWithdrawsAnswers(file.profile.id, now),
+    ]);
   }
   redirect(`${ONBOARDING}/profil`);
 }

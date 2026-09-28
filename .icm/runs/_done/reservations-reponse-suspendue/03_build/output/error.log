@@ -1,0 +1,7 @@
+## 2026-09-26T12:15:00Z ci Vercel — preview deploys failed before any build step
+BUILD_FAILED "Resource provisioning failed" ~1 s after start: dpl_149e2JQ9YCq4ngTAM6YrFNhi3Mks, dpl_Bb7cSyqJEDP9nJac8VB9GKW5MR1Q, dpl_DD3swa7bJEo6gfPn7GSJxk3ie32W. Same on claude/cool-cannon-poc3zn and claude/dreamy-mayer-2cxpyt at the same minutes; main's deploys of ece60b6 READY; this diff was .icm/** only.
+- resolved: the fault was Vercel's, not the branch's; previews built again on 2026-09-28 (bce6769 draft, 08061f2 ready) with no change in the repo. A deploy that ends in about 1 s with « Resource provisioning failed » on every branch at once is the platform: read other branches' deploys before debugging the diff.
+
+## 2026-09-26T12:15:00Z session — decision ids collided with a sibling run
+D-144/D-145 were already taken on origin/claude/cool-cannon-poc3zn (comptes-auth-cleanups), defined the same morning.
+- resolved: renumbered this run's decisions to D-146–D-148 before any merge; main now carries D-149/D-150 from comptes-auth-cleanups, no overlap. The existing learned rule (re-read every remote branch's highest D-n right before committing) covers it.
