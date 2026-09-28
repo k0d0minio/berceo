@@ -18,4 +18,7 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] journal.ts: `JOURNAL_COLUMNS`, `journalSelect`, `journalInsertIf` rebuilt, `journalInsertAfter` — 708b438
+- [x] the four CTE acts on `journalInsertAfter` (accounts, lists, review, payments) — 708b438
+- [x] accounts.ts on `bookingCondition` (overloads in lists.ts) — 708b438
+- [x] `journal-isolation.test.ts` — 708b438
