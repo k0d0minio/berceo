@@ -8,9 +8,14 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none: the stub came from a release review, not a Scope; no `scope.md`.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-153 — `isOnHerList`, `acceptTransition`, `declinedOnClose` and `canSendInPriority` are deleted
+  with their unit tests, and the SQL that decides each rule is covered by built-never-run
+  statement tests (`.toSQL()`), not a Neon-branch integration test: no page decides these apart
+  from the SQL, and CI has no per-run database. Operator's choice, Define, 2026-09-28.
+- D-154 — `canWithdraw` is wired: the professional's list shows « Retirer ma disponibilité » on
+  `canWithdraw(answer, request, now)` instead of `answer === "en_attente"`. Operator's choice,
+  Define, 2026-09-28.

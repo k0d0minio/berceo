@@ -13,9 +13,16 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- No rule changes: every SQL statement decides exactly what it decides today; this run extracts
+  and tests them (D-153).
+- No Neon-branch or live-database test; statement tests only (`.toSQL()`, no DB).
+- `answerRefusal`, `acceptRefusal`, `canRepublish`, `hasAddress`, `isPriorityFor` stay untouched.
+- `answers.ts` is also the sibling stub `reservations-compte-reponses-une-demande`'s file: add
+  builders, don't reshape `pendingCounts` or `waitingAnswerOf`.
+- CI is the source of truth: never run build, lint, typecheck or dev locally.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read the code the five helpers restate (rules.ts, requests.ts, answers.ts, bookings.ts,
+  the professional's list page, the priority page) and `reopening.test.ts` for the statement-test
+  style; the knowledge map was not loaded (a refactor that changes no rule).
