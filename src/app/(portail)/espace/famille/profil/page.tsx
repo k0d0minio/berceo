@@ -6,6 +6,7 @@ import { SpaceShell } from "@/components/shell/space-shell";
 import { famille } from "@/content/famille";
 import { words } from "@/content/locale";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { ownFamilyProfile } from "@/lib/famille/profile";
 
@@ -30,9 +31,10 @@ export default async function ProfilFamillePage({
 }: {
   searchParams: Promise<{ completer?: string }>;
 }) {
-  const user = await requireAccess(PROFILE_PATH);
+  const query = await searchParams;
+  const user = await requireAccess(withQuery(PROFILE_PATH, query));
   const profile = await ownFamilyProfile(user.id);
-  const askToComplete = (await searchParams).completer === "1" && !profile?.locality;
+  const askToComplete = query.completer === "1" && !profile?.locality;
 
   return (
     <SpaceShell user={user} title={t.titre}>

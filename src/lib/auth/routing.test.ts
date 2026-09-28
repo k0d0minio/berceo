@@ -4,8 +4,10 @@ import {
   accessFor,
   homeFor,
   landingFor,
+  pathnameOf,
   safeReturnPath,
   signInWithReturn,
+  withQuery,
 } from "./routing";
 
 describe("each role lands on its own space (spec)", () => {
@@ -216,5 +218,39 @@ describe("the search and the public pages (recherche-et-fiches-publiques)", () =
   it("never takes a public page as a way back", () => {
     expect(safeReturnPath("/professionnelles/emma-3f0c9a52")).toBeNull();
     expect(safeReturnPath("/garde-de-nuit/ixelles")).toBeNull();
+  });
+});
+
+describe("the way back keeps the page's query (comptes-auth-cleanups, D-150)", () => {
+  const search = "/espace/famille/recherche";
+
+  it("gives the bare path when the page has no query", () => {
+    expect(withQuery(search, {})).toBe(search);
+    expect(withQuery(search, { commune: undefined })).toBe(search);
+  });
+
+  it("drops undefined values and repeats array values", () => {
+    expect(withQuery(search, { commune: ["ixelles", "uccle"], rayon: undefined, page: "2" })).toBe(
+      `${search}?commune=ixelles&commune=uccle&page=2`,
+    );
+  });
+
+  it("encodes the values", () => {
+    expect(withQuery(search, { q: "saint-gilles & forest", r: "a/b?c" })).toBe(
+      `${search}?q=saint-gilles+%26+forest&r=a%2Fb%3Fc`,
+    );
+  });
+
+  it("carries path and query into sign-in's retour", () => {
+    expect(signInWithReturn(`${search}?commune=ixelles`)).toBe(
+      "/connexion?retour=%2Fespace%2Ffamille%2Frecherche%3Fcommune%3Dixelles",
+    );
+  });
+
+  it("reads roles on the pathname alone", () => {
+    expect(pathnameOf(`${search}?commune=ixelles`)).toBe(search);
+    expect(pathnameOf("/espace/professionnelle?envoye=1#haut")).toBe("/espace/professionnelle");
+    // A query on a space's own root would otherwise miss `within` and bounce the owner home.
+    expect(accessFor("professionnel", pathnameOf("/espace/professionnelle?envoye=1"))).toEqual({ kind: "allow" });
   });
 });

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { fill, words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { communeName, findLocality, parseLocalityValue, type Locality } from "@/lib/communes";
 import { NEW_REQUEST_PATH } from "@/lib/demandes/paths";
 import { familyCommune } from "@/lib/famille/profile";
@@ -45,8 +46,8 @@ export default async function RecherchePage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requireAccess(SEARCH_PATH);
   const params = await searchParams;
+  const user = await requireAccess(withQuery(SEARCH_PATH, params));
 
   const q = first(params.q);
   let error: string | undefined;

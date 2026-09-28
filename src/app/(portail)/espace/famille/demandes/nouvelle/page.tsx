@@ -7,6 +7,7 @@ import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { placeLine } from "@/lib/demandes/format";
 import { NEW_REQUEST_PATH } from "@/lib/demandes/paths";
 import { dateWindow } from "@/lib/demandes/rules";
@@ -39,11 +40,11 @@ export default async function NouvelleDemandePage({
 }: {
   searchParams: Promise<{ urgente?: string; pour?: string }>;
 }) {
-  const user = await requireAccess(NEW_REQUEST_PATH);
+  const query = await searchParams;
+  const user = await requireAccess(withQuery(NEW_REQUEST_PATH, query));
   const commune = await familyCommune(user.id);
   if (!commune) redirect(`${PROFILE_PATH}?completer=1`);
 
-  const query = await searchParams;
   const urgent = query.urgente === "1";
   const priority = query.pour ? await publicProfile(query.pour) : null;
 

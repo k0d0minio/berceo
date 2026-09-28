@@ -13,6 +13,7 @@ import { words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
 import { professionalRequests } from "@/lib/demandes/requests";
 import { conversationsOfRequests } from "@/lib/messagerie/conversations";
@@ -56,9 +57,10 @@ export default async function DemandesProfessionnellePage({
 }: {
   searchParams: Promise<Notice>;
 }) {
-  const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);
+  const query = await searchParams;
+  const user = await requireAccess(withQuery(PROFESSIONAL_REQUESTS_PATH, query));
   const view = await professionalRequests(user.id);
-  const notice = message(await searchParams);
+  const notice = message(query);
   const conversationIds = view.validated
     ? await conversationsOfRequests(user.id, view.requests.map((request) => request.id))
     : new Map<string, string>();

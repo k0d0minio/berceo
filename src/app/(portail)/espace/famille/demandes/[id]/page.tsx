@@ -19,6 +19,7 @@ import { messagerie } from "@/content/messagerie";
 import { paiement } from "@/content/paiement";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { FAMILY_REQUESTS_PATH, familyRequestPath } from "@/lib/demandes/paths";
 import { ownRequest } from "@/lib/demandes/requests";
 import { displayStatus, isChangeable, isEditable } from "@/lib/demandes/rules";
@@ -103,12 +104,12 @@ export default async function DemandePage({
   searchParams: Promise<Notice>;
 }) {
   const { id } = await params;
-  const user = await requireAccess(familyRequestPath(id));
+  const query = await searchParams;
+  const user = await requireAccess(withQuery(familyRequestPath(id), query));
   const request = await ownRequest(user.id, id);
   if (!request) notFound();
 
   const now = new Date();
-  const query = await searchParams;
   const notice = message(query);
   const open = isChangeable(request, now);
   const facts = { ...request, priorityProfileId: null };

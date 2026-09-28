@@ -1,15 +1,16 @@
 "use server";
 
-import { eq } from "drizzle-orm";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { siteUrl } from "@/app/site";
 import { db, userConsents, users } from "@/db";
 import { consentRows } from "@/lib/auth/consent";
 import { RETURN_COOKIE, RETURN_COOKIE_OPTIONS, returnToStore } from "@/lib/auth/retour";
 import { authOutcome } from "@/lib/auth/errors";
 import { landingFor, SIGN_IN_PATH } from "@/lib/auth/routing";
 import { getAuth } from "@/lib/auth/server";
+import { userByAuthId } from "@/lib/auth/users";
 import {
   isSignUpRole,
   isValidEmail,
@@ -139,9 +140,7 @@ export async function signIn(
   }
 
   const authUserId = data?.user?.id;
-  const [row] = authUserId
-    ? await db.select().from(users).where(eq(users.authUserId, authUserId)).limit(1)
-    : [];
+  const row = authUserId ? await userByAuthId(authUserId) : null;
   if (!row) {
     console.error("[comptes] signed-in identity has no users row", { authUserId });
     return { message: "compteIndisponible", email };
@@ -174,10 +173,11 @@ export async function requestPasswordReset(
   const email = normalizeEmail(String(form.get("email") ?? ""));
   if (!isValidEmail(email)) return { invalid: true, email };
 
-  const origin = (await headers()).get("origin") ?? "";
+  // The e-mail's link is built by the webhook from the site's address, never
+  // from this value; it is only what Neon Auth is given (D-149).
   const { error } = await getAuth().requestPasswordReset({
     email,
-    redirectTo: `${origin}/nouveau-mot-de-passe`,
+    redirectTo: `${siteUrl}/nouveau-mot-de-passe`,
   });
   // Logged, never shown: the answer is the guide's neutral line either way.
   if (error) console.error("[comptes] reset request failed", { code: error.code, status: error.status });

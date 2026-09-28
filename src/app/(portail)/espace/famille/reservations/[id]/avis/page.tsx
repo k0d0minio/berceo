@@ -6,6 +6,7 @@ import { SpaceShell } from "@/components/shell/space-shell";
 import { avis } from "@/content/avis";
 import { fill, words } from "@/content/locale";
 import { requireAccess } from "@/lib/auth/guard";
+import { withQuery } from "@/lib/auth/routing";
 import { familyRatingPath } from "@/lib/avis/paths";
 import { ratingTarget } from "@/lib/avis/ratings";
 import { familyBookingPath } from "@/lib/reservations/paths";
@@ -36,10 +37,11 @@ export default async function FamilyRatingPage({
   searchParams: Promise<{ merci?: string }>;
 }) {
   const { id } = await params;
-  const user = await requireAccess(familyRatingPath(id));
+  const query = await searchParams;
+  const user = await requireAccess(withQuery(familyRatingPath(id), query));
   const target = await ratingTarget("famille", user.id, id);
   if (!target) notFound();
-  const { merci } = await searchParams;
+  const { merci } = query;
 
   return (
     <SpaceShell user={user} title={fill(t.formulaire.titreFamille, { prenom: target.otherFirstName })}>

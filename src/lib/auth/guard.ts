@@ -5,16 +5,20 @@ import { notFound, redirect } from "next/navigation";
 import type { User } from "@/db";
 
 import { currentUser } from "./current-user";
-import { accessFor, landingFor, signInWithReturn } from "./routing";
+import { accessFor, landingFor, pathnameOf, signInWithReturn } from "./routing";
 import { SUSPENDED_PATH } from "./suspension";
 
 /**
  * The server-side gate every space page calls with its own path. The proxy
  * only refreshes the session and bounces signed-out visitors; the role is
  * checked here, where the `users` row is read.
+ *
+ * `path` may carry the page's query (`withQuery`): the role is read on the
+ * pathname alone, and the way back through sign-in keeps both (D-150).
  */
-export async function requireAccess(pathname: string): Promise<User> {
+export async function requireAccess(path: string): Promise<User> {
   const who = await currentUser();
+  const pathname = pathnameOf(path);
 
   if (who.status !== "ok") {
     // /admin never confirms it exists, not even to a signed-out visitor.
@@ -22,7 +26,7 @@ export async function requireAccess(pathname: string): Promise<User> {
     if (who.status === "no-row") redirect("/connexion?erreur=compte");
     // A suspended account's session ends here, and the sign-in page says why (D-134).
     if (who.status === "suspended") redirect(SUSPENDED_PATH);
-    redirect(signInWithReturn(pathname));
+    redirect(signInWithReturn(path));
   }
 
   const access = accessFor(who.user.role, pathname);
