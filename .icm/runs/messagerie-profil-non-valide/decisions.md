@@ -8,9 +8,13 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none — the epic was cut from triage (two release reviews, 2026-09-25), not from a scope. The
+  run rests on D-89 (a conversation closes when its request is cancelled or its night ends, and
+  stays readable), D-134 (suspension) and D-146 (a profile leaves `valide` only through the
+  professional's own reopening).
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- D-153 — A conversation also closes while its professional's profile is not `valide`, except the conversation of her `retenue` answer (her confirmed booking), which follows D-89 alone. The operator's call in Define (2026-09-28): the booking is untouched by this epic, so its channel stays.
+- D-154 — Closed for both sides and still readable by both, with the existing « Fermée » words; nothing is hidden from her. The operator's call in Define (2026-09-28).
+- D-155 — The rule reads the profile's current status; nothing is stored, so a professional validated again before the night ends can write again. The operator's call in Define (2026-09-28).
