@@ -1,7 +1,7 @@
 # Build notes: admin-sql-helpers-dedupe
 
-- commits: 708b438 chore: every admin_journal insert through journal.ts, the garde clock from bookingCondition
-- ci: see the ci-status.sh verdict recorded in status.md (draft: nothing owed; full gate after the flip)
+- commits: 708b438 chore: every admin_journal insert through journal.ts, the garde clock from bookingCondition; run-pack and ready commits after it
+- ci: GREEN on 2271407 — Vercel preview pass; Quality (advisory) pass (lint, typecheck, 67 test files / 2116 tests)
 
 ## What changed
 
@@ -28,13 +28,13 @@
 Recorded here, not ticked in the PR body (learned rule, verification-back-office).
 
 - [x] The grep matches only `src/lib/admin/journal.ts` — checked on 708b438 (two lines, the two helpers).
-- [ ] `journal-isolation.test.ts` passes and fails on a stray insert — the test runs in the advisory job after the flip. The failing half was shown by running the test's exact regex over the four files as they are on `main` (all four match) and on this branch (none match); the full test run is the advisory job's.
+- [x] `journal-isolation.test.ts` passes (285 cases, Quality (advisory) on 2271407) and fails on a stray insert — the failing half shown by running the test's exact regex over the four files as they are on `main` (all four match) and on this branch (none match).
 - [x] The four acts stay one `db.execute` each, with their guards and return values — by construction: `journalInsertAfter` is one `db.execute`; the CTE text, `where` and `rows` reads are unchanged.
 - [x] Same entry values — `compte_reactive` with no detail, `signalement_traite` with `subject.id`/`subject.name` and `to_char(subject.night_date, 'YYYY-MM-DD')`, the review action with the reason, `frais_rembourses` with the family (null when the payment has none) and the catalogue detail. The emitted SQL was rendered with drizzle-orm 0.45.3's `PgDialect` in a scratch install: valid, same columns, casts and parameters. The refund's name, admin name and detail now carry `::text` casts they lacked; the columns are text, so nothing changes.
 - [x] The grep for `localNow|gardeAhead|onEitherSide` in `accounts.ts` is empty; the three readers use `bookingCondition`.
 - [ ] UAT preview: « gardes à venir » equals `/admin/reservations?compte=<id>&etat=en-cours`, and deletion still refused — the operator's smoke.
 - [ ] UAT preview: the four acts still write their journal entries — the operator's smoke.
-- [ ] Existing admin, payments and migration tests pass unchanged — the advisory job after the flip; no test file was edited.
+- [x] Existing admin, payments and migration tests pass unchanged — Quality (advisory) on 2271407: 67 files, 2116 tests; no test file was edited.
 
 ## Notes for Release
 
