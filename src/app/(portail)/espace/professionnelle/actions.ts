@@ -17,6 +17,7 @@ import { currentUser } from "@/lib/auth/current-user";
 import { isKnownCommune } from "@/lib/communes";
 import { deleteObject, inspectUpload, newStorageKey, presignUpload } from "@/lib/documents/storage";
 import { loadFile, type ProfessionalFile } from "@/lib/professionnelle/file";
+import { recordUpload } from "@/lib/professionnelle/uploads";
 import {
   DECLARATIONS,
   DECLARATIONS_VERSION,
@@ -30,6 +31,7 @@ import {
   missingDocuments,
   missingProfile,
   normalizeInami,
+  recordAnswer,
   reopenedStatus,
   uploadMatches,
   type DocumentsField,
@@ -300,19 +302,16 @@ export async function confirmUpload(request: {
   if (refused) return discard(refused);
   if (!uploadMatches(kind, contentType, uploaded.size, uploaded.head)) return discard("contenu");
 
-  try {
-    await db.insert(professionalDocuments).values({
-      profileId: profile.id,
-      kind,
-      storageKey: key,
-      fileName: fileName.slice(0, 200) || "fichier",
-      contentType,
-      sizeBytes: uploaded.size,
-    });
-  } catch (error) {
-    console.error("[onboarding] upload not recorded", { profileId: profile.id, error });
-    return discard("echec");
-  }
+  // Recorded under her profile's lock, the limit and the key read inside it.
+  const outcome = await recordUpload(profile.id, {
+    kind,
+    key,
+    fileName: fileName.slice(0, 200) || "fichier",
+    contentType,
+    size: uploaded.size,
+  });
+  const answer = recordAnswer(outcome);
+  if (answer.error) return answer.discard ? discard(answer.error) : { ok: false, error: answer.error };
 
   // Recorded: from here on the new file stays, whatever happens to the old one.
   try {
