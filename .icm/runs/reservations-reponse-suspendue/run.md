@@ -3,3 +3,4 @@
 - stub: intake/professionnelle-invalidee-consequences/reservations-reponse-suspendue.md
 - branch: claude/charming-curie-mqr7d9
 - pr: #54
+- db: neon run/reservations-reponse-suspendue (via $DATABASE_URL)
