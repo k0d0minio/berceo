@@ -17,6 +17,8 @@ import {
   missingProfile,
   normalizeInami,
   parseRate,
+  recordAnswer,
+  recordOutcome,
   reopenedStatus,
   uploadMatches,
   type FileState,
@@ -308,5 +310,28 @@ describe("sending a file back after a complément (verification-back-office)", (
 
   it("refuses an incomplete file", () => {
     expect(canResend({ ...complete, status: "complement_demande", files: { photo: 1 } })).toBe(false);
+  });
+});
+
+describe("recording an upload under the profile's lock (onboarding-upload-limit-race)", () => {
+  // Spec: the guard's outcome decides the answer and whether the uploaded
+  // object is deleted; only "over the limit" and "failed" delete it.
+  it("records a file the guard let through, and keeps its object", () => {
+    expect(recordOutcome({ inserted: true, keyRecorded: true })).toBe("enregistre");
+    expect(recordAnswer("enregistre")).toEqual({ error: null, discard: false });
+  });
+
+  it("refuses a fourth file of a kind with « nombre » and deletes its object", () => {
+    expect(recordOutcome({ inserted: false, keyRecorded: false })).toBe("limite");
+    expect(recordAnswer("limite")).toEqual({ error: "nombre", discard: true });
+  });
+
+  it("refuses a key another confirm recorded first, and keeps the object that row points at", () => {
+    expect(recordOutcome({ inserted: false, keyRecorded: true })).toBe("doublon");
+    expect(recordAnswer("doublon")).toEqual({ error: "echec", discard: false });
+  });
+
+  it("answers a failed insert with « echec » and deletes its object", () => {
+    expect(recordAnswer("echec")).toEqual({ error: "echec", discard: true });
   });
 });

@@ -410,6 +410,40 @@ export function checkUpload(
   return null;
 }
 
+/**
+ * How recording an upload ended, read under the profile's lock
+ * (onboarding-upload-limit-race): recorded, refused because the kind already
+ * holds three files, refused because another confirm recorded the same key
+ * first, or failed.
+ */
+export type RecordOutcome = "enregistre" | "limite" | "doublon" | "echec";
+
+/** The outcome of the guarded insert: whether it wrote, and whether the key was already recorded. */
+export function recordOutcome(result: { inserted: boolean; keyRecorded: boolean }): RecordOutcome {
+  if (result.inserted) return "enregistre";
+  return result.keyRecorded ? "doublon" : "limite";
+}
+
+/**
+ * What a recording answers, and whether its uploaded object is deleted. A key
+ * already recorded keeps its object: it belongs to the row that won.
+ */
+export function recordAnswer(outcome: RecordOutcome): {
+  error: "nombre" | "echec" | null;
+  discard: boolean;
+} {
+  switch (outcome) {
+    case "enregistre":
+      return { error: null, discard: false };
+    case "limite":
+      return { error: "nombre", discard: true };
+    case "doublon":
+      return { error: "echec", discard: false };
+    case "echec":
+      return { error: "echec", discard: true };
+  }
+}
+
 /** The first bytes each accepted type starts with. */
 export function sniffType(head: Uint8Array): FileType | null {
   const starts = (...bytes: number[]) => bytes.every((b, i) => head[i] === b);

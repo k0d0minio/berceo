@@ -491,7 +491,10 @@ never touches the money for the night (D-1).
 - **Documents and photos** live in a private bucket on **Neon Object Storage** (S3-compatible,
   eu-central-1), one per Neon project: UAT and previews share the non-production one, production
   has its own. The browser uploads straight to it with a five-minute presigned PUT; the server
-  then checks the size and first bytes before recording the file (`src/lib/documents/`). Files are
+  then checks the size and first bytes before recording the file (`src/lib/documents/`). The row
+  is written under a lock on her profile row, with the three-files-per-document limit and the
+  key's novelty read inside it (`src/lib/professionnelle/uploads.ts`), so two uploads confirmed at
+  once cannot pass the limit or delete a file the other just recorded. Files are
   read only through `/api/fichiers/[id]`, streamed to their owner or an admin, 404 to anyone else.
   Environment: `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION`, `DOCUMENTS_BUCKET`,
   `DOCUMENTS_S3_ACCESS_KEY_ID`, `DOCUMENTS_S3_SECRET_ACCESS_KEY` (not `AWS_*`: Vercel reserves

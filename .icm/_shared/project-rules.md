@@ -258,6 +258,10 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 <!-- Retrospective Learned Rule [2026-09-26] -->
 - When every preview fails within seconds with `Resource provisioning failed` and an empty build log, count the branches of the `uat-berceo` Neon project before touching code: at 10 the Vercel integration cannot create a preview branch, and the stale `preview/*` ones are deleted with the operator's go-ahead. (`FAILURE.md` — comptes-auth-cleanups)
 <!-- Retrospective Learned Rule [2026-09-28] -->
+- When every new PR's Vercel check fails within seconds with "Resource provisioning failed" and no build log, count the branches of the Neon non-production project; at the cap, delete the stale `preview/*` branches of closed PRs before touching the code. (`FAILURE.md` — onboarding-upload-limit-race)
+<!-- Retrospective Learned Rule [2026-09-28] -->
+- Hold a per-row count limit by locking the parent row (`select … for update`) in an earlier statement of the same `db.batch` as the guarded insert; a lone `INSERT … SELECT … WHERE count < n` lets two parallel statements both pass under READ COMMITTED. (`FAILURE.md` — onboarding-upload-limit-race)
+<!-- Retrospective Learned Rule [2026-09-28] -->
 - When a stub names where a state transition happens, Define greps every write of that column (`.update(<table>)` and raw `update <table>`) before accepting the list, and writes the real set into the spec. (`FAILURE.md` — reservations-reponse-suspendue)
 <!-- Retrospective Learned Rule [2026-09-28] -->
 - A withdrawal that must catch every row a concurrent writer might add needs that writer to lock the row it checks (`FOR SHARE`), not only a guard in the withdrawing batch. (`FAILURE.md` — reservations-reponse-suspendue)
