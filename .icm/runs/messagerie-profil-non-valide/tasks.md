@@ -23,4 +23,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] `src/lib/messagerie/rules.test.ts`: the truth table, written from the criteria
 - [x] `src/lib/messagerie/conversations.ts`: the list, the thread and `sendMessage`'s read feed the rule; `sendMessage`'s `target` CTE holds `pp.status = 'valide' or a.status = 'retenue'`
 - [x] `README.md`: the conversation's closing line
-- [ ] Pre-flip verdict, merge `main`, flip ready, full gate
+- [x] Pre-flip verdict (GREEN on 8041344), merge `main` (up to date), flip ready
