@@ -20,6 +20,7 @@ import {
   recordAnswer,
   recordOutcome,
   reopenedStatus,
+  replacesPhotos,
   uploadMatches,
   type FileState,
   type ProfileInput,
@@ -333,5 +334,24 @@ describe("recording an upload under the profile's lock (onboarding-upload-limit-
 
   it("answers a failed insert with « echec » and deletes its object", () => {
     expect(recordAnswer("echec")).toEqual({ error: "echec", discard: true });
+  });
+});
+
+describe("replacesPhotos", () => {
+  it("replaces her other photos when a photo is recorded", () => {
+    expect(replacesPhotos("photo", "enregistre")).toBe(true);
+  });
+
+  it("keeps her photos when a photo is refused, a duplicate or failed", () => {
+    expect(replacesPhotos("photo", "limite")).toBe(false);
+    expect(replacesPhotos("photo", "doublon")).toBe(false);
+    expect(replacesPhotos("photo", "echec")).toBe(false);
+  });
+
+  it("never replaces anything for a document, recorded or not", () => {
+    for (const kind of ["diplome", "attestation_inscription"] as const) {
+      expect(replacesPhotos(kind, "enregistre")).toBe(false);
+      expect(replacesPhotos(kind, "limite")).toBe(false);
+    }
   });
 });
