@@ -16,4 +16,5 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] The removal step and its tests — `src/lib/professionnelle/removals.ts`, `removals.test.ts` (b9d8c09)
+- [x] The three removal paths wired onto it — `src/app/(portail)/espace/professionnelle/actions.ts` (b9d8c09)
