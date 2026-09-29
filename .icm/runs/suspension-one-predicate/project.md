@@ -13,9 +13,16 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- No behaviour change: every reader keeps its result set; `notSuspended` emits exactly the SQL it
+  emits today (`suspension.test.ts` and `recherche/professionals.test.ts` match the string).
+- One enforcement point, the helper in `src/lib/auth/suspension.ts`; no view, no migration (D-165).
+- The account's own state stays as read today: `admin/accounts.ts` (the column's only writer),
+  `admin/lists.ts`, `admin/rules.ts`, `auth/current-user.ts`, the sign-in action, `db/schema.ts`
+  (D-166).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read each suspension site in `ratings.ts`, `answers.ts`, `review.ts`, `profiles.ts`,
+  `notices.ts`, `requests.ts`, `bookings.ts`, `conversations.ts`, `accounts.ts`, `current-user.ts`
+  and the sign-in action, beyond targeted greps — needed to sort readers from the writer and the
+  account's own state, which decides the source test's allowlist.

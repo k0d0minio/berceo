@@ -37,7 +37,7 @@ A chore — no persona sees a new behaviour; every statement keeps its result se
    the account being held out:
    - `raterActive` (`avis/ratings.ts`): `notSuspended(<the case expression picking the family's id
      or the professional's user id>)`; the doc comment stays.
-   - `answerRequest` (`reservations/answers.ts`): `${notSuspended(sql\`p.user_id\`)}` inside the
+   - `answerRequest` (`reservations/answers.ts`): `` ${notSuspended(sql`p.user_id`)} `` inside the
      raw insert-select.
    - `decide` (`admin/review.ts`): `${notSuspended(...)}` on the updated profile's `user_id`,
      qualified (`professional_profiles.user_id`) so it does not rely on `users` having no

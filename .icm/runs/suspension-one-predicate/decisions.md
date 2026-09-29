@@ -8,9 +8,11 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none — no scope run; the epic was cut from the back-office-admin release review (2026-09-25). D-134 (a suspended account opens nothing and is shown to no one) and D-136 (a deleted account stays suspended) are inherited from back-office-admin.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+D-164 was the highest id on `main` and every remote branch on 2026-09-29.
+
+- D-165 — the one enforcement point is the helper in `src/lib/auth/suspension.ts` (`notSuspended`, plus its positive form `suspended`), called by every reader, with a source test refusing the rule written anywhere else; no database view. The operator's choice in Define, 2026-09-29.
+- D-166 — readers only: `messageNotice` moves its recipient check into SQL; `currentUser`, the sign-in action, `admin/rules.ts`, `admin/lists.ts` and `admin/accounts.ts` read or write the account's own state and stay as they are, with no `isSuspended()` JavaScript twin. The operator's choice in Define, 2026-09-29.
