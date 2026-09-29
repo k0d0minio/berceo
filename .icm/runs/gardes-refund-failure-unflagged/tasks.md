@@ -18,4 +18,9 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] The words — `src/content/admin.ts` (mark, caption, filter, empty state, dialog variant, overview line)
+- [x] The rule — `TO_REFUND` + `isToRefundFilter` in `src/lib/paiements/rules.ts`, test in `rules.test.ts`
+- [x] The read — `awaitingRefund` predicate, `awaitingRefundCount`, `readPayments(page, view)` with `toRefund` per row
+- [x] The page, the table, the dialog — `admin/paiements/page.tsx`, `payments-table.tsx`, `refund-button.tsx`
+- [x] The overview — `admin/page.tsx` line when n > 0
+- [ ] Flip ready, settle the full gate, smoke on the preview (operator)
