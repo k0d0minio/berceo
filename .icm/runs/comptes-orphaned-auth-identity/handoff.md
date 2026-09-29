@@ -19,4 +19,4 @@ non-blocking one lives only in that list, never here (`_shared/output.md` → Sp
 
 - Tick any gate box.
 - Touch `src/app/(auth)/verification-email/confirmer/route.ts`: it is `comptes-welcome-email-no-retry`'s.
-- Rebuild a `users` row from what the Neon identity carries (D-161).
+- Rebuild a `users` row from what the Neon identity carries (D-165).

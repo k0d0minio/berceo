@@ -15,7 +15,7 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 - The form never says whether an address exists (D-34): an orphan replaced and a real account
   both end on `/verification-email`.
-- No row is ever rebuilt from partial facts; an orphan is removed, never completed (D-160, D-161).
+- No row is ever rebuilt from partial facts; an orphan is removed, never completed (D-160, D-165).
 - A `neon_auth` identity is deleted only when no `users` row carries its id, in the same statement.
 - The confirmer route is `comptes-welcome-email-no-retry`'s; this run does not touch it.
 - Every new word follows Surya's guide (D-19) and carries `@relecture`.

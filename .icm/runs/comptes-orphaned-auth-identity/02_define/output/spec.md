@@ -45,7 +45,7 @@ removes it and lets the person sign up again, never rebuilds a row from partial 
    where auth_user_id = …)`), so a row written in between is never cut from its identity. It
    lives beside `userByAuthId()` in `src/lib/auth/users.ts` (or one module next to it): the only
    place the accounts code reads or deletes a `neon_auth` identity by e-mail.
-4. **Sign-in or the verification link meets an orphan (D-161).** `signIn`, when the password is
+4. **Sign-in or the verification link meets an orphan (D-165).** `signIn`, when the password is
    right but the identity has no row, ends the session it just opened (as it does for a suspended
    account) and answers a new catalogue line, `inscriptionIncomplete`, telling the person their
    sign-up did not go through and to create their account again with the same address. The
@@ -77,7 +77,7 @@ removes it and lets the person sign up again, never rebuilds a row from partial 
 
 ## Out of scope
 
-- Rebuilding a missing row at sign-in from data stored on the Neon identity (role and phone in its `name`): declined (D-161).
+- Rebuilding a missing row at sign-in from data stored on the Neon identity (role and phone in its `name`): declined (D-165).
 - A backfill or sweep of orphans already in a database: the retry path recovers each one the moment its owner tries again.
 - The confirmer route (`src/app/(auth)/verification-email/confirmer/route.ts`): it keeps redirecting a verified orphan to `/connexion?erreur=compte`; guarding its `users` SELECT and the welcome e-mail retry are `comptes-welcome-email-no-retry`.
 - The Neon Auth webhook and the e-mail templates.
@@ -85,4 +85,4 @@ removes it and lets the person sign up again, never rebuilds a row from partial 
 
 ## Open questions
 
-- none — the three choices the stub left open were settled with the operator in Define on 2026-09-29: delete the identity when the batch fails (D-159), replace an orphan on a retry rather than writing a row onto it (D-160), and ask an orphan that signs in to sign up again rather than rebuilding its row (D-161). Ids are provisional: D-158 was the highest on `main` and every remote branch at Define; Build renumbers on a collision.
+- none — the three choices the stub left open were settled with the operator in Define on 2026-09-29: delete the identity when the batch fails (D-159), replace an orphan on a retry rather than writing a row onto it (D-160), and ask an orphan that signs in to sign up again rather than rebuilding its row (D-165). Ids renumbered at Build: the provisional D-161 collided with a sibling branch and is D-165.

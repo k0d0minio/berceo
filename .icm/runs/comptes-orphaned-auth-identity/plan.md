@@ -14,15 +14,13 @@ reality disagrees with it — never left describing a plan that was abandoned.
    exists (select 1 from users where auth_user_id = $1)`, the same `id::text` shape
    `src/lib/admin/accounts.ts` uses — done when: the only `neon_auth` reads and deletes the
    accounts code adds are in that module, and each delete carries the `not exists` guard.
-2. **The sign-up decision, testable** — move the body of `signUp` after validation into a
-   function with injected deps (Neon's `signUp.email`, the batch, `identityByEmail`,
-   `deleteOrphanIdentity`), the `webhook.ts` pattern, returning an outcome
-   (`verifier` → redirect `/verification-email`, `generique`, a password field error) that the
-   server action turns into its redirect or state; the way back cookie stays in the action and
-   is set only on a written row. Batch failure → delete by id (log `[comptes]` + `authUserId` if
-   that throws). `existe` → `identityByEmail`; orphan → delete, one more `signUp.email` + batch,
-   no further retry; real account or no identity found → `verifier` — done when: the five
-   sign-up tests of spec point 5 pass.
+2. **The sign-up decision** — in `signUp` itself (rewritten at Build: no extraction; the
+   action is tested through module-boundary mocks, the `src/app/(portail)/admin/actions.test.ts`
+   pattern, which the spec allows as "equivalent"): batch failure → `deleteOrphanIdentity(id)`
+   (log `[comptes]` + `authUserId` if that throws); `existe` → `replaceOrphan(email)`; orphan
+   deleted → one more `signUp.email`, whose own failures take the ordinary paths; real account or
+   no identity → `/verification-email` — done when: the sign-up cases of
+   `src/app/(auth)/actions.test.ts` pass.
 3. **Sign-in and the notice** — `signIn`: no row → `getAuth().signOut()` then
    `inscriptionIncomplete` (a `FormMessage` key); the sign-in decision tested the same way (or
    its no-row branch extracted); `/connexion` maps `no-row` and `?erreur=compte` to the new line;
@@ -35,12 +33,9 @@ reality disagrees with it — never left describing a plan that was abandoned.
 
 ## Risks
 
-- `neon_auth."user"` column names are Neon's (Better Auth: `id`, `email`, `"emailVerified"`);
-  the account deletion only proves `id`. Confirm `email` on the preview branch with one SELECT
-  before relying on it; a wrong name shows as a 500 on retry, never as a silent pass.
-- Deleting the identity may not cascade to `neon_auth.account` / `session` / `verification` on
-  every Neon Auth version; the account deletion already relies on it. If the preview shows the
-  old password still signing in after the retry, the cascade is missing: STOP and say so.
+- Closed at Build (2026-09-29, read-only `information_schema` query on `uat-berceo`):
+  `neon_auth."user"` has `email`; `account_userId_fkey` and `session_userId_fkey` are
+  `ON DELETE CASCADE`, so the password and sessions go with the identity.
 - Neon Auth may keep its own cache of the address (rate limit, pending verification) so the
   second `signUp.email` right after the delete answers `existe` again; the no-loop rule turns
   that into « generique », and the UAT smoke is the signal.

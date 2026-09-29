@@ -20,4 +20,8 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Orphan lookup and guarded delete in `src/lib/auth/users.ts`
+- [x] `signUp` deletes on a failed batch and replaces an orphan once; `signIn` signs an orphan out with `inscriptionIncomplete`; `/connexion` notice; catalogue line
+- [x] `src/app/(auth)/actions.test.ts` — one test per path
+- [ ] Ready flip, full gate green
+- [ ] UAT smoke (the operator's, before **Ready to merge**)

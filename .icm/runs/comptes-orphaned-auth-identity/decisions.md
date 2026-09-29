@@ -12,8 +12,8 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-Provisional ids: D-158 was the highest on `main` and every remote branch at Define (2026-09-29); Build renumbers on a collision.
+Renumbered at Build (2026-09-29): D-161, provisional at Define, collided with `claude/adoring-dijkstra-o6099q` (D-161–D-164) and is D-165 here; D-159 and D-160 were free on every remote branch.
 
 - D-159 — when the `users` + consents batch fails after Neon Auth created the identity, `signUp` deletes that identity at once (guarded, logged if it fails) rather than leaving it for a retry. The operator's choice in Define, 2026-09-29.
 - D-160 — a sign-up retry that meets an orphan identity deletes it and signs up again from the submitted form, rather than writing a row onto the existing identity: nobody can attach a role, name or phone to an identity whose password they do not hold. The operator's choice in Define, 2026-09-29.
-- D-161 — a sign-in or verification link that meets an orphan shows a new line asking the person to sign up again with the same address, rather than rebuilding the row from role and phone stored on the Neon identity. The operator's choice in Define, 2026-09-29.
+- D-165 — a sign-in or verification link that meets an orphan shows a new line asking the person to sign up again with the same address, rather than rebuilding the row from role and phone stored on the Neon identity. The operator's choice in Define, 2026-09-29.
