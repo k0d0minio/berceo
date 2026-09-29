@@ -177,7 +177,8 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   checks the Ed25519 signature and sends Berceo's own verification and reset e-mails
   (`src/lib/email/`, words in `src/content/emails.ts`). Their links carry the raw token to this
   site: `/verification-email/confirmer` (signs the user in and sends a family's welcome e-mail
-  once) and `/nouveau-mot-de-passe`.
+  once, after the redirect) and `/nouveau-mot-de-passe`. A welcome that failed to send is tried
+  again from `/espace/famille` on each visit until one goes out (`src/lib/auth/welcome.ts`).
 - **Admins** never sign up. A founder signs up as a family, then
   `npm run admin:grant -- --email <address>` promotes the account on the database
   `DATABASE_URL` points at.
