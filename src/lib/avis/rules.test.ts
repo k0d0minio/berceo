@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { otherSide } from "@/lib/demandes/rules";
 import type { GardeFacts } from "@/lib/gardes/rules";
 
 import {
@@ -10,7 +11,6 @@ import {
   isPublished,
   noteOf,
   parseScores,
-  ratedSide,
   rateRefusal,
   ratingMean,
   windowCloses,
@@ -41,8 +41,8 @@ describe("the criteria", () => {
   });
 
   it("the family rates the professional and the other way round", () => {
-    expect(ratedSide("famille")).toBe("professionnelle");
-    expect(ratedSide("professionnelle")).toBe("famille");
+    expect(otherSide("famille")).toBe("professionnelle");
+    expect(otherSide("professionnelle")).toBe("famille");
   });
 });
 

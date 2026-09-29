@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { otherSide } from "@/lib/demandes/rules";
+
 import {
   canCancel,
   canReportAbsence,
@@ -8,7 +10,6 @@ import {
   gardeState,
   isAddressVisible,
   isReminderTime,
-  otherSide,
   reminderNight,
   type GardeFacts,
 } from "./rules";

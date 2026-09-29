@@ -10,9 +10,10 @@ import {
   reminderProfessionalEmail,
 } from "@/lib/email/templates";
 import { bookingFees } from "@/lib/paiements/payments";
+import { bookingNotice } from "@/lib/reservations/notices";
 import { familyBookingPath, PROFESSIONAL_BOOKINGS_PATH, professionalBookingPath } from "@/lib/reservations/paths";
 
-import { claimReminder, gardeNotice, logError, pendingReminders, releaseReminder } from "./gardes";
+import { claimReminder, logError, pendingReminders, releaseReminder } from "./gardes";
 
 /**
  * The e-mails of a garde's life. Each runs after the write it follows
@@ -25,7 +26,7 @@ import { claimReminder, gardeNotice, logError, pendingReminders, releaseReminder
 /** A cancellation (D-105): one e-mail to the other side of the one recorded. */
 export async function notifyCancellation(bookingId: string, siteUrl: string): Promise<void> {
   try {
-    const notice = await gardeNotice(bookingId);
+    const notice = await bookingNotice(bookingId);
     if (!notice || notice.cancellationKind !== "annulation") return;
     const date = formatDate(notice.nightDate);
     const key = `garde-annulee-${bookingId}`;
@@ -71,7 +72,7 @@ export async function notifyCancellation(bookingId: string, siteUrl: string): Pr
 /** An absence reported (D-106): one e-mail to the side recorded absent, naming who reported it. */
 export async function notifyAbsence(bookingId: string, siteUrl: string): Promise<void> {
   try {
-    const notice = await gardeNotice(bookingId);
+    const notice = await bookingNotice(bookingId);
     if (!notice || notice.cancellationKind !== "absence") return;
     const date = formatDate(notice.nightDate);
     const familyAbsent = notice.cancelledBy === "famille";
@@ -98,7 +99,7 @@ export type ReminderOutcome = { gardes: number; failed: number };
 /** Both reminders of one garde; returns how many of its two sends failed. */
 async function remind(bookingId: string, siteUrl: string): Promise<number> {
   try {
-    const notice = await gardeNotice(bookingId);
+    const notice = await bookingNotice(bookingId);
     if (!notice) return 0;
     const date = formatDate(notice.nightDate);
     const heure = formatTime(notice.startTime);

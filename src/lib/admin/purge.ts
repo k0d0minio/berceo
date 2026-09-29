@@ -1,5 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
-
 import { purgeCutoff } from "./rules";
 
 /**
@@ -53,15 +51,4 @@ export async function purgeRefusedFiles(deps: PurgeDeps): Promise<PurgeReport> {
     }
   }
   return report;
-}
-
-/**
- * Only Vercel's cron call, which carries `Authorization: Bearer <CRON_SECRET>`.
- * No secret configured means no call is accepted.
- */
-export function isCronRequest(authorization: string | null, secret: string | undefined): boolean {
-  if (!secret || secret.length < 16 || !authorization) return false;
-  const expected = Buffer.from(`Bearer ${secret}`);
-  const given = Buffer.from(authorization);
-  return given.length === expected.length && timingSafeEqual(given, expected);
 }
