@@ -281,3 +281,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - When a cleanup deletes a record because its companion row is missing (an identity with no `users` row), treat a record younger than the writer's maximum duration as in flight, never as orphaned, and answer it distinctly from both outcomes. (`FAILURE.md` — comptes-orphaned-auth-identity)
 <!-- Retrospective Learned Rule [2026-09-29] -->
 - After merging `main` at Release, re-read the highest `D-n` on `main` and every remote branch and renumber this run's decisions if a sibling that merged first took the same ids. (`FAILURE.md` — comptes-orphaned-auth-identity)
+<!-- Retrospective Learned Rule [2026-09-29] -->
+- Prove every regex a spec or a source test states against one string it must match and one it must not, before relying on its passing. (`FAILURE.md` — suspension-one-predicate)

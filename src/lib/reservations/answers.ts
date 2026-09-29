@@ -105,7 +105,7 @@ export async function answerRequest(userId: string, requestId: string, now: Date
     where r.id = ${requestId}
       and p.id = ${profile.id}
       and p.status = 'valide'
-      and not exists (select 1 from users su where su.id = p.user_id and su.suspended_at is not null)
+      and ${notSuspended(sql`p.user_id`)}
       and p.night_rate_eur is not null
       and r.status = 'ouverte'
       and (r.night_date + r.start_time) > (now() at time zone ${TIME_ZONE})

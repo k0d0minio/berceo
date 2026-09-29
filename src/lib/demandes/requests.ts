@@ -590,7 +590,7 @@ export async function professionalsServing(communes: string[]): Promise<Recipien
     .where(
       and(
         eq(professionalProfiles.status, "valide"),
-        isNull(users.suspendedAt),
+        notSuspended(professionalProfiles.userId),
         inArray(professionalCommunes.communeIns, communes),
       ),
     );

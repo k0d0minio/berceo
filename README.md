@@ -593,8 +593,11 @@ never touches the money for the night (D-1).
   told), the journal entry. Confirmed gardes are left for the founders to handle; the dialog lists
   them. `currentUser()` then returns `suspended`, so nothing opens; the guard sends the session to
   `/connexion/suspendu`, which ends it; sign-in refuses it. Every reader that could show her to
-  someone, or put her in front of a new request, answer or booking, holds her out with
-  `notSuspended()` (`src/lib/auth/suspension.ts`); a Checkout completing after the suspension is
+  someone, or put her in front of a new request, answer, booking, rating or e-mail, holds her out
+  with `notSuspended()` or reads `suspended()` (`src/lib/auth/suspension.ts`), the one place the
+  rule is written: `suspension-isolation.test.ts` refuses `suspended_at` or a condition on
+  `suspendedAt` anywhere else but the column's writer (`src/lib/admin/accounts.ts`) and the
+  schema (D-169); a Checkout completing after the suspension is
   refunded `reservation_impossible`. Her Neon Auth sessions are deleted from `neon_auth.session`.
 - **Reactivating (D-135)** lifts it; nothing withdrawn is restored.
 - **Deleting (D-136, D-137):** only a suspended account with no garde ahead, confirmed by typing
