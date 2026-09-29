@@ -26,7 +26,7 @@ npm run dev      # http://localhost:3000
 | [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
 | [src/lib/professionnelle/](src/lib/professionnelle/), [src/lib/documents/](src/lib/documents/) | The professional's file: its rules, the private document bucket and `/api/fichiers/[id]`. |
 | [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' back-office: the review (queue and decision rules), the accounts (search, suspend, reactivate, delete, contact), the lists and their overview counts, the admin journal, the purge of refused and deleted accounts' files. See **The founders' verification** and **The back-office** below. |
-| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`), the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`) and the hourly invitation to rate a finished garde (`.github/workflows/avis-invitations.yml`), all guarded by `CRON_SECRET`. |
+| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`), the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`) and the hourly invitation to rate a finished garde (`.github/workflows/avis-invitations.yml`), all guarded by `CRON_SECRET` through the one bearer check in [`src/lib/cron.ts`](src/lib/cron.ts), which refuses a secret under 16 characters. |
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
 | [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
 | [src/lib/gardes/](src/lib/gardes/), [src/components/gardes/](src/components/gardes/) | The garde's life after its booking: its state by the clock, cancelling, reporting an absence, republishing, the reminder of the day before, the founders' list of absences. See **The garde's life** below. |
@@ -232,7 +232,8 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   `.github/workflows/demandes-digest.yml` calls the route on UAT and production at 16:00 and
   17:00 UTC (and on demand), with the repository secret `CRON_SECRET`; Vercel Cron is not
   used because it never runs on the `uat` environment. One value serves both environments
-  (D-68): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets.
+  (D-68): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets,
+  at least 16 characters long, or every cron route refuses the call (`src/lib/cron.ts`, D-153).
 
 ## The answer and the booking
 

@@ -13,12 +13,12 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-28 — the stub called a dedup "no behaviour change" when its copies differed
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: the stub proposed "one `isCronAuthorised`… no behaviour change", but the purge's existing `isCronRequest` also refuses a secret under 16 characters, which the three hourly copies did not. The stub had also gone stale: the avis run added a third cron copy, a third `otherSide` (`ratedSide` plus an inline ternary) and a second `gardeNotice` caller after the stub was written.
+- why: the stub listed the copies from one review pass and never compared their edge cases.
+- fixed by: Define grepped every copy, compared them, and put the choice to the operator (D-153: the stricter check wins, and its one behaviour change is named in the spec and the notes, with an after-merge check of the three Actions runs).
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- When a dedup merges copies of a guard or a check, compare each copy's edge cases (empty, short, null) in Define; if they differ, the surviving one is a decision with its behaviour change named, never "no behaviour change".

@@ -30,3 +30,13 @@
 - `nightEnd` was removed from `gardes/rules.ts` beyond the spec's letter ("keeps `nightEnd`"): with `hasNightEnded` gone it had no reader, and keeping it would leave a second night-end formula. The plan anticipated this ("if it is still used").
 - `demandes/rules.ts` is imported by client components through messagerie's `Side` re-export. It is type-only and the module stays pure, but check that the review sees no server import added there.
 - AGENTS.md's routing row for the back-office names `src/lib/admin/` for the purge. The cron check now lives in `src/lib/cron.ts`, and Release's docs pass may name it.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the head that merged (ci-status.sh, after the last push)
+- reviews: code medium (/code-review, no findings) · security security-check.sh --branch --audit: OK + /security-review (the cron routes' authorization): no findings · /production-readiness n/a (no schema, auth flow, payment or new env var) · readiness env.sh audit --changed: OK
+- parked: none
+- migrations: skip — none of this run's own (main's 0014 came in with the merge; check-migrations.sh SKIP)
+- learned: skip — no error.log (1 rule from FAILURE.md reaches project-rules.md through close-out: compare a guard's copies before calling a dedup behaviour-free)
+- docs: README.md (the cron row names `src/lib/cron.ts` and the 16-character floor; the digest's scheduling paragraph says the secret must be at least 16 characters) · announce: deferred to promotion
