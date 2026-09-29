@@ -20,15 +20,15 @@ publication and the edit forms do not check at all.
 
 ## Proposed change
 
-**The rule (D-153).** A family holds at most one **open or booked** request per night: D-65
+**The rule (D-156).** A family holds at most one **open or booked** request per night: D-65
 widened from `ouverte` to `ouverte` and `attribuee`. A cancelled request (`annulee`) never counts,
 so a cancelled request, a garde cancelled by either side and a reported absence (all of which set
 the request to `annulee`) leave the night free to publish or republish again, as today.
 
 **The index.** `care_requests_one_open_per_night` in `src/db/schema.ts` becomes
-`WHERE status IN ('ouverte', 'attribuee')` (same name and columns; the comment says D-153). One
+`WHERE status IN ('ouverte', 'attribuee')` (same name and columns; the comment says D-156). One
 Drizzle migration of its own, generated with `npm run db:generate -- --name one_request_per_night`
-(drop and recreate the index). It carries no data change (D-155). The `attribuee` enum value
+(drop and recreate the index). It carries no data change (D-158). The `attribuee` enum value
 already exists on every environment, so nothing ties this migration to another.
 
 **What the family sees.** Every path that writes a night onto a request already maps a unique
@@ -37,14 +37,14 @@ professional's profile « en priorité »), editing (`updateRequest`) and republ
 garde (`republishGarde`, which lands her on the live request). With the wider index they now also
 refuse a night she has already booked, with no new branch in the code. The form's « doublon » text
 (`src/content/demandes.ts`) becomes the neutral « Vous avez déjà une demande pour cette nuit. »,
-marked `@relecture` (D-154), since it now also covers a booked night. The comments on
+marked `@relecture` (D-157), since it now also covers a booked night. The comments on
 `isUniqueViolation` and `liveRequestOn` in `src/lib/demandes/requests.ts` are brought in line
-with D-153.
+with D-156.
 
 **Booking.** Moving a request from `ouverte` to `attribuee` keeps it in the index, so the booking
 statement is unchanged and cannot collide with itself.
 
-**The existing rows (D-155).** Creating the unique index fails if any family already holds two
+**The existing rows (D-158).** Creating the unique index fails if any family already holds two
 open-or-booked requests for one night. Before the ready flip, Build runs a read-only count of such
 `(family_user_id, night_date)` pairs on a Neon branch of UAT and of production
 (`.icm/scripts/db-branch.sh`, per the database-migration skill). Zero on both: carry on. Any hit:
@@ -64,9 +64,9 @@ STOP and report the pairs to the operator; no row is changed by this run.
 
 ## Out of scope
 
-- Any data fix for existing duplicates (D-155): a hit stops the run and goes back to the operator.
+- Any data fix for existing duplicates (D-158): a hit stops the run and goes back to the operator.
 - Making `bookings_family_night_idx` unique: a booking follows its request, and the request's index now holds the rule; a second guard is not asked for.
-- A distinct message or redirect for a booked night on the publish and edit forms (D-154: one neutral text).
+- A distinct message or redirect for a booked night on the publish and edit forms (D-157: one neutral text).
 - The epic's other two stubs, `reservations-regles-non-appelees` and `reservations-compte-reponses-une-demande`.
 
 ## Open questions

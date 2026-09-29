@@ -13,12 +13,11 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-28 — Define numbered its decisions D-153–D-155, already taken by three sibling runs
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: at Build's start, a scan of every remote branch found `reservations-regles-non-appelees`, `gardes-shared-helpers` and `messagerie-profil-non-valide` using D-153 to D-155, all defined within the same two minutes.
+- why: Define read only `main` and the archive for the highest `D-n`; it skipped the learned rule that asks for every remote branch, re-read right before the commit.
+- fixed by: Build renumbered this run's three decisions to D-156, D-157 and D-158 in the spec and the run files (the PR body carries no ids, so the approved spec's text is otherwise unchanged).
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>

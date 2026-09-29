@@ -19,4 +19,11 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] Schema: widen `care_requests_one_open_per_night` to `ouverte`, `attribuee` (`src/db/schema.ts`)
+- [x] Migration `drizzle/0014_one_request_per_night.sql` + snapshot + journal (`npm run db:generate`)
+- [x] D-158 probe: duplicate count on the run's Neon branch (UAT copy) and on production; migration applied and verified on the run branch; behaviour probed
+- [x] Wording D-157 (`src/content/demandes.ts`) and the comments in `src/lib/demandes/requests.ts`
+- [x] Test `src/lib/demandes/one-per-night.test.ts` (index read from the schema)
+- [x] README line on `care_requests`
+- [ ] Pre-flip: `lint.sh`, `env.sh audit --changed`, `ci-status.sh` on the draft head, merge `origin/main`, `security-check.sh --branch`
+- [ ] Flip ready, push, settle the full gate

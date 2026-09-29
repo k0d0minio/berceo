@@ -16,5 +16,5 @@ stops, so nothing is carried in anyone's head.
 ## Do not
 
 - Do not tick either gate box.
-- Do not add a data fix to the migration (D-155); a duplicate found by the probe is a STOP.
+- Do not add a data fix to the migration (D-158); a duplicate found by the probe is a STOP.
 - Do not touch `src/lib/reservations/answers.ts`: the epic's next two stubs own it.

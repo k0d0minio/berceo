@@ -13,7 +13,7 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- No data change on any environment (D-155): a duplicate found by the probe is a STOP, not a fix.
+- No data change on any environment (D-158): a duplicate found by the probe is a STOP, not a fix.
 - No new code branch in the writers: publish, edit and `republishGarde` already map a unique violation to « doublon »; the fix is the index.
 - `bookings_family_night_idx` stays non-unique (Out of scope).
 - The epic's other stubs (`reservations-regles-non-appelees`, `reservations-compte-reponses-une-demande`) own `src/lib/reservations/answers.ts`; this run does not touch it.

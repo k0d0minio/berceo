@@ -113,8 +113,8 @@ export const demandes = catalogue({
       age: "Indiquez un âge entre 0 et 12 semaines, ou entre 1 et 24 mois.",
       /** @relecture Surya — case non cochée (D-20). */
       confirmation: "Cochez cette case pour publier votre demande.",
-      /** @relecture Surya — une seule demande ouverte par nuit (D-65). */
-      doublon: "Vous avez déjà une demande ouverte pour cette nuit.",
+      /** @relecture Surya — une seule demande ouverte ou réservée par nuit (D-65, D-156, D-157). */
+      doublon: "Vous avez déjà une demande pour cette nuit.",
       /** @relecture Surya — demande annulée ou nuit commencée entre-temps. */
       nonModifiable: "Cette demande ne peut plus être modifiée.",
     },
