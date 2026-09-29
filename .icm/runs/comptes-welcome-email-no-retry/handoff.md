@@ -10,6 +10,7 @@ stops, so nothing is carried in anyone's head.
 
 ## Blockers
 
+- blocked on operator: free a Neon branch in `uat-berceo` (10/10 — the previews of closed-out runs, e.g. `preview/claude/gifted-hypatia-k309zu`, `preview/claude/zealous-pascal-smhcx4`, once their PRs are merged), then redeploy this branch's preview from Vercel; until then every preview here fails with "Resource provisioning failed" (see `error.log`).
 - blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/64.
 
 ## Do not
