@@ -275,3 +275,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - Build re-reads the highest `D-n` on every remote branch before its first commit and renumbers its own decisions on a clash, because Defines run in parallel can race even the Define-time check. (`FAILURE.md` — reservations-regles-non-appelees)
 <!-- Retrospective Learned Rule [2026-09-29] -->
 - Release re-reads the highest `D-n` on `main` and every remote branch after merging `main`, and renumbers this run's decisions on a clash, since the last check before the merge is the only one that sticks. (`FAILURE.md` — reservations-regles-non-appelees)
+<!-- Retrospective Learned Rule [2026-09-29] -->
+- When the Neon non-production project is at its branch cap and every `preview/*` branch belongs to an open PR, run the proof on the run's own PR preview branch (clean up its fixtures) rather than deleting another run's branch. (`FAILURE.md` — onboarding-double-photo-race)

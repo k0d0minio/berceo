@@ -304,7 +304,7 @@ export async function confirmUpload(request: {
   if (!uploadMatches(kind, contentType, uploaded.size, uploaded.head)) return discard("contenu");
 
   // Recorded under her profile's lock, the limit and the key read inside it.
-  const outcome = await recordUpload(profile.id, {
+  const { outcome, replaced } = await recordUpload(profile.id, {
     kind,
     key,
     fileName: fileName.slice(0, 200) || "fichier",
@@ -314,16 +314,23 @@ export async function confirmUpload(request: {
   const answer = recordAnswer(outcome);
   if (answer.error) return answer.discard ? discard(answer.error) : { ok: false, error: answer.error };
 
-  // Recorded: from here on the new file stays, whatever happens to the old one.
+  // Recorded: from here on the new file stays, whatever happens to the old ones.
+  // Her photo is one file: the recording removed her other photo rows under the
+  // lock; their objects go now.
+  await Promise.all(
+    replaced.map((old) =>
+      deleteObject(old).catch((error) =>
+        console.error("[onboarding] replaced photo not deleted", { profileId: profile.id, key: old, error }),
+      ),
+    ),
+  );
   try {
-    // Her photo is one file: the new one replaces the old at once.
-    if (kind === "photo") await removeDocuments(file, ["photo"]);
     await db
       .update(professionalProfiles)
       .set({ updatedAt: new Date() })
       .where(eq(professionalProfiles.id, profile.id));
   } catch (error) {
-    console.error("[onboarding] old photo not removed after an upload", { profileId: profile.id, error });
+    console.error("[onboarding] profile not touched after an upload", { profileId: profile.id, error });
   }
   return { ok: true };
 }

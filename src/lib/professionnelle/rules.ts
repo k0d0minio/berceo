@@ -444,6 +444,15 @@ export function recordAnswer(outcome: RecordOutcome): {
   }
 }
 
+/**
+ * Whether a recording replaces her other photos: her photo is one file, so a
+ * photo that was recorded removes every other; a refused or duplicate one, and
+ * any document, removes nothing. `recordUpload` holds the same rule in its SQL.
+ */
+export function replacesPhotos(kind: DocumentKind, outcome: RecordOutcome): boolean {
+  return kind === "photo" && outcome === "enregistre";
+}
+
 /** The first bytes each accepted type starts with. */
 export function sniffType(head: Uint8Array): FileType | null {
   const starts = (...bytes: number[]) => bytes.every((b, i) => head[i] === b);

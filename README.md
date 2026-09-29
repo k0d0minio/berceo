@@ -503,7 +503,10 @@ never touches the money for the night (D-1).
   then checks the size and first bytes before recording the file (`src/lib/documents/`). The row
   is written under a lock on her profile row, with the three-files-per-document limit and the
   key's novelty read inside it (`src/lib/professionnelle/uploads.ts`), so two uploads confirmed at
-  once cannot pass the limit or delete a file the other just recorded. Files are
+  once cannot pass the limit or delete a file the other just recorded. Her photo is one file:
+  the statement that records a new photo deletes every other photo row under the same lock and
+  hands back their keys, whose objects the action deletes after the commit, so two photos
+  confirmed at once leave one, the last recorded. Files are
   read only through `/api/fichiers/[id]`, streamed to their owner or an admin, 404 to anyone else.
   Environment: `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION`, `DOCUMENTS_BUCKET`,
   `DOCUMENTS_S3_ACCESS_KEY_ID`, `DOCUMENTS_S3_SECRET_ACCESS_KEY` (not `AWS_*`: Vercel reserves
