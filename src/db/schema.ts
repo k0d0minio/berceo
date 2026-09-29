@@ -439,10 +439,11 @@ export const careRequests = pgTable(
       table.nightDate,
     ),
     index("care_requests_family_user_id_idx").on(table.familyUserId),
-    // A family holds at most one open request per night (D-65).
+    // A family holds at most one open or booked request per night (D-65,
+    // widened by D-156): a cancelled one frees the night.
     uniqueIndex("care_requests_one_open_per_night")
       .on(table.familyUserId, table.nightDate)
-      .where(sql`${table.status} = 'ouverte'`),
+      .where(sql`${table.status} in ('ouverte', 'attribuee')`),
     // What the next digest has to carry.
     index("care_requests_digest_pending_idx")
       .on(table.createdAt)
