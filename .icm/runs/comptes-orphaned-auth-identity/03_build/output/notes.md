@@ -1,7 +1,7 @@
 # Build notes: comptes-orphaned-auth-identity
 
-- commits: the recovery (users.ts, actions.ts, connexion notice, catalogue, tests); the run files
-- ci: pending — draft head; see status.md for the settled verdict
+- commits: a33f9c3 the recovery (users.ts, actions.ts, connexion notice, catalogue, tests); 0b44de3 the run files; 73f31ee merge of `main` (no overlap); 9e9552e ready
+- ci: GREEN on 9e9552e — full gate (Vercel preview pass) and Quality (advisory) pass
 
 ## What changed
 
@@ -21,8 +21,8 @@
 - [x] Second sign-up fails → « generique » (or Neon's password field error), no third attempt — two tests.
 - [x] Every added `neon_auth` delete carries the `not exists` guard in the same statement; lookup and delete live in `src/lib/auth/users.ts`.
 - [x] `signIn` no row → signed out, `inscriptionIncomplete` — test; `/connexion` shows it for `no-row` and `?erreur=compte`.
-- [x] `inscriptionIncomplete` in the catalogue with `@relecture`; `compteIndisponible` gone (no reader). `vitrine.test.ts` is read by the advisory job.
-- [ ] Existing auth tests unchanged — no file under `src/lib/auth/*.test.ts` was edited; the advisory job's run is the proof.
+- [x] `inscriptionIncomplete` in the catalogue with `@relecture`; `compteIndisponible` gone (no reader); `vitrine.test.ts` green in the advisory job on 9e9552e.
+- [x] Existing auth tests unchanged — no file under `src/lib/auth/*.test.ts` was edited; green in the advisory job on 9e9552e.
 - [ ] UAT smoke — the operator's, on the preview: create an account, delete its `users` and `user_consents` rows on the preview's Neon branch, then (a) sign in → the new line, no space; (b) sign up again with the same address and a new password → `/verification-email`, a fresh e-mail whose link opens the right space, the old password refused.
 
 ## Notes for Release

@@ -6,17 +6,17 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Once **Spec approved** is ticked on https://github.com/k0d0minio/berceo/pull/62: `/pipeline build comptes-orphaned-auth-identity`, executing `plan.md` pass by pass.
+1. Once **Ready to merge** is ticked on https://github.com/k0d0minio/berceo/pull/62: `/pipeline release comptes-orphaned-auth-identity`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/62.
+- blocked on operator: smoke the preview (https://berceo-git-claude-wizardly-darwin-dk0jc8-kodominio.vercel.app) per the last acceptance criterion, then tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/62.
 
 A blocking operator act is written here **and** in the stop report's `Operator:` list; a
 non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
 
 ## Do not
 
-- Tick any gate box.
+- Tick any gate box, or any acceptance-criterion box in the PR body (learned rule: refused as self-approval).
 - Touch `src/app/(auth)/verification-email/confirmer/route.ts`: it is `comptes-welcome-email-no-retry`'s.
 - Rebuild a `users` row from what the Neon identity carries (D-165).
