@@ -8,9 +8,14 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none — the epic was cut from release-review findings, with no `scope.md`.
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+- run D-1 — one photo per profile is held by the existing profile-row lock in `recordUpload`: the
+  photo's recording deletes every other `photo` row of the profile in the same locked batch, only
+  when its insert wrote; the last confirm to commit wins. No partial unique index (operator's
+  answer in Define).
+- run D-2 — profiles already holding two photo rows are not cleaned up: the pages show the latest
+  by `uploaded_at`, and her next photo upload removes every other row (operator's answer in
+  Define).

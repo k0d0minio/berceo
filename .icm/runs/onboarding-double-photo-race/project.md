@@ -13,9 +13,16 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- One photo per profile is held by the profile-row lock `recordUpload` already takes
+  (`onboarding-upload-limit-race`, run D-1 there); no schema change, no index (run D-1 here).
+- No cleanup of existing duplicate photo rows or stray objects (run D-2).
+- Object-before-row ordering belongs to `onboarding-orphaned-objects` (3 of 3); do not change
+  `removeDocuments` / `removeFile` here.
+- `_shared/project-rules.md` and `AGENTS.md` standing rules: CI is the source of truth, no local
+  build/lint/typecheck/dev.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- The Define map's cahier des charges lives in icm-board, unreachable from this cloud session;
+  the stub, `onboarding-upload-limit-race`'s spec and a few greps of the actions and uploads
+  files stood in.
