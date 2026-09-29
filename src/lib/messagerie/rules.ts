@@ -1,8 +1,9 @@
+import type { ProfileStatus } from "@/db/schema";
 import { hasNightEnded, type Side } from "@/lib/demandes/rules";
 
 /**
  * The conversation's rules (messagerie), pure so the tests hold them: when a
- * conversation accepts messages (D-89, the night's end read from
+ * conversation accepts messages (D-89, D-156, the night's end read from
  * `src/lib/demandes/rules.ts`), what a message may be, what is unread
  * for whom (D-91), where « Lu » sits and where the reminder line falls (D-88).
  * `src/lib/messagerie/conversations.ts` holds each of them again in the SQL
@@ -35,14 +36,22 @@ export type ConversationRequest = {
   status: "ouverte" | "annulee" | "attribuee";
   nightDate: string;
   startTime: string;
+  /** The status of the conversation's professional's profile, read now (D-158). */
+  profileStatus: ProfileStatus;
+  /** Her answer is the booked one (`retenue`). */
+  booked: boolean;
 };
 
 /**
  * A conversation accepts messages until its request's night ends, whatever its
- * answer's state; a cancelled request closes it at once (D-89). Closed, it
- * stays readable by both.
+ * answer's state; a cancelled request closes it at once (D-89). It is also
+ * closed while its professional's profile is not `valide`, except the
+ * conversation of her booked answer (D-156), and opens again by itself if she
+ * is validated before the night ends (D-158). Closed, it stays readable by
+ * both (D-157).
  */
 export function isConversationOpen(request: ConversationRequest, now: Date): boolean {
+  if (request.profileStatus !== "valide" && !request.booked) return false;
   return request.status !== "annulee" && !hasNightEnded(request.nightDate, request.startTime, now);
 }
 
