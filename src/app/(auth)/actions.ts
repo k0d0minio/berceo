@@ -94,7 +94,7 @@ export async function signUp(
       return { message: "generique", values };
     }
     if (orphan === "aucune") redirect("/verification-email");
-    // Too young to tell from a sign-up still writing its row (D-169).
+    // Too young to tell from a sign-up still writing its row (D-172).
     if (orphan === "recente") return { message: "inscriptionEnCours", values };
     ({ data, error } = await createIdentity());
   }
@@ -186,7 +186,7 @@ export async function signIn(
   if (!row) {
     console.error("[comptes] signed-in identity has no users row", { authUserId });
     // Its sign-up never finished: the session ends, and signing up again with
-    // the same address replaces the identity (D-165).
+    // the same address replaces the identity (D-171).
     await getAuth().signOut();
     return { message: "inscriptionIncomplete", email };
   }

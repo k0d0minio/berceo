@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /*
- * Spec (comptes-orphaned-auth-identity, D-159, D-160, D-165, D-169): a sign-up whose
+ * Spec (comptes-orphaned-auth-identity, D-159, D-160, D-171, D-172): a sign-up whose
  * `users` row fails to write never locks the address out. The identity is
  * deleted when the batch fails; a retry that meets an identity with no row (an
  * orphan) replaces it, once; a real account still reads like a new sign-up
@@ -149,7 +149,7 @@ describe("a sign-up retry on an address Neon Auth already has (D-160, D-34)", ()
     expect(m.batch).not.toHaveBeenCalled();
   });
 
-  it("leaves an identity with no row inside its grace alone and asks to retry in a few minutes (D-169)", async () => {
+  it("leaves an identity with no row inside its grace alone and asks to retry in a few minutes (D-172)", async () => {
     m.signUpEmail.mockResolvedValue(refused("USER_ALREADY_EXISTS"));
     m.orphanByEmail.mockResolvedValue({ authUserId: "auth-1", pastGrace: false });
 
@@ -179,7 +179,7 @@ describe("a sign-up retry on an address Neon Auth already has (D-160, D-34)", ()
   });
 });
 
-describe("a sign-in with no users row (D-165)", () => {
+describe("a sign-in with no users row (D-171)", () => {
   it("ends the new session and answers « inscriptionIncomplete »", async () => {
     m.signInEmail.mockResolvedValue({ data: { user: { id: "auth-1" } }, error: null });
     m.userByAuthId.mockResolvedValue(null);

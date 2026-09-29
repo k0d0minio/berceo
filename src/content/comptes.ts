@@ -176,10 +176,10 @@ export const comptes = catalogue({
         "Votre adresse e-mail n'est pas encore confirmée. Ouvrez le lien que nous vous avons envoyé pour activer votre accès.",
       /** @relecture Surya — lien de vérification ou de réinitialisation expiré ou déjà utilisé. */
       lienInvalide: "Ce lien n'est plus valide. Demandez-en un nouveau.",
-      /** @relecture Surya — inscription interrompue, compte sans espace (D-165). */
+      /** @relecture Surya — inscription interrompue, compte sans espace (D-171). */
       inscriptionIncomplete:
         "Votre inscription n'a pas abouti. Créez à nouveau votre compte avec la même adresse e-mail.",
-      /** @relecture Surya — inscription relancée pendant qu'une autre se termine (D-169). */
+      /** @relecture Surya — inscription relancée pendant qu'une autre se termine (D-172). */
       inscriptionEnCours:
         "Votre inscription n'a pas pu être finalisée. Réessayez dans quelques minutes.",
       /** @relecture Surya — compte suspendu par l'équipe Berceo (back-office-admin, D-134). */

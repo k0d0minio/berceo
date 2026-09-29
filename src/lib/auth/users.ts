@@ -27,7 +27,7 @@ export async function userByAuthId(authUserId: string): Promise<User | null> {
  * How long a new identity is left to its own sign-up. Its `users` row is
  * written right after Neon Auth answers, so a younger identity with no row may
  * be a sign-up still in flight (a second tab, a resubmitted form), never an
- * orphan: deleting it would leave that sign-up's row joined to nothing (D-169).
+ * orphan: deleting it would leave that sign-up's row joined to nothing (D-172).
  */
 const SIGN_UP_GRACE = sql`interval '5 minutes'`;
 
