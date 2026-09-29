@@ -1,7 +1,8 @@
 # Build notes: suspension-one-predicate
 
-- commits: renumber decisions to D-169/D-170 · merge origin/main · the readers on one predicate + source test
-- ci: see the last `ci-status.sh` verdict in `status.md`
+- commits: renumber decisions to D-169/D-170 · merge origin/main (twice) · the readers on one predicate + source test · ready
+- ci: GREEN (cheap tier, draft) on 9379875; full gate read after the ready push — see `status.md`
+- ready: 2026-09-29T12:47:37Z — flipped on 8b14a6a
 
 ## What changed
 
