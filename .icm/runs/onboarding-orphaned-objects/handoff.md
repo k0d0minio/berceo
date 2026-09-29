@@ -6,18 +6,19 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Once **Spec approved** is ticked on https://github.com/k0d0minio/berceo/pull/61, run
+   `/pipeline build onboarding-orphaned-objects` and follow `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/61
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not touch the photo's single-slot logic in `confirmUpload` beyond the removal order: that is
+  `onboarding-double-photo-race` (2 of 3).
+- Do not change `src/lib/admin/purge.ts` or `src/lib/admin/accounts.ts`: they already delete
+  objects first.
+- Do not fix the "last file" race in `removeFile` here: it is parked as
+  `.icm/intake/triage/onboarding-remove-last-file-race.md`.
+- Never tick a gate.

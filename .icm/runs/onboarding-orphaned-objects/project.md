@@ -13,9 +13,15 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- Object before row on every removal path; a row goes only once its own object is gone.
+- The purge (D-41, D-55) and the account deletion (D-137) start from the rows: a row must never
+  be lost while its object stays.
+- `saveProfile` answers a successful save even when stale documents could not be removed
+  (decided at Define with the operator, 2026-09-29).
+- No schema change, no migration, no new catalogue text.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define: the cahier des charges in icm-board is not reachable from a cloud session; personas
+  and touches came from the stub, `AGENTS.md` and greps of `actions.ts`, `purge.ts`,
+  `accounts.ts` and `storage.ts`.
