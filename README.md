@@ -122,7 +122,8 @@ The platform's data starts here: one Neon Postgres database, read through
   (only on a cancelled garde), and five more journal actions.
   `care_requests` (0005): a family's night, its start, children, baby's age, the commune copied
   from her profile, the urgent flag, when the no-medical-condition box was ticked, and
-  `digest_sent_at`; at most one open request per family and night.
+  `digest_sent_at`; at most one open request per family and night (widened to open or booked
+  in 0014, D-156).
   Answers and bookings (0007): `care_request_status` gains `attribuee`; `care_requests` gains
   its priority professional (`priority_profile_id`, `priority_sent_at`, set once) and
   `republished_at` / `republish_count`; `care_request_applications` is one answer per
@@ -459,6 +460,10 @@ never touches the money for the night (D-1).
   Brussels), whatever its answer's state; a cancelled request closes it at once. Closed, it stays
   readable. `isConversationOpen` in `rules.ts` is the one rule; `sendMessage` holds it again in
   SQL. A cancelled garde cancels its request (D-110), so its conversations close at once too.
+  While the professional's profile is not `valide`, her conversations are closed for both sides
+  as well, except the one of her booked (`retenue`) answer (D-156); still readable (D-157), and
+  open again by themselves if she is validated before the night ends, since the rule reads her
+  current status (D-158).
 - **Words:** `src/content/messagerie.ts`; the e-mail in `src/content/emails.ts`.
 
 ## The professional's availability

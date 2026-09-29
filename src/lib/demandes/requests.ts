@@ -71,7 +71,7 @@ export const nightAhead = sql`(${careRequests.nightDate} + ${careRequests.startT
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Postgres' unique_violation: here, a second open request for the same night. */
+/** Postgres' unique_violation: here, a second open or booked request for the same night (D-156). */
 export function isUniqueViolation(error: unknown): boolean {
   const code = (candidate: unknown) =>
     candidate && typeof candidate === "object" && "code" in candidate
@@ -341,9 +341,9 @@ export function cancelBookedRequestStatement(bookingId: string, at: string) {
 }
 
 /**
- * Her live request for `nightDate`, if any: open (D-65: at most one) or
- * already booked again. Republishing a cancelled garde links to it instead,
- * so a night never carries two requests that could each be booked.
+ * Her live request for `nightDate`, if any: open or booked, of which the
+ * unique index holds at most one (D-65, D-156). Republishing a cancelled garde
+ * links to it instead; the index still refuses a second one written meanwhile.
  */
 export async function liveRequestOn(userId: string, nightDate: string): Promise<string | null> {
   const [row] = await db
