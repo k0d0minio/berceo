@@ -269,3 +269,5 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - When a stub asks to write a duplicated rule once, Define greps all of `src/` for every copy of it rather than trusting the stub's list, and adds a source test refusing it outside its one home. (`FAILURE.md` — admin-sql-helpers-dedupe)
 <!-- Retrospective Learned Rule [2026-09-29] -->
 - none new: the existing rule on reading every remote branch before numbering a decision covers it. (`FAILURE.md` — messagerie-profil-non-valide)
+<!-- Retrospective Learned Rule [2026-09-29] -->
+- When a dedup merges copies of a guard or a check, compare each copy's edge cases (empty, short, null) in Define; if they differ, the surviving one is a decision with its behaviour change named, never "no behaviour change". (`FAILURE.md` — gardes-shared-helpers)
