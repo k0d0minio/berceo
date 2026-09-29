@@ -28,8 +28,12 @@
 - [x] `removeFile` with a failed object delete answers `echec` and keeps the row; the retry
   removes both — the row stays because `deleteRows` is never called with its id; the retry case
   is the last-but-one test.
-- [x] A photo upload whose old photo cannot be deleted answers `{ ok: true }`, keeps the row,
-  logs — `removeFiles` never throws, the answer after `recordUpload` is unchanged.
+- [ ] A photo upload whose old photo cannot be deleted answers `{ ok: true }`, keeps the row, logs
+  — **re-scoped at Release**: `onboarding-double-photo-race` (#60) merged first and moved the
+  photo replacement into the locked recording statement (rows deleted under the lock, objects
+  after the commit). The operator chose to keep #60's path and drop this run's photo change; the
+  replaced photo's object can still be orphaned when its delete fails, parked as
+  `onboarding-replaced-photo-orphan`.
 - [x] A profession change whose stale documents cannot be deleted answers a successful save,
   keeps the rows, clears the INAMI number, logs — the removal no longer throws into the `catch`
   that answered `generique`; the INAMI update after it still runs and a failure of that update
@@ -52,7 +56,8 @@
 - gate: Ready to merge ticked — merge authorised
 - ci: GREEN on the head that merged (ci-status.sh, after the last push)
 - reviews: code medium — no findings · security security-check.sh --branch --audit: OK + /security-review — no findings (the removals only ever take keys from her own loaded file; the row delete is now profile-scoped) · readiness env.sh audit --changed: OK · /production-readiness n/a — no DB schema, auth, payments or env change, and the skill is not shipped in this repo
-- parked: none at Release (Define parked onboarding-remove-last-file-race.md)
+- parked: onboarding-replaced-photo-orphan.md (Release, the photo path after #60) · Define parked onboarding-remove-last-file-race.md
+- conflict: main brought #60 in after the first merge; the squash was refused on actions.ts and README.md. Resolved with main's photo path (operator's call), this run's removeFile and profession-change paths kept; README carries both paragraphs
 - migrations: skip — none of this run's own
 - learned: skip — no error.log
 - docs: README.md (the onboarding's documents paragraph), AGENTS.md (routing row names removals.ts) · announce: deferred to promotion
