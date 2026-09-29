@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { hasNightEnded } from "@/lib/demandes/rules";
+
 import {
-  hasNightEnded,
   isConversationOpen,
   isUnread,
   MESSAGE_MAX,

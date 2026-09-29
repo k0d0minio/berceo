@@ -7,11 +7,13 @@
  * read the same rules; `./gardes.ts` holds each of them again in the SQL of the
  * write it governs.
  *
- * Dates and times are Brussels wall-clock values, as in `src/lib/demandes/rules.ts`.
+ * Dates and times are Brussels wall-clock values, as in `src/lib/demandes/rules.ts`,
+ * which also holds the night's end the conversation closes on (D-89) and the
+ * other side: « Terminée » and the address (D-110) read that same end.
  */
 
 import type { BookingSide, BookingStatus, CancellationKind, PaymentStatus } from "@/db/schema";
-import { addDays, brusselsNow, endTime, hasNightStarted, toHourMinute } from "@/lib/demandes/rules";
+import { addDays, brusselsNow, endTime, hasNightEnded, hasNightStarted, toHourMinute } from "@/lib/demandes/rules";
 
 /** What each side sees (D-17): the stored `confirmee` split by the clock, or `annulee`. */
 export type GardeState = "a_venir" | "en_cours" | "terminee" | "annulee";
@@ -32,16 +34,6 @@ function stamp(date: string, time: string): string {
 function nowStamp(now: Date): string {
   const here = brusselsNow(now);
   return stamp(here.date, here.time);
-}
-
-/** The end of the night: start + 11 hours, the next morning (every start is between 18:00 and 23:00). */
-export function nightEnd(nightDate: string, startTime: string): string {
-  return stamp(addDays(nightDate, 1), endTime(startTime));
-}
-
-/** Whether the night has ended in Brussels at `now`. */
-export function hasNightEnded(nightDate: string, startTime: string, now: Date): boolean {
-  return nightEnd(nightDate, startTime) <= nowStamp(now);
 }
 
 /** The last moment an absence can be reported: the night's end plus 24 hours. */
@@ -76,11 +68,6 @@ export function canRepublish(garde: GardeFacts, now: Date): boolean {
 /** The professional reads the family's address on a confirmed garde until the night ends (D-110). */
 export function isAddressVisible(garde: GardeFacts, now: Date): boolean {
   return garde.status === "confirmee" && !hasNightEnded(garde.nightDate, garde.startTime, now);
-}
-
-/** The other side of a garde: the side an absence is recorded against is the one not reporting it. */
-export function otherSide(side: BookingSide): BookingSide {
-  return side === "famille" ? "professionnelle" : "famille";
 }
 
 /** Whether the reminder may leave now: 10:00 to 10:59 in Brussels. */

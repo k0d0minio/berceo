@@ -1,9 +1,11 @@
 /**
  * The rules of a care request that do not need the database: which nights a
  * request may be for, the start times, the baby's age, when a night has
- * started, the end of the night, and when the daily digest may leave. Pure and
- * dependency-free, so the form, the server actions, the digest route and the
- * tests read the same rules.
+ * started and when it has ended, the two sides of it, and when the daily
+ * digest may leave. Pure and dependency-free, so the form, the server actions,
+ * the digest route and the tests read the same rules; the conversation (D-89),
+ * the garde (D-109, D-110) and the rating read the night's end and the other
+ * side from here, so they end at the same moment.
  *
  * Every date is a calendar date in Brussels (`YYYY-MM-DD`) and every time a
  * wall-clock time there (`HH:MM`): a family in Belgium means « ce soir » in
@@ -118,6 +120,21 @@ export function endTime(startTime: string): string {
   const [h, m] = toHourMinute(startTime).split(":").map(Number);
   const minutes = (h * 60 + m + NIGHT_HOURS * 60) % (24 * 60);
   return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
+}
+
+/** Whether the night of `date` starting at `startTime` (11 hours) has ended in Brussels at `now`. */
+export function hasNightEnded(date: string, startTime: string, now: Date): boolean {
+  // Every night starts between 18:00 and 23:00, so it ends the next morning.
+  const here = brusselsNow(now);
+  return `${addDays(date, 1)}T${endTime(startTime)}` <= `${here.date}T${here.time}`;
+}
+
+/** The two sides of a night, as `booking_side`, `rating_side` and `messages.author` name them. */
+export type Side = "famille" | "professionnelle";
+
+/** The other side: the one told of a cancellation, reported absent, or rated. */
+export function otherSide(side: Side): Side {
+  return side === "famille" ? "professionnelle" : "famille";
 }
 
 export function isAgeUnit(value: string): value is AgeUnit {

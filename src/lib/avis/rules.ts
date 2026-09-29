@@ -82,11 +82,6 @@ export function isPublished(
   return otherSideRated || hasWindowClosed(garde.nightDate, garde.startTime, now);
 }
 
-/** The side that is rated by `side`. */
-export function ratedSide(side: RatingSide): RatingSide {
-  return side === "famille" ? "professionnelle" : "famille";
-}
-
 /** The mean of a rating's four scores. */
 export function ratingMean(scores: Scores): number {
   return scores.reduce((sum, score) => sum + score, 0) / scores.length;
