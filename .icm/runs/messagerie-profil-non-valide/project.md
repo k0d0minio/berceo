@@ -14,8 +14,8 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 ## Constraints
 
 - Bookings are untouched: nothing here changes a `retenue` answer, a booking or a garde.
-- No new words: the existing « Fermée » mark, `conversation.fermee` and `envoi.fermee` are reused (D-154).
-- Nothing is stored: the rule reads the profile's current status (D-155); no schema change.
+- No new words: the existing « Fermée » mark, `conversation.fermee` and `envoi.fermee` are reused (D-157).
+- Nothing is stored: the rule reads the profile's current status (D-158); no schema change.
 - The rule is held twice, in `rules.ts` and in `sendMessage`'s SQL (the messagerie module's standing pattern).
 
 ## Context budget

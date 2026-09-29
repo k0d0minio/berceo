@@ -15,6 +15,6 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- D-153 — A conversation also closes while its professional's profile is not `valide`, except the conversation of her `retenue` answer (her confirmed booking), which follows D-89 alone. The operator's call in Define (2026-09-28): the booking is untouched by this epic, so its channel stays.
-- D-154 — Closed for both sides and still readable by both, with the existing « Fermée » words; nothing is hidden from her. The operator's call in Define (2026-09-28).
-- D-155 — The rule reads the profile's current status; nothing is stored, so a professional validated again before the night ends can write again. The operator's call in Define (2026-09-28).
+- D-156 — A conversation also closes while its professional's profile is not `valide`, except the conversation of her `retenue` answer (her confirmed booking), which follows D-89 alone. The operator's call in Define (2026-09-28): the booking is untouched by this epic, so its channel stays.
+- D-157 — Closed for both sides and still readable by both, with the existing « Fermée » words; nothing is hidden from her. The operator's call in Define (2026-09-28).
+- D-158 — The rule reads the profile's current status; nothing is stored, so a professional validated again before the night ends can write again. The operator's call in Define (2026-09-28).

@@ -13,12 +13,12 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-29 — Define numbered D-153 to D-155 without reading the open branches
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: three sibling runs defined on 2026-09-28 (`reservations-regles-non-appelees`, `gardes-shared-helpers`, `reservations-deux-gardes-meme-nuit`) had already taken D-153 to D-155 on their own branches; Define read only `main` and the working tree.
+- why: the learned rule « list every remote branch and grep each for its highest `D-n` » was not applied in Define (the project rules are Build's input, not Define's).
+- fixed by: Build renumbered this run's decisions to D-156, D-157, D-158 in `spec.md`, `decisions.md`, `plan.md`, `project.md` and `handoff.md` before the first code edit; ids only, no requirement changed, so the PR body (which cites none) and the Spec approved gate stand.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- none new: the existing rule on reading every remote branch before numbering a decision covers it.

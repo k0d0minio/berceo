@@ -21,19 +21,19 @@ trigger.
 
 ## Proposed change
 
-**The rule (D-153).** A conversation accepts messages when, as today, its request is not cancelled
+**The rule (D-156).** A conversation accepts messages when, as today, its request is not cancelled
 and its night has not ended (D-89), **and** its professional's profile is `valide` **or** its
 answer is the booked one (`retenue`). The confirmed booking is untouched by this epic, so its
 conversation keeps its channel until the night ends; every other conversation of a professional
 who is not `valide` (`brouillon`, `en_attente`, `complement_demande`, `refuse`) is closed.
 
-**Closed for both, still readable (D-154).** The closing is the existing one: on both sides the
+**Closed for both, still readable (D-157).** The closing is the existing one: on both sides the
 conversation shows « Fermée » in « Messages » and the thread shows the closed line and no composer
 (`conversation.fermee`), exactly as a cancelled request or an ended night does. Both parties can
 still read it; her « Messages », her unread count and her « Voir la conversation » links are
 unchanged. A send already typed is refused with the existing `envoi.fermee` message. No new words.
 
-**Held in the write, read from the current status (D-155).** The pure rule in
+**Held in the write, read from the current status (D-158).** The pure rule in
 `src/lib/messagerie/rules.ts` gains the two facts (the profile's status, whether the answer is
 `retenue`) and stays the one definition the list, the thread and `sendMessage`'s pre-check call.
 `sendMessage`'s SQL holds the same condition again in its `target` CTE (join the professional's
@@ -60,7 +60,7 @@ people's messages and are not affected.
 ## Out of scope
 
 - What becomes of her confirmed booking when she is no longer `valide` (the garde itself, its cancellation, the family's notice): bookings are untouched by this epic.
-- Hiding conversations from her, or from the family: both keep reading them (D-154).
+- Hiding conversations from her, or from the family: both keep reading them (D-157).
 - A distinct closed line or reason for this case: the existing « fermée » words are used.
 - Suspended accounts: a suspended professional cannot sign in (D-134) and suspension already withdraws her answers; the family writing to a suspended professional is not changed here.
 - Any e-mail to the family explaining the closing.

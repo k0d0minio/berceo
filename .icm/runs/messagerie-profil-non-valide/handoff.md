@@ -16,5 +16,5 @@ stops, so nothing is carried in anyone's head.
 ## Do not
 
 - Do not tick either gate box.
-- Do not touch bookings, `retenue` answers or the garde's status: out of scope (D-153).
-- Do not add words to `src/content/messagerie.ts` or a schema migration: the closing reuses what exists (D-154, D-155).
+- Do not touch bookings, `retenue` answers or the garde's status: out of scope (D-156).
+- Do not add words to `src/content/messagerie.ts` or a schema migration: the closing reuses what exists (D-157, D-158).

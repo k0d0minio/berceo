@@ -10,7 +10,7 @@ reality disagrees with it — never left describing a plan that was abandoned.
 1. **The pure rule** — `src/lib/messagerie/rules.ts`: `ConversationRequest` (or a sibling type the
    callers fill) gains `profileStatus: ProfileStatus` and `booked: boolean`; `isConversationOpen`
    returns false when the profile is not `valide` and the answer is not `retenue`, on top of the
-   D-89 checks (D-153, D-155). Update the doc comment. — done when: the function is the single
+   D-89 checks (D-156, D-158). Update the doc comment. — done when: the function is the single
    definition and the type forces every caller to supply both facts.
 2. **The tests** — `src/lib/messagerie/rules.test.ts`: the truth table profile `valide`/not ×
    `retenue`/not (each non-`valide` status at least once), crossed with the existing cancelled and
@@ -30,7 +30,7 @@ reality disagrees with it — never left describing a plan that was abandoned.
    returns `fermee` and inserts nothing, whichever side sends.
 5. **The components** — `src/components/messagerie/conversation-list.tsx` and
    `conversation-view.tsx` already call `isConversationOpen(row|thread, now)`; they compile against
-   the widened rows with no new words (the « Fermée » mark and the closed line are reused, D-154).
+   the widened rows with no new words (the « Fermée » mark and the closed line are reused, D-157).
    — done when: typecheck is green in CI.
 6. **README** — the conversation section: a conversation also closes, for both, while its
    professional is not `valide`, except the conversation of her confirmed booking; it reopens by
