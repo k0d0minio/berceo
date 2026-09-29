@@ -122,7 +122,8 @@ The platform's data starts here: one Neon Postgres database, read through
   (only on a cancelled garde), and five more journal actions.
   `care_requests` (0005): a family's night, its start, children, baby's age, the commune copied
   from her profile, the urgent flag, when the no-medical-condition box was ticked, and
-  `digest_sent_at`; at most one open request per family and night.
+  `digest_sent_at`; at most one open request per family and night (widened to open or booked
+  in 0014, D-156).
   Answers and bookings (0007): `care_request_status` gains `attribuee`; `care_requests` gains
   its priority professional (`priority_profile_id`, `priority_sent_at`, set once) and
   `republished_at` / `republish_count`; `care_request_applications` is one answer per
