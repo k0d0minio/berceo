@@ -1,18 +1,9 @@
 import "server-only";
 
 import { and, eq, isNull, sql } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
 
-import {
-  bookings,
-  careRequests,
-  db,
-  professionalProfiles,
-  users,
-  type BookingSide,
-  type CancellationKind,
-} from "@/db";
-import { addDays, brusselsNow, NIGHT_HOURS, TIME_ZONE, URGENT_LAST_DAY } from "@/lib/demandes/rules";
+import { bookings, careRequests, db, type BookingSide } from "@/db";
+import { addDays, brusselsNow, NIGHT_HOURS, otherSide, TIME_ZONE, URGENT_LAST_DAY } from "@/lib/demandes/rules";
 import {
   cancelBookedRequestStatement,
   liveRequestOn,
@@ -22,7 +13,7 @@ import {
 } from "@/lib/demandes/requests";
 import { bookingFees, refundFee, type BookingFee } from "@/lib/paiements/payments";
 
-import { ABSENCE_HOURS_AFTER_END, canRepublish, otherSide, reminderNight } from "./rules";
+import { ABSENCE_HOURS_AFTER_END, canRepublish, reminderNight } from "./rules";
 
 /**
  * The life of a garde after its booking (cycle-de-garde-et-annulation): the
@@ -34,7 +25,8 @@ import { ABSENCE_HOURS_AFTER_END, canRepublish, otherSide, reminderNight } from 
  * cancellation refunds the fee through `refundFee` after the statement commits
  * (D-2, D-94); a failed refund leaves the cancellation standing and the fee
  * `payee`, for the founders' button (D-101). The creation of a booking and
- * both sides' reads stay in `src/lib/reservations/bookings.ts`.
+ * both sides' reads stay in `src/lib/reservations/bookings.ts`, and what the
+ * e-mails read in `bookingNotice` (`src/lib/reservations/notices.ts`).
  */
 
 /** Logs a failure with ids only: Drizzle's and Stripe's messages can carry the query's values. */
@@ -225,41 +217,6 @@ export async function releaseReminder(bookingId: string): Promise<void> {
 // ---------------------------------------------------------------------------
 // Reads
 // ---------------------------------------------------------------------------
-
-const familyUser = alias(users, "family_user");
-const professionalUser = alias(users, "professional_user");
-
-/** What the e-mails of a garde need: both sides' address and first name, the night, how it ended. */
-export type GardeNotice = {
-  id: string;
-  nightDate: string;
-  startTime: string;
-  cancelledBy: BookingSide | null;
-  cancellationKind: CancellationKind | null;
-  family: { email: string; firstName: string };
-  professional: { email: string; firstName: string };
-};
-
-export async function gardeNotice(bookingId: string): Promise<GardeNotice | null> {
-  const [row] = await db
-    .select({
-      id: bookings.id,
-      nightDate: careRequests.nightDate,
-      startTime: careRequests.startTime,
-      cancelledBy: bookings.cancelledBy,
-      cancellationKind: bookings.cancellationKind,
-      family: { email: familyUser.email, firstName: familyUser.firstName },
-      professional: { email: professionalUser.email, firstName: professionalUser.firstName },
-    })
-    .from(bookings)
-    .innerJoin(careRequests, eq(careRequests.id, bookings.requestId))
-    .innerJoin(familyUser, eq(familyUser.id, bookings.familyUserId))
-    .innerJoin(professionalProfiles, eq(professionalProfiles.id, bookings.profileId))
-    .innerJoin(professionalUser, eq(professionalUser.id, professionalProfiles.userId))
-    .where(eq(bookings.id, bookingId))
-    .limit(1);
-  return row ?? null;
-}
 
 /** The fee of one of her gardes, for the fee line of her page. */
 export async function gardeFee(bookingId: string): Promise<BookingFee | null> {

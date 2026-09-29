@@ -4,7 +4,7 @@ import type { RatingSide } from "@/db";
 import { formatDate } from "@/lib/demandes/format";
 import { sendEmail } from "@/lib/email/send";
 import { ratingFamilyEmail, ratingProfessionalEmail } from "@/lib/email/templates";
-import { gardeNotice } from "@/lib/gardes/gardes";
+import { bookingNotice } from "@/lib/reservations/notices";
 
 import { familyRatingPath, professionalRatingPath } from "./paths";
 import { claimInvitation, invitationsDue, logError, releaseInvitation } from "./ratings";
@@ -23,7 +23,7 @@ import { claimInvitation, invitationsDue, logError, releaseInvitation } from "./
 export type InvitationOutcome = { sent: number; failed: number };
 
 async function invite(bookingId: string, side: RatingSide, siteUrl: string): Promise<void> {
-  const notice = await gardeNotice(bookingId);
+  const notice = await bookingNotice(bookingId);
   if (!notice) return;
   const email =
     side === "famille"
