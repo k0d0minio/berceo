@@ -1,7 +1,7 @@
 # Build notes: comptes-welcome-email-no-retry
 
 - commits: 5b1e43c fix (welcome scheduler, confirmer guard, home retry, tests) · merge of `origin/main` · ready push
-- ci: draft GREEN on 5b1e43c (cheap tier); full verdict on the post-flip head — see `status.md`
+- ci: GREEN on e8f396b (full gate: Vercel preview pass, Quality (advisory) pass — the new tests' first run)
 
 ## What changed
 
