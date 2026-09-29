@@ -23,4 +23,5 @@ step, so a resuming session can pick up the first unticked line.
 - [x] The read — `awaitingRefund` predicate, `awaitingRefundCount`, `readPayments(page, view)` with `toRefund` per row
 - [x] The page, the table, the dialog — `admin/paiements/page.tsx`, `payments-table.tsx`, `refund-button.tsx`
 - [x] The overview — `admin/page.tsx` line when n > 0
-- [ ] Flip ready, settle the full gate, smoke on the preview (operator)
+- [x] Flip ready, settle the full gate (GREEN on 406e1ee)
+- [ ] Smoke on the preview, tick Ready to merge (operator)

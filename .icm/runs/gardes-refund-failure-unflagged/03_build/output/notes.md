@@ -1,7 +1,7 @@
 # Build notes: gardes-refund-failure-unflagged
 
 - commits: `feat: gardes-refund-failure-unflagged — flag fees owed after a professional's cancellation`
-- ci: see status.md (settled after the ready flip)
+- ci: GREEN on 406e1ee (full gate: Vercel preview pass, Quality (advisory) pass)
 
 ## What changed
 
