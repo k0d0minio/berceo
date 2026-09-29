@@ -31,3 +31,13 @@
 - Every change is a query rewrite with the same result set; the risk is a wrong id column passed to the helper. Check each call site's argument against the column the diff removed.
 - `messageNotice` reads two `exists` booleans through the Drizzle builder, as `acceptAnswer`'s facts already did; no `db.execute` string-boolean path.
 - Spec text changed in Build: decision ids renumbered D-165/D-166 → D-169/D-170 (collision with two sibling branches and `main`), and the second criterion's regex fixed. The PR body's criterion line was patched to match; no gate was re-projected.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on a54ddf6 (ci-status.sh, full gate: Vercel pass, Quality (advisory) pass); re-read after the last push before the merge
+- reviews: code medium (/code-review: no findings) · security security-check.sh --branch --audit: OK (npm audit clean) + /security-review — no findings (every call site passes the held-out account's id; the helpers take a column or a static fragment, every user value bound; `not exists (…)` keeps its precedence; a mis-mapped boolean in `messageNotice` fails closed) · readiness env.sh audit --changed: OK · /production-readiness n/a — not shipped in this repo's skills; no migration, no env var
+- parked: none
+- migrations: skip — none of this run's own
+- learned: skip — no error.log; 1 rule from FAILURE.md via close-out (prove a spec's or a source test's regex against a positive and a negative string)
+- docs: README.md → The back-office, Suspending (the one place the rule is written and its source test); AGENTS.md routing row · announce: deferred to promotion
