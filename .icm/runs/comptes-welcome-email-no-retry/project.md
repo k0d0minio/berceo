@@ -13,9 +13,11 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- `sendWelcomeIfDue`'s decisions stay as they are: parents only, the conditional-UPDATE claim, the release on a failed send (D-165).
+- The only new retry point is `/espace/famille` (D-165) — not `requireAccess`, not sign-in.
+- The confirmer's redirects, the way back (D-129) and the forwarded session cookies are unchanged on every existing path.
+- No schema change, no template change, no retry cap.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `welcome.ts`, the confirmer route and its test, `guard.ts`, `current-user.ts`, `users.ts`, `site-origin.ts` and the family home to fix `touches:`; the cahier des charges the knowledge map names lives in icm-board, not this checkout.

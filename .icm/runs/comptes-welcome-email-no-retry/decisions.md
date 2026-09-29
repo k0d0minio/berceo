@@ -8,9 +8,11 @@ decision made mid-run has one home.
 
 ## From the scope
 
-- <D-n — the decision, one line, as the scope worded it>
+- none — no scope run; the epic was cut from the comptes-neon-auth release review (2026-09-24).
 
 ## Made in this run
 
-- <D-n (the next free id) — the decision, why, which stage made it. A decision Build had to
-  make is a spec gap: say so in `notes.md` → Notes for Release>
+D-164 was the highest id on `main` and every remote branch on 2026-09-29.
+
+- D-165 — a failed welcome e-mail is retried from the family's home (`/espace/famille`), after the response, while `welcome_sent_at` is null; the claim release stays. Not every family page through `requireAccess`, not sign-in. The operator's choice in Define, 2026-09-29.
+- D-166 — the verification confirmer schedules the welcome with `after()` and redirects without waiting on Resend. The operator's choice in Define, 2026-09-29.

@@ -6,18 +6,14 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. Once **Spec approved** is ticked on https://github.com/k0d0minio/berceo/pull/64, run `/pipeline build comptes-welcome-email-no-retry` and follow `plan.md` pass by pass.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/64.
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not tick the gate, and do not start Build before it is ticked.
+- Do not touch `comptes-orphaned-auth-identity` (its own run on `claude/wizardly-darwin-dk0jc8`) — it changes signUp / signIn in `src/app/(auth)/actions.ts`, not this run's files.
+- Do not reuse D-153/D-154: other open runs hold them; this run's ids are D-165 and D-166.

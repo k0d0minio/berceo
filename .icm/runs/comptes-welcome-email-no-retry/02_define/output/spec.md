@@ -20,7 +20,7 @@ space stands on, and was found in the comptes-neon-auth release review (2026-09-
 
 ## Proposed change
 
-1. **A retry point on the family's home (D-153).** `/espace/famille` — where the confirmer
+1. **A retry point on the family's home (D-165).** `/espace/famille` — where the confirmer
    lands a family and where sign-in takes her — asks for the welcome after the response whenever
    the signed-in family's `welcome_sent_at` is null. It reuses `sendWelcomeIfDue` unchanged in
    what it decides: parents only, one conditional-UPDATE claim so concurrent requests send once,
@@ -28,7 +28,7 @@ space stands on, and was found in the comptes-neon-auth release review (2026-09-
    later visit to the home until one send succeeds. The page never waits on it and never shows
    anything about it. The link in the e-mail points at the deployment that served the page
    (`siteOrigin()`, read before the deferred work, not inside it).
-2. **The confirmer sends after the redirect (D-154).** The first click schedules the welcome
+2. **The confirmer sends after the redirect (D-166).** The first click schedules the welcome
    with `after()` and redirects at once, like every other notification in the repo; the
    redirect, the way back (D-129) and the forwarded session cookies are unchanged.
 3. **The confirmer's `users` read is guarded.** If `userByAuthId` throws, the route logs one
@@ -50,14 +50,14 @@ space stands on, and was found in the comptes-neon-auth release review (2026-09-
 
 ## Out of scope
 
-- Dropping the claim release (the stub's alternative): rejected at Define, the retry keeps it (D-153).
-- A retry on every family page through `requireAccess`, or on sign-in: rejected at Define, the home is the one touchpoint (D-153).
+- Dropping the claim release (the stub's alternative): rejected at Define, the retry keeps it (D-165).
+- A retry on every family page through `requireAccess`, or on sign-in: rejected at Define, the home is the one touchpoint (D-165).
 - A cap on retries or a cut-off date after which the welcome is no longer sent.
 - Recovering a sign-up whose `users` row was never written: `comptes-orphaned-auth-identity`, the other stub in this epic.
 - Any change to the welcome e-mail's text or template, to Resend's idempotency key, or to the schema.
 
 ## Open questions
 
-- none: the retry point and the `after()` move were settled with the operator on 2026-09-29 (D-153, D-154).
+- none: the retry point and the `after()` move were settled with the operator on 2026-09-29 (D-165, D-166).
 
 Context budget: the cahier des charges the knowledge map names for Define lives in icm-board, not in this checkout; the persona (parent) comes from the stub and `src/lib/auth/welcome.ts`.
