@@ -1,7 +1,7 @@
 # Build notes: gardes-shared-helpers
 
 - commits: 3cd275f (one night's end, one other side), a4f5bd0 (bookingNotice carries the cancellation), 55ef66a (one cron check)
-- ci: see the last line of `status.md`. The draft head owes nothing, and `format.sh` and `lint.sh` answer SKIP here (nothing wired locally), so the advisory job on the ready head is the first typecheck and test run.
+- ci: GREEN on dc59d57, full gate. Vercel passed, and `Quality (advisory)` passed (ESLint, typecheck, vitest). `format.sh` and `lint.sh` answer SKIP locally (nothing wired).
 
 ## What changed
 
@@ -19,7 +19,7 @@
 - [x] Definitions grep: exactly `hasNightEnded` and `otherSide` in `src/lib/demandes/rules.ts`, and `isCronRequest` in `src/lib/cron.ts`. Checked in the session.
 - [x] `gardeNotice|GardeNotice|ratedSide|timingSafeEqual`: only `timingSafeEqual` in `src/lib/cron.ts`. Checked in the session.
 - [x] `ratings-table.tsx` has no ternary; the role comes from `otherSide(row.raterSide)`.
-- [ ] Every moved case still runs with the same assertions (done, see Tests above). Whether `npm test` passes is for the advisory job on the ready head to say.
+- [x] Every moved case still runs with the same assertions (see Tests above); the vitest suite passed in `Quality (advisory)` on dc59d57.
 - [x] Cron refusals unchanged: each route's refusal branch is byte-identical apart from the call. Not exercised over HTTP; the operator can confirm on the preview with `curl -X POST <preview>/api/cron/demandes-digest` → 401 and `curl <preview>/api/cron/purge-dossiers-refuses` → 404.
 - [ ] UAT preview smoke of the night's end, cancellation e-mails and booking confirmation: the operator's, before **Ready to merge**.
 - [ ] After the merge, the next `demandes-digest`, `gardes-rappel` and `avis-invitations` Actions runs return 200 on UAT: the operator's.

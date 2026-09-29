@@ -10,7 +10,7 @@ step, so a resuming session can pick up the first unticked line.
 - [x] `grep -rn "function hasNightEnded\|function otherSide\|function ratedSide\|function authorised\|function isCronRequest\|function gardeNotice" src --include=*.ts --include=*.tsx` finds exactly three definitions: `hasNightEnded` and `otherSide` in `src/lib/demandes/rules.ts`, and `isCronRequest` in `src/lib/cron.ts`.
 - [x] `grep -rn "gardeNotice\|GardeNotice\|ratedSide\|timingSafeEqual" src` finds `timingSafeEqual` only in `src/lib/cron.ts` and none of the others anywhere.
 - [x] `src/components/avis/ratings-table.tsx` has no `=== "famille" ? "professionnelle"` ternary. The side it shows comes from `otherSide`.
-- [ ] Every existing case for `hasNightEnded`, `otherSide`/`ratedSide` and `isCronRequest` still runs with the same assertions, from its helper's new home. `npm test` passes on the branch, as do the unchanged `messagerie`, `gardes`, `avis`, `reservations`, `demandes` and `admin` suites.
+- [x] Every existing case for `hasNightEnded`, `otherSide`/`ratedSide` and `isCronRequest` still runs with the same assertions, from its helper's new home. `npm test` passes on the branch, as do the unchanged `messagerie`, `gardes`, `avis`, `reservations`, `demandes` and `admin` suites.
 - [x] Each of the four cron routes answers a call without `Authorization`, or with a wrong bearer, exactly as before: 401 JSON for the digest, the reminder and the invitations, 404 for the purge.
 - [ ] On the UAT preview, for a confirmed garde: the conversation, the garde's state and the address visibility change together when the night ends. Before the end: messages accepted, « En cours », address shown. After: conversation closed, « Terminée », address hidden. Also check that a cancellation by either side still sends its e-mails with the right wording (who cancelled, the fee line) and that a booking confirmation still reaches both sides.
 - [ ] After the merge, the next scheduled runs of `demandes-digest`, `gardes-rappel` and `avis-invitations` (GitHub Actions) return 200 on UAT, which confirms `CRON_SECRET` meets the 16-character floor there.
@@ -20,4 +20,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] one night's end and one other side in `src/lib/demandes/rules.ts`; messagerie, gardes, avis and ratings-table follow; tests re-imported (3cd275f)
 - [x] `bookingNotice` carries the cancellation; `gardeNotice` removed; gardes and avis notify and the avis notify test follow (a4f5bd0)
 - [x] `isCronRequest` in `src/lib/cron.ts` for all four cron routes; its cases in `src/lib/cron.test.ts` (55ef66a)
-- [ ] ready flip, advisory job green on the post-flip head
+- [x] ready flip, advisory job green on the post-flip head (dc59d57)
