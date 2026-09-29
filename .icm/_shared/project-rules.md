@@ -277,3 +277,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - Release re-reads the highest `D-n` on `main` and every remote branch after merging `main`, and renumbers this run's decisions on a clash, since the last check before the merge is the only one that sticks. (`FAILURE.md` — reservations-regles-non-appelees)
 <!-- Retrospective Learned Rule [2026-09-29] -->
 - When the Neon non-production project is at its branch cap and every `preview/*` branch belongs to an open PR, run the proof on the run's own PR preview branch (clean up its fixtures) rather than deleting another run's branch. (`FAILURE.md` — onboarding-double-photo-race)
+<!-- Retrospective Learned Rule [2026-09-29] -->
+- When a cleanup deletes a record because its companion row is missing (an identity with no `users` row), treat a record younger than the writer's maximum duration as in flight, never as orphaned, and answer it distinctly from both outcomes. (`FAILURE.md` — comptes-orphaned-auth-identity)
+<!-- Retrospective Learned Rule [2026-09-29] -->
+- After merging `main` at Release, re-read the highest `D-n` on `main` and every remote branch and renumber this run's decisions if a sibling that merged first took the same ids. (`FAILURE.md` — comptes-orphaned-auth-identity)

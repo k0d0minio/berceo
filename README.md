@@ -168,6 +168,14 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   (`src/lib/auth/guard.ts`) with their path and query (`withQuery`): the role is checked on the
   path, and a sign-in redirect keeps both as `retour`; the redirect table is
   `src/lib/auth/routing.ts`.
+- **A sign-up that fails half-way:** Neon Auth creates the identity, then `signUp`
+  (`src/app/(auth)/actions.ts`) writes the `users` row and its consents in one batch. When the
+  batch fails, the identity is deleted at once; a later sign-up with the address replaces an
+  identity left with no row (an orphan) once it is five minutes old, and asks a younger one to
+  retry in a few minutes; an orphan that signs in is signed out and asked to sign up again. The
+  lookup and the delete (`orphanByEmail`, `deleteOrphanIdentity`, `src/lib/auth/users.ts`) are
+  the accounts code's only statements on `neon_auth."user"`; the delete refuses any identity a
+  `users` row carries, in the same statement.
 - **Routes:** `/inscription-famille`, `/inscription-professionnelle`, `/connexion`,
   `/mot-de-passe-oublie`, `/nouveau-mot-de-passe`, `/verification-email` (`src/app/(auth)/`);
   the spaces `/espace/famille`, `/espace/professionnelle`, `/admin` (`src/app/(portail)/`).
