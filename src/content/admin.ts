@@ -296,6 +296,10 @@ export const admin = catalogue({
       },
       /** @relecture Surya — date et raison d'un remboursement. */
       rembourse: "le {date}, {raison}",
+      /** @relecture Surya — des frais encore dus après l'annulation par la professionnelle (D-162). */
+      aRembourser: "À rembourser",
+      /** @relecture Surya — pourquoi ces frais sont à rembourser (D-2). */
+      aRembourserDetail: "Garde annulée par la professionnelle, frais dus en entier.",
       /** @relecture Surya — compte supprimé depuis. */
       inconnu: "Compte supprimé",
       /** @relecture Surya — le bouton et sa confirmation (D-24). */
@@ -304,6 +308,9 @@ export const admin = catalogue({
         titre: "Rembourser les frais de {nom}",
         description:
           "Les frais de service de {montant} seront intégralement remboursés à la famille. La garde n'est pas annulée. Le motif sera inscrit au journal.",
+        /** @relecture Surya — la même confirmation, sur des frais à rembourser (D-164). */
+        descriptionARembourser:
+          "La professionnelle a annulé cette garde. Les frais de service de {montant} sont dus en entier à la famille. Le motif sera inscrit au journal.",
         motif: "Motif",
         motifAide: "Le motif reste interne à Berceo.",
         oui: "Oui, rembourser",
@@ -325,11 +332,17 @@ export const admin = catalogue({
       page: "Page {n}",
       /** @relecture Surya — le filtre des paiements récents (back-office-admin, D-133). */
       filtres: {
+        /** @relecture Surya — le nom des filtres pour les lecteurs d'écran (D-164). */
+        libelle: "Filtrer les paiements",
         recents: "Payés ces 7 derniers jours",
         tous: "Tous les paiements",
+        /** @relecture Surya — le filtre des frais à rembourser (D-164). */
+        aRembourser: "À rembourser",
       },
       /** @relecture Surya — aucun paiement récent. */
       videRecents: "Aucun frais payé ces 7 derniers jours.",
+      /** @relecture Surya — aucun frais à rembourser (D-164). */
+      videARembourser: "Aucun frais à rembourser.",
     },
 
     /** La navigation de chaque page de l'administration (back-office-admin, D-132). */
@@ -366,6 +379,8 @@ export const admin = catalogue({
       },
       /** @relecture Surya — le lien de chaque bloc. */
       voir: "Voir la liste complète",
+      /** @relecture Surya — les frais encore dus, dans le bloc des paiements (D-164). */
+      aRembourser: "{n} frais à rembourser",
     },
 
     /** La page des dossiers : la file et le réglage des étudiantes, déplacés de l'accueil (D-132). */

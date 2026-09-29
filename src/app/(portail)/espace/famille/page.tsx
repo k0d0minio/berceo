@@ -11,11 +11,13 @@ import { words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
+import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
 import { noteOfUser } from "@/lib/avis/ratings";
 import { FAMILY_REQUESTS_PATH, NEW_REQUEST_PATH, NEW_URGENT_REQUEST_PATH } from "@/lib/demandes/paths";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyCommune } from "@/lib/famille/profile";
 import { SEARCH_PATH } from "@/lib/recherche/slugs";
+import { siteOrigin } from "@/lib/site-origin";
 
 const t = words(comptes);
 const f = words(famille).accueil;
@@ -31,10 +33,12 @@ export const dynamic = "force-dynamic";
 /*
  * The parent's space. Until her commune is saved it asks her to complete her
  * profile. The two ways to publish (D-60) and her requests are one tap away.
- * Her own note and gardes count close the page (avis-etoiles, D-121).
+ * Her own note and gardes count close the page (avis-etoiles, D-121). A welcome
+ * e-mail that failed to send is tried again after the page (D-165).
  */
 export default async function EspaceFamillePage() {
   const user = await requireAccess(SPACES.parent);
+  scheduleWelcomeIfDue(user, await siteOrigin());
   const [commune, note] = await Promise.all([familyCommune(user.id), noteOfUser(user.id)]);
 
   return (

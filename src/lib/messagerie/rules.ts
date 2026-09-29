@@ -1,9 +1,10 @@
 import type { ProfileStatus } from "@/db/schema";
-import { addDays, brusselsNow, endTime } from "@/lib/demandes/rules";
+import { hasNightEnded, type Side } from "@/lib/demandes/rules";
 
 /**
  * The conversation's rules (messagerie), pure so the tests hold them: when a
- * conversation accepts messages (D-89, D-156), what a message may be, what is unread
+ * conversation accepts messages (D-89, D-156, the night's end read from
+ * `src/lib/demandes/rules.ts`), what a message may be, what is unread
  * for whom (D-91), where « Lu » sits and where the reminder line falls (D-88).
  * `src/lib/messagerie/conversations.ts` holds each of them again in the SQL
  * of the write it governs.
@@ -16,7 +17,7 @@ export const MESSAGE_MAX = 2000;
 export const REMINDER_EVERY = 3;
 
 /** The two sides of a conversation, as `messages.author` names them. */
-export type Side = "famille" | "professionnelle";
+export type { Side };
 
 export type Author = Side | "berceo";
 
@@ -29,13 +30,6 @@ export function normalizeBody(raw: string): BodyResult {
   if (length === 0) return { ok: false, reason: "vide" };
   if (length > MESSAGE_MAX) return { ok: false, reason: "tropLong" };
   return { ok: true, body };
-}
-
-/** Whether the night of `date` starting at `startTime` (11 hours, D-20) has ended in Brussels at `now`. */
-export function hasNightEnded(date: string, startTime: string, now: Date): boolean {
-  // Every night starts between 18:00 and 23:00, so it ends the next morning.
-  const here = brusselsNow(now);
-  return `${addDays(date, 1)}T${endTime(startTime)}` <= `${here.date}T${here.time}`;
 }
 
 export type ConversationRequest = {
@@ -59,11 +53,6 @@ export type ConversationRequest = {
 export function isConversationOpen(request: ConversationRequest, now: Date): boolean {
   if (request.profileStatus !== "valide" && !request.booked) return false;
   return request.status !== "annulee" && !hasNightEnded(request.nightDate, request.startTime, now);
-}
-
-/** The other side of a conversation. */
-export function otherSide(side: Side): Side {
-  return side === "famille" ? "professionnelle" : "famille";
 }
 
 export type TimedMessage = { author: Author; createdAt: Date };

@@ -26,7 +26,7 @@ npm run dev      # http://localhost:3000
 | [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
 | [src/lib/professionnelle/](src/lib/professionnelle/), [src/lib/documents/](src/lib/documents/) | The professional's file: its rules, the private document bucket and `/api/fichiers/[id]`. |
 | [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' back-office: the review (queue and decision rules), the accounts (search, suspend, reactivate, delete, contact), the lists and their overview counts, the admin journal, the purge of refused and deleted accounts' files. See **The founders' verification** and **The back-office** below. |
-| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`), the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`) and the hourly invitation to rate a finished garde (`.github/workflows/avis-invitations.yml`), all guarded by `CRON_SECRET`. |
+| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`), the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`) and the hourly invitation to rate a finished garde (`.github/workflows/avis-invitations.yml`), all guarded by `CRON_SECRET` through the one bearer check in [`src/lib/cron.ts`](src/lib/cron.ts), which refuses a secret under 16 characters. |
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
 | [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
 | [src/lib/gardes/](src/lib/gardes/), [src/components/gardes/](src/components/gardes/) | The garde's life after its booking: its state by the clock, cancelling, reporting an absence, republishing, the reminder of the day before, the founders' list of absences. See **The garde's life** below. |
@@ -177,7 +177,8 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   checks the Ed25519 signature and sends Berceo's own verification and reset e-mails
   (`src/lib/email/`, words in `src/content/emails.ts`). Their links carry the raw token to this
   site: `/verification-email/confirmer` (signs the user in and sends a family's welcome e-mail
-  once) and `/nouveau-mot-de-passe`.
+  once, after the redirect) and `/nouveau-mot-de-passe`. A welcome that failed to send is tried
+  again from `/espace/famille` on each visit until one goes out (`src/lib/auth/welcome.ts`).
 - **Admins** never sign up. A founder signs up as a family, then
   `npm run admin:grant -- --email <address>` promotes the account on the database
   `DATABASE_URL` points at.
@@ -232,7 +233,8 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   `.github/workflows/demandes-digest.yml` calls the route on UAT and production at 16:00 and
   17:00 UTC (and on demand), with the repository secret `CRON_SECRET`; Vercel Cron is not
   used because it never runs on the `uat` environment. One value serves both environments
-  (D-68): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets.
+  (D-68): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets,
+  at least 16 characters long, or every cron route refuses the call (`src/lib/cron.ts`, D-153).
 
 ## The answer and the booking
 
@@ -249,7 +251,10 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   transaction (`db.batch`): the answer `retenue`, the booking, the request `attribuee`, the other
   waiting answers `non_retenue`, her other answers that night `retiree`; the unique indexes turn
   two clicks racing into one booking and a « conflit ». Accepting needs the family's street and
-  number (D-77). Both sides get the guide's confirmation, the others « not retained ».
+  number (D-77). The rules only the SQL decides (her list, the priority candidates, the answers
+  declined on a cancel, a republish or an accept, hers withdrawn that night) have no pure twin
+  in `rules.ts`: each statement is a named builder, held by `statements.test.ts` beside it
+  (D-167). Both sides get the guide's confirmation, the others « not retained ».
   The click only opens the fee's Checkout; `acceptAnswer` runs when the payment lands, and its
   first statement requires that payment, paid (**The service fee**, D-102).
 - **Republish and edit (D-70, D-76):** a request with a waiting answer cannot be edited;
@@ -421,6 +426,12 @@ never touches the money for the night (D-1).
   reports failed reads `remboursement_echoue`.
 - **The founders' list (D-93):** `/admin/paiements`, every fee newest first, 50 per page, with
   « Rembourser les frais ». Families and professionals see no payment history.
+- **Fees still owed (D-162, D-164):** a `payee` or `remboursement_echoue` fee whose booking the
+  professional cancelled (kind `annulation`) is marked « À rembourser » on its row, listed by
+  `/admin/paiements?statut=a-rembourser`, and counted on the overview when there are any. One
+  condition, `awaitingRefund()` in `src/lib/paiements/payments.ts`, drives all three; it is how
+  an automatic refund that failed reaches the founders. The founders' refund still records
+  `berceo` (D-163).
 - **Configuration (D-100):** `STRIPE_SECRET_KEY` (test key on Preview, live key on
   Production only once the company's Stripe account exists) and `STRIPE_WEBHOOK_SECRET` (per
   environment). In Stripe's dashboard, per account: enable Bancontact, and add the endpoint
@@ -499,7 +510,10 @@ never touches the money for the night (D-1).
   then checks the size and first bytes before recording the file (`src/lib/documents/`). The row
   is written under a lock on her profile row, with the three-files-per-document limit and the
   key's novelty read inside it (`src/lib/professionnelle/uploads.ts`), so two uploads confirmed at
-  once cannot pass the limit or delete a file the other just recorded. Files are
+  once cannot pass the limit or delete a file the other just recorded. Her photo is one file:
+  the statement that records a new photo deletes every other photo row under the same lock and
+  hands back their keys, whose objects the action deletes after the commit, so two photos
+  confirmed at once leave one, the last recorded. Files are
   read only through `/api/fichiers/[id]`, streamed to their owner or an admin, 404 to anyone else.
   Environment: `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION`, `DOCUMENTS_BUCKET`,
   `DOCUMENTS_S3_ACCESS_KEY_ID`, `DOCUMENTS_S3_SECRET_ACCESS_KEY` (not `AWS_*`: Vercel reserves
@@ -555,7 +569,9 @@ never touches the money for the night (D-1).
   `/admin/signalements` (cancelled gardes and absences not marked handled) and
   `/admin/paiements?periode=7j` (fees paid in the last 7 days). Each number is counted with the
   same exported condition its list filters on (`src/lib/admin/lists.ts`,
-  `paymentCountSince` in `src/lib/paiements/payments.ts`).
+  `paymentCountSince` in `src/lib/paiements/payments.ts`). The payments block adds
+  « {n} frais à rembourser », linking to `/admin/paiements?statut=a-rembourser`, only when a
+  professional's cancellation left a fee unrefunded (`awaitingRefundCount`, D-164).
 - **Accounts:** `/admin/utilisateurs` searches first name, last name, full name and e-mail
   (case and accents folded) and the phone by its digits in any notation; a deleted account is
   never found. `/admin/utilisateurs/[id]` shows the account (a family's commune, never her

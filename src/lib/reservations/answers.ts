@@ -351,31 +351,41 @@ export async function republishRequest(userId: string, requestId: string, now: D
         ),
       )
       .returning({ id: careRequests.id, urgent: careRequests.urgent }),
-    db
-      .update(careRequestApplications)
-      .set({ status: "non_retenue", updatedAt: now })
-      .where(
-        and(
-          eq(careRequestApplications.requestId, requestId),
-          eq(careRequestApplications.status, "en_attente"),
-          exists(
-            db
-              .select({ id: careRequests.id })
-              .from(careRequests)
-              .where(
-                and(
-                  eq(careRequests.id, requestId),
-                  eq(careRequests.familyUserId, userId),
-                  eq(careRequests.republishedAt, now),
-                ),
-              ),
-          ),
-        ),
-      )
-      .returning({ id: careRequestApplications.id }),
+    republishDeclinesAnswers(userId, requestId, now),
   ]);
 
   const [request] = marked;
   if (!request) return { ok: false };
   return { ok: true, urgent: request.urgent, declined: declined.map((a) => a.id) };
+}
+
+/**
+ * `republishRequest`'s second statement: every answer still waiting on her
+ * request becomes `non_retenue`, only if the first statement marked it
+ * republished at `now`. A withdrawn, declined or booked answer is left as it
+ * is (D-70).
+ */
+export function republishDeclinesAnswers(userId: string, requestId: string, now: Date) {
+  return db
+    .update(careRequestApplications)
+    .set({ status: "non_retenue", updatedAt: now })
+    .where(
+      and(
+        eq(careRequestApplications.requestId, requestId),
+        eq(careRequestApplications.status, "en_attente"),
+        exists(
+          db
+            .select({ id: careRequests.id })
+            .from(careRequests)
+            .where(
+              and(
+                eq(careRequests.id, requestId),
+                eq(careRequests.familyUserId, userId),
+                eq(careRequests.republishedAt, now),
+              ),
+            ),
+        ),
+      ),
+    )
+    .returning({ id: careRequestApplications.id });
 }
