@@ -15,10 +15,10 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 - No behaviour change: every reader keeps its result set; `notSuspended` emits exactly the SQL it
   emits today (`suspension.test.ts` and `recherche/professionals.test.ts` match the string).
-- One enforcement point, the helper in `src/lib/auth/suspension.ts`; no view, no migration (D-165).
+- One enforcement point, the helper in `src/lib/auth/suspension.ts`; no view, no migration (D-169).
 - The account's own state stays as read today: `admin/accounts.ts` (the column's only writer),
   `admin/lists.ts`, `admin/rules.ts`, `auth/current-user.ts`, the sign-in action, `db/schema.ts`
-  (D-166).
+  (D-170).
 
 ## Context budget
 

@@ -12,7 +12,7 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-D-164 was the highest id on `main` and every remote branch on 2026-09-29.
+D-164 was the highest id seen at Define; Build renumbered D-165/D-166 to D-169/D-170 on 2026-09-29, after `main` took D-167/D-168 and two sibling branches (comptes-welcome-email-no-retry, comptes-orphaned-auth-identity) took D-165/D-166.
 
-- D-165 — the one enforcement point is the helper in `src/lib/auth/suspension.ts` (`notSuspended`, plus its positive form `suspended`), called by every reader, with a source test refusing the rule written anywhere else; no database view. The operator's choice in Define, 2026-09-29.
-- D-166 — readers only: `messageNotice` moves its recipient check into SQL; `currentUser`, the sign-in action, `admin/rules.ts`, `admin/lists.ts` and `admin/accounts.ts` read or write the account's own state and stay as they are, with no `isSuspended()` JavaScript twin. The operator's choice in Define, 2026-09-29.
+- D-169 — the one enforcement point is the helper in `src/lib/auth/suspension.ts` (`notSuspended`, plus its positive form `suspended`), called by every reader, with a source test refusing the rule written anywhere else; no database view. The operator's choice in Define, 2026-09-29.
+- D-170 — readers only: `messageNotice` moves its recipient check into SQL; `currentUser`, the sign-in action, `admin/rules.ts`, `admin/lists.ts` and `admin/accounts.ts` read or write the account's own state and stay as they are, with no `isSuspended()` JavaScript twin. The operator's choice in Define, 2026-09-29.

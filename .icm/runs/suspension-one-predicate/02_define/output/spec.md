@@ -27,7 +27,7 @@ admin files.
 
 A chore — no persona sees a new behaviour; every statement keeps its result set.
 
-1. **One enforcement point: the helper (D-165).** `src/lib/auth/suspension.ts` stays the only
+1. **One enforcement point: the helper (D-169).** `src/lib/auth/suspension.ts` stays the only
    place that states what « suspended » means for a reader. It gains `suspended(userId)`, the
    positive form (`exists (select 1 from users as su where su.id = <id> and su.suspended_at is
    not null)`), and `notSuspended(userId)` becomes `not` of it. The SQL `notSuspended` emits stays
@@ -53,8 +53,8 @@ A chore — no persona sees a new behaviour; every statement keeps its result se
    - `messageNotice` (`messagerie/conversations.ts`): the recipient's suspension is read in SQL —
      select `suspended(conversations.familyUserId)` and `suspended(professionalProfiles.userId)`
      as booleans instead of the two `suspendedAt` columns — and the function still returns null
-     when the recipient's is true (D-166).
-3. **What stays as it is (D-166).** The column's writer and the account's own state are not
+     when the recipient's is true (D-170).
+3. **What stays as it is (D-170).** The column's writer and the account's own state are not
    readers holding someone out: `admin/accounts.ts` (suspend, reactivate and delete write or guard
    on the account's own row, and project `suspendedAt` to the founders), `admin/lists.ts` and
    `admin/rules.ts` (the founders' view of the state), `auth/current-user.ts` and the sign-in
@@ -84,12 +84,12 @@ A chore — no persona sees a new behaviour; every statement keeps its result se
 
 ## Out of scope
 
-- A database view (`visible_professionals`, `active_users`) as the enforcement point: rejected at Define (D-165).
-- An `isSuspended(row)` JavaScript twin for `currentUser`, the sign-in action and `admin/rules.ts`: they read the account's own state, not a hold-out (D-166).
+- A database view (`visible_professionals`, `active_users`) as the enforcement point: rejected at Define (D-169).
+- An `isSuspended(row)` JavaScript twin for `currentUser`, the sign-in action and `admin/rules.ts`: they read the account's own state, not a hold-out (D-170).
 - The writes and guards in `admin/accounts.ts` (suspend, reactivate, delete): the column's only writer states its own conditions.
 - Any change to what suspension hides, to deleted accounts, or an expiry on suspension.
 - `localNow` / the night's end restated in `gardes/gardes.ts` and `avis/ratings.ts`: not this epic's.
 
 ## Open questions
 
-- none — the two choices the stub left open were settled with the operator on 2026-09-29: every reader calls `notSuspended()` / `suspended()` with a source test, no view (D-165); the in-memory checks on the account's own state stay, only `messageNotice` moves to SQL (D-166).
+- none — the two choices the stub left open were settled with the operator on 2026-09-29: every reader calls `notSuspended()` / `suspended()` with a source test, no view (D-169); the in-memory checks on the account's own state stay, only `messageNotice` moves to SQL (D-170).

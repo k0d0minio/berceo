@@ -16,5 +16,5 @@ stops, so nothing is carried in anyone's head.
 ## Do not
 
 - Do not tick either gate checkbox.
-- Do not add a view or a migration (D-165), nor an `isSuspended()` JavaScript twin (D-166).
+- Do not add a view or a migration (D-169), nor an `isSuspended()` JavaScript twin (D-170).
 - Do not touch the writes and guards in `src/lib/admin/accounts.ts`.
