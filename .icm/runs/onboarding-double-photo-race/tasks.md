@@ -20,4 +20,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] `recordUpload` deletes the other photos in the locked insert and returns their keys (59eccb1)
 - [x] `confirmUpload` deletes the returned objects after the commit, drops the pre-upload removal (59eccb1)
 - [x] The proof on a Neon branch of the non-production project, in `notes.md`
-- [ ] Merge `main`, flip ready, settle the full gate
+- [x] Merge `main`, flip ready, settle the full gate (b7a1b60)

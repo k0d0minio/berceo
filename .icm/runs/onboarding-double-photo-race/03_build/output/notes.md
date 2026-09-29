@@ -1,7 +1,7 @@
 # Build notes: onboarding-double-photo-race
 
-- commits: `feat: onboarding-double-photo-race — her photo replaced under the profile's lock` (59eccb1)
-- ci: see status.md — settled by `ci-status.sh` after the ready flip
+- commits: `feat: … her photo replaced under the profile's lock` (59eccb1), the merge of `main` (01d17ee), the ready push (b7a1b60)
+- ci: GREEN on b7a1b60 — full gate: Vercel preview pass, Quality (advisory) pass; draft head GREEN on the cheap tier before; `format.sh` / `lint.sh` not wired (SKIP); `env.sh audit --changed` OK; `security-check.sh --branch` OK
 
 ## What changed
 
