@@ -19,3 +19,6 @@ decision made mid-run has one home.
 - run D-2 — profiles already holding two photo rows are not cleaned up: the pages show the latest
   by `uploaded_at`, and her next photo upload removes every other row (operator's answer in
   Define).
+- run D-3 — the proof ran on this PR's own Neon preview branch (`preview/claude/zen-clarke-6b3scp`,
+  non-production) because the project was at its branch cap with no stale branch to collect; the
+  spec's "a Neon branch of the non-production project" holds. Build.

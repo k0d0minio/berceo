@@ -13,12 +13,16 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-29 — no Neon branch could be created for the proof
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: `db-branch.sh onboarding-double-photo-race up` answered `HTTP 422: branches
+  limit exceeded` on the non-production project.
+- why: its 10 branches were `main`, one sibling run's `run/*` branch and eight `preview/*`
+  branches, every one of them belonging to an open PR, so the earlier rule (collect the stale
+  previews of closed PRs) found nothing to collect.
+- fixed by: the proof ran on this PR's own preview branch, which is non-production, disposable
+  and this run's alone; fixtures deleted after.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- When the Neon non-production project is at its branch cap and every `preview/*` branch belongs to an open PR, run the proof on the run's own PR preview branch (clean up its fixtures) rather than deleting another run's branch.
