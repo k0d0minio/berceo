@@ -10,6 +10,8 @@ import {
   db,
   professionalProfiles,
   users,
+  type BookingSide,
+  type CancellationKind,
   type Profession,
 } from "@/db";
 import { cardColumns, type RequestCard } from "@/lib/demandes/requests";
@@ -58,17 +60,25 @@ export type BookingNotice = {
   id: string;
   nightDate: string;
   startTime: string;
+  cancelledBy: BookingSide | null;
+  cancellationKind: CancellationKind | null;
   family: { email: string; firstName: string };
   professional: { email: string; firstName: string };
 };
 
-/** A booking confirmed: to both sides. */
+/**
+ * A booking, for the e-mails to both sides: its confirmation, and the garde's
+ * cancellation, absence, reminder and rating invitation
+ * (`src/lib/gardes/notify.ts`, `src/lib/avis/notify.ts`), which read how it ended.
+ */
 export async function bookingNotice(bookingId: string): Promise<BookingNotice | null> {
   const [row] = await db
     .select({
       id: bookings.id,
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
+      cancelledBy: bookings.cancelledBy,
+      cancellationKind: bookings.cancellationKind,
       family: { email: familyUser.email, firstName: familyUser.firstName },
       professional: { email: professionalUser.email, firstName: professionalUser.firstName },
     })
