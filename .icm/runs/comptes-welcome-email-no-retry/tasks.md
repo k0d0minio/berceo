@@ -18,4 +18,7 @@ step, so a resuming session can pick up the first unticked line.
 
 ## Queue
 
-- [ ] <task — small enough for one commit; name the file or area>
+- [x] `src/lib/auth/welcome.ts`: `scheduleWelcomeIfDue` (parent + null only, `after()`), with `welcome.test.ts`
+- [x] confirmer route: guarded `users` read → `/connexion?verifie=1` with the session cookies; welcome scheduled, not awaited; `route.test.ts` extended
+- [x] `/espace/famille`: schedule the welcome with `siteOrigin()` after `requireAccess`
+- [ ] ready flip, full verdict on the post-flip head
