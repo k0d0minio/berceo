@@ -37,3 +37,13 @@
 - `vitrine.test.ts` does not read `src/content/demandes.ts`; the new text holds D-19 by inspection (no `!`, `…` or `—`, vouvoiement).
 
 Context budget: beyond the Inputs, read `src/lib/avis/no-text.test.ts` for the repo's schema-test idiom and `package.json` for the migrate scripts.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on aac96d3 before the record (ci-status.sh); re-read after the last push
+- reviews: code medium (`/code-review` on origin/main...HEAD: no findings; every writer of a night maps the violation to « doublon », booking's `ouverte` → `attribuee` stays in the index, every path that frees a night sets `annulee`) · security `security-check.sh --branch --audit`: OK (npm audit clean) · /security-review n/a: the diff touches no auth, payment, PII or route policy · readiness `env.sh audit --changed`: OK · /production-readiness n/a: no such skill ships in this repo or this session; the migration applied on the run's Neon branch and on the preview, and the duplicate count (D-158) cover its ground
+- parked: none
+- migrations: ok — `check-migrations.sh` SKIP after merging main (drizzle keeps its own numbering; 0014 still last); forward-only, a revert would leave the wider index, which the older code tolerates
+- learned: skip — no error.log (FAILURE.md's retrospective reaches the rules at close-out; it adds no rule, an existing one already covers it)
+- docs: README `care_requests` line (Build); no page under `.icm/docs` changes · announce: deferred to promotion
