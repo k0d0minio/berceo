@@ -1,0 +1,2 @@
+DROP INDEX "care_requests_one_open_per_night";--> statement-breakpoint
+CREATE UNIQUE INDEX "care_requests_one_open_per_night" ON "care_requests" USING btree ("family_user_id","night_date") WHERE "care_requests"."status" in ('ouverte', 'attribuee');
