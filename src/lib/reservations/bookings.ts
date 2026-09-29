@@ -17,7 +17,7 @@ import {
 } from "@/db";
 import { cardColumns, isUniqueViolation, nightAhead, UUID, type RequestCard } from "@/lib/demandes/requests";
 import { bookingAddress, familyHasAddress, type BookingAddress } from "@/lib/famille/profile";
-import { notSuspended } from "@/lib/auth/suspension";
+import { notSuspended, suspended } from "@/lib/auth/suspension";
 import { bonneGardeStatement } from "@/lib/messagerie/conversations";
 
 import { photoId } from "./answers";
@@ -59,7 +59,7 @@ export async function acceptCheck(
       nightRateEur: careRequestApplications.nightRateEur,
       profileStatus: professionalProfiles.status,
       // Her account suspended since she answered (D-134): she is no longer bookable.
-      suspended: sql<boolean>`not ${notSuspended(professionalProfiles.userId)}`,
+      suspended: sql<boolean>`${suspended(professionalProfiles.userId)}`,
     })
     .from(careRequestApplications)
     .innerJoin(careRequests, eq(careRequests.id, careRequestApplications.requestId))

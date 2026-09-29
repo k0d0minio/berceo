@@ -74,7 +74,7 @@ A chore — no persona sees a new behaviour; every statement keeps its result se
 ## Acceptance criteria
 
 - [ ] `grep -rniE "suspended_at" src --include=*.ts --include=*.tsx | grep -v "\.test\.tsx\?:"` matches only `src/lib/auth/suspension.ts`, `src/lib/admin/accounts.ts` and `src/db/schema.ts`.
-- [ ] `grep -rnE "isN(ot)?Null\([A-Za-z]+\.suspendedAt\)|suspendedAt\}\s*is" src --include=*.ts --include=*.tsx` matches only `src/lib/admin/accounts.ts` and `src/db/schema.ts`.
+- [ ] `grep -rnE "is(Not)?Null\([A-Za-z]+\.suspendedAt\)|suspendedAt\}\s*is" src --include=*.ts --include=*.tsx` matches only `src/lib/admin/accounts.ts` and `src/db/schema.ts`.
 - [ ] `raterActive`, `answerRequest`, `decide`, `loadQueue`, `publicProfile`, `professionalsServing`, the priority notice, `acceptAnswer`'s facts and `messageNotice` each build their suspension condition from `notSuspended` or `suspended` in `src/lib/auth/suspension.ts`, on the id of the account being held out.
 - [ ] `messageNotice` no longer selects `suspendedAt`; it returns null when the recipient is suspended and the notice otherwise, as before.
 - [ ] `suspension-isolation.test.ts` passes on the branch and fails when `isNull(users.suspendedAt)` or a raw `suspended_at is not null` is added to any other file under `src/` (shown once locally or in CI, then removed).

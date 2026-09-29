@@ -5,15 +5,23 @@ import type { AnyPgColumn } from "drizzle-orm/pg-core";
  * A suspended account (back-office-admin, D-134) opens nothing and is shown to
  * no one. `currentUser()` refuses it on every request; every reader that could
  * show a professional or a family to someone else, or put them in front of a
- * new request, answer or booking, holds it out with this predicate. A deleted
- * account stays suspended (D-136), so the same predicate hides it too.
+ * new request, answer, booking, rating or e-mail, holds it out with
+ * `notSuspended` (or reads `suspended` as a flag). A deleted account stays
+ * suspended (D-136), so the same predicate hides it too.
  *
- * It takes the column holding the user's id, whatever table it is on, and
- * reads `users` under its own alias, so it composes with a query that already
- * joins `users`.
+ * These two are the only place a reader states the rule (suspension-one-predicate,
+ * D-169): `suspension-isolation.test.ts` refuses it written anywhere else.
+ *
+ * Each takes the column (or expression) holding the user's id, whatever table
+ * it is on, and reads `users` under its own alias, so it composes with a query
+ * that already joins `users`.
  */
+export function suspended(userId: AnyPgColumn | SQL): SQL {
+  return sql`exists (select 1 from users as su where su.id = ${userId} and su.suspended_at is not null)`;
+}
+
 export function notSuspended(userId: AnyPgColumn | SQL): SQL {
-  return sql`not exists (select 1 from users as su where su.id = ${userId} and su.suspended_at is not null)`;
+  return sql`not ${suspended(userId)}`;
 }
 
 /** Where a suspended account lands: the route that ends its session and shows why. */

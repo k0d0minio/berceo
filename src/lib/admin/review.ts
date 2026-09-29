@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
 
 import {
   appSettings,
@@ -14,6 +14,7 @@ import {
   type User,
 } from "@/db";
 import { SPACES } from "@/lib/auth/routing";
+import { notSuspended } from "@/lib/auth/suspension";
 import { sendEmail } from "@/lib/email/send";
 import {
   complementRequestedEmail,
@@ -75,7 +76,9 @@ export async function loadQueue(): Promise<QueueRow[]> {
     .from(professionalProfiles)
     .innerJoin(users, eq(professionalProfiles.userId, users.id))
     // A suspended or deleted account's file waits outside the queue (back-office-admin, D-134).
-    .where(and(inArray(professionalProfiles.status, [...REVIEWABLE]), isNull(users.suspendedAt)))
+    .where(
+      and(inArray(professionalProfiles.status, [...REVIEWABLE]), notSuspended(professionalProfiles.userId)),
+    )
     .orderBy(asc(professionalProfiles.submittedAt));
   if (rows.length === 0) return [];
 
@@ -170,7 +173,7 @@ export async function decide(input: DecisionInput, admin: User, siteUrl: string)
         where id = ${profileId}::uuid
           and status = ${expected.status}::profile_status
           and reviewed_at is not distinct from ${expected.reviewedAt}::timestamptz
-          and not exists (select 1 from users su where su.id = user_id and su.suspended_at is not null)
+          and ${notSuspended(professionalProfiles.userId)}
           and (${decision}::text <> 'valider'
             or profession is distinct from 'etudiante_sage_femme'
             or exists (select 1 from ${appSettings} where key = ${STUDENTS_ADMITTED} and value = 'true'::jsonb))

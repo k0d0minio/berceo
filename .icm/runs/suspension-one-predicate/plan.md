@@ -30,7 +30,7 @@ reality disagrees with it — never left describing a plan that was abandoned.
 5. **The source test** — `src/lib/auth/suspension-isolation.test.ts` after
    `src/lib/admin/journal-isolation.test.ts`: walk `src/`, skip `*.test.ts(x)`, allowlist
    `lib/auth/suspension.ts`, `lib/admin/accounts.ts`, `db/schema.ts`; fail on `/suspended_at/i`,
-   `/isN(?:ot)?Null\(\s*\w+\.suspendedAt\s*\)/`, `/\.suspendedAt\}\s*is\b/i`; a « has files
+   `/is(?:Not)?Null\(\s*\w+\.suspendedAt\s*\)/`, `/\.suspendedAt\}\s*is\b/i`; a « has files
    to check » floor — done when: it passes, and failed once with a deliberate stray
    `isNull(users.suspendedAt)` before that was removed (noted in `notes.md`).
 

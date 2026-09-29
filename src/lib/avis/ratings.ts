@@ -14,6 +14,7 @@ import {
   type BookingStatus,
   type RatingSide,
 } from "@/db";
+import { notSuspended } from "@/lib/auth/suspension";
 import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
 
 import { rateRefusal, WINDOW_DAYS, type RateRefusal, type Scores } from "./rules";
@@ -281,12 +282,8 @@ export type DueInvitation = { bookingId: string; side: RatingSide };
  * inside the window, it is.
  */
 function raterActive(side: SQL) {
-  return sql`not exists (
-    select 1 from users su
-    where su.suspended_at is not null
-      and su.id = case when ${side} = 'famille'::rating_side then ${bookings.familyUserId}
-        else (select p.user_id from professional_profiles p where p.id = ${bookings.profileId}) end
-  )`;
+  return notSuspended(sql`case when ${side} = 'famille'::rating_side then ${bookings.familyUserId}
+    else (select p.user_id from professional_profiles p where p.id = ${bookings.profileId}) end`);
 }
 
 /**

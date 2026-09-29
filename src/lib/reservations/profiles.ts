@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import {
   db,
@@ -10,6 +10,7 @@ import {
   type Experience,
   type Profession,
 } from "@/db";
+import { notSuspended } from "@/lib/auth/suspension";
 import { notesOfProfiles, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { UUID } from "@/lib/demandes/requests";
 
@@ -62,7 +63,7 @@ export async function publicProfile(profileId: string): Promise<PublicProfile | 
       and(
         eq(professionalProfiles.id, profileId),
         eq(professionalProfiles.status, "valide"),
-        isNull(users.suspendedAt),
+        notSuspended(professionalProfiles.userId),
       ),
     )
     .limit(1);

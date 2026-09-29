@@ -17,6 +17,7 @@ import {
   type Profession,
   type ProfileStatus,
 } from "@/db";
+import { suspended } from "@/lib/auth/suspension";
 import { UUID } from "@/lib/demandes/requests";
 import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
 
@@ -416,11 +417,15 @@ export async function messageNotice(messageId: string): Promise<MessageNotice | 
       author: messages.author,
       conversationId: conversations.id,
       nightDate: careRequests.nightDate,
-      family: { email: familyUser.email, firstName: familyUser.firstName, suspendedAt: familyUser.suspendedAt },
+      family: {
+        email: familyUser.email,
+        firstName: familyUser.firstName,
+        suspended: sql<boolean>`${suspended(conversations.familyUserId)}`,
+      },
       professional: {
         email: professionalUser.email,
         firstName: professionalUser.firstName,
-        suspendedAt: professionalUser.suspendedAt,
+        suspended: sql<boolean>`${suspended(professionalProfiles.userId)}`,
       },
     })
     .from(messages)
@@ -434,9 +439,9 @@ export async function messageNotice(messageId: string): Promise<MessageNotice | 
   if (!row || row.author === "berceo") return null;
 
   const fromFamily = row.author === "famille";
-  const { suspendedAt, ...recipient } = fromFamily ? row.professional : row.family;
+  const { suspended: recipientSuspended, ...recipient } = fromFamily ? row.professional : row.family;
   // A suspended account cannot sign in to read it (D-134): no e-mail.
-  if (suspendedAt) return null;
+  if (recipientSuspended) return null;
   return {
     conversationId: row.conversationId,
     nightDate: row.nightDate,

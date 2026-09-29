@@ -13,12 +13,18 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-29 — decision ids taken by sibling runs between Define and Build
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: Define numbered D-165/D-166 after reading every remote branch (highest D-164); by Build, `comptes-welcome-email-no-retry` and `comptes-orphaned-auth-identity` held D-165/D-166 and `main` had merged D-167/D-168.
+- why: siblings defined the same day; the id race is already parked as `triage/template-change-decision-id-race.md`.
+- fixed by: renumbered to D-169/D-170 in Build before any code commit.
+
+### 2026-09-29 — the spec's regex never matched what it named
+
+- what happened: criterion 2's grep and the planned test pattern used `isN(ot)?Null`, which matches `isNNull`/`isNotNull` but not `isNull`; the grep passed only through its other alternative, and the first emulation of the test passed a stray `isNull(users.suspendedAt)`.
+- why: the pattern was written in Define and never run against a positive example.
+- fixed by: `is(Not)?Null` in the test, the spec, the plan and the PR's criterion line; the emulation then failed on each stray form.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- Prove every regex a spec or a source test states against one string it must match and one it must not, before relying on its passing.
