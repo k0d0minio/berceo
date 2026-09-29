@@ -39,7 +39,7 @@ export default async function ConnexionPage({ searchParams }: PageProps<"/connex
     who.status === "suspended" || first(params.erreur) === "suspendu"
       ? t.erreurs.suspendu
       : who.status === "no-row" || first(params.erreur) === "compte"
-      ? t.erreurs.compteIndisponible
+      ? t.erreurs.inscriptionIncomplete
       : first(params.lien) === "invalide"
         ? t.erreurs.lienInvalide
         : first(params.verifie)

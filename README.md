@@ -168,6 +168,14 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   (`src/lib/auth/guard.ts`) with their path and query (`withQuery`): the role is checked on the
   path, and a sign-in redirect keeps both as `retour`; the redirect table is
   `src/lib/auth/routing.ts`.
+- **A sign-up that fails half-way:** Neon Auth creates the identity, then `signUp`
+  (`src/app/(auth)/actions.ts`) writes the `users` row and its consents in one batch. When the
+  batch fails, the identity is deleted at once; a later sign-up with the address replaces an
+  identity left with no row (an orphan) once it is five minutes old, and asks a younger one to
+  retry in a few minutes; an orphan that signs in is signed out and asked to sign up again. The
+  lookup and the delete (`orphanByEmail`, `deleteOrphanIdentity`, `src/lib/auth/users.ts`) are
+  the accounts code's only statements on `neon_auth."user"`; the delete refuses any identity a
+  `users` row carries, in the same statement.
 - **Routes:** `/inscription-famille`, `/inscription-professionnelle`, `/connexion`,
   `/mot-de-passe-oublie`, `/nouveau-mot-de-passe`, `/verification-email` (`src/app/(auth)/`);
   the spaces `/espace/famille`, `/espace/professionnelle`, `/admin` (`src/app/(portail)/`).
@@ -513,7 +521,10 @@ never touches the money for the night (D-1).
   once cannot pass the limit or delete a file the other just recorded. Her photo is one file:
   the statement that records a new photo deletes every other photo row under the same lock and
   hands back their keys, whose objects the action deletes after the commit, so two photos
-  confirmed at once leave one, the last recorded. Files are
+  confirmed at once leave one, the last recorded. A file she removes, and the documents a new
+  profession no longer asks for, leave the bucket before their row, and a row goes only once its
+  object is gone (`src/lib/professionnelle/removals.ts`): an object that cannot be deleted keeps
+  its row, so the purge and the account deletion still find it. Files are
   read only through `/api/fichiers/[id]`, streamed to their owner or an admin, 404 to anyone else.
   Environment: `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION`, `DOCUMENTS_BUCKET`,
   `DOCUMENTS_S3_ACCESS_KEY_ID`, `DOCUMENTS_S3_SECRET_ACCESS_KEY` (not `AWS_*`: Vercel reserves
