@@ -13,9 +13,12 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- `src/lib/paiements/payments.ts` stays the only reader of `payments`; the « à rembourser »
+  predicate lives there once and every reader uses it (D-162, D-133).
+- No schema change, no migration, no automatic retry, no change to the refund's reason (D-163).
+- Every new word in `src/content/admin.ts` with `@relecture`; red and green only in the
+  confirmation dialog (D-24); no insurance wording (D-8).
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read the admin payments page, table, refund button and action, `payments.ts`' refund and list reads, and the overview page to fix exact behaviour; no wider codebase read.

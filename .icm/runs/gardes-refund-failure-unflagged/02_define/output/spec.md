@@ -48,12 +48,12 @@ garde n'est pas annulée. », wrong on a garde already cancelled) with a variant
 professionnelle a annulé cette garde. Les frais de service de {montant} sont dus en entier à la
 famille. Le motif sera inscrit au journal. » (`@relecture`). Other rows keep today's text. The
 refund itself is unchanged: `refundPaymentAction` still records reason `berceo` (« remboursés par
-Berceo ») and the founder's motif in the journal (operator's choice at Define; see Decisions).
+Berceo ») and the founder's motif in the journal (operator's choice at Define, D-163).
 
 **On « Vue d'ensemble » (`/admin`).** The « Paiements récents » block keeps its number, precision
 and link, and gains one line, shown only when at least one fee is à rembourser: « {n} frais à
 rembourser » (`@relecture`), a link to `/admin/paiements?statut=a-rembourser`, counted with the
-same predicate. With none, the block is exactly as today.
+same predicate. With none, the block is exactly as today (D-164).
 
 ## Acceptance criteria
 
@@ -69,7 +69,7 @@ same predicate. With none, the block is exactly as today.
 ## Out of scope
 
 - Retrying the refund automatically (a cron or a webhook retry): the founders' button (D-101) is the retry.
-- Changing the reason a back-office refund records: it stays `berceo`, by the operator's choice at Define.
+- Changing the reason a back-office refund records: it stays `berceo`, by the operator's choice at Define (D-163).
 - The family's line « Remboursement des frais de service en cours. » and its e-mail: they stay true until the founders refund.
 - An e-mail or Slack alert to the founders on a failed refund.
 - Flagging absences for a refund decision: `/admin/absences` already lists them (D-106).

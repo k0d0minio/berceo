@@ -6,18 +6,15 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. <the very next action, with the exact command or file>
+1. The operator reads `02_define/output/spec.md` and ticks **Spec approved** on https://github.com/k0d0minio/berceo/pull/63.
+2. Then `build gardes-refund-failure-unflagged` on branch `claude/adoring-dijkstra-o6099q`, following `plan.md`.
 
 ## Blockers
 
-- <what blocks, and who unblocks it — or "none">
-- blocked on operator: <the human-only act that unblocks the run — tick a gate, merge, a
-  dashboard or env change>
-
-A blocking operator act is written here **and** in the stop report's `Operator:` list; a
-non-blocking one lives only in that list, never here (`_shared/output.md` → Split by actor).
+- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/63.
 
 ## Do not
 
-- <what the next session must not do — a branch not to touch, a gate not to tick, a file
-  another run owns>
+- Do not start Build before the tick; never tick it.
+- Do not touch `src/lib/gardes/` (`refundOnCancellation` stays as is) or the other two stubs of `gardes-annulation-suivi`.
+- Do not add a column or a migration: the booking carries the facts (D-162).
