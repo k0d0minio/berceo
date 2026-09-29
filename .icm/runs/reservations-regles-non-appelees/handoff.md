@@ -6,17 +6,21 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Once **Spec approved** is ticked on https://github.com/k0d0minio/berceo/pull/57, run
-   `/pipeline build reservations-regles-non-appelees` and follow `plan.md` pass by pass.
+1. Operator: smoke the preview https://berceo-git-claude-exciting-maxwell-nebvmn-kodominio.vercel.app
+   as a validated professional on `/espace/professionnelle/demandes`: a waiting answer on a
+   request ahead shows « Retirer ma disponibilité », withdrawing works, and the list shows the
+   same requests in the same order as before.
+2. Tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/57, then run
+   `/pipeline release reservations-regles-non-appelees`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/57
+- blocked on operator: smoke the preview, then tick **Ready to merge** in the body of https://github.com/k0d0minio/berceo/pull/57
 
 ## Do not
 
-- Do not tick either gate checkbox.
-- Do not change what any SQL statement decides (D-156): extract and test only.
-- Do not add a Neon-branch or live-database test.
+- Do not tick either gate checkbox, nor the acceptance-criteria boxes in the PR body (their state is in `03_build/output/notes.md`).
+- Do not change what any SQL statement decides (D-156).
 - Do not reshape `pendingCounts` or `waitingAnswerOf` in `answers.ts`: that is the sibling stub
   `reservations-compte-reponses-une-demande`.
+- Do not renumber D-156/D-157 again. The three sibling runs holding D-153 to D-155 must move theirs.

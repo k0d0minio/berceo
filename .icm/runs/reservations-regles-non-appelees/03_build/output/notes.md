@@ -1,7 +1,7 @@
 # Build notes: reservations-regles-non-appelees
 
 - commits: feat: reservations-regles-non-appelees — the SQL-only rules become tested builders; canWithdraw wired
-- ci: see the stop; the draft head owes nothing, the full gate settles after the ready flip
+- ci: GREEN on 146b736 (full gate: Vercel preview pass, Quality (advisory) pass); the draft head 108c75d was GREEN with Quality (advisory) pass too
 
 ## What changed
 
@@ -38,14 +38,14 @@
 - [x] Cancel and republish declines: `non_retenue` on that request's `en_attente` answers, guarded by `annulee` / `republished_at = now`, and no other status named.
 - [x] `acceptAnswer` statements 4 and 5: 4 excludes the chosen answer, only `en_attente`, only once a booking exists. 5 sets `retiree` on her `en_attente` answers on other requests of the booked night.
 - [x] Each builder is the code it replaced, moved (the diff shows the lines moving unchanged), and it sits at the same index of the same `db.batch`.
-- [ ] `vitest` passes in CI and the Vercel deployment is green: settled after the ready flip.
+- [x] `vitest` passes in CI and the Vercel deployment is green: Quality (advisory) and Vercel both pass on 146b736.
 
 ## Notes for Release
 
 - Neither `format.sh` nor `lint.sh` is wired in this repo (both `SKIP`), and the local test run is
   blocked, so the tests were never run here. Every asserted fragment was taken from a throwaway
   probe (`scripts/.probe-statements.mts`, deleted before the commit) that printed each builder's SQL
-  and params with `tsx`. The first real run is the advisory quality job after the flip.
+  and params with `tsx`. The advisory quality job then ran them on 108c75d and 146b736: pass.
 - `canSendInPriority` also required `priority_profile_id` to be null. The SQL keys on
   `priority_sent_at` alone, which is right: the deleted unit test shows the professional's id is
   cleared while `priority_sent_at` stays when she leaves. The new test holds the SQL's rule.

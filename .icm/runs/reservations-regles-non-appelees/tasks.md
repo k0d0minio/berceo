@@ -15,7 +15,7 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Statement tests hold the cancel and republish declines to their rule. The UPDATE sets `non_retenue` on that request's `en_attente` answers and names no other status.
 - [x] Statement tests hold `acceptAnswer`'s statements 4 and 5 to their rule. 4 sets `non_retenue` on the request's `en_attente` answers other than the chosen one. 5 sets `retiree` on her `en_attente` answers on other requests of the same night.
 - [x] Every extracted builder is the statement its function runs. `cancelRequest`, `republishRequest`, `acceptAnswer`, `priorityCandidates`, `setPriority` and `professionalRequests` behave as before, with the same batches in the same order.
-- [ ] `vitest` passes in CI, and the Vercel deployment check is green.
+- [x] `vitest` passes in CI, and the Vercel deployment check is green.
 
 ## Queue
 
@@ -25,4 +25,4 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Delete `isOnHerList`, `acceptTransition`, `AcceptTransition`, `AnswerRow`, `declinedOnClose`, `canSendInPriority` and their unit tests; rewrite the module comments
 - [x] README: the answer-and-booking section names the statement tests
 - [x] Renumber this run's decisions D-153/D-154 → D-156/D-157 (three sibling Defines took D-153–D-155 the same minute)
-- [ ] Flip ready, push, settle the full verdict
+- [x] Flip ready, push, settle the full verdict (GREEN on 146b736)
