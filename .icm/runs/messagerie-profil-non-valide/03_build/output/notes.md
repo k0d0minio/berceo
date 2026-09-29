@@ -1,7 +1,7 @@
 # Build notes: messagerie-profil-non-valide
 
-- commits: feat: messagerie-profil-non-valide — close a non-validated professional's conversations but the booked one
-- ci: pending (filled at the stop)
+- commits: 8041344 feat: messagerie-profil-non-valide — close a non-validated professional's conversations but the booked one · c5fe3cf chore: ready
+- ci: GREEN on c5fe3cf (full gate: Vercel preview pass, Quality (advisory) pass)
 
 ## What changed
 
