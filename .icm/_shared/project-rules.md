@@ -269,3 +269,7 @@ the repo's own, never synced — and delete a line that reads as a slip rather t
 - When a stub asks to write a duplicated rule once, Define greps all of `src/` for every copy of it rather than trusting the stub's list, and adds a source test refusing it outside its one home. (`FAILURE.md` — admin-sql-helpers-dedupe)
 <!-- Retrospective Learned Rule [2026-09-29] -->
 - none new: the existing rule on reading every remote branch before numbering a decision covers it. (`FAILURE.md` — messagerie-profil-non-valide)
+<!-- Retrospective Learned Rule [2026-09-29] -->
+- Build re-reads the highest `D-n` on every remote branch before its first commit and renumbers its own decisions on a clash, because Defines run in parallel can race even the Define-time check. (`FAILURE.md` — reservations-regles-non-appelees)
+<!-- Retrospective Learned Rule [2026-09-29] -->
+- Release re-reads the highest `D-n` on `main` and every remote branch after merging `main`, and renumbers this run's decisions on a clash, since the last check before the merge is the only one that sticks. (`FAILURE.md` — reservations-regles-non-appelees)
