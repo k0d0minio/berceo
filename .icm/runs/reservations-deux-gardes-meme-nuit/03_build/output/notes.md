@@ -1,7 +1,7 @@
 # Build notes: reservations-deux-gardes-meme-nuit
 
 - commits: `feat: reservations-deux-gardes-meme-nuit — one open or booked request per night` (schema, migration 0014, wording, test, README, run files)
-- ci: GREEN on 7ab1775 (draft: Vercel + Quality (advisory) pass); full gate after the flip below
+- ci: GREEN on ece9e38 (full gate: Vercel preview pass, Quality (advisory) pass — vitest, the new test included)
 
 ## What changed
 
@@ -26,8 +26,8 @@
 - [x] Republishing a cancelled garde onto a booked night lands on it, race included — `liveRequestOn` already reads open or booked; a concurrent second write is now refused by the index, and `republishGarde` then returns `doublon` with the live id.
 - [x] An `annulee` night can be published again — probe: ok after the booked request becomes `annulee`; cancelled requests, cancelled gardes and absences all set `annulee` (`cancelBookedRequestStatement`).
 - [x] Booking still succeeds — probe: `ouverte` → `attribuee` on the same row is accepted.
-- [ ] The wording and `vitrine.test.ts` — text changed and marked `@relecture`; the suite's verdict comes from the advisory quality job after the flip.
-- [ ] The test holding the predicate — written; its CI verdict comes after the flip (its assumptions about Drizzle's rendered predicate were checked in the session: `"care_requests"."status" in ('ouverte', 'attribuee')`).
+- [x] The wording and `vitrine.test.ts` — text changed and marked `@relecture`; the quality job passed on ece9e38.
+- [x] The test holding the predicate — passed in the quality job on ece9e38 (its assumptions about Drizzle's rendered predicate were checked in the session: `"care_requests"."status" in ('ouverte', 'attribuee')`).
 - [x] The duplicate count and a clean migration on the branch — see The probes.
 
 ## Notes for Release
