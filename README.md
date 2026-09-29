@@ -250,7 +250,10 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   transaction (`db.batch`): the answer `retenue`, the booking, the request `attribuee`, the other
   waiting answers `non_retenue`, her other answers that night `retiree`; the unique indexes turn
   two clicks racing into one booking and a « conflit ». Accepting needs the family's street and
-  number (D-77). Both sides get the guide's confirmation, the others « not retained ».
+  number (D-77). The rules only the SQL decides (her list, the priority candidates, the answers
+  declined on a cancel, a republish or an accept, hers withdrawn that night) have no pure twin
+  in `rules.ts`: each statement is a named builder, held by `statements.test.ts` beside it
+  (D-167). Both sides get the guide's confirmation, the others « not retained ».
   The click only opens the fee's Checkout; `acceptAnswer` runs when the payment lands, and its
   first statement requires that payment, paid (**The service fee**, D-102).
 - **Republish and edit (D-70, D-76):** a request with a waiting answer cannot be edited;
