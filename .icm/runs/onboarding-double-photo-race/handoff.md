@@ -6,19 +6,14 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: smoke the preview https://berceo-git-claude-zen-clarke-6b3scp-kodominio.vercel.app
-   (a professional's space: upload a photo, pick a second one quickly; the file view shows one
-   photo), tick **Ready to merge** in https://github.com/k0d0minio/berceo/pull/60, then run
-   `/pipeline release onboarding-double-photo-race`.
-2. Release: read `03_build/output/notes.md` → Notes for Release — the overlap with
-   k0d0minio/berceo#61 on `confirmUpload`'s photo block.
+1. Merged and archived; nothing to pick up. The batch reaches production with the next
+   promotion (`promote status`).
 
 ## Blockers
 
-- blocked on operator: tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/60
+- none
 
 ## Do not
 
-- Do not tick the gate.
-- Do not reintroduce a `removeDocuments` call on the photo path when resolving a conflict with
-  #61: the replacement lives in `recordUpload` now.
+- When k0d0minio/berceo#61 (`onboarding-orphaned-objects`) meets this change on `main`, do not
+  reintroduce a `removeDocuments` call on the photo path: the replacement lives in `recordUpload`.

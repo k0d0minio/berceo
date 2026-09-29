@@ -78,3 +78,13 @@ query before recording anything.)
   commit): an object delete that fails leaves a stray object with no row, as before this run. Not
   widened here (spec Out of scope).
 - The unit tests were written, not run: the advisory quality job reads them.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the close-out head (ci-status.sh, after the last push; GREEN on 85d3eda before the record)
+- reviews: code medium — no findings · security security-check.sh --branch --audit: OK · /security-review n/a (no auth, payments, PII or route policy touched) · /production-readiness n/a (skill not installed here; the DB change is one statement inside the existing locked batch, no schema change, proven on a Neon branch) · readiness env.sh audit --changed: OK
+- parked: none
+- migrations: skip — none of this run's own
+- learned: skip — no error.log (1 rule from FAILURE.md reaches project-rules.md through close-out)
+- docs: README.md (The professional's onboarding and documents → her photo replaced under the lock) · announce: deferred to promotion
