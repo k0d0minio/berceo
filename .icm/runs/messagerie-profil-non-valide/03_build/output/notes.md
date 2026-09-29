@@ -29,3 +29,15 @@
 - Not proven against a database: the new CTE joins are read by eye, not run on the run's Neon branch.
 
 Context budget: read `src/lib/auth/guard.ts`, `README.md`'s conversation section and the three sibling branches' decision ids beyond the Inputs.
+
+## Release
+
+- gate: Ready to merge ticked, which authorises the merge
+- ci: GREEN on f4e3b2e (full gate: Vercel preview pass); read again after the last push (the head that merges is the close-out commit)
+- reviews: code medium (`/code-review` on origin/main...HEAD: no bug) · security `security-check.sh --branch --audit`: OK (npm audit clean) + `/security-review`: no findings (the diff narrows who may write in a conversation; new SQL is fixed text with bound values; `profileStatus` never reaches a client component; the party check is unchanged) · readiness `env.sh audit --changed`: OK · /production-readiness n/a: no such skill ships in this repo or this session; the diff changes queries, not the schema
+- parked: none
+- merge of main: 7a053fe at Release (agents and pipeline docs only, no code, no overlap)
+- migrations: skip — none of this run's own
+- learned: skip — no error.log; FAILURE.md carries no new rule (the D-n numbering slip is covered by an existing learned rule)
+- docs: README « The conversation » closing line (Build); no page under `.icm/docs` changes · announce: deferred to promotion
+- Context budget: within the Inputs table
