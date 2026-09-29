@@ -252,7 +252,7 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   number (D-77). The rules only the SQL decides (her list, the priority candidates, the answers
   declined on a cancel, a republish or an accept, hers withdrawn that night) have no pure twin
   in `rules.ts`: each statement is a named builder, held by `statements.test.ts` beside it
-  (D-156). Both sides get the guide's confirmation, the others « not retained ».
+  (D-167). Both sides get the guide's confirmation, the others « not retained ».
   The click only opens the fee's Checkout; `acceptAnswer` runs when the payment lands, and its
   first statement requires that payment, paid (**The service fee**, D-102).
 - **Republish and edit (D-70, D-76):** a request with a waiting answer cannot be edited;

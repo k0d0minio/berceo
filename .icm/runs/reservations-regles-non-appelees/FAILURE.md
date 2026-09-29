@@ -21,10 +21,20 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
   committed within the same two minutes on 2026-09-28.
 - why: Define skipped the learned rule that asks it to grep every remote branch for the highest
   `D-n` right before committing. Four Defines ran in parallel, so even that check would have raced.
-- fixed by: Build renumbered this run's decisions to D-156 and D-157 (spec, decisions, project,
-  handoff, the tests' headers, the README), after the highest id on any branch. The three siblings
-  still collide with each other; the operator is told.
+- fixed by: Build renumbered this run's decisions to D-156 and D-157, after the highest id on any
+  branch at the time. By Release, two sibling runs (#58, #59) had merged to `main` using D-156 to
+  D-158, and other open branches reached D-166. Release renumbered again to D-167 and D-168 (spec,
+  decisions, project, handoff, notes, the tests' headers, the README).
+
+### 2026-09-29 — the Build-time renumbering was overtaken before the merge
+
+- what happened: Build's renumbering to D-156/D-157 held for about an hour. Siblings then renumbered
+  their own clash into the same range and merged first.
+- why: the ids are a single global counter written by parallel sessions with no reservation step.
+  Each run picks "highest + 1" at a different moment, so any check before the merge can go stale.
+- fixed by: Release re-read every branch after merging `main` and renumbered to D-167/D-168.
 
 ## Learned rules
 
 - Build re-reads the highest `D-n` on every remote branch before its first commit and renumbers its own decisions on a clash, because Defines run in parallel can race even the Define-time check.
+- Release re-reads the highest `D-n` on `main` and every remote branch after merging `main`, and renumbers this run's decisions on a clash, since the last check before the merge is the only one that sticks.

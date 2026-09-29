@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 /**
- * Spec (reservations-regles-non-appelees, D-156): the rules only the SQL
+ * Spec (reservations-regles-non-appelees, D-167): the rules only the SQL
  * decides are held on the SQL itself. Her list, the priority candidates, the
  * priority write and the answers declined on a cancel. Each statement is
  * built, never run; the test reads its WHERE clause and the value bound to

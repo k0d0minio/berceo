@@ -12,10 +12,10 @@ decision made mid-run has one home.
 
 ## Made in this run
 
-- D-156 — `isOnHerList`, `acceptTransition`, `declinedOnClose` and `canSendInPriority` are deleted
+- D-167 — `isOnHerList`, `acceptTransition`, `declinedOnClose` and `canSendInPriority` are deleted
   with their unit tests, and the SQL that decides each rule is covered by built-never-run
   statement tests (`.toSQL()`), not a Neon-branch integration test: no page decides these apart
   from the SQL, and CI has no per-run database. Operator's choice, Define, 2026-09-28.
-- D-157 — `canWithdraw` is wired: the professional's list shows « Retirer ma disponibilité » on
+- D-168 — `canWithdraw` is wired: the professional's list shows « Retirer ma disponibilité » on
   `canWithdraw(answer, request, now)` instead of `answer === "en_attente"`. Operator's choice,
   Define, 2026-09-28.

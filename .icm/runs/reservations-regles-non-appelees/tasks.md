@@ -24,5 +24,5 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Wire `canWithdraw` on `/espace/professionnelle/demandes`; `professionalRequests` selects `status`
 - [x] Delete `isOnHerList`, `acceptTransition`, `AcceptTransition`, `AnswerRow`, `declinedOnClose`, `canSendInPriority` and their unit tests; rewrite the module comments
 - [x] README: the answer-and-booking section names the statement tests
-- [x] Renumber this run's decisions D-153/D-154 → D-156/D-157 (three sibling Defines took D-153–D-155 the same minute)
+- [x] Renumber this run's decisions D-153/D-154 → D-156/D-157 at Build (three sibling Defines took D-153–D-155 the same minute), then → D-167/D-168 at Release (#58 and #59 merged D-156–D-158 first)
 - [x] Flip ready, push, settle the full verdict (GREEN on 146b736)

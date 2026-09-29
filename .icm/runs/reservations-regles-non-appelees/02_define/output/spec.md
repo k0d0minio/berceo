@@ -20,9 +20,9 @@ up the answer and booking code before the sibling stub
 
 Each helper is either called where the app decides the same thing, or deleted. When one is
 deleted, its rule is tested on the SQL that decides it. These choices were settled with the
-operator in Define on 2026-09-28 (D-156, D-157).
+operator in Define on 2026-09-28 (D-167, D-168).
 
-**`canWithdraw`: wired (D-157).** On `/espace/professionnelle/demandes`, the list page decides whether a
+**`canWithdraw`: wired (D-168).** On `/espace/professionnelle/demandes`, the list page decides whether a
 card shows « Retirer ma disponibilité » with `canWithdraw(request.answer, request, now)`. Today it
 checks `answer === "en_attente"`. `professionalRequests` adds the request's `status` to what it
 selects, and `ProfessionalRequest` carries it. The signature narrows to the fields the rule reads
@@ -30,7 +30,7 @@ selects, and `ProfessionalRequest` carries it. The signature narrows to the fiel
 stay. `withdrawAnswer`'s SQL guard is unchanged, and so is the action's `erreur=retrait` message.
 
 **`isOnHerList`, `acceptTransition`, `declinedOnClose`, `canSendInPriority`: deleted, with their
-unit tests (D-156).** No page or action decides what these helpers describe. The SQL statement is the only
+unit tests (D-167).** No page or action decides what these helpers describe. The SQL statement is the only
 decision:
 
 - `isOnHerList` restates the WHERE of `professionalRequests`: open, night ahead, in a commune she

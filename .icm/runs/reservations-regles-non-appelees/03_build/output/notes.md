@@ -6,7 +6,7 @@
 ## What changed
 
 - `src/lib/reservations/rules.ts`: `isOnHerList`, `acceptTransition` (and `AcceptTransition`,
-  `AnswerRow`), `declinedOnClose` and `canSendInPriority` deleted (D-156). `canWithdraw`'s request
+  `AnswerRow`), `declinedOnClose` and `canSendInPriority` deleted (D-167). `canWithdraw`'s request
   parameter narrowed to `status`, `nightDate`, `startTime`. The module comment now names where the
   SQL-only rules live.
 - `src/lib/reservations/rules.test.ts`: the four helpers' tests removed. One `canWithdraw` case
@@ -21,7 +21,7 @@
   same positions. The `booked` exists-clause became `bookingMade(requestId)`, shared by statement
   3 and statement 4.
 - `src/app/(portail)/espace/professionnelle/demandes/page.tsx`: « Retirer ma disponibilité »
-  renders on `canWithdraw(request.answer, request, now)` (D-157). The « répondu » note and the
+  renders on `canWithdraw(request.answer, request, now)` (D-168). The « répondu » note and the
   conversation link still follow `answer === "en_attente"`.
 - `src/lib/demandes/statements.test.ts`, `src/lib/reservations/statements.test.ts`: built, never
   run (`.toSQL()`, `PgDialect.sqlToQuery` for the raw statement). Each asserts the condition and
@@ -51,5 +51,16 @@
   cleared while `priority_sent_at` stays when she leaves. The new test holds the SQL's rule.
 - At the start-of-night minute, the list (Postgres `now()`) and the button (JS clock, Brussels)
   can disagree for one render. `withdrawAnswer`'s own guard still decides. Not unified here.
-- Decision ids renumbered to D-156/D-157 (FAILURE.md). `gardes-shared-helpers`,
-  `messagerie-profil-non-valide` and `reservations-deux-gardes-meme-nuit` all still hold D-153 to D-155.
+- Decision ids renumbered at Build (D-153/D-154 → D-156/D-157) and again at Release
+  (→ D-167/D-168), after #58 and #59 merged D-156 to D-158 to `main` first (FAILURE.md).
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 9f412ad before the record (ci-status.sh, full gate); re-read after the last push
+- reviews: code medium (`/code-review` on origin/main...HEAD: no findings; each builder is its inline code moved, same batch positions, the four deleted helpers had no non-test caller, `status` on her list exposes nothing about the family) · security `security-check.sh --branch --audit`: OK (gitleaks absent, built-in patterns only) + `/security-review` (the diff moves `acceptAnswer`'s statements, the payment path): no findings, every builder keeps its ownership and status guards, none is reachable from a server action or route · readiness `env.sh audit --changed`: OK (one WARN: the token cannot read GitHub secrets, no key added by this branch) · /production-readiness n/a: no such skill ships in this repo or this session, and the diff changes no schema, env or auth
+- parked: `triage/template-change-decision-id-race.md` (new: parallel runs race for `D-n`); new evidence added to `triage/template-change-router-skill-prompts.md` (the router sent `/security-review`'s body to Scope again)
+- migrations: skip — none of this run's own (`check-migrations.sh` SKIP after merging main)
+- learned: skip — no error.log (FAILURE.md's two rules reach the rules at close-out)
+- docs: README answer-and-booking line (Build, D-167); no page under `.icm/docs` changes · announce: deferred to promotion
+- decisions: renumbered D-156/D-157 → D-167/D-168 after merging main (#58 and #59 merged D-156–D-158 first; open branches reach D-166)

@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 /**
- * Spec (reservations-regles-non-appelees, D-156): what republishing and
+ * Spec (reservations-regles-non-appelees, D-167): what republishing and
  * accepting do to the answers is decided by the SQL alone, so the SQL is what
  * is held. Republishing declines every waiting answer; accepting declines the
  * other waiting answers on the request and withdraws the booked professional's
