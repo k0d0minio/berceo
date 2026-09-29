@@ -16,7 +16,7 @@ stops, so nothing is carried in anyone's head.
 ## Do not
 
 - Do not tick either gate checkbox.
-- Do not change what any SQL statement decides (D-153): extract and test only.
+- Do not change what any SQL statement decides (D-156): extract and test only.
 - Do not add a Neon-branch or live-database test.
 - Do not reshape `pendingCounts` or `waitingAnswerOf` in `answers.ts`: that is the sibling stub
   `reservations-compte-reponses-une-demande`.

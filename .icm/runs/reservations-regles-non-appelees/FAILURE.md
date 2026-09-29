@@ -13,12 +13,18 @@ general; keep the retrospectives specific; never restate an `error.log` entry he
 
 ## Retrospectives
 
-### <YYYY-MM-DD> — <what failed, one line>
+### 2026-09-29 — Define's decision ids collided with three sibling runs
 
-- what happened: <the observable — the check, the error, the wrong file>
-- why: <the cause, once it was known>
-- fixed by: <the commit, or the action>
+- what happened: Define numbered this run's decisions D-153 and D-154 after reading only `main` and
+  the working tree. Build's `git branch -r` sweep found `gardes-shared-helpers`,
+  `messagerie-profil-non-valide` and `reservations-deux-gardes-meme-nuit` all holding D-153 to D-155,
+  committed within the same two minutes on 2026-09-28.
+- why: Define skipped the learned rule that asks it to grep every remote branch for the highest
+  `D-n` right before committing. Four Defines ran in parallel, so even that check would have raced.
+- fixed by: Build renumbered this run's decisions to D-156 and D-157 (spec, decisions, project,
+  handoff, the tests' headers, the README), after the highest id on any branch. The three siblings
+  still collide with each other; the operator is told.
 
 ## Learned rules
 
-- <one sentence, imperative, general enough to apply to the next run in this repo>
+- Build re-reads the highest `D-n` on every remote branch before its first commit and renumbers its own decisions on a clash, because Defines run in parallel can race even the Define-time check.

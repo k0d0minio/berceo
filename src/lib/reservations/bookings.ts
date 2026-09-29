@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, exists, isNull, ne, sql } from "drizzle-orm";
+import { and, asc, eq, exists, isNull, ne, sql, type SQL } from "drizzle-orm";
 
 import {
   bookings,
@@ -122,7 +122,7 @@ export async function acceptAnswer(
   const check = await acceptCheck(userId, requestId, applicationId, now);
   if (!check.ok) return check;
 
-  const booked = sql`exists (select 1 from ${bookings} where ${bookings.requestId} = ${requestId})`;
+  const booked = bookingMade(requestId);
   const at = now.toISOString();
 
   try {
@@ -197,29 +197,8 @@ export async function acceptAnswer(
         .update(careRequests)
         .set({ status: "attribuee", updatedAt: now })
         .where(and(eq(careRequests.id, requestId), eq(careRequests.status, "ouverte"), booked)),
-      db
-        .update(careRequestApplications)
-        .set({ status: "non_retenue", updatedAt: now })
-        .where(
-          and(
-            eq(careRequestApplications.requestId, requestId),
-            ne(careRequestApplications.id, applicationId),
-            eq(careRequestApplications.status, "en_attente"),
-            booked,
-          ),
-        )
-        .returning({ id: careRequestApplications.id }),
-      db.execute(sql`
-        update care_request_applications a
-        set status = 'retiree', updated_at = ${at}::timestamptz
-        from bookings b, care_requests r
-        where b.request_id = ${requestId}
-          and a.profile_id = b.profile_id
-          and a.status = 'en_attente'
-          and a.request_id <> ${requestId}
-          and r.id = a.request_id
-          and r.night_date = b.night_date
-      `),
+      acceptDeclinesOthers(requestId, applicationId, now),
+      db.execute(acceptWithdrawsHersThatNight(requestId, at)),
       db.execute(sql`
         update payments p
         set booking_id = b.id, updated_at = ${at}::timestamptz
@@ -241,6 +220,52 @@ export async function acceptAnswer(
     if (isUniqueViolation(error)) return { ok: false, reason: "conflit" };
     throw error;
   }
+}
+
+/** Whether the request holds a booking: the batch's later statements act only once it does. */
+function bookingMade(requestId: string): SQL {
+  return sql`exists (select 1 from ${bookings} where ${bookings.requestId} = ${requestId})`;
+}
+
+/**
+ * `acceptAnswer`'s statement 4: the other answers still waiting on the
+ * request become `non_retenue` (returned, to be told), never the chosen one,
+ * and only once the request holds its booking. Withdrawn and declined answers
+ * are left as they are.
+ */
+export function acceptDeclinesOthers(requestId: string, applicationId: string, now: Date) {
+  return db
+    .update(careRequestApplications)
+    .set({ status: "non_retenue", updatedAt: now })
+    .where(
+      and(
+        eq(careRequestApplications.requestId, requestId),
+        ne(careRequestApplications.id, applicationId),
+        eq(careRequestApplications.status, "en_attente"),
+        bookingMade(requestId),
+      ),
+    )
+    .returning({ id: careRequestApplications.id });
+}
+
+/**
+ * `acceptAnswer`'s statement 5: the booked professional's answers still
+ * waiting on other requests of the booked night become `retiree`, silently
+ * (D-73). The booking row names her and the night, so nothing happens until it
+ * exists.
+ */
+export function acceptWithdrawsHersThatNight(requestId: string, at: string): SQL {
+  return sql`
+    update care_request_applications a
+    set status = 'retiree', updated_at = ${at}::timestamptz
+    from bookings b, care_requests r
+    where b.request_id = ${requestId}
+      and a.profile_id = b.profile_id
+      and a.status = 'en_attente'
+      and a.request_id <> ${requestId}
+      and r.id = a.request_id
+      and r.night_date = b.night_date
+  `;
 }
 
 /** The booking made from one of her requests, if any: the request page links to it and shows its state. */

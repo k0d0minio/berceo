@@ -14,7 +14,7 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 ## Constraints
 
 - No rule changes: every SQL statement decides exactly what it decides today; this run extracts
-  and tests them (D-153).
+  and tests them (D-156).
 - No Neon-branch or live-database test; statement tests only (`.toSQL()`, no DB).
 - `answerRefusal`, `acceptRefusal`, `canRepublish`, `hasAddress`, `isPriorityFor` stay untouched.
 - `answers.ts` is also the sibling stub `reservations-compte-reponses-une-demande`'s file: add
