@@ -2,23 +2,21 @@ import { describe, expect, it } from "vitest";
 
 import {
   acceptRefusal,
-  acceptTransition,
   answerRefusal,
   canRepublish,
-  canSendInPriority,
   canWithdraw,
-  declinedOnClose,
   hasAddress,
-  isOnHerList,
   type AnswerFacts,
   type RequestFacts,
 } from "./rules";
 
 /**
- * Spec (candidature-et-reservation, D-70, D-71, D-73, D-76, D-77): who may
- * answer and each refusal, the same-night rule, withdrawal, the accept and
- * republish transitions, the priority request set once, and the address a
- * family needs before accepting. Written from the acceptance criteria.
+ * Spec (candidature-et-reservation, D-70, D-71, D-73, D-77): who may answer
+ * and each refusal, the same-night rule, withdrawal, accepting, republishing,
+ * and the address a family needs before accepting. Written from the acceptance
+ * criteria. The rules only the SQL decides (her list, the priority candidates,
+ * the declines on cancel, republish and accept) are held by the statement
+ * tests beside those writes (reservations-regles-non-appelees).
  */
 
 // 25 September 2026, 12:00 in Brussels (CEST).
@@ -70,28 +68,6 @@ describe("who may answer a request", () => {
   });
 });
 
-describe("her list", () => {
-  const list = { request, servesCommune: true, answer: null, bookedThatNight: false, profileId: "p-julie" };
-
-  it("holds open requests ahead in her zone, and priority ones sent to her anywhere", () => {
-    expect(isOnHerList(list, NOON)).toBe(true);
-    expect(isOnHerList({ ...list, servesCommune: false }, NOON)).toBe(false);
-    expect(
-      isOnHerList({ ...list, servesCommune: false, request: { ...request, priorityProfileId: "p-julie" } }, NOON),
-    ).toBe(true);
-  });
-
-  it("hides a request she was declined on, one on a night she is booked, and a booked one", () => {
-    expect(isOnHerList({ ...list, answer: "non_retenue" }, NOON)).toBe(false);
-    expect(isOnHerList({ ...list, bookedThatNight: true }, NOON)).toBe(false);
-    expect(isOnHerList({ ...list, request: { ...request, status: "attribuee" } }, NOON)).toBe(false);
-  });
-
-  it("keeps a request she answered, so she can withdraw", () => {
-    expect(isOnHerList({ ...list, answer: "en_attente" }, NOON)).toBe(true);
-  });
-});
-
 describe("withdrawing an answer", () => {
   it("is possible while the answer waits and the request is open and ahead", () => {
     expect(canWithdraw("en_attente", request, NOON)).toBe(true);
@@ -99,6 +75,7 @@ describe("withdrawing an answer", () => {
     expect(canWithdraw("non_retenue", request, NOON)).toBe(false);
     expect(canWithdraw(null, request, NOON)).toBe(false);
     expect(canWithdraw("en_attente", { ...request, status: "attribuee" }, NOON)).toBe(false);
+    expect(canWithdraw("en_attente", { ...request, nightDate: "2026-09-24" }, NOON)).toBe(false);
   });
 });
 
@@ -133,55 +110,13 @@ describe("accepting an answer", () => {
       "indisponible",
     );
   });
-
-  it("books the chosen answer, declines the other waiting ones, and withdraws hers that night", () => {
-    const onRequest = [
-      { id: "a-julie", status: "en_attente" as const },
-      { id: "a-emma", status: "en_attente" as const },
-      { id: "a-lea", status: "retiree" as const },
-    ];
-    const hersThatNight = [
-      { id: "a-julie", status: "en_attente" as const },
-      { id: "a-julie-ailleurs", status: "en_attente" as const },
-      { id: "a-julie-vieille", status: "non_retenue" as const },
-    ];
-    expect(acceptTransition("a-julie", onRequest, hersThatNight)).toEqual({
-      retenue: "a-julie",
-      nonRetenues: ["a-emma"],
-      retirees: ["a-julie-ailleurs"],
-    });
-  });
 });
 
-describe("republishing and cancelling (D-70, D-76)", () => {
+describe("republishing (D-70)", () => {
   it("offers republishing on an open request ahead with at least one waiting answer", () => {
     expect(canRepublish(request, 1, NOON)).toBe(true);
     expect(canRepublish(request, 0, NOON)).toBe(false);
     expect(canRepublish({ ...request, status: "attribuee" }, 2, NOON)).toBe(false);
     expect(canRepublish({ ...request, nightDate: "2026-09-24" }, 2, NOON)).toBe(false);
-  });
-
-  it("declines every waiting answer, and leaves withdrawn ones alone", () => {
-    expect(
-      declinedOnClose([
-        { id: "a1", status: "en_attente" },
-        { id: "a2", status: "retiree" },
-        { id: "a3", status: "en_attente" },
-      ]),
-    ).toEqual(["a1", "a3"]);
-  });
-});
-
-describe("the priority request (D-71)", () => {
-  const unsent = { ...request, prioritySentAt: null };
-
-  it("can be sent once, on an open request ahead", () => {
-    expect(canSendInPriority(unsent, NOON)).toBe(true);
-    expect(canSendInPriority({ ...unsent, priorityProfileId: "p-julie", prioritySentAt: NOON }, NOON)).toBe(false);
-    expect(canSendInPriority({ ...unsent, status: "annulee" }, NOON)).toBe(false);
-  });
-
-  it("is never sent again once its professional left, even though her id was cleared", () => {
-    expect(canSendInPriority({ ...unsent, prioritySentAt: NOON }, NOON)).toBe(false);
   });
 });

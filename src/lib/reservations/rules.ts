@@ -2,11 +2,15 @@ import { hasNightStarted, isChangeable, type RequestStatus } from "@/lib/demande
 
 /**
  * The rules of an answer and a booking that do not need the database: who may
- * answer a request and see it, who may withdraw, when a family may accept,
- * republish or send a request in priority, and what each of those does to the
- * answers. Pure, so the pages, the server actions and the tests read the same
+ * answer a request, who may withdraw, and when a family may accept or
+ * republish. Pure, so the pages, the server actions and the tests read the same
  * rules; the writes in ./answers.ts and ./bookings.ts hold them again in SQL,
  * where two people racing can meet.
+ *
+ * The rules only the SQL decides live there alone, each held by a statement
+ * test: her list and the priority candidates (`src/lib/demandes/requests.ts`),
+ * the answers declined when a request is cancelled, republished or booked, and
+ * hers withdrawn that night (`./answers.ts`, `./bookings.ts`).
  */
 
 export type ApplicationStatus = "en_attente" | "retenue" | "non_retenue" | "retiree";
@@ -64,21 +68,12 @@ export function answerRefusal(facts: AnswerFacts, now: Date): AnswerRefusal | nu
   return null;
 }
 
-/**
- * Whether a request is on her list: open, ahead, in her zone or sent to her in
- * priority, not one she was declined on, and not on a night she is booked.
- */
-export function isOnHerList(facts: Omit<AnswerFacts, "profile"> & { profileId: string }, now: Date): boolean {
-  const { request } = facts;
-  if (request.status !== "ouverte") return false;
-  if (hasNightStarted(request.nightDate, request.startTime, now)) return false;
-  if (!facts.servesCommune && !isPriorityFor(request, facts.profileId)) return false;
-  if (facts.answer === "non_retenue") return false;
-  return !facts.bookedThatNight;
-}
-
 /** She may withdraw an answer that still waits, while the request is open and ahead (D-73). */
-export function canWithdraw(answer: ApplicationStatus | null, request: RequestFacts, now: Date): boolean {
+export function canWithdraw(
+  answer: ApplicationStatus | null,
+  request: Pick<RequestFacts, "status" | "nightDate" | "startTime">,
+  now: Date,
+): boolean {
   return answer === "en_attente" && isChangeable(request, now);
 }
 
@@ -105,60 +100,10 @@ export function hasAddress(address: { street: string | null; houseNumber: string
   return Boolean(address?.street?.trim() && address.houseNumber?.trim());
 }
 
-export type AnswerRow = { id: string; status: ApplicationStatus };
-
-export type AcceptTransition = {
-  /** The answer booked. */
-  retenue: string;
-  /** The others that waited on this request: told « non retenue ». */
-  nonRetenues: string[];
-  /** Her own answers elsewhere that same night: withdrawn silently (D-73). */
-  retirees: string[];
-};
-
-/**
- * What accepting `chosenId` does to the answers: the chosen one is `retenue`,
- * every other waiting answer on the request `non_retenue`, and the chosen
- * professional's waiting answers on other requests for that night `retiree`.
- * Answers already withdrawn or declined stay as they are.
- */
-export function acceptTransition(
-  chosenId: string,
-  onRequest: readonly AnswerRow[],
-  hersThatNight: readonly AnswerRow[],
-): AcceptTransition {
-  const waiting = (a: AnswerRow) => a.status === "en_attente";
-  return {
-    retenue: chosenId,
-    nonRetenues: onRequest.filter((a) => a.id !== chosenId && waiting(a)).map((a) => a.id),
-    retirees: hersThatNight.filter((a) => a.id !== chosenId && waiting(a)).map((a) => a.id),
-  };
-}
-
 /**
  * « Republier ma demande »: offered on an open request, night ahead, with at
  * least one waiting answer, since republishing means none of them suits (D-70).
  */
 export function canRepublish(request: RequestFacts, pendingAnswers: number, now: Date): boolean {
   return isChangeable(request, now) && pendingAnswers > 0;
-}
-
-/**
- * The answers declined when the family republishes or cancels: every one
- * still waiting becomes `non_retenue`, and its professional is told (D-70,
- * D-76). A withdrawn answer gets nothing.
- */
-export function declinedOnClose(answers: readonly AnswerRow[]): string[] {
-  return answers.filter((a) => a.status === "en_attente").map((a) => a.id);
-}
-
-/**
- * Whether a request can still be sent in priority: open, ahead, and never sent
- * to anyone before. A priority professional is set once (D-71).
- */
-export function canSendInPriority(
-  request: RequestFacts & { prioritySentAt: Date | null },
-  now: Date,
-): boolean {
-  return isChangeable(request, now) && request.priorityProfileId === null && request.prioritySentAt === null;
 }

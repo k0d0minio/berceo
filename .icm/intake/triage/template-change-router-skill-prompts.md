@@ -16,6 +16,11 @@ ignored the line and carried on with Release. The hook's investigation bail
 did not is unconfirmed (the expanded body the hook receives may differ from what the session sees).
 A pointer, never a cut: no lane here consumes it.
 
+Seen again on 2026-09-29, in `release reservations-regles-non-appelees` (berceo, PR #57): the
+`/security-review` skill's expanded body drew the same authoritative
+`[pipeline-router] Route: /pipeline scope "<the story>" (multi-feature dump …)` line. The session
+ignored it and carried on with Release.
+
 ## Prompt
 
 Template change request — from berceo · 2026-09-25

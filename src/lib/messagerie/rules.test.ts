@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { hasNightEnded } from "@/lib/demandes/rules";
+
 import {
-  hasNightEnded,
   isConversationOpen,
   isUnread,
   MESSAGE_MAX,
@@ -13,10 +14,12 @@ import {
 } from "./rules";
 
 /**
- * Spec (messagerie, D-88, D-89, D-91): a message of 1 to 2 000 characters with
- * its line breaks; a conversation open until the night ends (start + 11 h,
- * Europe/Brussels) whatever the answer's state, closed at once by a cancelled
- * request; unread for a side when the other side or Berceo wrote after its
+ * Spec (messagerie, D-88, D-89, D-91; messagerie-profil-non-valide, D-156 to
+ * D-158): a message of 1 to 2 000 characters with its line breaks; a
+ * conversation open until the night ends (start + 11 h, Europe/Brussels)
+ * whatever the answer's state, closed at once by a cancelled request, and
+ * closed while its professional is not `valide` unless her answer is the
+ * booked one, open again once she is `valide`; unread for a side when the other side or Berceo wrote after its
  * marker; « Lu » under the sender's last message once the other side opened
  * the conversation after it; the reminder after the 3rd, 6th … people's
  * message, never in the booked conversation. Written from the acceptance
@@ -24,7 +27,7 @@ import {
  */
 
 // The night of 30 September 2026 from 20:00 ends on 1 October at 07:00 in Brussels (CEST, UTC+2).
-const night = { nightDate: "2026-09-30", startTime: "20:00:00" };
+const night = { nightDate: "2026-09-30", startTime: "20:00:00", profileStatus: "valide", booked: false } as const;
 const BEFORE_END = new Date("2026-10-01T04:59:00Z"); // 06:59 in Brussels
 const AT_END = new Date("2026-10-01T05:00:00Z"); // 07:00 in Brussels
 const DURING = new Date("2026-09-30T20:00:00Z"); // 22:00 in Brussels, the night under way
@@ -79,6 +82,36 @@ describe("when a conversation accepts messages (D-89)", () => {
 
   it("closes at once when the request is cancelled", () => {
     expect(isConversationOpen({ ...night, status: "annulee" }, new Date("2026-09-25T10:00:00Z"))).toBe(false);
+  });
+});
+
+describe("when her profile is not `valide` (D-156, D-158)", () => {
+  const NOT_VALIDE = ["brouillon", "en_attente", "complement_demande", "refuse"] as const;
+
+  it.each(NOT_VALIDE)("closes a conversation not booked while her profile is %s", (profileStatus) => {
+    expect(isConversationOpen({ ...night, status: "ouverte", profileStatus, booked: false }, DURING)).toBe(false);
+  });
+
+  it.each(NOT_VALIDE)("keeps the booked conversation open while her profile is %s", (profileStatus) => {
+    expect(isConversationOpen({ ...night, status: "attribuee", profileStatus, booked: true }, DURING)).toBe(true);
+  });
+
+  it.each([true, false])("leaves a `valide` profile's conversation to D-89 (booked: %s)", (booked) => {
+    expect(isConversationOpen({ ...night, status: "attribuee", booked }, DURING)).toBe(true);
+    expect(isConversationOpen({ ...night, status: "attribuee", booked }, AT_END)).toBe(false);
+  });
+
+  it("still closes the booked conversation when the night ends or the request is cancelled", () => {
+    const booked = { ...night, profileStatus: "brouillon", booked: true } as const;
+    expect(isConversationOpen({ ...booked, status: "attribuee" }, AT_END)).toBe(false);
+    expect(isConversationOpen({ ...booked, status: "annulee" }, DURING)).toBe(false);
+  });
+
+  it("opens again once she is `valide` before the night ends, with nothing stored", () => {
+    const facts = { ...night, status: "ouverte", booked: false } as const;
+    expect(isConversationOpen({ ...facts, profileStatus: "complement_demande" }, DURING)).toBe(false);
+    expect(isConversationOpen({ ...facts, profileStatus: "valide" }, DURING)).toBe(true);
+    expect(isConversationOpen({ ...facts, profileStatus: "valide" }, AT_END)).toBe(false);
   });
 });
 

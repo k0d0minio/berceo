@@ -1,7 +1,6 @@
-import { timingSafeEqual } from "node:crypto";
-
 import type { NextRequest } from "next/server";
 
+import { isCronRequest } from "@/lib/cron";
 import { isReminderTime } from "@/lib/gardes/rules";
 import { sendReminders } from "@/lib/gardes/notify";
 
@@ -13,21 +12,13 @@ import { sendReminders } from "@/lib/gardes/notify";
  * land, summer or winter, and each garde is claimed once, so a second call
  * sends nothing more.
  * Refused without `CRON_SECRET` as a bearer token (the digest's secret, D-68),
- * and when no secret is set at all.
+ * and when no secret of at least 16 characters is set (`src/lib/cron.ts`, D-153).
  */
 export const dynamic = "force-dynamic";
 
-function authorised(header: string | null): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  const expected = Buffer.from(`Bearer ${secret}`);
-  const given = Buffer.from(header ?? "");
-  return given.length === expected.length && timingSafeEqual(given, expected);
-}
-
 export async function POST(request: NextRequest) {
   const headers = { "Cache-Control": "no-store" };
-  if (!authorised(request.headers.get("authorization"))) {
+  if (!isCronRequest(request.headers.get("authorization"), process.env.CRON_SECRET)) {
     return Response.json({ error: "unauthorised" }, { status: 401, headers });
   }
 

@@ -71,7 +71,7 @@ export const nightAhead = sql`(${careRequests.nightDate} + ${careRequests.startT
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Postgres' unique_violation: here, a second open request for the same night. */
+/** Postgres' unique_violation: here, a second open or booked request for the same night (D-156). */
 export function isUniqueViolation(error: unknown): boolean {
   const code = (candidate: unknown) =>
     candidate && typeof candidate === "object" && "code" in candidate
@@ -235,33 +235,42 @@ export async function cancelRequest(
       .set({ status: "annulee", cancelledAt: now, updatedAt: now })
       .where(changeable(userId, id))
       .returning({ id: careRequests.id }),
-    db
-      .update(careRequestApplications)
-      .set({ status: "non_retenue", updatedAt: now })
-      .where(
-        and(
-          eq(careRequestApplications.requestId, id),
-          eq(careRequestApplications.status, "en_attente"),
-          exists(
-            db
-              .select({ id: careRequests.id })
-              .from(careRequests)
-              .where(
-                and(
-                  eq(careRequests.id, id),
-                  eq(careRequests.familyUserId, userId),
-                  eq(careRequests.status, "annulee"),
-                ),
-              ),
-          ),
-        ),
-      )
-      .returning({ id: careRequestApplications.id }),
+    cancelDeclinesAnswers(userId, id, now),
   ]);
   return {
     result: cancelled.length > 0 ? "ok" : "nonModifiable",
     declined: cancelled.length > 0 ? declined.map((a) => a.id) : [],
   };
+}
+
+/**
+ * `cancelRequest`'s second statement: every answer still waiting on her
+ * request becomes `non_retenue`, only once the first statement cancelled it.
+ * A withdrawn, declined or booked answer is left as it is (D-76).
+ */
+export function cancelDeclinesAnswers(userId: string, id: string, now: Date) {
+  return db
+    .update(careRequestApplications)
+    .set({ status: "non_retenue", updatedAt: now })
+    .where(
+      and(
+        eq(careRequestApplications.requestId, id),
+        eq(careRequestApplications.status, "en_attente"),
+        exists(
+          db
+            .select({ id: careRequests.id })
+            .from(careRequests)
+            .where(
+              and(
+                eq(careRequests.id, id),
+                eq(careRequests.familyUserId, userId),
+                eq(careRequests.status, "annulee"),
+              ),
+            ),
+        ),
+      ),
+    )
+    .returning({ id: careRequestApplications.id });
 }
 
 /**
@@ -332,9 +341,9 @@ export function cancelBookedRequestStatement(bookingId: string, at: string) {
 }
 
 /**
- * Her live request for `nightDate`, if any: open (D-65: at most one) or
- * already booked again. Republishing a cancelled garde links to it instead,
- * so a night never carries two requests that could each be booked.
+ * Her live request for `nightDate`, if any: open or booked, of which the
+ * unique index holds at most one (D-65, D-156). Republishing a cancelled garde
+ * links to it instead; the index still refuses a second one written meanwhile.
  */
 export async function liveRequestOn(userId: string, nightDate: string): Promise<string | null> {
   const [row] = await db
@@ -364,7 +373,18 @@ export async function setPriority(
   now: Date,
 ): Promise<PriorityResult> {
   if (!UUID.test(id) || !UUID.test(profileId)) return "nonModifiable";
-  const updated = await db
+  const updated = await setPriorityStatement(userId, id, profileId, now);
+  return updated.length > 0 ? "ok" : "nonModifiable";
+}
+
+/**
+ * `setPriority`'s statement: her open request ahead, never sent in priority
+ * before (`priority_sent_at` is kept when the professional's id is cleared, so
+ * the request is never sent twice), to a validated professional who is not
+ * suspended and could still answer it.
+ */
+export function setPriorityStatement(userId: string, id: string, profileId: string, now: Date) {
+  return db
     .update(careRequests)
     .set({ priorityProfileId: profileId, prioritySentAt: now, updatedAt: now })
     .where(
@@ -387,7 +407,6 @@ export async function setPriority(
       ),
     )
     .returning({ id: careRequests.id });
-  return updated.length > 0 ? "ok" : "nonModifiable";
 }
 
 /**
@@ -430,6 +449,11 @@ function reachableBy(profileId: string) {
  */
 export async function priorityCandidates(userId: string, profileId: string): Promise<RequestCard[]> {
   if (!UUID.test(profileId)) return [];
+  return priorityCandidatesQuery(userId, profileId);
+}
+
+/** `priorityCandidates`' query, built and not run. */
+export function priorityCandidatesQuery(userId: string, profileId: string) {
   return db
     .select(cardColumns)
     .from(careRequests)
@@ -455,6 +479,7 @@ export async function priorityCandidates(userId: string, profileId: string): Pro
  * D-118), never who the family is.
  */
 export type ProfessionalRequest = RequestCard & {
+  status: RequestStatus;
   priority: boolean;
   answer: ApplicationStatus | null;
   family: Note;
@@ -484,22 +509,32 @@ export async function professionalProfileOf(
  * Her list: the open requests ahead in the communes she serves, and those sent
  * to her in priority wherever they are (D-71); never one she was declined on,
  * nor one on a night she is booked (D-73). Priority first, then urgent, then
- * newest. Only a validated profile sees any (D-5, D-10). The rules module's
- * `isOnHerList` says the same in words.
+ * newest. Only a validated profile sees any (D-5, D-10).
  */
 export async function professionalRequests(userId: string): Promise<ProfessionalView> {
   const profile = await professionalProfileOf(userId);
   if (!profile || profile.status !== "valide") return { validated: false };
 
-  const priority = sql<boolean>`coalesce(${careRequests.priorityProfileId} = ${profile.id}, false)`;
-  const requests = await db
-    .select({ ...cardColumns, priority, answer: careRequestApplications.status })
+  const requests = await herListQuery(profile.id);
+  const notes = await familyNotesOfRequests(requests.map((request) => request.id));
+  return {
+    validated: true,
+    nightRateEur: profile.nightRateEur,
+    requests: requests.map((request) => ({ ...request, family: notes.get(request.id) ?? NO_NOTE })),
+  };
+}
+
+/** `professionalRequests`' query for her profile, built and not run. */
+export function herListQuery(profileId: string) {
+  const priority = sql<boolean>`coalesce(${careRequests.priorityProfileId} = ${profileId}, false)`;
+  return db
+    .select({ ...cardColumns, status: careRequests.status, priority, answer: careRequestApplications.status })
     .from(careRequests)
     .leftJoin(
       careRequestApplications,
       and(
         eq(careRequestApplications.requestId, careRequests.id),
-        eq(careRequestApplications.profileId, profile.id),
+        eq(careRequestApplications.profileId, profileId),
       ),
     )
     .where(
@@ -507,13 +542,13 @@ export async function professionalRequests(userId: string): Promise<Professional
         eq(careRequests.status, "ouverte"),
         nightAhead,
         or(
-          eq(careRequests.priorityProfileId, profile.id),
+          eq(careRequests.priorityProfileId, profileId),
           inArray(
             careRequests.communeIns,
             db
               .select({ ins: professionalCommunes.communeIns })
               .from(professionalCommunes)
-              .where(eq(professionalCommunes.profileId, profile.id)),
+              .where(eq(professionalCommunes.profileId, profileId)),
           ),
         ),
         or(isNull(careRequestApplications.status), ne(careRequestApplications.status, "non_retenue")),
@@ -523,7 +558,7 @@ export async function professionalRequests(userId: string): Promise<Professional
             .from(bookings)
             .where(
               and(
-                eq(bookings.profileId, profile.id),
+                eq(bookings.profileId, profileId),
                 eq(bookings.nightDate, careRequests.nightDate),
                 eq(bookings.status, "confirmee"),
               ),
@@ -532,13 +567,6 @@ export async function professionalRequests(userId: string): Promise<Professional
       ),
     )
     .orderBy(desc(priority), desc(careRequests.urgent), desc(careRequests.createdAt));
-
-  const notes = await familyNotesOfRequests(requests.map((request) => request.id));
-  return {
-    validated: true,
-    nightRateEur: profile.nightRateEur,
-    requests: requests.map((request) => ({ ...request, family: notes.get(request.id) ?? NO_NOTE })),
-  };
 }
 
 export type Recipient = { profileId: string; email: string; firstName: string; communeIns: string };

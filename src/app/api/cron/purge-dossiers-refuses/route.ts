@@ -2,7 +2,8 @@ import { and, eq, inArray, isNotNull, lt, or } from "drizzle-orm";
 
 import { db, professionalDocuments, professionalProfiles, users } from "@/db";
 import { fullName, journalInsert } from "@/lib/admin/journal";
-import { isCronRequest, purgeRefusedFiles, type DueProfile } from "@/lib/admin/purge";
+import { purgeRefusedFiles, type DueProfile } from "@/lib/admin/purge";
+import { isCronRequest } from "@/lib/cron";
 import { deleteObject } from "@/lib/documents/storage";
 
 /*
