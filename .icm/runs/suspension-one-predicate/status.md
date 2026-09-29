@@ -4,7 +4,7 @@ Where the run is, in five lines. Updated at every stage start and stop, and when
 flips. A resuming session reads this first, then `handoff.md` (`_shared/stage-preamble.md`).
 
 - phase: build
-- step: 12 (ready — settling the full gate)
-- ci: GREEN (draft); full gate pending
-- blocked: no
+- step: done
+- ci: GREEN (full gate on 72d1785)
+- blocked: yes — on the operator's smoke and Ready to merge tick
 - updated: 2026-09-29

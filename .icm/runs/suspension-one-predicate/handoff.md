@@ -6,12 +6,14 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Once **Spec approved** is ticked on https://github.com/k0d0minio/berceo/pull/65, run
-   `/pipeline build suspension-one-predicate` and follow `plan.md` pass by pass.
+1. The operator smokes the preview (https://berceo-git-claude-hopeful-lovelace-ivr63t-kodominio.vercel.app)
+   against criteria 7 and 8 of the spec, then ticks **Ready to merge** on
+   https://github.com/k0d0minio/berceo/pull/65.
+2. Then `/pipeline release suspension-one-predicate`.
 
 ## Blockers
 
-- blocked on operator: tick **Spec approved** in the body of https://github.com/k0d0minio/berceo/pull/65
+- blocked on operator: smoke the preview and tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/65
 
 ## Do not
 

@@ -1,7 +1,7 @@
 # Build notes: suspension-one-predicate
 
 - commits: renumber decisions to D-169/D-170 · merge origin/main (twice) · the readers on one predicate + source test · ready
-- ci: GREEN (cheap tier, draft) on 9379875; full gate read after the ready push — see `status.md`
+- ci: GREEN (full gate) on 72d1785 — Vercel preview pass; Quality (advisory) success: lint, typecheck, test
 - ready: 2026-09-29T12:47:37Z — flipped on 8b14a6a
 
 ## What changed
@@ -22,7 +22,7 @@
 - [x] The nine readers build their condition from `notSuspended` / `suspended`, each on the id of the account held out (the professional's `professional_profiles.user_id`, the family's `conversations.family_user_id` / `bookings.family_user_id`).
 - [x] `messageNotice` no longer selects `suspendedAt`; null for a suspended recipient, the notice otherwise.
 - [x] `suspension-isolation.test.ts` — its patterns emulated over `src/` with node in the session (not the test runner): PASS on the branch (283 files); FAIL on `src/lib/reservations/profiles.ts` with a stray `isNull(users.suspendedAt)`, and with a stray `isNotNull(x.suspendedAt)`; FAIL on `src/lib/avis/rules.ts` with a stray `` sql`su.suspended_at is not null` ``; each stray removed. The runner's verdict is the advisory job on the ready head.
-- [ ] Existing tests unchanged — read from the advisory quality job on the ready head.
+- [x] Existing tests unchanged — Quality (advisory) `Test` step green on 72d1785 with no test file edited; `suspension-isolation.test.ts` green in the same run.
 - [ ] UAT preview, the suspended professional end to end — the operator's smoke.
 - [ ] UAT preview, `/admin/dossiers` — the operator's smoke.
 
