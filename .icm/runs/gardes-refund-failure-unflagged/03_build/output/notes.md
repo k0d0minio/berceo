@@ -30,3 +30,13 @@ Criteria are ticked here, not on the PR (Learned rules: a session ticking PR cri
 
 - No run database was brought up (no schema change); the predicate was not probed against Neon. The preview is the first real run of the `exists` subquery: smoke it with a seeded professional's cancellation whose fee is still `payee` (e.g. set a paid booking to `annulee`/`professionnelle`/`annulation` on the preview branch).
 - `readPayments`' second parameter changed from `since: Date | null` to `view: PaymentsView`; the page was its only caller.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on 1081317 before the merge of main (ci-status.sh); re-read on the final head before the squash
+- reviews: code medium (/code-review — no findings; one display lag noted: between a professional's cancellation and its automatic refund, the fee reads « À rembourser » for a moment, harmless) · security security-check.sh --branch --audit: OK + /security-review — no findings (the predicate takes no user input; both pages behind requireAccess; refundPaymentAction unchanged) · /production-readiness: n/a — not an available skill in this session; the diff is a read-only query and UI, no schema, env or auth change · readiness env.sh audit --changed: OK
+- parked: none
+- migrations: skip — none of this run's own
+- learned: skip — no error.log
+- docs: README.md → The service fee (Fees still owed) and The back-office (« Vue d'ensemble ») · announce: deferred to promotion
