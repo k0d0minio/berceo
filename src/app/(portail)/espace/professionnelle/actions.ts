@@ -17,6 +17,7 @@ import { currentUser } from "@/lib/auth/current-user";
 import { isKnownCommune } from "@/lib/communes";
 import { deleteObject, inspectUpload, newStorageKey, presignUpload } from "@/lib/documents/storage";
 import { loadFile, type ProfessionalFile } from "@/lib/professionnelle/file";
+import { removeFiles, type RemovableFile, type RemovalReport } from "@/lib/professionnelle/removals";
 import { recordUpload } from "@/lib/professionnelle/uploads";
 import {
   DECLARATIONS,
@@ -76,17 +77,25 @@ function isIntent(value: unknown): value is Intent {
   return value === "continuer" || value === "plus-tard" || value === "enregistrer";
 }
 
-/** Deletes files (rows, then objects) the file no longer needs. */
-async function removeDocuments(file: ProfessionalFile, kinds: DocumentKind[]): Promise<void> {
-  const doomed = file.documents.filter((d) => kinds.includes(d.kind));
-  if (doomed.length === 0) return;
-  await db.delete(professionalDocuments).where(
-    inArray(
-      professionalDocuments.id,
-      doomed.map((d) => d.id),
-    ),
-  );
-  await Promise.all(doomed.map((d) => deleteObject(d.storageKey)));
+/**
+ * Deletes her files, each object before its row (onboarding-orphaned-objects):
+ * a file whose object could not be deleted keeps its row and is reported in
+ * `failed`, so nothing stays in the bucket that the purge cannot find.
+ */
+function removeDocuments(profileId: string, files: RemovableFile[]): Promise<RemovalReport> {
+  return removeFiles(files, {
+    deleteObject,
+    deleteRows: async (ids) => {
+      await db
+        .delete(professionalDocuments)
+        .where(and(inArray(professionalDocuments.id, ids), eq(professionalDocuments.profileId, profileId)));
+    },
+  });
+}
+
+/** Her files of these kinds. */
+function documentsOf(file: ProfessionalFile, kinds: DocumentKind[]): RemovableFile[] {
+  return file.documents.filter((d) => kinds.includes(d.kind));
 }
 
 // ---------------------------------------------------------------------------
@@ -189,7 +198,11 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
       const stale = (["diplome", "attestation_inscription"] as const).filter(
         (kind) => !required?.documents.includes(kind),
       );
-      await removeDocuments(file, stale);
+      // The profile is saved: a file that could not go keeps its row and is logged.
+      const { failed } = await removeDocuments(profile.id, documentsOf(file, stale));
+      if (failed.length > 0) {
+        console.error("[onboarding] stale documents not removed", { profileId: profile.id, failed });
+      }
       if (!required?.inami && profile.inamiNumber) {
         await db
           .update(professionalProfiles)
@@ -335,7 +348,7 @@ export async function confirmUpload(request: {
   return { ok: true };
 }
 
-/** Removes one of her files: its row, then its object, at once. */
+/** Removes one of her files: its object, then its row, at once. */
 export async function removeFile(id: string): Promise<UploadResult> {
   const user = await professional();
   if (!user || typeof id !== "string") return { ok: false, error: "echec" };
@@ -352,13 +365,10 @@ export async function removeFile(id: string): Promise<UploadResult> {
     return { ok: false, error: "dernier" };
   }
 
-  try {
-    await db
-      .delete(professionalDocuments)
-      .where(and(eq(professionalDocuments.id, doc.id), eq(professionalDocuments.profileId, file.profile.id)));
-    await deleteObject(doc.storageKey);
-  } catch (error) {
-    console.error("[onboarding] file not removed", { id, error });
+  // A failed object delete keeps the row: the file stays on her file and she can try again.
+  const { removed } = await removeDocuments(file.profile.id, [doc]);
+  if (!removed.includes(doc.id)) {
+    console.error("[onboarding] file not removed", { id });
     return { ok: false, error: "echec" };
   }
   return { ok: true };

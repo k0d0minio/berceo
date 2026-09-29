@@ -521,7 +521,10 @@ never touches the money for the night (D-1).
   once cannot pass the limit or delete a file the other just recorded. Her photo is one file:
   the statement that records a new photo deletes every other photo row under the same lock and
   hands back their keys, whose objects the action deletes after the commit, so two photos
-  confirmed at once leave one, the last recorded. Files are
+  confirmed at once leave one, the last recorded. A file she removes, and the documents a new
+  profession no longer asks for, leave the bucket before their row, and a row goes only once its
+  object is gone (`src/lib/professionnelle/removals.ts`): an object that cannot be deleted keeps
+  its row, so the purge and the account deletion still find it. Files are
   read only through `/api/fichiers/[id]`, streamed to their owner or an admin, 404 to anyone else.
   Environment: `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION`, `DOCUMENTS_BUCKET`,
   `DOCUMENTS_S3_ACCESS_KEY_ID`, `DOCUMENTS_S3_SECRET_ACCESS_KEY` (not `AWS_*`: Vercel reserves
