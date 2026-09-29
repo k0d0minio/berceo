@@ -2,6 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { admin } from "@/content/admin"
 import { fill, words } from "@/content/locale"
 import { cardTitle, formatDate } from "@/lib/demandes/format"
+import { otherSide } from "@/lib/demandes/rules"
 import type { AdminRating } from "@/lib/avis/ratings"
 import { formatNote, ratingMean } from "@/lib/avis/rules"
 
@@ -35,7 +36,6 @@ function RatingsTable({ rows }: { rows: AdminRating[] }) {
         </TableHeader>
         <TableBody>
           {rows.map((row) => {
-            const ratedSide = row.raterSide === "famille" ? "professionnelle" : "famille"
             const labels = criteriaLabels(row.raterSide)
             return (
               <TableRow key={row.id}>
@@ -47,7 +47,7 @@ function RatingsTable({ rows }: { rows: AdminRating[] }) {
                   {fill(t.personne, { nom: `${row.rater.firstName} ${row.rater.lastName}`, role: t.roles[row.raterSide] })}
                 </TableCell>
                 <TableCell>
-                  {fill(t.personne, { nom: `${row.rated.firstName} ${row.rated.lastName}`, role: t.roles[ratedSide] })}
+                  {fill(t.personne, { nom: `${row.rated.firstName} ${row.rated.lastName}`, role: t.roles[otherSide(row.raterSide)] })}
                 </TableCell>
                 <TableCell>
                   <ul className="flex flex-col gap-1">
