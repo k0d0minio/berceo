@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
   claimInvitation: vi.fn(),
   releaseInvitation: vi.fn(),
   logError: vi.fn(),
-  gardeNotice: vi.fn(),
+  bookingNotice: vi.fn(),
   sendEmail: vi.fn(),
 }));
 
@@ -24,7 +24,7 @@ vi.mock("./ratings", () => ({
   releaseInvitation: mocks.releaseInvitation,
   logError: mocks.logError,
 }));
-vi.mock("@/lib/gardes/gardes", () => ({ gardeNotice: mocks.gardeNotice }));
+vi.mock("@/lib/reservations/notices", () => ({ bookingNotice: mocks.bookingNotice }));
 vi.mock("@/lib/email/send", () => ({ sendEmail: mocks.sendEmail }));
 
 import { sendInvitations } from "./notify";
@@ -35,7 +35,7 @@ const BOOKING = "11111111-1111-4111-8111-111111111111";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.gardeNotice.mockResolvedValue({
+  mocks.bookingNotice.mockResolvedValue({
     id: BOOKING,
     nightDate: "2026-09-30",
     startTime: "20:00:00",

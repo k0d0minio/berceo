@@ -18,6 +18,7 @@ import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
 import { professionalRequests } from "@/lib/demandes/requests";
 import { conversationsOfRequests } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
+import { canWithdraw } from "@/lib/reservations/rules";
 
 import { answerRequestAction, withdrawAnswerAction } from "./actions";
 
@@ -60,6 +61,7 @@ export default async function DemandesProfessionnellePage({
   const query = await searchParams;
   const user = await requireAccess(withQuery(PROFESSIONAL_REQUESTS_PATH, query));
   const view = await professionalRequests(user.id);
+  const now = new Date();
   const notice = message(query);
   const conversationIds = view.validated
     ? await conversationsOfRequests(user.id, view.requests.map((request) => request.id))
@@ -99,11 +101,13 @@ export default async function DemandesProfessionnellePage({
                                   </Link>
                                 </Button>
                               ) : null}
-                              <form action={withdrawAnswerAction.bind(null, request.id)}>
-                                <Button type="submit" variant="raye">
-                                  {r.retirer}
-                                </Button>
-                              </form>
+                              {canWithdraw(request.answer, request, now) ? (
+                                <form action={withdrawAnswerAction.bind(null, request.id)}>
+                                  <Button type="submit" variant="raye">
+                                    {r.retirer}
+                                  </Button>
+                                </form>
+                              ) : null}
                             </>
                           ) : (
                             <form action={answerRequestAction.bind(null, request.id)}>

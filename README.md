@@ -26,7 +26,7 @@ npm run dev      # http://localhost:3000
 | [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
 | [src/lib/professionnelle/](src/lib/professionnelle/), [src/lib/documents/](src/lib/documents/) | The professional's file: its rules, the private document bucket and `/api/fichiers/[id]`. |
 | [src/lib/admin/](src/lib/admin/), [src/components/admin/](src/components/admin/) | The founders' back-office: the review (queue and decision rules), the accounts (search, suspend, reactivate, delete, contact), the lists and their overview counts, the admin journal, the purge of refused and deleted accounts' files. See **The founders' verification** and **The back-office** below. |
-| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`), the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`) and the hourly invitation to rate a finished garde (`.github/workflows/avis-invitations.yml`), all guarded by `CRON_SECRET`. |
+| [src/app/api/cron/](src/app/api/cron/), [vercel.json](vercel.json) | Scheduled jobs: the daily purge of refused files (`vercel.json`), the daily digest of new requests (`.github/workflows/demandes-digest.yml`), the reminder of the day before a garde (`.github/workflows/gardes-rappel.yml`) and the hourly invitation to rate a finished garde (`.github/workflows/avis-invitations.yml`), all guarded by `CRON_SECRET` through the one bearer check in [`src/lib/cron.ts`](src/lib/cron.ts), which refuses a secret under 16 characters. |
 | [src/lib/demandes/](src/lib/demandes/) | The care request: its rules, reads and writes, the urgent e-mail and the daily digest. See **The care request** below. |
 | [src/lib/reservations/](src/lib/reservations/), [src/components/reservations/](src/components/reservations/) | Answers and bookings: who may answer, the booking transaction, the family's view of a professional, the priority request, their e-mails. See **The answer and the booking** below. |
 | [src/lib/gardes/](src/lib/gardes/), [src/components/gardes/](src/components/gardes/) | The garde's life after its booking: its state by the clock, cancelling, reporting an absence, republishing, the reminder of the day before, the founders' list of absences. See **The garde's life** below. |
@@ -122,7 +122,8 @@ The platform's data starts here: one Neon Postgres database, read through
   (only on a cancelled garde), and five more journal actions.
   `care_requests` (0005): a family's night, its start, children, baby's age, the commune copied
   from her profile, the urgent flag, when the no-medical-condition box was ticked, and
-  `digest_sent_at`; at most one open request per family and night.
+  `digest_sent_at`; at most one open request per family and night (widened to open or booked
+  in 0014, D-156).
   Answers and bookings (0007): `care_request_status` gains `attribuee`; `care_requests` gains
   its priority professional (`priority_profile_id`, `priority_sent_at`, set once) and
   `republished_at` / `republish_count`; `care_request_applications` is one answer per
@@ -231,7 +232,8 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   `.github/workflows/demandes-digest.yml` calls the route on UAT and production at 16:00 and
   17:00 UTC (and on demand), with the repository secret `CRON_SECRET`; Vercel Cron is not
   used because it never runs on the `uat` environment. One value serves both environments
-  (D-68): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets.
+  (D-68): set it as `CRON_SECRET` on each Vercel environment and in the repository's secrets,
+  at least 16 characters long, or every cron route refuses the call (`src/lib/cron.ts`, D-153).
 
 ## The answer and the booking
 
@@ -248,7 +250,10 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   transaction (`db.batch`): the answer `retenue`, the booking, the request `attribuee`, the other
   waiting answers `non_retenue`, her other answers that night `retiree`; the unique indexes turn
   two clicks racing into one booking and a « conflit ». Accepting needs the family's street and
-  number (D-77). Both sides get the guide's confirmation, the others « not retained ».
+  number (D-77). The rules only the SQL decides (her list, the priority candidates, the answers
+  declined on a cancel, a republish or an accept, hers withdrawn that night) have no pure twin
+  in `rules.ts`: each statement is a named builder, held by `statements.test.ts` beside it
+  (D-167). Both sides get the guide's confirmation, the others « not retained ».
   The click only opens the fee's Checkout; `acceptAnswer` runs when the payment lands, and its
   first statement requires that payment, paid (**The service fee**, D-102).
 - **Republish and edit (D-70, D-76):** a request with a waiting answer cannot be edited;
@@ -456,6 +461,10 @@ never touches the money for the night (D-1).
   Brussels), whatever its answer's state; a cancelled request closes it at once. Closed, it stays
   readable. `isConversationOpen` in `rules.ts` is the one rule; `sendMessage` holds it again in
   SQL. A cancelled garde cancels its request (D-110), so its conversations close at once too.
+  While the professional's profile is not `valide`, her conversations are closed for both sides
+  as well, except the one of her booked (`retenue`) answer (D-156); still readable (D-157), and
+  open again by themselves if she is validated before the night ends, since the rule reads her
+  current status (D-158).
 - **Words:** `src/content/messagerie.ts`; the e-mail in `src/content/emails.ts`.
 
 ## The professional's availability

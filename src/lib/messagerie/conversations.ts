@@ -15,6 +15,7 @@ import {
   type BerceoMessage,
   type CareRequestStatus,
   type Profession,
+  type ProfileStatus,
 } from "@/db";
 import { UUID } from "@/lib/demandes/requests";
 import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
@@ -29,7 +30,7 @@ import { isConversationOpen, type Author, type Side } from "./rules";
  * with its answer and receives Berceo's messages inside the answer's and the
  * booking's own statements (`withConversation`, `bonneGardeStatement`); the
  * people's messages go through `sendMessage`, which holds the party and the
- * closing rule (D-89) again in its SQL.
+ * closing rule (D-89, D-156) again in its SQL.
  */
 
 /** Whether the viewer is this conversation's family, or its professional. */
@@ -139,6 +140,9 @@ export type ConversationRow = {
   nightDate: string;
   startTime: string;
   status: CareRequestStatus;
+  /** Her profile's status and whether her answer is booked: the closing rule's facts (D-156), never shown. */
+  profileStatus: ProfileStatus;
+  booked: boolean;
   lastMessageAt: Date;
   last: LastMessage | null;
   unread: boolean;
@@ -154,6 +158,8 @@ export async function conversationList(userId: string, side: Side): Promise<Conv
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
       status: careRequests.status,
+      profileStatus: professionalProfiles.status,
+      answerStatus: careRequestApplications.status,
       lastMessageAt: conversations.lastMessageAt,
       last: sql<LastMessage | null>`(
         select json_build_object('author', m.author, 'body', m.body, 'berceoKey', m.berceo_key)
@@ -164,11 +170,16 @@ export async function conversationList(userId: string, side: Side): Promise<Conv
     })
     .from(conversations)
     .innerJoin(careRequests, eq(careRequests.id, conversations.requestId))
+    .innerJoin(careRequestApplications, eq(careRequestApplications.id, conversations.applicationId))
     .innerJoin(professionalProfiles, eq(professionalProfiles.id, conversations.profileId))
     .innerJoin(users, otherUserJoin(side))
     .where(side === "famille" ? eq(conversations.familyUserId, userId) : eq(professionalProfiles.userId, userId))
     .orderBy(desc(conversations.lastMessageAt));
-  return rows.map((row) => ({ ...row, profession: side === "famille" ? row.profession : null }));
+  return rows.map(({ answerStatus, ...row }) => ({
+    ...row,
+    profession: side === "famille" ? row.profession : null,
+    booked: answerStatus === "retenue",
+  }));
 }
 
 /** How many of the viewer's conversations hold an unread message: the header's count. */
@@ -196,7 +207,9 @@ export type Thread = {
   nightDate: string;
   startTime: string;
   status: CareRequestStatus;
-  /** Her answer is the booked one: no reminder line (D-88). */
+  /** Her profile's status: the closing rule's fact (D-156), never shown. */
+  profileStatus: ProfileStatus;
+  /** Her answer is the booked one: no reminder line (D-88), and open whatever her profile (D-156). */
   booked: boolean;
   bookingId: string | null;
   otherLastReadAt: Date | null;
@@ -215,6 +228,7 @@ export async function conversationFor(userId: string, side: Side, id: string): P
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
       status: careRequests.status,
+      profileStatus: professionalProfiles.status,
       answerStatus: careRequestApplications.status,
       bookingId: bookings.id,
       familyLastReadAt: conversations.familyLastReadAt,
@@ -306,7 +320,8 @@ export type SendResult =
 /**
  * One of the two people writes (E-01). The facts are read first for a precise
  * message, then held again by the statement: the viewer is a party, the
- * request is not cancelled and its night has not ended (D-89). The message
+ * request is not cancelled and its night has not ended (D-89), and its
+ * professional is `valide` unless her answer is the booked one (D-156). The message
  * takes the id the browser gave it, so a retried or double-clicked send
  * inserts once and reports `inserted: false`, and the caller sends no second
  * e-mail. The sender's own marker moves with her message.
@@ -322,13 +337,23 @@ export async function sendMessage(
   if (!UUID.test(conversationId) || !UUID.test(messageId)) return { ok: false, reason: "introuvable" };
 
   const [facts] = await db
-    .select({ status: careRequests.status, nightDate: careRequests.nightDate, startTime: careRequests.startTime })
+    .select({
+      status: careRequests.status,
+      nightDate: careRequests.nightDate,
+      startTime: careRequests.startTime,
+      profileStatus: professionalProfiles.status,
+      answerStatus: careRequestApplications.status,
+    })
     .from(conversations)
     .innerJoin(careRequests, eq(careRequests.id, conversations.requestId))
+    .innerJoin(careRequestApplications, eq(careRequestApplications.id, conversations.applicationId))
+    .innerJoin(professionalProfiles, eq(professionalProfiles.id, conversations.profileId))
     .where(and(eq(conversations.id, conversationId), partyOf(side, userId)))
     .limit(1);
   if (!facts) return { ok: false, reason: "introuvable" };
-  if (!isConversationOpen(facts, now)) return { ok: false, reason: "fermee" };
+  if (!isConversationOpen({ ...facts, booked: facts.answerStatus === "retenue" }, now)) {
+    return { ok: false, reason: "fermee" };
+  }
 
   const at = now.toISOString();
   const marker = sql.raw(side === "famille" ? "family_last_read_at" : "professional_last_read_at");
@@ -336,10 +361,13 @@ export async function sendMessage(
     with target as (
       select c.id from conversations c
       join care_requests r on r.id = c.request_id
+      join care_request_applications a on a.id = c.application_id
+      join professional_profiles pp on pp.id = c.profile_id
       where c.id = ${conversationId}
         and ${partyOfC(side, userId)}
         and r.status <> 'annulee'
         and (r.night_date + r.start_time + ${`${NIGHT_HOURS} hours`}::interval) > (now() at time zone ${TIME_ZONE})
+        and (pp.status = 'valide' or a.status = 'retenue')
     ),
     inserted as (
       insert into messages (id, conversation_id, author, body, created_at)
@@ -356,7 +384,7 @@ export async function sendMessage(
     select (select count(*) from target)::int as open, (select count(*) from inserted)::int as inserted
   `);
   const [result] = written.rows;
-  // Cancelled, or the night ended, between the read and the write.
+  // Cancelled, the night ended, or her profile left `valide`, between the read and the write.
   if (!result || Number(result.open) === 0) return { ok: false, reason: "fermee" };
   return { ok: true, inserted: Number(result.inserted) === 1 };
 }
