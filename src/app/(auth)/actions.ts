@@ -10,7 +10,7 @@ import { RETURN_COOKIE, RETURN_COOKIE_OPTIONS, returnToStore } from "@/lib/auth/
 import { authOutcome } from "@/lib/auth/errors";
 import { landingFor, SIGN_IN_PATH } from "@/lib/auth/routing";
 import { getAuth } from "@/lib/auth/server";
-import { userByAuthId } from "@/lib/auth/users";
+import { deleteOrphanIdentity, identityByEmail, userByAuthId } from "@/lib/auth/users";
 import {
   isSignUpRole,
   isValidEmail,
@@ -32,7 +32,7 @@ export type FormMessage =
   | "identifiants"
   | "nonVerifie"
   | "lienInvalide"
-  | "compteIndisponible"
+  | "inscriptionIncomplete"
   | "suspendu"
   | "generique"
   | "renvoye"
@@ -70,19 +70,34 @@ export async function signUp(
   if (!checked.ok) return { errors: checked.errors, values };
 
   const { firstName, lastName, email, phone, password } = checked.values;
-  const { data, error } = await getAuth().signUp.email({
-    email,
-    password,
-    // "|" keeps the first name recoverable even when it is itself compound
-    // ("Marie Claire"): webhook.ts's prenomFor() splits on it, never on
-    // whitespace, for the users row race on the first verification e-mail.
-    name: `${firstName}|${lastName}`,
-  });
+  const createIdentity = () =>
+    getAuth().signUp.email({
+      email,
+      password,
+      // "|" keeps the first name recoverable even when it is itself compound
+      // ("Marie Claire"): webhook.ts's prenomFor() splits on it, never on
+      // whitespace, for the users row race on the first verification e-mail.
+      name: `${firstName}|${lastName}`,
+    });
+
+  let { data, error } = await createIdentity();
+
+  if (error && authOutcome(error) === "existe") {
+    // An address that already has an account reads exactly like a new one (D-34).
+    // An orphan a failed sign-up left behind is replaced by this one, once (D-160).
+    let replaced: boolean;
+    try {
+      replaced = await replaceOrphan(email);
+    } catch (replaceError) {
+      console.error("[comptes] orphan identity not replaced", { replaceError });
+      return { message: "generique", values };
+    }
+    if (!replaced) redirect("/verification-email");
+    ({ data, error } = await createIdentity());
+  }
 
   if (error) {
     const outcome = authOutcome(error);
-    // An address that already has an account reads exactly like a new one (D-34).
-    if (outcome === "existe") redirect("/verification-email");
     if (outcome === "motDePasseCourt" || outcome === "motDePasseLong") {
       return { errors: { motDePasse: outcome }, values };
     }
@@ -105,6 +120,16 @@ export async function signUp(
     ]);
   } catch (writeError) {
     console.error("[comptes] users row not written after sign-up", { authUserId, writeError });
+    // The identity goes too, so the address is free again (D-159); should this
+    // fail as well, the next sign-up with the address replaces it (D-160).
+    try {
+      await deleteOrphanIdentity(authUserId);
+    } catch (deleteError) {
+      console.error("[comptes] orphan identity not removed after a failed sign-up", {
+        authUserId,
+        deleteError,
+      });
+    }
     return { message: "generique", values };
   }
 
@@ -113,6 +138,13 @@ export async function signUp(
   if (back) (await cookies()).set(RETURN_COOKIE, back, RETURN_COOKIE_OPTIONS);
 
   redirect("/verification-email");
+}
+
+/** True when the address's identity was an orphan (no `users` row) and is now deleted. */
+async function replaceOrphan(email: string): Promise<boolean> {
+  const identity = await identityByEmail(email);
+  if (!identity || identity.hasRow) return false;
+  return deleteOrphanIdentity(identity.authUserId);
 }
 
 export type SignInState = {
@@ -143,7 +175,10 @@ export async function signIn(
   const row = authUserId ? await userByAuthId(authUserId) : null;
   if (!row) {
     console.error("[comptes] signed-in identity has no users row", { authUserId });
-    return { message: "compteIndisponible", email };
+    // Its sign-up never finished: the session ends, and signing up again with
+    // the same address replaces the identity (D-165).
+    await getAuth().signOut();
+    return { message: "inscriptionIncomplete", email };
   }
   if (row.suspendedAt) {
     // A suspended account signs in to nothing (D-134): its new session ends at once.
