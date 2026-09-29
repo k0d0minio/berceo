@@ -553,11 +553,12 @@ export type AdminPayment = Pick<
 > & {
   family: string | null;
   professional: string | null;
+  /** Owed back to the family after the professional cancelled (D-162). */
+  toRefund: boolean;
 };
 
 const professionalUser = alias(users, "professional_user");
 
-/** One page of every fee, newest first, for the founders (D-93). */
 /**
  * The fees paid at or after `since` (back-office-admin, D-133): the overview's
  * « Paiements récents » counts with this condition and its link lists with it,
@@ -567,16 +568,52 @@ function paidSince(since: Date | null) {
   return since ? gte(payments.paidAt, since) : undefined;
 }
 
+/**
+ * A fee Berceo still owes (D-162): refundable, and its booking cancelled by
+ * the professional, kind `annulation` (D-2), so the automatic refund failed
+ * or never ran. An absence is the founders' call (D-106), never flagged. The
+ * row mark, the « À rembourser » filter and the overview's count all read
+ * this one condition (D-133, D-164).
+ */
+function awaitingRefund() {
+  return sql<boolean>`(${inArray(payments.status, [...REFUNDABLE])} and exists (
+    select 1 from bookings as rb
+    where rb.id = ${payments.bookingId}
+      and rb.status = 'annulee'
+      and rb.cancelled_by = 'professionnelle'
+      and rb.cancellation_kind = 'annulation'
+  ))`;
+}
+
+/** How many fees Berceo still owes: the overview's « frais à rembourser » line. */
+export async function awaitingRefundCount(): Promise<number> {
+  const [row] = await db.select({ n: count() }).from(payments).where(awaitingRefund());
+  return row?.n ?? 0;
+}
+
 /** How many fees were paid at or after `since`: the overview's « Paiements récents ». */
 export async function paymentCountSince(since: Date): Promise<number> {
   const [row] = await db.select({ n: count() }).from(payments).where(paidSince(since));
   return row?.n ?? 0;
 }
 
+/**
+ * One page of the fees, newest first, for the founders (D-93): every fee, the
+ * ones paid since a moment (D-133), or only the ones to refund (D-164).
+ */
+export type PaymentsView = { kind: "tous" } | { kind: "depuis"; since: Date } | { kind: "aRembourser" };
+
+function viewWhere(view: PaymentsView) {
+  if (view.kind === "depuis") return paidSince(view.since);
+  if (view.kind === "aRembourser") return awaitingRefund();
+  return undefined;
+}
+
 export async function readPayments(
   page: number,
-  since: Date | null = null,
+  view: PaymentsView = { kind: "tous" },
 ): Promise<{ rows: AdminPayment[]; pages: number }> {
+  const where = viewWhere(view);
   const [rows, [total]] = await Promise.all([
     db
       .select({
@@ -593,17 +630,18 @@ export async function readPayments(
         familyFirstName: users.firstName,
         familyLastName: users.lastName,
         professional: professionalUser.firstName,
+        toRefund: awaitingRefund(),
       })
       .from(payments)
       .leftJoin(users, eq(users.id, payments.familyUserId))
       .leftJoin(careRequestApplications, eq(careRequestApplications.id, payments.applicationId))
       .leftJoin(professionalProfiles, eq(professionalProfiles.id, careRequestApplications.profileId))
       .leftJoin(professionalUser, eq(professionalUser.id, professionalProfiles.userId))
-      .where(paidSince(since))
+      .where(where)
       .orderBy(desc(payments.createdAt), desc(payments.id))
       .limit(PAYMENTS_PAGE_SIZE)
       .offset((page - 1) * PAYMENTS_PAGE_SIZE),
-    db.select({ n: count() }).from(payments).where(paidSince(since)),
+    db.select({ n: count() }).from(payments).where(where),
   ]);
   return {
     rows: rows.map(({ familyFirstName, familyLastName, ...rest }) => ({

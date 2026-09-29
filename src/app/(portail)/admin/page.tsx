@@ -5,7 +5,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { listHref } from "@/components/admin/list-controls";
 import { admin } from "@/content/admin";
 import { comptes } from "@/content/comptes";
-import { words } from "@/content/locale";
+import { fill, words } from "@/content/locale";
 import { bookingCount, reportCount } from "@/lib/admin/lists";
 import { ADMIN_BOOKINGS_PATH, ADMIN_FILES_PATH, ADMIN_REPORTS_PATH } from "@/lib/admin/paths";
 import { loadQueue } from "@/lib/admin/review";
@@ -13,7 +13,8 @@ import { RECENT_PERIOD, recentPaymentCutoff } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths";
-import { paymentCountSince } from "@/lib/paiements/payments";
+import { awaitingRefundCount, paymentCountSince } from "@/lib/paiements/payments";
+import { TO_REFUND } from "@/lib/paiements/rules";
 
 const a = words(admin);
 
@@ -28,17 +29,21 @@ export const dynamic = "force-dynamic";
  * « Vue d'ensemble » (the guide, « Le backoffice »; back-office-admin, D-133):
  * four blocks, each a number and a link to the full list. Each number is
  * counted by the same condition its list filters on, so the two never
- * disagree. Anyone but an admin, signed in or not, gets a 404 (D-33).
+ * disagree. The payments block also names the fees still owed after a
+ * professional's cancellation, only when there are some, linking to the
+ * « À rembourser » filter that lists them (D-164). Anyone but an admin,
+ * signed in or not, gets a 404 (D-33).
  */
 export default async function AdminPage() {
   const user = await requireAccess(SPACES.admin);
   const now = new Date();
 
-  const [queue, bookings, reports, payments] = await Promise.all([
+  const [queue, bookings, reports, payments, toRefund] = await Promise.all([
     loadQueue(),
     bookingCount("en-cours"),
     reportCount(),
     paymentCountSince(recentPaymentCutoff(now)),
+    awaitingRefundCount(),
   ]);
 
   const blocks = [
@@ -66,6 +71,14 @@ export default async function AdminPage() {
               {a.vueEnsemble.voir}
               <span className="sr-only">{` : ${a.vueEnsemble.blocs[block.key]}`}</span>
             </Link>
+            {block.key === "paiements" && toRefund > 0 ? (
+              <Link
+                href={listHref(ADMIN_PAYMENTS_PATH, { statut: TO_REFUND })}
+                className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
+              >
+                {fill(a.vueEnsemble.aRembourser, { n: String(toRefund) })}
+              </Link>
+            ) : null}
           </li>
         ))}
       </ul>
