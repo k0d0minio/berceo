@@ -116,3 +116,14 @@ export const REFUND_REASONS = [
 
 /** The admin list's page size, like the journal's. */
 export const PAYMENTS_PAGE_SIZE = 50;
+
+/**
+ * The `?statut=` value of the « À rembourser » filter on the admin list
+ * (D-164): the fees a professional's cancellation left unrefunded (D-162).
+ */
+export const TO_REFUND = "a-rembourser";
+
+/** Whether the admin list shows only the fees to refund: that exact value, nothing else. */
+export function isToRefundFilter(statut: string | null | undefined): boolean {
+  return statut === TO_REFUND;
+}

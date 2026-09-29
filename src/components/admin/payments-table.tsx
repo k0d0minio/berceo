@@ -14,8 +14,9 @@ const date = new Intl.DateTimeFormat("fr-BE", { dateStyle: "short", timeZone: "E
  * Every fee, newest first (D-93): when the Checkout opened, the family, the
  * professional, the night, the rate, the fee, the status (an open Checkout
  * past its expiry reads « Abandonnés », D-92), Stripe's PaymentIntent id and,
- * for a refund, its date and reason. A paid fee offers « Rembourser les
- * frais » (D-101); nothing else on this page changes a payment.
+ * for a refund, its date and reason. A fee the professional's cancellation
+ * left unrefunded is marked « À rembourser » (D-162, D-164). A paid fee offers
+ * « Rembourser les frais » (D-101); nothing else on this page changes a payment.
  */
 function PaymentsTable({ rows, now }: { rows: AdminPayment[]; now: Date }) {
   const p = words(admin).paiements
@@ -55,9 +56,20 @@ function PaymentsTable({ rows, now }: { rows: AdminPayment[]; now: Date }) {
                       {fill(p.rembourse, { date: date.format(row.refundedAt), raison: p.raisons[row.refundReason] })}
                     </span>
                   ) : null}
+                  {row.toRefund ? (
+                    <span className="mt-2 block max-w-xs">
+                      <span className="block font-semibold">{p.aRembourser}</span>
+                      <span className="block text-legende">{p.aRembourserDetail}</span>
+                    </span>
+                  ) : null}
                   {isRefundable(status) ? (
                     <div className="mt-2">
-                      <RefundButton paymentId={row.id} family={family} amount={euros(row.amountCents)} />
+                      <RefundButton
+                        paymentId={row.id}
+                        family={family}
+                        amount={euros(row.amountCents)}
+                        toRefund={row.toRefund}
+                      />
                     </div>
                   ) : null}
                 </TableCell>

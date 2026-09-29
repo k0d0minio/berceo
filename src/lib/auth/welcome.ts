@@ -1,6 +1,7 @@
 import "server-only";
 
 import { and, eq, isNull } from "drizzle-orm";
+import { after } from "next/server";
 
 import { db, users, type User } from "@/db";
 import { sendEmail } from "@/lib/email/send";
@@ -12,7 +13,9 @@ import { SPACES } from "./routing";
  * The family's welcome e-mail, sent once, when the address is first verified.
  * The claim is one conditional UPDATE, so two clicks on the same link race for
  * one row and only the winner sends. A failed send releases the claim and is
- * logged; it never blocks the family from reaching their space.
+ * logged; it never blocks the family from reaching their space. The family's
+ * home asks again on every visit (`scheduleWelcomeIfDue`), so a released claim
+ * is tried again until one send goes out (D-165).
  */
 export async function sendWelcomeIfDue(user: User, siteUrl: string): Promise<void> {
   if (user.role !== "parent" || user.welcomeSentAt) return;
@@ -50,4 +53,16 @@ export async function sendWelcomeIfDue(user: User, siteUrl: string): Promise<voi
         console.error("[comptes] welcome claim not released", { userId: user.id, releaseError }),
       );
   }
+}
+
+/**
+ * Asks for the welcome after the response, so neither the verification
+ * confirmer's redirect nor the family's home waits on Resend (D-166). The home
+ * calls it on every visit: a send that failed and released its claim is tried
+ * again there (D-165). `siteUrl` is read by the caller before this call, since
+ * `headers()` is not available inside `after()`.
+ */
+export function scheduleWelcomeIfDue(user: User, siteUrl: string): void {
+  if (user.role !== "parent" || user.welcomeSentAt) return;
+  after(() => sendWelcomeIfDue(user, siteUrl));
 }

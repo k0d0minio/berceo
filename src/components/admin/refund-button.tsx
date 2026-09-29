@@ -15,8 +15,20 @@ import { ReasonDialog } from "./decision-panel"
  * asks for the reason first (green to refund, red to leave it, D-24), then
  * the server refunds the whole fee and writes the journal line. The reason is
  * checked here and again on the server; the result is said under the button.
+ * On a fee the professional's cancellation left unrefunded, the dialog says
+ * so instead of « La garde n'est pas annulée » (D-164).
  */
-function RefundButton({ paymentId, family, amount }: { paymentId: string; family: string; amount: string }) {
+function RefundButton({
+  paymentId,
+  family,
+  amount,
+  toRefund = false,
+}: {
+  paymentId: string
+  family: string
+  amount: string
+  toRefund?: boolean
+}) {
   const t = words(admin)
   const p = t.paiements
   const [pending, start] = useTransition()
@@ -43,7 +55,9 @@ function RefundButton({ paymentId, family, amount }: { paymentId: string; family
           </Button>
         }
         title={fill(p.confirmation.titre, { nom: family })}
-        description={fill(p.confirmation.description, { montant: amount })}
+        description={fill(toRefund ? p.confirmation.descriptionARembourser : p.confirmation.description, {
+          montant: amount,
+        })}
         tone="confirmation"
         onConfirm={refund}
         labels={p.confirmation}

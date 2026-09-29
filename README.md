@@ -177,7 +177,8 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   checks the Ed25519 signature and sends Berceo's own verification and reset e-mails
   (`src/lib/email/`, words in `src/content/emails.ts`). Their links carry the raw token to this
   site: `/verification-email/confirmer` (signs the user in and sends a family's welcome e-mail
-  once) and `/nouveau-mot-de-passe`.
+  once, after the redirect) and `/nouveau-mot-de-passe`. A welcome that failed to send is tried
+  again from `/espace/famille` on each visit until one goes out (`src/lib/auth/welcome.ts`).
 - **Admins** never sign up. A founder signs up as a family, then
   `npm run admin:grant -- --email <address>` promotes the account on the database
   `DATABASE_URL` points at.
@@ -425,6 +426,12 @@ never touches the money for the night (D-1).
   reports failed reads `remboursement_echoue`.
 - **The founders' list (D-93):** `/admin/paiements`, every fee newest first, 50 per page, with
   « Rembourser les frais ». Families and professionals see no payment history.
+- **Fees still owed (D-162, D-164):** a `payee` or `remboursement_echoue` fee whose booking the
+  professional cancelled (kind `annulation`) is marked « À rembourser » on its row, listed by
+  `/admin/paiements?statut=a-rembourser`, and counted on the overview when there are any. One
+  condition, `awaitingRefund()` in `src/lib/paiements/payments.ts`, drives all three; it is how
+  an automatic refund that failed reaches the founders. The founders' refund still records
+  `berceo` (D-163).
 - **Configuration (D-100):** `STRIPE_SECRET_KEY` (test key on Preview, live key on
   Production only once the company's Stripe account exists) and `STRIPE_WEBHOOK_SECRET` (per
   environment). In Stripe's dashboard, per account: enable Bancontact, and add the endpoint
@@ -503,7 +510,10 @@ never touches the money for the night (D-1).
   then checks the size and first bytes before recording the file (`src/lib/documents/`). The row
   is written under a lock on her profile row, with the three-files-per-document limit and the
   key's novelty read inside it (`src/lib/professionnelle/uploads.ts`), so two uploads confirmed at
-  once cannot pass the limit or delete a file the other just recorded. Files are
+  once cannot pass the limit or delete a file the other just recorded. Her photo is one file:
+  the statement that records a new photo deletes every other photo row under the same lock and
+  hands back their keys, whose objects the action deletes after the commit, so two photos
+  confirmed at once leave one, the last recorded. Files are
   read only through `/api/fichiers/[id]`, streamed to their owner or an admin, 404 to anyone else.
   Environment: `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION`, `DOCUMENTS_BUCKET`,
   `DOCUMENTS_S3_ACCESS_KEY_ID`, `DOCUMENTS_S3_SECRET_ACCESS_KEY` (not `AWS_*`: Vercel reserves
@@ -559,7 +569,9 @@ never touches the money for the night (D-1).
   `/admin/signalements` (cancelled gardes and absences not marked handled) and
   `/admin/paiements?periode=7j` (fees paid in the last 7 days). Each number is counted with the
   same exported condition its list filters on (`src/lib/admin/lists.ts`,
-  `paymentCountSince` in `src/lib/paiements/payments.ts`).
+  `paymentCountSince` in `src/lib/paiements/payments.ts`). The payments block adds
+  « {n} frais à rembourser », linking to `/admin/paiements?statut=a-rembourser`, only when a
+  professional's cancellation left a fee unrefunded (`awaitingRefundCount`, D-164).
 - **Accounts:** `/admin/utilisateurs` searches first name, last name, full name and e-mail
   (case and accents folded) and the phone by its digits in any notation; a deleted account is
   never found. `/admin/utilisateurs/[id]` shows the account (a family's commune, never her

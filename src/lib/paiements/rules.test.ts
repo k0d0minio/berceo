@@ -9,8 +9,10 @@ import {
   feeCents,
   isRefundable,
   isSessionId,
+  isToRefundFilter,
   refundKey,
   refundSync,
+  TO_REFUND,
 } from "./rules";
 
 /*
@@ -122,5 +124,18 @@ describe("a refund Stripe reports (D-101)", () => {
     expect(refundSync({ status: "expiree", stripeRefundId: null }, { id: "re_1", status: "succeeded", fromApp: false })).toEqual({
       kind: "rien",
     });
+  });
+});
+
+describe("the « À rembourser » filter (D-164)", () => {
+  it("is selected by `a-rembourser` only", () => {
+    expect(TO_REFUND).toBe("a-rembourser");
+    expect(isToRefundFilter("a-rembourser")).toBe(true);
+  });
+
+  it("ignores any other value, a missing one included", () => {
+    for (const value of [undefined, null, "", "A-REMBOURSER", "a-rembourser ", "payee", "7j", "tous"]) {
+      expect(isToRefundFilter(value)).toBe(false);
+    }
   });
 });
