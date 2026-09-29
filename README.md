@@ -503,7 +503,11 @@ never touches the money for the night (D-1).
   then checks the size and first bytes before recording the file (`src/lib/documents/`). The row
   is written under a lock on her profile row, with the three-files-per-document limit and the
   key's novelty read inside it (`src/lib/professionnelle/uploads.ts`), so two uploads confirmed at
-  once cannot pass the limit or delete a file the other just recorded. Files are
+  once cannot pass the limit or delete a file the other just recorded. A file she removes or
+  replaces, and the documents a new profession no longer asks for, leave the bucket before their
+  row, and a row goes only once its object is gone (`src/lib/professionnelle/removals.ts`): an
+  object that cannot be deleted keeps its row, so the purge and the account deletion still find
+  it. Files are
   read only through `/api/fichiers/[id]`, streamed to their owner or an admin, 404 to anyone else.
   Environment: `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION`, `DOCUMENTS_BUCKET`,
   `DOCUMENTS_S3_ACCESS_KEY_ID`, `DOCUMENTS_S3_SECRET_ACCESS_KEY` (not `AWS_*`: Vercel reserves

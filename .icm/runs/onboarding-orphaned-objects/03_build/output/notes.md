@@ -46,3 +46,13 @@
   `uploads.ts`"; Release may add `removals.ts` (the only delete of a file row outside the purge
   and the account deletion) there and in the README's onboarding section.
 - The `type:feature` label comes from `new-run.sh`; the stub was a bug.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on the head that merged (ci-status.sh, after the last push)
+- reviews: code medium — no findings · security security-check.sh --branch --audit: OK + /security-review — no findings (the removals only ever take keys from her own loaded file; the row delete is now profile-scoped) · readiness env.sh audit --changed: OK · /production-readiness n/a — no DB schema, auth, payments or env change, and the skill is not shipped in this repo
+- parked: none at Release (Define parked onboarding-remove-last-file-race.md)
+- migrations: skip — none of this run's own
+- learned: skip — no error.log
+- docs: README.md (the onboarding's documents paragraph), AGENTS.md (routing row names removals.ts) · announce: deferred to promotion

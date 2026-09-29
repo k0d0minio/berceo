@@ -6,18 +6,13 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. Operator: smoke the preview on https://github.com/k0d0minio/berceo/pull/61 (a professional
-   removes a file, replaces her photo, changes profession — all as before), then tick
-   **Ready to merge**.
-2. Then `/pipeline release onboarding-orphaned-objects`.
+1. Merged and archived; nothing to pick up. The epic's remaining stub is
+   `onboarding-double-photo-race` (`new onboarding-double-photo-race`).
 
 ## Blockers
 
-- blocked on operator: smoke the preview and tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/61
+- none
 
 ## Do not
 
-- Do not touch the photo's single-slot logic beyond the removal order: `onboarding-double-photo-race`.
-- Do not fix the "last file" race in `removeFile` here: parked as
-  `.icm/intake/triage/onboarding-remove-last-file-race.md`.
-- Never tick a gate.
+- Do not reopen this run; follow-ups go through a lane or a new stub.
