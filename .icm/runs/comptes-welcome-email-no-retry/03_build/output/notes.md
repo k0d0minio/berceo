@@ -28,3 +28,14 @@
 - `welcome.test.ts` mocks `next/server` wholesale (`welcome.ts` imports only `after` from it); the route test mocks `@/lib/auth/welcome` instead, so it needs no `next/server` mock.
 - The home calls `siteOrigin()` (a `headers()` read) on every visit, due or not: free on a `force-dynamic` page, and it keeps `headers()` out of the `after()` callback.
 - README → Accounts and e-mail still says the confirmer "sends a family's welcome e-mail"; Release may want to add the home's retry there.
+
+## Release
+
+- gate: Ready to merge ticked — merge authorised
+- ci: GREEN on afa5866 (ci-status.sh, full gate) — re-read after the last push below
+- reviews: code low (/code-review: no findings) · security security-check.sh --branch --audit: OK (gitleaks absent — built-in patterns only) + /security-review — no findings (the forwarded session cookies on a failed read, the e-mail link host and the logging checked; none newly exploitable) · readiness env.sh audit --changed: OK · /production-readiness n/a — not available in this session; the diff adds no env var, migration or route policy
+- parked: none
+- migrations: skip — none of this run's own
+- learned: skip — no Build error.log (the run-root error.log's Neon branch-cap entry is already a learned rule twice)
+- docs: README.md → Accounts and e-mail (the welcome after the redirect, the home's retry) · announce: deferred to promotion
+

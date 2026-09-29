@@ -6,14 +6,12 @@ stops, so nothing is carried in anyone's head.
 
 ## Next steps
 
-1. The operator smokes the preview (https://berceo-git-claude-affectionate-ptolemy-i5mxea-kodominio.vercel.app): sign up as a family, click the verification link, land in `/espace/famille` signed in, and receive the welcome e-mail with a link to the preview's address.
-2. Once **Ready to merge** is ticked on https://github.com/k0d0minio/berceo/pull/64, run `/pipeline release comptes-welcome-email-no-retry`.
+1. Merged and archived; nothing to pick up. The change reaches production with the next promoted UAT batch.
 
 ## Blockers
 
-- blocked on operator: smoke the preview and tick **Ready to merge** on https://github.com/k0d0minio/berceo/pull/64.
+- none
 
 ## Do not
 
-- Do not tick the gate yourself, and do not tick acceptance-criteria boxes in the PR body (their status is in `03_build/output/notes.md`).
-- Do not touch `comptes-orphaned-auth-identity` (its own run on `claude/wizardly-darwin-dk0jc8`).
+- Do not reopen or re-run this run; a follow-up is a new stub.
