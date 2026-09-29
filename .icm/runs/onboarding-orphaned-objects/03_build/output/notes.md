@@ -1,7 +1,7 @@
 # Build notes: onboarding-orphaned-objects
 
 - commits: b9d8c09 feat — the removal step, its tests, the three paths wired onto it
-- ci: see the stop report — draft head, then the full gate after the flip
+- ci: GREEN on c57200a — Vercel preview pass, Quality (advisory) pass (ESLint, tsc, vitest incl. removals.test.ts)
 
 ## What changed
 
