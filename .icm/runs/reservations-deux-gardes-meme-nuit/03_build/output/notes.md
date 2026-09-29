@@ -1,7 +1,7 @@
 # Build notes: reservations-deux-gardes-meme-nuit
 
 - commits: `feat: reservations-deux-gardes-meme-nuit — one open or booked request per night` (schema, migration 0014, wording, test, README, run files)
-- ci: pending — read on the draft head, then the full gate after the flip
+- ci: GREEN on 7ab1775 (draft: Vercel + Quality (advisory) pass); full gate after the flip below
 
 ## What changed
 

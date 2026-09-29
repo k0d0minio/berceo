@@ -25,5 +25,5 @@ step, so a resuming session can pick up the first unticked line.
 - [x] Wording D-157 (`src/content/demandes.ts`) and the comments in `src/lib/demandes/requests.ts`
 - [x] Test `src/lib/demandes/one-per-night.test.ts` (index read from the schema)
 - [x] README line on `care_requests`
-- [ ] Pre-flip: `lint.sh`, `env.sh audit --changed`, `ci-status.sh` on the draft head, merge `origin/main`, `security-check.sh --branch`
+- [x] Pre-flip: `lint.sh`, `env.sh audit --changed`, `ci-status.sh` on the draft head, merge `origin/main`, `security-check.sh --branch`
 - [ ] Flip ready, push, settle the full gate
