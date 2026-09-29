@@ -13,9 +13,15 @@ not copies: the spec stays the spec, the scope stays the scope. Seeded when the 
 
 ## Constraints
 
-- <what must stay true while this run is built — from the spec's Out of scope, the `D-n`
-  decisions in `decisions.md`, and `_shared/project-rules.md`>
+- The form never says whether an address exists (D-34): an orphan replaced and a real account
+  both end on `/verification-email`.
+- No row is ever rebuilt from partial facts; an orphan is removed, never completed (D-160, D-161).
+- A `neon_auth` identity is deleted only when no `users` row carries its id, in the same statement.
+- The confirmer route is `comptes-welcome-email-no-retry`'s; this run does not touch it.
+- Every new word follows Surya's guide (D-19) and carries `@relecture`.
 
 ## Context budget
 
-- <what was loaded beyond the stage's Inputs, and why — the stage's overrun note lives here>
+- Define read `src/app/(auth)/actions.ts`, `src/lib/auth/{users,current-user,server,webhook,consent,errors}.ts`,
+  the confirmer route, `/connexion`, `src/lib/admin/accounts.ts` (the existing `neon_auth` delete) and the
+  `users` schema, to know what an orphan still carries and whether `neon_auth` is writable from the app.
