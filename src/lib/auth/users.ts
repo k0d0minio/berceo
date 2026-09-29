@@ -23,19 +23,31 @@ export async function userByAuthId(authUserId: string): Promise<User | null> {
  * `neon_auth` identity the accounts code makes.
  */
 
-/** The Neon Auth identity for an address (lower-cased), and whether a `users` row carries it. */
-export async function identityByEmail(
+/**
+ * How long a new identity is left to its own sign-up. Its `users` row is
+ * written right after Neon Auth answers, so a younger identity with no row may
+ * be a sign-up still in flight (a second tab, a resubmitted form), never an
+ * orphan: deleting it would leave that sign-up's row joined to nothing (D-169).
+ */
+const SIGN_UP_GRACE = sql`interval '5 minutes'`;
+
+/**
+ * The address's (lower-cased) Neon Auth identity when no `users` row carries
+ * it, and whether it is past the grace; null when there is none, or when it has
+ * its row (a real account).
+ */
+export async function orphanByEmail(
   email: string,
-): Promise<{ authUserId: string; hasRow: boolean } | null> {
-  const result = await db.execute<{ id: string; has_row: boolean }>(sql`
-    select u.id::text as id,
-      exists (select 1 from ${users} where ${users.authUserId} = u.id::text) as has_row
+): Promise<{ authUserId: string; pastGrace: boolean } | null> {
+  const result = await db.execute<{ id: string; past_grace: boolean }>(sql`
+    select u.id::text as id, u."createdAt" < now() - ${SIGN_UP_GRACE} as past_grace
     from neon_auth."user" u
     where lower(u.email) = ${email}
+      and not exists (select 1 from ${users} where ${users.authUserId} = u.id::text)
     limit 1
   `);
   const [row] = result.rows;
-  return row ? { authUserId: row.id, hasRow: row.has_row } : null;
+  return row ? { authUserId: row.id, pastGrace: row.past_grace } : null;
 }
 
 /**

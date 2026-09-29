@@ -10,7 +10,7 @@ import { RETURN_COOKIE, RETURN_COOKIE_OPTIONS, returnToStore } from "@/lib/auth/
 import { authOutcome } from "@/lib/auth/errors";
 import { landingFor, SIGN_IN_PATH } from "@/lib/auth/routing";
 import { getAuth } from "@/lib/auth/server";
-import { deleteOrphanIdentity, identityByEmail, userByAuthId } from "@/lib/auth/users";
+import { deleteOrphanIdentity, orphanByEmail, userByAuthId } from "@/lib/auth/users";
 import {
   isSignUpRole,
   isValidEmail,
@@ -33,6 +33,7 @@ export type FormMessage =
   | "nonVerifie"
   | "lienInvalide"
   | "inscriptionIncomplete"
+  | "inscriptionEnCours"
   | "suspendu"
   | "generique"
   | "renvoye"
@@ -85,14 +86,16 @@ export async function signUp(
   if (error && authOutcome(error) === "existe") {
     // An address that already has an account reads exactly like a new one (D-34).
     // An orphan a failed sign-up left behind is replaced by this one, once (D-160).
-    let replaced: boolean;
+    let orphan: OrphanOutcome;
     try {
-      replaced = await replaceOrphan(email);
+      orphan = await replaceOrphan(email);
     } catch (replaceError) {
       console.error("[comptes] orphan identity not replaced", { replaceError });
       return { message: "generique", values };
     }
-    if (!replaced) redirect("/verification-email");
+    if (orphan === "aucune") redirect("/verification-email");
+    // Too young to tell from a sign-up still writing its row (D-169).
+    if (orphan === "recente") return { message: "inscriptionEnCours", values };
     ({ data, error } = await createIdentity());
   }
 
@@ -140,11 +143,18 @@ export async function signUp(
   redirect("/verification-email");
 }
 
-/** True when the address's identity was an orphan (no `users` row) and is now deleted. */
-async function replaceOrphan(email: string): Promise<boolean> {
-  const identity = await identityByEmail(email);
-  if (!identity || identity.hasRow) return false;
-  return deleteOrphanIdentity(identity.authUserId);
+type OrphanOutcome = "remplacee" | "recente" | "aucune";
+
+/**
+ * Whether the address's identity was an orphan (no `users` row) and is now
+ * deleted (`remplacee`), is one still inside the grace (`recente`), or is no
+ * orphan at all (`aucune`: a real account, or no identity).
+ */
+async function replaceOrphan(email: string): Promise<OrphanOutcome> {
+  const orphan = await orphanByEmail(email);
+  if (!orphan) return "aucune";
+  if (!orphan.pastGrace) return "recente";
+  return (await deleteOrphanIdentity(orphan.authUserId)) ? "remplacee" : "aucune";
 }
 
 export type SignInState = {

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /*
- * Spec (comptes-orphaned-auth-identity, D-159, D-160, D-165): a sign-up whose
+ * Spec (comptes-orphaned-auth-identity, D-159, D-160, D-165, D-169): a sign-up whose
  * `users` row fails to write never locks the address out. The identity is
  * deleted when the batch fails; a retry that meets an identity with no row (an
  * orphan) replaces it, once; a real account still reads like a new sign-up
@@ -22,7 +22,7 @@ const m = vi.hoisted(() => {
     signOut: vi.fn(async () => {}),
     batch: vi.fn(async (_statements: unknown[]) => {}),
     userByAuthId: vi.fn(),
-    identityByEmail: vi.fn(),
+    orphanByEmail: vi.fn(),
     deleteOrphanIdentity: vi.fn(async (_authUserId: string) => true),
   };
 });
@@ -38,7 +38,7 @@ vi.mock("@/lib/auth/server", () => ({
 }));
 vi.mock("@/lib/auth/users", () => ({
   userByAuthId: m.userByAuthId,
-  identityByEmail: m.identityByEmail,
+  orphanByEmail: m.orphanByEmail,
   deleteOrphanIdentity: m.deleteOrphanIdentity,
 }));
 vi.mock("@/db", async () => {
@@ -126,10 +126,10 @@ describe("a sign-up whose users row fails to write (D-159)", () => {
 describe("a sign-up retry on an address Neon Auth already has (D-160, D-34)", () => {
   it("replaces an orphan: deleted, signed up again, row and consents written, on to /verification-email", async () => {
     m.signUpEmail.mockResolvedValueOnce(refused("USER_ALREADY_EXISTS")).mockResolvedValueOnce(created("auth-2"));
-    m.identityByEmail.mockResolvedValue({ authUserId: "auth-1", hasRow: false });
+    m.orphanByEmail.mockResolvedValue({ authUserId: "auth-1", pastGrace: true });
 
     expect(await signUpParent()).toEqual({ redirect: "/verification-email" });
-    expect(m.identityByEmail).toHaveBeenCalledWith(EMAIL);
+    expect(m.orphanByEmail).toHaveBeenCalledWith(EMAIL);
     expect(m.deleteOrphanIdentity).toHaveBeenCalledExactlyOnceWith("auth-1");
     expect(m.signUpEmail).toHaveBeenCalledTimes(2);
 
@@ -141,7 +141,7 @@ describe("a sign-up retry on an address Neon Auth already has (D-160, D-34)", ()
 
   it("leaves a real account alone and lands on /verification-email exactly as a new sign-up", async () => {
     m.signUpEmail.mockResolvedValue(refused("USER_ALREADY_EXISTS"));
-    m.identityByEmail.mockResolvedValue({ authUserId: "auth-1", hasRow: true });
+    m.orphanByEmail.mockResolvedValue(null);
 
     expect(await signUpParent()).toEqual({ redirect: "/verification-email" });
     expect(m.deleteOrphanIdentity).not.toHaveBeenCalled();
@@ -149,9 +149,18 @@ describe("a sign-up retry on an address Neon Auth already has (D-160, D-34)", ()
     expect(m.batch).not.toHaveBeenCalled();
   });
 
+  it("leaves an identity with no row inside its grace alone and asks to retry in a few minutes (D-169)", async () => {
+    m.signUpEmail.mockResolvedValue(refused("USER_ALREADY_EXISTS"));
+    m.orphanByEmail.mockResolvedValue({ authUserId: "auth-1", pastGrace: false });
+
+    expect(await signUpParent()).toMatchObject({ state: { message: "inscriptionEnCours" } });
+    expect(m.deleteOrphanIdentity).not.toHaveBeenCalled();
+    expect(m.signUpEmail).toHaveBeenCalledTimes(1);
+  });
+
   it("answers « generique » when the sign-up after replacing an orphan is refused, and tries no third time", async () => {
     m.signUpEmail.mockResolvedValue(refused("USER_ALREADY_EXISTS"));
-    m.identityByEmail.mockResolvedValue({ authUserId: "auth-1", hasRow: false });
+    m.orphanByEmail.mockResolvedValue({ authUserId: "auth-1", pastGrace: true });
 
     expect(await signUpParent()).toMatchObject({ state: { message: "generique" } });
     expect(m.signUpEmail).toHaveBeenCalledTimes(2);
@@ -163,7 +172,7 @@ describe("a sign-up retry on an address Neon Auth already has (D-160, D-34)", ()
     m.signUpEmail
       .mockResolvedValueOnce(refused("USER_ALREADY_EXISTS"))
       .mockResolvedValueOnce(refused("PASSWORD_TOO_SHORT"));
-    m.identityByEmail.mockResolvedValue({ authUserId: "auth-1", hasRow: false });
+    m.orphanByEmail.mockResolvedValue({ authUserId: "auth-1", pastGrace: true });
 
     expect(await signUpParent()).toMatchObject({ state: { errors: { motDePasse: "motDePasseCourt" } } });
     expect(m.signUpEmail).toHaveBeenCalledTimes(2);

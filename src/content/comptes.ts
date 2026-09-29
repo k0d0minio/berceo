@@ -179,6 +179,9 @@ export const comptes = catalogue({
       /** @relecture Surya — inscription interrompue, compte sans espace (D-165). */
       inscriptionIncomplete:
         "Votre inscription n'a pas abouti. Créez à nouveau votre compte avec la même adresse e-mail.",
+      /** @relecture Surya — inscription relancée pendant qu'une autre se termine (D-169). */
+      inscriptionEnCours:
+        "Votre inscription n'a pas pu être finalisée. Réessayez dans quelques minutes.",
       /** @relecture Surya — compte suspendu par l'équipe Berceo (back-office-admin, D-134). */
       suspendu: "Votre compte est suspendu. Vous ne pouvez pas vous connecter pour le moment.",
       /** @relecture Surya — erreur technique générique. */
