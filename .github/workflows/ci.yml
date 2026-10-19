@@ -1,64 +1,29 @@
-name: CI
-
-# The ONE quality job this repo runs in CI — the estate's cost floor (icm-board decision D43,
-# `.icm/_shared/ci.md` → What CI is for). The repo is public, so the minutes are free; the shape
-# is the estate's so nothing changes if that ever does:
-#
-#   • ADVISORY, by name. The job is `Quality (advisory)`: `ci-status.sh` reports it and never
-#     reds on it; the ruleset on `main` requires the `Vercel` status alone, as it already did.
-#     No build step — Vercel's build is the verdict.
-#   • READY HEADS ONLY. A draft owes CI nothing: `lint.sh` / `security-check.sh` over the
-#     changed files are the session's pre-flip check. The `types:` list REPLACES GitHub's
-#     default — `ready_for_review` is named so the flip itself runs it, and the job-level
-#     `if:` keeps a draft's `synchronize` free.
-#   • NEVER ON `main`. The merge commit's proof is Vercel's build of `main` (the `uat`
-#     environment's and the Staged production deployment). No `push:` trigger.
-#   • PATH-FILTERED. Nothing waits on this job, so it skips `.icm/**`, markdown and `.github/**`.
-#   • ONE JOB, cheapest first: ESLint, `tsc --noEmit`, the vitest suite (the migration-journal
-#     test among them).
-#   • SUPERSEDED RUNS ARE CANCELLED. One run per branch; a newer push replaces the one in flight.
-#
-# A red run here is a finding the stage fixes on the branch — advisory means the merge never
-# waits on it, not that it may be ignored.
+# ci: the client checks and the release, defined once in legible-consulting/.github (CI is
+# truth; never run locally).
+name: ci
 
 on:
+  push:
   pull_request:
-    types: [ready_for_review, synchronize, reopened]
-    paths-ignore:
-      - ".icm/**"
-      - "**/*.md"
-      - ".github/**"
-  workflow_dispatch:
-
-concurrency:
-  group: ci-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
-    name: Quality (advisory)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false
-    steps:
-      - uses: actions/checkout@v4
+    uses: legible-consulting/.github/.github/workflows/check-client.yml@main
+    with:
+      tier: app
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Test
-        run: npm test
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: legible-consulting/.github/.github/workflows/release.yml@main
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
