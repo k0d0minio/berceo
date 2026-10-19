@@ -172,6 +172,7 @@ jobs:
           else
             # The slug line is the spine Spec-table row or the lane `- slug:` bullet (resolve-run.sh
             # matches the same two shapes); the Summary is the first non-empty line under ## Summary.
+            # shellcheck disable=SC2016  # the backticks and the backreference are sed syntax, not shell
             slug="$(printf '%s\n' "$PR_BODY" | sed -nE 's/^- slug:[[:space:]]*//p; s/^\|[[:space:]]*\*\*Slug\*\*[[:space:]]*\|[[:space:]]*`?([^`| ]+)`?[[:space:]]*\|.*/\1/p' | head -1)"
             [ -n "$slug" ] || slug="pr-${PR_NUMBER}"
             summary="$(printf '%s\n' "$PR_BODY" | awk '/^## Summary/{f=1; next} f && NF {print; exit}')"
