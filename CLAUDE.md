@@ -20,8 +20,10 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
 
 | You are asked to | Go to |
 |---|---|
-| build the next ticket | `BUILD.md` |
-| change what CI checks | `legible-consulting/.github` (`check-client.yml`, `release.yml`); `ci.yml` here only calls them |
+| build the next ticket, or any ticket | `.icm/intake/CONTEXT.md` (the loop), then the stub |
+| open, fill or finish a pull request | `.github/pull_request_template.md`. The gates sit at its top |
+| plan new work | `.icm/intake/CONTEXT.md` (an epic with a breakdown), never a loose list |
+| change what CI checks or how a release is cut | `legible-consulting/.github` (`check-client.yml`, `release.yml`). `ci.yml` here only calls them |
 | change a file the blueprint renders | the blueprint, then `copier update` here |
 
 | The task | Go to |
@@ -61,10 +63,15 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
 ## Rules
 
 - Client-facing text in `fr-BE`; code, commits and notes in English.
+- Technical text (stubs, pull request bodies, commits, questions) in Simplified Technical
+  English: short active sentences, one instruction each, no semicolons. A question for Jamie
+  is numbered and carries a default answer.
 - CI is truth: never run build, lint, typecheck, test, format or dev locally. Push, then read
   the `ci` run and the Vercel preview.
 - Secrets never in git: names only, values in GitHub or Vercel settings. Flag any plaintext
   credential found.
+- One ticket is one branch and one pull request. The pull request moves the stub to `_done/`.
+  Gates are human checkboxes: read them, never tick them.
 - `main` changes by PR; the merge is a human's.
 - Never invent a commercial term. Rates, scope, launch dates and contact addresses come from
   Jamie or from `.icm/docs/`. Berceo has no published email or domain yet; a blank is the
