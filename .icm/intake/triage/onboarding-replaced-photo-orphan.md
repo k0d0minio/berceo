@@ -30,4 +30,4 @@ the purge reads it. Test with injected storage, as `removals.test.ts` does.
 In the berceo repo, read `.icm/intake/triage/onboarding-replaced-photo-orphan.md`, then make the
 photo replacement in `confirmUpload` / `recordUpload` never leave an old photo's object in the
 bucket without a row, keeping one photo per profile under concurrent uploads. Run it through
-`/pipeline bug onboarding-replaced-photo-orphan`.
+`.icm/scripts/new-run.sh triage/onboarding-replaced-photo-orphan`.

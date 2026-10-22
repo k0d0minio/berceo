@@ -19,4 +19,4 @@ request, used by the edit page and the action.
 
 In the berceo repo, read `.icm/intake/triage/reservations-compte-reponses-une-demande.md`. Add a
 single-request waiting-answer count and use it in the edit page and `updateRequestAction`. Run it
-through `/pipeline chore reservations-compte-reponses-une-demande`.
+through `.icm/scripts/new-run.sh reservations-revue-candidature/reservations-compte-reponses-une-demande`.

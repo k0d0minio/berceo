@@ -40,4 +40,4 @@ src/lib/demandes/requests.ts, possibly src/db/schema.ts + drizzle/.
 In the berceo repo, read `.icm/intake/triage/demandes-digest-failed-send-no-retry.md`. The daily
 digest of care requests marks its requests before sending, so a failed send to one professional is
 never retried. Make a failed recipient's digest reach her on a later call without re-sending to the
-others, keeping one digest a day. Run it through `/pipeline bug demandes-digest-failed-send-no-retry`.
+others, keeping one digest a day. Start it with `.icm/scripts/new-run.sh triage/demandes-digest-failed-send-no-retry`.

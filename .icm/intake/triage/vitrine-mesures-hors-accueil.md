@@ -18,4 +18,4 @@ Let the design-system cards demo wrap or stack below 375 px so the page doesn't 
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/vitrine-mesures-hors-accueil.md`. Fix the sideways scroll on `/design-system` at 320 px (the cards demo in `src/app/(public)/design-system/page.tsx`) and hold the `/tarifs` paragraph that runs 85 characters a line at 768 px to at most 75 (`src/app/(public)/tarifs/page.tsx`). Change no word. Measure both at 320, 390, 768 and 1440 px on the preview with `.icm/runs/_done/blocs-accueil/03_build/output/measure.mjs`. Run it through `/pipeline bug vitrine-mesures-hors-accueil`.
+In the berceo repo, read `.icm/intake/triage/vitrine-mesures-hors-accueil.md`. Fix the sideways scroll on `/design-system` at 320 px (the cards demo in `src/app/(public)/design-system/page.tsx`) and hold the `/tarifs` paragraph that runs 85 characters a line at 768 px to at most 75 (`src/app/(public)/tarifs/page.tsx`). Change no word. Measure both at 320, 390, 768 and 1440 px on the preview with `.icm/runs/_done/blocs-accueil/03_build/output/measure.mjs`. Start it with `.icm/scripts/new-run.sh triage/vitrine-mesures-hors-accueil`.

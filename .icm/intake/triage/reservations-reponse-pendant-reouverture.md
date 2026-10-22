@@ -27,4 +27,4 @@ with two concurrent connections before shipping.
 In the berceo repo, read `.icm/intake/triage/reservations-reponse-pendant-reouverture.md`. In
 `src/lib/reservations/answers.ts` (`answerRequest`), make the INSERT hold the profile row it checks
 for `valide` so it serialises with `reopenFile`'s batch (`reopeningWithdrawsAnswers`). Prove both
-interleavings on a Neon branch. Run it through `/pipeline bug reservations-reponse-pendant-reouverture`.
+interleavings on a Neon branch. Start it with `.icm/scripts/new-run.sh triage/reservations-reponse-pendant-reouverture`.

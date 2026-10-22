@@ -29,4 +29,4 @@ claim-before-send, release-on-failure shape (the learned rule from cycle-de-gard
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/avis-invitation-claim-edges.md` and `src/lib/avis/notify.ts`. Make a vanished booking count as not sent and release its claim; make a failed release recoverable (one retry, or a rule that re-owes a stale claim). Extend `src/lib/avis/notify.test.ts`. Run it through `/pipeline bug avis-invitation-claim-edges`.
+In the berceo repo, read `.icm/intake/triage/avis-invitation-claim-edges.md` and `src/lib/avis/notify.ts`. Make a vanished booking count as not sent and release its claim; make a failed release recoverable (one retry, or a rule that re-owes a stale claim). Extend `src/lib/avis/notify.test.ts`. Start it with `.icm/scripts/new-run.sh triage/avis-invitation-claim-edges`.
