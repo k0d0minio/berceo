@@ -27,4 +27,4 @@ or re-check after.
 In the berceo repo, read `.icm/intake/triage/onboarding-remove-last-file-race.md`, then make
 `removeFile` in `src/app/(portail)/espace/professionnelle/actions.ts` hold the "last file" rule
 under the profile's lock, keeping the object-before-row order. Run it through
-`/pipeline bug onboarding-remove-last-file-race`.
+`.icm/scripts/new-run.sh triage/onboarding-remove-last-file-race`.

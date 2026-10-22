@@ -29,4 +29,4 @@ In the berceo repo, read `.icm/intake/triage/frais-paiement-sans-reservation.md`
 `src/lib/reservations/bookings.ts` (`acceptAnswer`'s last statement). Add a moment on
 `payments` that records a booking was made (one migration), set it where `booking_id` is set,
 and make `settle()` and `startCheckout`'s in-flight guard act only on fees never booked. Run it
-through `/pipeline bug frais-paiement-sans-reservation`.
+through `.icm/scripts/new-run.sh triage/frais-paiement-sans-reservation`.

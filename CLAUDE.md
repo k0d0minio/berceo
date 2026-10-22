@@ -55,10 +55,19 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
 | The professional's indicative availability: « Mes disponibilités » and the « Prochaines disponibilités » block | [`src/lib/disponibilites/`](src/lib/disponibilites/) (rules, the only reads and writes of `professional_availability`; nothing about a care request reads it), [`src/components/disponibilites/`](src/components/disponibilites/); page in `src/app/(portail)/espace/professionnelle/disponibilites/`; README → The professional's availability |
 | The 3 % service fee: the Checkout, the booking made by the payment, refunds, the founders' list of fees | [`src/lib/paiements/`](src/lib/paiements/) (rules, `payments.ts`: the reads and writes of `payments`, bar the booking link `acceptAnswer` writes in its own transaction, and the only calls to Stripe), [`src/app/api/webhooks/stripe/`](src/app/api/webhooks/stripe/); the return and abandon routes in `src/app/(portail)/espace/famille/reservations/paiement/`, the list in `src/app/(portail)/admin/paiements/`; README → The service fee |
 | The professional's onboarding and documents | [`src/lib/professionnelle/`](src/lib/professionnelle/) (rules, `uploads.ts`: the only insert of a file, under the profile's lock; `removals.ts`: her removals, object before row), [`src/lib/documents/`](src/lib/documents/) (private bucket, `/api/fichiers/[id]`); pages in `src/app/(portail)/espace/professionnelle/`; README → The professional's onboarding |
-| A schema change | edit the schema, `npm run db:generate -- --name <what>`, commit `drizzle/`; `.icm/skills/database-migration/` |
+| A schema change | edit the schema, `npm run db:generate -- --name <what>`, commit `drizzle/` |
 | shadcn components | [`src/components/ui/`](src/components/ui/) — retuned to the DA; red and green only in `confirm-dialog.tsx` (D-24) |
 | The research behind the engagement | [`.icm/docs/`](.icm/docs/) — `REPORT.md`, `cahier-des-charges.md`, `QUESTIONS.md` |
 
+
+## Release
+
+Every merge to `main` deploys UAT at `uat.berceo.be` and builds a production deployment that stays
+staged. Production moves on a promotion: the client says yes on UAT, Jamie records it with
+`.icm/scripts/promote.sh approve --by "<who>"`, which drafts the Release at that commit, and
+Jamie publishes the Release on GitHub. `release.yaml` then migrates, promotes the staged build
+and announces. The rule is `.icm/_shared/promotion.md`. The release-please pull request from
+`ci.yml` keeps the changelog and the tag and moves nothing.
 
 ## Rules
 

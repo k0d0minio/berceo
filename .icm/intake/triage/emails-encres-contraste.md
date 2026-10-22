@@ -15,4 +15,4 @@ Add the two ink literals next to the others in `templates.ts`, with the same "mi
 
 ## Prompt
 
-In the berceo repo, read `.icm/intake/triage/emails-encres-contraste.md`. In `src/lib/email/templates.ts`, add the sage ink (`#3c584b`) and taupe ink (`#646254`) as literals beside `SAUGE`/`TAUPE`/`PERLE`/`BLANC`, with the same "mirrors globals.css" comment `src/app/theme-color.ts` carries, and switch body text, the logotype/links and the capsule button to them so every transactional e-mail clears WCAG AA. Change no word or layout. Run it through `/pipeline tweak emails-encres-contraste`.
+In the berceo repo, read `.icm/intake/triage/emails-encres-contraste.md`. In `src/lib/email/templates.ts`, add the sage ink (`#3c584b`) and taupe ink (`#646254`) as literals beside `SAUGE`/`TAUPE`/`PERLE`/`BLANC`, with the same "mirrors globals.css" comment `src/app/theme-color.ts` carries, and switch body text, the logotype/links and the capsule button to them so every transactional e-mail clears WCAG AA. Change no word or layout. Start it with `.icm/scripts/new-run.sh triage/emails-encres-contraste`.

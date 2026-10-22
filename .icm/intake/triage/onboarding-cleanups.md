@@ -27,4 +27,4 @@ into `src/lib/professionnelle/` so the three pages share them. No behaviour chan
 
 In the berceo repo, read `.icm/intake/triage/onboarding-cleanups.md` and make the two changes it
 lists in `src/lib/documents/storage.ts` and `src/app/(portail)/espace/professionnelle/`, with no
-behaviour change. Run it through `/pipeline chore onboarding-cleanups`.
+behaviour change. Start it with `.icm/scripts/new-run.sh triage/onboarding-cleanups`.
