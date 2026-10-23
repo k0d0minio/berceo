@@ -15,6 +15,16 @@ npm install
 npm run dev      # http://localhost:3000
 ```
 
+## Environments
+
+| Environment | Address | Database | Moves on |
+|---|---|---|---|
+| Production | https://www.berceo.be | the default branch of the Neon project `berceo` | Jamie's dispatch of `promote.yml` with the release tag |
+| UAT | https://uat.berceo.be | the default branch of the Neon project `uat-berceo` | every merge to `main` |
+| Preview | the pull request's Vercel preview | the Neon branch `preview/<branch>` in `uat-berceo` | every push to the branch |
+
+The contract: `.icm/uat/CONTEXT.md`.
+
 ## Where things live
 
 | Path | Purpose |
@@ -34,7 +44,7 @@ npm run dev      # http://localhost:3000
 | [src/lib/messagerie/](src/lib/messagerie/), [src/components/messagerie/](src/components/messagerie/) | The conversation per answer: its rules, reads and writes, the send action, the new-message e-mail. See **The conversation** below. |
 | [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
 | [src/lib/paiements/](src/lib/paiements/), [src/app/api/webhooks/stripe/](src/app/api/webhooks/stripe/) | The 3 % service fee through Stripe: the Checkout, the webhook, refunds, the founders' list. See **The service fee** below. |
-| [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`; the `health_endpoint` in `.icm/project.json`. |
+| [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
 | [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
 | [src/app/theme-color.ts](src/app/theme-color.ts) | The browser-chrome colour — a `<meta>` cannot read a CSS variable. |
@@ -150,9 +160,9 @@ npm run db:verify                      # every journal entry is in __drizzle_mig
 npm run db:studio                      # browse the database
 ```
 
-Production is migrated by the **DB migrate** workflow (`.github/workflows/db-migrate.yml`) on
-pushes to `main` that touch `drizzle/` or `src/db/`, from the `DATABASE_URL` repository secret.
-Every other Vercel build (previews and uat.berceo.be) migrates its own Neon branch first:
+Production is migrated by `promote.yml` on Jamie's dispatch of a release tag, from the
+`DATABASE_URL` repository secret, before the staged build is promoted (`.icm/uat/CONTEXT.md`).
+Every other Vercel build (previews and uat.berceo.be) migrates its own database first:
 the `vercel-build` script runs `db:migrate` and `db:verify` unless `VERCEL_ENV` is `production`.
 `src/db/migrations-journal.test.ts` refuses a journal whose stamps are out of order — the one
 way Drizzle's migrator skips a file silently.

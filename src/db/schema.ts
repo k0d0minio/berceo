@@ -62,7 +62,7 @@ import { CONTEXT_MAX } from "../lib/famille/limits";
 // ---------------------------------------------------------------------------
 
 /**
- * The three personas the engagement names (`.icm/project.json` → `personas`):
+ * The three personas the engagement names:
  * a parent booking a night, a professional taking the shift, the Berceo team.
  */
 export const userRoleEnum = pgEnum("user_role", ["parent", "professionnel", "admin"]);

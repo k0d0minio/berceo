@@ -1,5 +1,5 @@
 /*
- * The health endpoint `.icm/project.json` points at. It answers that the app
+ * The health endpoint. It answers that the app
  * is serving requests, and nothing more: no database, no external service,
  * so a slow dependency never reads as the site being down.
  */
