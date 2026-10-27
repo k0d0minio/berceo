@@ -4,7 +4,7 @@ The platform for Berceo, a Belgian two-sided marketplace connecting parents of n
 professionals who take overnight post-partum care shifts (*gardes de nuit*). In French: the
 public site (the vitrine), accounts and the signed-in spaces, built increment by increment on
 `main`, tested on UAT (`uat.berceo.be`) and promoted to production as a batch. Built by Legible
-Consulting; the repo tracks `legible-consulting/blueprint` (tier `app`) through
+Consulting; the repo tracks `legible-consulting/blueprint` through
 `.copier-answers.yml`. This file is identity and routing only.
 
 Next.js (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui · Drizzle on Neon Postgres,
@@ -21,11 +21,17 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
 | You are asked to | Go to |
 |---|---|
 | build the next ticket, or any ticket | `.icm/intake/CONTEXT.md` (the loop), then the stub |
+| fix a bug, make a tweak or do a chore, with or without a stub | `.icm/lanes/<lane>/CONTEXT.md`: `bug`, `tweak` or `chore` |
+| fix a fault that production shows now | `.icm/lanes/hotfix/CONTEXT.md` |
+| do work that has no ticket | `.icm/intake/CONTEXT.md` § A request with no stub |
+| answer a question about the build, or review | read and answer. No stub, no branch, no pull request |
 | open, fill or finish a pull request | `.github/pull_request_template.md`. The gates sit at its top |
+| merge after the tick, release or promote | `.icm/intake/CONTEXT.md` § The loop, step 7, and § After the tick, then `.icm/uat/CONTEXT.md` |
 | plan new work | `.icm/intake/CONTEXT.md` (an epic with a breakdown), never a loose list |
 | change what CI checks or how a release is cut | `legible-consulting/.github` (`check-client.yml`, `release.yml`). `ci.yml` here only calls them |
 | change a file the blueprint renders | the blueprint, then `copier update` here |
-| read the UAT batch, record the client's sign-off, promote, roll back | `.icm/uat/CONTEXT.md` (the whole UAT contract), then its scripts |
+| read the UAT batch, record the client's sign-off, roll back | `.icm/uat/CONTEXT.md` (the whole UAT contract), then its scripts |
+| change the database, or read where a preview's database comes from | `.icm/database/CONTEXT.md`, then `preview-db.sh` |
 
 | The task | Go to |
 |---|---|
@@ -61,17 +67,6 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
 | The research behind the engagement | [`.icm/docs/`](.icm/docs/) — `REPORT.md`, `cahier-des-charges.md`, `QUESTIONS.md` |
 
 
-## Release
-
-Every merge to `main` deploys UAT at `uat.berceo.be` and builds a production deployment that stays
-staged. The release-please pull request from `ci.yml` is the batch. Production moves on a
-promotion: the client says yes on UAT, Jamie records it with
-`.icm/scripts/promote.sh approve --by "<who>"`, merges the release pull request, which makes the
-tag and the changelog and moves nothing, then dispatches `promote.yml` with that tag. That run
-migrates production and promotes the staged build. The rule is `.icm/uat/CONTEXT.md`. The UAT
-database is the default branch of the Neon project `uat-berceo`, the second Neon project the
-contract allows.
-
 ## Rules
 
 - Client-facing text in `fr-BE`; code, commits and notes in English.
@@ -83,12 +78,13 @@ contract allows.
 - Secrets never in git: names only, values in GitHub or Vercel settings. Flag any plaintext
   credential found.
 - One ticket is one branch and one pull request. The pull request moves the stub to `_done/`.
-  Gates are human checkboxes: read them, never tick them.
-- `main` changes by PR; the merge is a human's.
+- `main` changes by pull request. Gates are human checkboxes: read them, never tick them.
+  Jamie ticks Ready to merge, and the session merges with `.icm/scripts/merge.sh`.
+  The release is Jamie's word `release` in the session: the session runs `.icm/scripts/release.sh`.
 - A ticket's merge reaches the UAT environment, where the client tests the batch. The merge of
-  the release pull request makes the release tag and moves nothing. Production moves when Jamie
-  dispatches `promote.yml` with that tag, after the client's sign-off is recorded. A session
-  never merges it and never dispatches it (`.icm/uat/CONTEXT.md`).
+  the release pull request makes the release tag and moves nothing. Production moves when the
+  session dispatches `promote.yml` with `.icm/scripts/promote.sh run`, on Jamie's word, after the
+  session records the client's sign-off (`.icm/uat/CONTEXT.md`).
 - Never invent a commercial term. Rates, scope, launch dates and contact addresses come from
   Jamie or from `.icm/docs/`. Berceo has no published email or domain yet; a blank is the
   correct state until it does. The vitrine deliberately shows no contact for exactly this reason.
