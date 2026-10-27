@@ -6,17 +6,27 @@ and its folder is its status: open here, done in `_done/`. The desk reads this f
 The contract, the formats and the loop from stub to merge: `CONTEXT.md`.
 
 This page is the repo's own. Copier writes it once. What is true of this backlog goes below:
-the epics in order, the decisions of record that bind them, the milestones.
+`## Order`, the decisions of record that bind the epics, the milestones. Jamie sets `## Order`,
+the order of the epics (`CONTEXT.md`, The order of the epics).
+
+## Order
+
+Set by Jamie on 2026-10-27.
+
+1. abonnements-familles
+2. onboarding-retour-1
+3. demande-retour-1
+4. vitrine-retour-1
 
 ## The backlog on 2026-10-23
 
 The founders' feedback round 1 (Drive, `feedback-round-1.pdf`, 2026-10-23) replaced the open
-backlog whole. The epics, in build order:
+backlog whole. The epics it opened:
 
-1. `vitrine-retour-1`: the words the founders asked for on the public site.
-2. `onboarding-retour-1`: the professional's file, the charter, the 130 € floor.
-3. `demande-retour-1`: the request's address, extra hours, children, feeding, regular nights.
-4. `abonnements-familles`: the four family subscriptions of the devis.
+- `abonnements-familles`: the four family subscriptions of the devis.
+- `onboarding-retour-1`: the professional's file, the charter, the 130 € floor.
+- `demande-retour-1`: the request's address, extra hours, children, feeding, regular nights.
+- `vitrine-retour-1`: the words the founders asked for on the public site.
 
 Decisions of record that bind them: a feedback request supersedes an earlier requirement, except
 the insurance wording, which stays out until a contract exists (D-8, Jamie 2026-10-23). The
