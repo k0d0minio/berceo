@@ -173,7 +173,12 @@ function NightPicker({
                   onKeyDown={(event) => onKeyDown(event, day.date)}
                   className={cn(
                     "flex min-h-11 min-w-0 items-center justify-center rounded-md text-corps font-semibold transition-colors duration-200 ease-out focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-encre-taupe focus-visible:outline-solid disabled:opacity-50",
-                    isSelected ? "bg-encre-sauge text-blanc" : open ? "bg-perle text-encre-taupe hover:bg-beurre" : "text-encre-taupe"
+                    // The focus ring sits on the cell's own fill: butter on the ink, the ink elsewhere.
+                    isSelected
+                      ? "bg-encre-sauge text-blanc focus-visible:outline-beurre"
+                      : open
+                        ? "bg-perle text-encre-taupe hover:bg-beurre"
+                        : "text-encre-taupe"
                   )}
                 >
                   {dayNumber(day.date)}
