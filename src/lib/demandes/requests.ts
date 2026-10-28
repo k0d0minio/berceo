@@ -16,7 +16,7 @@ import { notSuspended, suspendedAtExactly } from "@/lib/auth/suspension";
 import { familyNotesOfRequests, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { familyCommune } from "@/lib/famille/profile";
 
-import { isChangeable, TIME_ZONE, type RequestStatus } from "./rules";
+import { isChangeable, TIME_ZONE, type Children, type Feeding, type RequestStatus } from "./rules";
 import type { RequestValues } from "./validation";
 
 /**
@@ -24,8 +24,8 @@ import type { RequestValues } from "./validation";
  * from the session (the caller's `requireAccess`), never from a form, and
  * answer only for her own rows: another family's id reads as not found.
  *
- * What a professional reads is `cardColumns`: the night, the children, the
- * commune. Never the family's id, name, e-mail, phone or address (D-15); the
+ * What a professional reads is `cardColumns`: the night, the children, their
+ * feeding, the commune. Never the family's id, name, e-mail, phone or address (D-15); the
  * tests hold the list of columns. Answers and bookings are
  * `src/lib/reservations/`'s; the request's own side of them (the list with her
  * answer, the priority professional, cancelling with its declined answers) is
@@ -41,6 +41,7 @@ export const cardColumns = {
   children: careRequests.children,
   babyAgeValue: careRequests.babyAgeValue,
   babyAgeUnit: careRequests.babyAgeUnit,
+  feeding: careRequests.feeding,
   communeIns: careRequests.communeIns,
   postcode: careRequests.postcode,
   locality: careRequests.locality,
@@ -55,9 +56,11 @@ export type RequestCard = {
   urgent: boolean;
   nightDate: string;
   startTime: string;
-  children: "un_bebe" | "jumeaux";
+  children: Children;
   babyAgeValue: number;
   babyAgeUnit: "semaines" | "mois";
+  /** Null on a request published before the field (demande-enfants-alimentation). */
+  feeding: Feeding | null;
   communeIns: string;
   postcode: string;
   locality: string;
@@ -103,11 +106,12 @@ export type PublishResult =
  * Publishes a request for the family `userId`. The commune is her profile's,
  * copied now (D-63); without one there is nothing to publish. Published from a
  * professional's profile, it carries her as its priority professional (D-71);
- * the caller has checked she is validated.
+ * the caller has checked she is validated. A republished garde copies its
+ * request's feeding, null when that request predates the field.
  */
 export async function publishRequest(
   userId: string,
-  values: RequestValues,
+  values: Omit<RequestValues, "feeding"> & { feeding: Feeding | null },
   urgent: boolean,
   now: Date,
   priorityProfileId: string | null = null,
@@ -176,8 +180,8 @@ function changeable(userId: string, id: string) {
 export type ChangeResult = "ok" | "nonModifiable" | "doublon";
 
 /**
- * Saves an edit: the night, the start, the children, the age. Never the
- * commune or the urgency, and never while a validated professional's answer
+ * Saves an edit: the night, the start, the children, the age, the feeding.
+ * Never the commune or the urgency, and never while a validated professional's answer
  * waits on it (D-76, D-85): the lock is held in the UPDATE itself, so an answer
  * given while the form was open still wins.
  */

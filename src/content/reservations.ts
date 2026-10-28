@@ -126,6 +126,10 @@ export const reservations = catalogue({
         profession: "Profession",
         tarif: "Tarif de la garde",
         telephone: "Téléphone",
+        /** @relecture Surya — les enfants de la demande, retour 1 des fondatrices. */
+        enfants: "Enfants",
+        /** @relecture Surya — l'alimentation des enfants, retour 1 des fondatrices. */
+        alimentation: "Alimentation",
       },
       /** @relecture Surya — les heures de la garde. */
       heures: "de {debut} à {fin}",

@@ -238,10 +238,16 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
 - **The professional's list:** `/espace/professionnelle/demandes` — open requests whose night
   has not started, in the communes she serves, urgent first then newest; a profile that is not
   `valide` sees a line instead. The card (`src/components/demandes/request-card.tsx`) shows the
-  commune, the night (start + 11 h) and the children, never the family: `cardColumns` in
+  commune, the night (start + 11 h), the children (« Un bébé », « Jumeaux », « Triplés ») and
+  their feeding, never the family: `cardColumns` in
   `src/lib/demandes/requests.ts` is what a professional's query selects, and a test holds it.
+- **The feeding (demande-enfants-alimentation):** required on a publication and on an edit:
+  « Allaitement maternel », « Lait infantile » or « Allaitement mixte ». It is a care instruction,
+  not health data (D-20). A request published before the field has a null `feeding` and shows no
+  feeding line. The e-mails do not carry it.
 - **The rules:** `src/lib/demandes/rules.ts` (pure: date windows, start times 18:00 to 23:00 by
-  half hour, age 0–12 semaines or 1–24 mois, a night started, the digest's 18:00 gate),
+  half hour, age 0–12 semaines or 1–24 mois, the three feedings, a night started, the digest's
+  18:00 gate),
   `validation.ts` (the form), `format.ts` (« Un bébé de trois mois », « 30/09/2026 de 20h00 à
   7h00 »). Words in `src/content/demandes.ts`; e-mails in `src/content/emails.ts`.
 - **E-mails (D-61):** an urgent request e-mails every validated professional serving its commune
