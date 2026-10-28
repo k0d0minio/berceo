@@ -106,8 +106,8 @@ describe("the end of the night", () => {
   it("moves by the extra hours: 19:00 with 2 extra hours ends at 08:00", () => {
     expect(endTime("19:00", 2)).toBe("08:00");
     expect(endTime("19:00:00", 2)).toBe("08:00");
-    // The latest night: 23:00 with 6 extra hours ends at 11:00.
-    expect(endTime("23:00", 6)).toBe("11:00");
+    // The latest night: 23:00 with 6 extra hours ends the next day at 16:00.
+    expect(endTime("23:00", 6)).toBe("16:00");
   });
 
   it("has passed at the end in Brussels, with 0 and with 2 extra hours", () => {
@@ -117,6 +117,9 @@ describe("the end of the night", () => {
     expect(hasNightEnded("2026-09-30", "19:00", 2, new Date("2026-10-01T04:00:00Z"))).toBe(false);
     expect(hasNightEnded("2026-09-30", "19:00", 2, new Date("2026-10-01T05:59:00Z"))).toBe(false);
     expect(hasNightEnded("2026-09-30", "19:00", 2, new Date("2026-10-01T06:00:00Z"))).toBe(true);
+    // The latest night ends on the next day at 16:00 (14:00Z), not on the day after.
+    expect(hasNightEnded("2026-09-30", "23:00", 6, new Date("2026-10-01T13:59:00Z"))).toBe(false);
+    expect(hasNightEnded("2026-09-30", "23:00", 6, new Date("2026-10-01T14:00:00Z"))).toBe(true);
   });
 });
 

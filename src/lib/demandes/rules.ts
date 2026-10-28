@@ -19,8 +19,8 @@ export const TIME_ZONE = "Europe/Brussels";
 export const NIGHT_HOURS = 11;
 
 /**
- * The family adds 0 to 6 whole extra hours to the night (feedback round 1),
- * so a night never runs past 11:00: 23:00 + 11 + 6.
+ * The family adds 0 to 6 whole extra hours to the night (feedback round 1).
+ * The latest night ends the next day at 16:00: 23:00 + 11 + 6.
  */
 export const MAX_EXTRA_HOURS = 6;
 
@@ -128,7 +128,7 @@ export function hasNightStarted(date: string, startTime: string, now: Date): boo
 
 /**
  * The end of a night that starts at `startTime`: 11 hours plus the extra hours
- * later, the next morning. The one place the night's end is computed: the SQL
+ * later, the next day. The one place the night's end is computed: the SQL
  * twin is `nightEnd` in `./night-end.ts`.
  */
 export function endTime(startTime: string, extraHours: number): string {
@@ -139,7 +139,7 @@ export function endTime(startTime: string, extraHours: number): string {
 
 /** Whether the night of `date` starting at `startTime`, with its extra hours, has ended in Brussels at `now`. */
 export function hasNightEnded(date: string, startTime: string, extraHours: number, now: Date): boolean {
-  // Every night starts between 18:00 and 23:00 and lasts 11 to 17 hours, so it ends the next morning.
+  // Every night starts between 18:00 and 23:00 and lasts 11 to 17 hours, so it ends the next day.
   const here = brusselsNow(now);
   return `${addDays(date, 1)}T${endTime(startTime, extraHours)}` <= `${here.date}T${here.time}`;
 }
