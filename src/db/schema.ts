@@ -210,13 +210,6 @@ export const professionEnum = pgEnum("profession", [
   "etudiante_sage_femme_4e",
 ]);
 
-export const experienceEnum = pgEnum("experience", [
-  "moins_d_un_an",
-  "un_a_trois_ans",
-  "trois_a_cinq_ans",
-  "plus_de_cinq_ans",
-]);
-
 /** What an uploaded file is: a qualification document, or her photo. */
 export const documentKindEnum = pgEnum("document_kind", [
   "diplome",
@@ -236,8 +229,9 @@ export const declarationEnum = pgEnum("declaration", [
 /**
  * One per professional. The step-2 fields are nullable so a step can be saved
  * half-filled (D-21); whether a step is complete is decided in code
- * (`src/lib/professionnelle/`). The rate and the bio are also held here, so
- * nothing outside 100 to 300 € or over 500 characters is ever stored (D-4).
+ * (`src/lib/professionnelle/`). The rate, the bio and the trainings are also
+ * held here, so nothing outside 100 to 300 € (D-4), no bio over 500 characters
+ * and no trainings over 300 characters is ever stored.
  */
 export const professionalProfiles = pgTable(
   "professional_profiles",
@@ -249,9 +243,8 @@ export const professionalProfiles = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     status: profileStatusEnum("status").notNull().default("brouillon"),
     profession: professionEnum("profession"),
-    /** Keys of the draft list in `src/lib/professionnelle/`. */
-    specialisations: text("specialisations").array().notNull().default(sql`'{}'::text[]`),
-    experience: experienceEnum("experience"),
+    /** « Formations complémentaires », in her own words (onboarding-retour-1). */
+    formationsComplementaires: text("formations_complementaires"),
     nightRateEur: integer("night_rate_eur"),
     bio: text("bio"),
     /** Eleven digits, never shown to families. */
@@ -278,6 +271,10 @@ export const professionalProfiles = pgTable(
     check(
       "professional_profiles_bio_length",
       sql`${table.bio} IS NULL OR char_length(${table.bio}) <= 500`,
+    ),
+    check(
+      "professional_profiles_formations_length",
+      sql`${table.formationsComplementaires} IS NULL OR char_length(${table.formationsComplementaires}) <= 300`,
     ),
     check(
       "professional_profiles_inami_format",
@@ -925,7 +922,6 @@ export type ConsentDocument = (typeof consentDocumentEnum.enumValues)[number];
 export type ProfessionalProfile = typeof professionalProfiles.$inferSelect;
 export type ProfileStatus = (typeof profileStatusEnum.enumValues)[number];
 export type Profession = (typeof professionEnum.enumValues)[number];
-export type Experience = (typeof experienceEnum.enumValues)[number];
 export type DocumentKind = (typeof documentKindEnum.enumValues)[number];
 export type AdminAction = (typeof adminActionEnum.enumValues)[number];
 export type AdminJournalEntry = typeof adminJournal.$inferSelect;

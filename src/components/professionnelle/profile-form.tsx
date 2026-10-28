@@ -10,8 +10,8 @@ import { CommunePicker } from "@/components/professionnelle/commune-picker"
 import { Button } from "@/components/ui/button"
 import { fill, words } from "@/content/locale"
 import { professionnelle } from "@/content/professionnelle"
-import type { Experience, Profession } from "@/db/schema"
-import { BIO_MAX, EXPERIENCES, RATE_MAX, RATE_MIN, SPECIALISATIONS } from "@/lib/professionnelle/rules"
+import type { Profession } from "@/db/schema"
+import { BIO_MAX, FORMATIONS_MAX, RATE_MAX, RATE_MIN } from "@/lib/professionnelle/rules"
 
 /*
  * Step 2, "Complétez votre profil", with the guide's labels, and the same form
@@ -23,10 +23,9 @@ import { BIO_MAX, EXPERIENCES, RATE_MAX, RATE_MIN, SPECIALISATIONS } from "@/lib
 
 export type ProfileValues = {
   profession: Profession | null
-  specialisations: string[]
+  formationsComplementaires: string | null
   communes: string[]
   nightRateEur: number | null
-  experience: Experience | null
   bio: string | null
 }
 
@@ -54,10 +53,9 @@ function ProfileForm({
   const e = state.errors ?? {}
   const v = state.values
   const [bio, setBio] = React.useState(v?.bio ?? saved.bio ?? "")
+  const [formations, setFormations] = React.useState(v?.formations ?? saved.formationsComplementaires ?? "")
 
   const profession = v?.profession ?? saved.profession ?? ""
-  const specialisations = v?.specialisations ?? saved.specialisations
-  const experience = v?.experience ?? saved.experience ?? ""
   const errorOf = (key: keyof typeof e) => (e[key] ? t.erreurs[e[key]!] : undefined)
 
   return (
@@ -102,25 +100,38 @@ function ProfileForm({
         ) : null}
       </fieldset>
 
-      <fieldset className="flex flex-col gap-3">
-        <legend className={legend}>{t.champs.specialisations}</legend>
-        <p className="px-6 text-legende text-encre-taupe">{t.aides.specialisations}</p>
-        <div className="grid gap-3 md:grid-cols-2">
-          {SPECIALISATIONS.map((key) => (
-            <label key={key} className="flex items-center gap-3 text-corps text-encre-taupe">
-              <input
-                type="checkbox"
-                name="specialisations"
-                value={key}
-                defaultChecked={specialisations.includes(key)}
-                className="size-5 shrink-0 accent-sauge"
-              />
-              {t.specialisations[key]}
-            </label>
-          ))}
-        </div>
-        {e.specialisations ? <p className={errorText}>{errorOf("specialisations")}</p> : null}
-      </fieldset>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="champ-formations" className={legend}>
+          {t.champs.formations}
+        </label>
+        <textarea
+          id="champ-formations"
+          name="formations"
+          rows={3}
+          value={formations}
+          onChange={(event) => setFormations(event.target.value)}
+          aria-invalid={e.formations ? true : undefined}
+          aria-describedby={[
+            "champ-formations-aide",
+            "champ-formations-compteur",
+            e.formations ? "champ-formations-erreur" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge aria-invalid:border-destructive"
+        />
+        <p id="champ-formations-aide" className="px-6 text-legende text-encre-taupe">
+          {t.aides.formations}
+        </p>
+        <p id="champ-formations-compteur" aria-live="polite" className="px-6 text-legende text-encre-taupe">
+          {fill(t.aides.formationsRestant, { n: String(FORMATIONS_MAX - formations.trim().length) })}
+        </p>
+        {e.formations ? (
+          <p id="champ-formations-erreur" className={errorText}>
+            {errorOf("formations")}
+          </p>
+        ) : null}
+      </div>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="champ-zone" className={legend}>
@@ -155,23 +166,6 @@ function ProfileForm({
         error={errorOf("tarif")}
         className="max-w-48"
       />
-
-      <fieldset className="flex flex-col gap-3">
-        <legend className={legend}>{t.champs.experience}</legend>
-        {EXPERIENCES.map((key) => (
-          <label key={key} className="flex items-center gap-3 text-corps text-encre-taupe">
-            <input
-              type="radio"
-              name="experience"
-              value={key}
-              defaultChecked={experience === key}
-              className="size-5 shrink-0 accent-sauge"
-            />
-            {t.experiences[key]}
-          </label>
-        ))}
-        {e.experience ? <p className={errorText}>{errorOf("experience")}</p> : null}
-      </fieldset>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="champ-bio" className={legend}>

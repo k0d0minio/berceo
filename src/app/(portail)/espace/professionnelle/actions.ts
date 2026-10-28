@@ -108,10 +108,9 @@ export type ProfileState = {
   /** What was typed, so a refused form keeps it. */
   values?: {
     profession: string;
-    specialisations: string[];
+    formations: string;
     communes: string[];
     tarif: string;
-    experience: string;
     bio: string;
   };
 };
@@ -129,10 +128,9 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
 
   const input = {
     profession: String(form.get("profession") ?? ""),
-    specialisations: form.getAll("specialisations").map(String),
+    formations: String(form.get("formations") ?? ""),
     communes: form.getAll("communes").map(String),
     tarif: String(form.get("tarif") ?? ""),
-    experience: String(form.get("experience") ?? ""),
     bio: String(form.get("bio") ?? ""),
   };
 
@@ -167,8 +165,9 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
   // Every valid answer is kept; a field with an error keeps what it had.
   const next = {
     profession: errors.profession ? profile.profession : values.profession,
-    specialisations: errors.specialisations ? profile.specialisations : values.specialisations,
-    experience: errors.experience ? profile.experience : values.experience,
+    formationsComplementaires: errors.formations
+      ? profile.formationsComplementaires
+      : values.formationsComplementaires,
     nightRateEur: errors.tarif ? profile.nightRateEur : values.nightRateEur,
     bio: errors.bio ? profile.bio : values.bio,
     updatedAt: new Date(),

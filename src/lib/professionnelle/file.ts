@@ -13,7 +13,7 @@ import {
   type ProfessionalProfile,
 } from "@/db";
 
-import { isSpecialisation, type FileState } from "./rules";
+import type { FileState } from "./rules";
 
 /**
  * A professional's whole file in one read: her profile row (created on first
@@ -99,10 +99,9 @@ async function loadFileOf(profile: ProfessionalProfile): Promise<ProfessionalFil
       status: profile.status,
       draft: {
         profession: profile.profession,
-        specialisations: profile.specialisations.filter(isSpecialisation),
+        formationsComplementaires: profile.formationsComplementaires,
         communes: codes,
         nightRateEur: profile.nightRateEur,
-        experience: profile.experience,
         bio: profile.bio,
       },
       inamiNumber: profile.inamiNumber,

@@ -34,8 +34,8 @@ const date = new Intl.DateTimeFormat("fr-BE", {
 /*
  * Her file once submitted: step 2's form, step 3's documents, and the
  * declarations she accepted, read only. While it waits she edits anything and
- * it keeps waiting. Once validated, rate, zone, spécialisations, experience,
- * bio and photo apply at once; a new profession or new documents go through
+ * it keeps waiting. Once validated, trainings, rate, zone, bio and photo
+ * apply at once; a new profession or new documents go through
  * the reopening dialog first. Asked for a complément, she reads the reason at
  * the top and sends the file back once completed. A draft belongs in the
  * onboarding.

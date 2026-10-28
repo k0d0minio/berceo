@@ -10,7 +10,6 @@
 import type {
   Declaration,
   DocumentKind,
-  Experience,
   Profession,
   ProfileStatus,
 } from "@/db/schema";
@@ -36,25 +35,6 @@ export const STUDENTS = [
 export function isStudent(profession: Profession | null): boolean {
   return (STUDENTS as readonly (Profession | null)[]).includes(profession);
 }
-
-export const EXPERIENCES = [
-  "moins_d_un_an",
-  "un_a_trois_ans",
-  "trois_a_cinq_ans",
-  "plus_de_cinq_ans",
-] as const satisfies readonly Experience[];
-
-/** The draft list the founders and Surya correct (`@relecture` in the catalogue). */
-export const SPECIALISATIONS = [
-  "allaitement",
-  "prematurite",
-  "jumeaux",
-  "reanimation_neonatale",
-  "sommeil_nourrisson",
-  "soutien_post_partum",
-] as const;
-
-export type Specialisation = (typeof SPECIALISATIONS)[number];
 
 /** The five step-4 declarations, in the order they are shown. */
 export const DECLARATIONS = [
@@ -101,6 +81,8 @@ export const REQUIREMENTS: Record<Profession, Requirement> = {
 export const RATE_MIN = 100;
 export const RATE_MAX = 300;
 export const BIO_MAX = 500;
+/** « Formations complémentaires », free text: hundreds of trainings exist (onboarding-retour-1). */
+export const FORMATIONS_MAX = 300;
 export const COMMUNES_MIN = 1;
 export const COMMUNES_MAX = 50;
 export const FILES_PER_DOCUMENT_MAX = 3;
@@ -131,9 +113,8 @@ export type FieldError =
   | "communesMax"
   | "commune"
   | "tarif"
-  | "experience"
   | "bioLongue"
-  | "specialisation"
+  | "formationsLongues"
   | "photo"
   | "inami"
   | "document"
@@ -141,10 +122,9 @@ export type FieldError =
 
 export type ProfileField =
   | "profession"
-  | "specialisations"
+  | "formations"
   | "communes"
   | "tarif"
-  | "experience"
   | "bio"
   | "photo";
 
@@ -152,14 +132,6 @@ export type FieldErrors<F extends string> = Partial<Record<F, FieldError>>;
 
 export function isProfession(value: unknown): value is Profession {
   return (PROFESSIONS as readonly unknown[]).includes(value);
-}
-
-export function isExperience(value: unknown): value is Experience {
-  return (EXPERIENCES as readonly unknown[]).includes(value);
-}
-
-export function isSpecialisation(value: unknown): value is Specialisation {
-  return (SPECIALISATIONS as readonly unknown[]).includes(value);
 }
 
 /**
@@ -182,19 +154,17 @@ export function normalizeInami(raw: string): string | null {
 /** The step-2 answers as they are kept, each one optional until the step is complete. */
 export type ProfileDraft = {
   profession: Profession | null;
-  specialisations: Specialisation[];
+  formationsComplementaires: string | null;
   communes: string[];
   nightRateEur: number | null;
-  experience: Experience | null;
   bio: string | null;
 };
 
 export type ProfileInput = {
   profession: string;
-  specialisations: string[];
+  formations: string;
   communes: string[];
   tarif: string;
-  experience: string;
   bio: string;
 };
 
@@ -218,10 +188,9 @@ export function checkProfile(
   const errors: FieldErrors<ProfileField> = {};
   const values: ProfileDraft = {
     profession: null,
-    specialisations: [],
+    formationsComplementaires: null,
     communes: [],
     nightRateEur: null,
-    experience: null,
     bio: null,
   };
 
@@ -237,9 +206,11 @@ export function checkProfile(
     } else values.profession = profession;
   }
 
-  const specialisations = [...new Set(input.specialisations.map((s) => s.trim()).filter(Boolean))];
-  if (specialisations.every(isSpecialisation)) values.specialisations = specialisations;
-  else errors.specialisations = "specialisation";
+  const formations = input.formations.trim();
+  if (formations) {
+    if (formations.length > FORMATIONS_MAX) errors.formations = "formationsLongues";
+    else values.formationsComplementaires = formations;
+  }
 
   const communes = [...new Set(input.communes.map((c) => c.trim()).filter(Boolean))];
   if (!communes.every(context.isKnownCommune)) errors.communes = "commune";
@@ -252,12 +223,6 @@ export function checkProfile(
     else errors.tarif = "tarif";
   }
 
-  const experience = input.experience.trim();
-  if (experience) {
-    if (isExperience(experience)) values.experience = experience;
-    else errors.experience = "experience";
-  }
-
   const bio = input.bio.trim();
   if (bio) {
     if (bio.length > BIO_MAX) errors.bio = "bioLongue";
@@ -267,7 +232,7 @@ export function checkProfile(
   return { values, errors };
 }
 
-/** What step 2 still lacks before "Continuer" (spécialisations are optional). */
+/** What step 2 still lacks before "Continuer" (the trainings are optional). */
 export function missingProfile(
   draft: ProfileDraft,
   hasPhoto: boolean,
@@ -276,7 +241,6 @@ export function missingProfile(
   if (!draft.profession) missing.profession = "requis";
   if (draft.communes.length < COMMUNES_MIN) missing.communes = "communesMin";
   if (draft.nightRateEur === null) missing.tarif = "requis";
-  if (!draft.experience) missing.experience = "requis";
   if (!draft.bio) missing.bio = "requis";
   if (!hasPhoto) missing.photo = "photo";
   return missing;
@@ -371,7 +335,7 @@ export type Change = "profession" | "documents" | "details";
 /**
  * Whether a change needs the founders to look again. On a validated file a new
  * profession or any document added, replaced or removed does; everything else
- * (spécialisations, zone, rate, experience, bio, photo) applies at once. While
+ * (trainings, zone, rate, bio, photo) applies at once. While
  * the file is still waiting (or a complement was asked), nothing does: it is
  * already under review and keeps its `submitted_at`.
  */

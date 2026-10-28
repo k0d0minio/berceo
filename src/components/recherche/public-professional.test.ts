@@ -7,7 +7,8 @@ import { PublicProfessional } from "./public-professional";
 /**
  * Spec (recherche-et-fiches-publiques, D-14, D-126): the public page shows
  * exactly her first name, profession, « Profil vérifié par Berceo », her
- * communes, her note and « Quelques mots sur moi », and the sign-up call to
+ * communes, her note, her « Formations complémentaires » (onboarding-retour-1)
+ * and « Quelques mots sur moi », and the sign-up call to
  * action carrying the way back. A fixture whose surname, phone, e-mail,
  * address, rate and photo are unique strings is handed to the page whole: none
  * of them may reach the HTML. The component takes its fields one by one, so
@@ -26,11 +27,12 @@ const PRIVATE = {
 
 const SIGN_UP = "/inscription-famille?retour=%2Fespace%2Ffamille%2Fprofessionnelles%2F3f0c9a52";
 
-function render(bio: string | null) {
+function render(bio: string | null, formations: string | null = null) {
   const everything = {
     firstName: "Emma",
     profession: "sage_femme" as const,
     bio,
+    formations,
     zone: [
       { name: "Ixelles", href: "/garde-de-nuit/ixelles" },
       { name: "Uccle", href: "/garde-de-nuit/uccle" },
@@ -61,6 +63,14 @@ describe("the public professional page (D-14)", () => {
 
   it("leaves « Quelques mots sur moi » out when she wrote nothing", () => {
     expect(render(null)).not.toContain("Quelques mots sur moi");
+  });
+
+  it("shows her trainings whole, up to 300 characters, and leaves the heading out when empty", () => {
+    const formations = `Consultante en lactation IBCLC, ${"portage ".repeat(40)}`.slice(0, 300);
+    const html = render(null, formations);
+    expect(html).toContain("Formations complémentaires");
+    expect(html).toContain(formations);
+    expect(render(null)).not.toContain("Formations complémentaires");
   });
 
   it("never renders her surname, e-mail, phone, address, rate, photo or INAMI number", () => {

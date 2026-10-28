@@ -91,6 +91,8 @@ export const recherche = catalogue({
       /** @relecture Surya — l'intitulé de la zone sur la page publique. */
       zone: "Communes où elle intervient",
       bio: "Quelques mots sur moi",
+      /** Le mot des fondatrices (retour 1, onboarding-retour-1). */
+      formations: "Formations complémentaires",
       /** @relecture Surya — l'appel à créer un compte (D-3, D-14). */
       ctaTitre: "Son profil complet vous attend",
       /** @relecture Surya — le texte de l'appel. */
