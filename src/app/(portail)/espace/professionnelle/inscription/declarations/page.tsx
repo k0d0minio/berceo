@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { CHARTER_TITLE_ID, Charte } from "@/components/professionnelle/charte";
 import { DeclarationsForm } from "@/components/professionnelle/declarations-form";
 import { StepsHeader } from "@/components/professionnelle/steps-header";
 import { SpaceShell } from "@/components/shell/space-shell";
@@ -17,14 +18,14 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-/* Step 4, "Validez vos déclarations". */
+/* Step 4, "Validez vos déclarations": the six declarations, the charter and its checkbox. */
 export default async function DeclarationsStepPage() {
   const { user, done } = await openStep("declarations");
 
   return (
     <SpaceShell user={user} title={t.etapes.titres.declarations}>
       <StepsHeader current="declarations" done={done} />
-      <DeclarationsForm />
+      <DeclarationsForm charte={<Charte level={2} id={CHARTER_TITLE_ID} />} />
     </SpaceShell>
   );
 }

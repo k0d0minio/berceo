@@ -36,21 +36,44 @@ export function isStudent(profession: Profession | null): boolean {
   return (STUDENTS as readonly (Profession | null)[]).includes(profession);
 }
 
-/** The five step-4 declarations, in the order they are shown. */
+/**
+ * The step-4 checkboxes, in the order they are shown: the six declarations,
+ * then the charter, which the page shows in full before its checkbox.
+ */
 export const DECLARATIONS = [
   "documents_authentiques",
   "autorisee_a_exercer",
   "fausse_declaration",
   "verifications",
   "casier_judiciaire",
+  "changement_de_situation",
+  "charte",
 ] as const satisfies readonly Declaration[];
 
 /**
- * The wording the declarations were accepted under: the cahier des charges of
- * 2026-08-02, until the founders deliver the final text. A new version means a
- * new value here, and a re-acceptance flow comes with it.
+ * The wording the declarations are accepted under: the founders' text of
+ * feedback round 1 (2026-10-23). It replaced `cdc-2026-08-02`, the cahier des
+ * charges' wording. A new version sends every submitted file to the
+ * re-acceptance page (`needsNewDeclarations`).
  */
-export const DECLARATIONS_VERSION = "cdc-2026-08-02";
+export const DECLARATIONS_VERSION = "feedback-2026-10-23";
+
+/** The states whose declarations must carry the current version: every submitted file but a refused one. */
+export const RENEWING_STATUSES = [
+  "en_attente",
+  "complement_demande",
+  "valide",
+] as const satisfies readonly ProfileStatus[];
+
+/**
+ * Whether she must accept the declarations again before her space opens: her
+ * file is submitted and her last acceptance carries an older version (null
+ * when she has none). A draft accepts on step 4. A refused file never does.
+ */
+export function needsNewDeclarations(status: ProfileStatus, version: string | null): boolean {
+  const submitted = (RENEWING_STATUSES as readonly ProfileStatus[]).includes(status);
+  return submitted && version !== DECLARATIONS_VERSION;
+}
 
 // ---------------------------------------------------------------------------
 // What each profession provides at step 3
@@ -376,7 +399,7 @@ export function changeNeedsReview(status: ProfileStatus, change: Change): boolea
 /**
  * The state a submitted file goes to once she confirms she wants a new
  * profession or new documents: back to the draft, so she passes through the
- * steps again, ticks the five declarations afresh and resubmits, which sets a
+ * steps again, ticks the seven checkboxes afresh and resubmits, which sets a
  * new `submitted_at`. Until then the profile is hidden, as the confirmation
  * dialog tells her. On a waiting file she needs it only for a profession whose
  * documents she has not yet provided; every other edit keeps the file waiting.

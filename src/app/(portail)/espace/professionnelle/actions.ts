@@ -22,6 +22,7 @@ import { recordUpload } from "@/lib/professionnelle/uploads";
 import {
   DECLARATIONS,
   DECLARATIONS_VERSION,
+  RENEWING_STATUSES,
   REQUIREMENTS,
   canResend,
   canSubmit,
@@ -445,7 +446,7 @@ export async function submitFile(
   if (!DECLARATIONS.every((d) => ticked.includes(d))) return { message: "declarations", ticked };
   if (!canSubmit(file.state, ticked)) return { message: "generique", ticked };
 
-  // One statement: the status moves only from `brouillon`, and the five declarations are
+  // One statement: the status moves only from `brouillon`, and the seven declarations are
   // inserted only for the row that moved. A second submit (a double click, another tab)
   // waits on the row lock, finds it no longer a draft, and inserts nothing.
   const now = new Date().toISOString();
@@ -471,6 +472,56 @@ export async function submitFile(
   }
 
   redirect(`${SPACE}?envoye=1`);
+}
+
+// ---------------------------------------------------------------------------
+// The declarations of a new version, on a submitted file (onboarding-retour-1)
+// ---------------------------------------------------------------------------
+
+/**
+ * She accepts the seven checkboxes of the current version again. Her status,
+ * her `submitted_at` and her place in the queue stay as they are: only a fresh
+ * set of rows is appended to the ledger.
+ */
+export async function renewDeclarations(
+  _previous: DeclarationsState,
+  form: FormData,
+): Promise<DeclarationsState> {
+  const user = await professional();
+  if (!user) return { message: "generique" };
+
+  const ticked = form.getAll("declarations").map(String);
+  if (!DECLARATIONS.every((d) => ticked.includes(d))) return { message: "declarations", ticked };
+
+  // One statement: the rows go in only for a submitted file that holds no set of the
+  // current version yet. A second submit (a double click, another tab) inserts nothing.
+  const now = new Date().toISOString();
+  const rows = sql.join(
+    DECLARATIONS.map((d) => sql`(${d}::declaration)`),
+    sql`, `,
+  );
+  const renewing = sql.join(
+    RENEWING_STATUSES.map((status) => sql`${status}::profile_status`),
+    sql`, `,
+  );
+  try {
+    await db.execute(sql`
+      insert into ${professionalDeclarations} (profile_id, declaration, version, accepted_at)
+      select p.id, d.declaration, ${DECLARATIONS_VERSION}::text, ${now}::timestamptz
+      from ${professionalProfiles} as p cross join (values ${rows}) as d(declaration)
+      where p.user_id = ${user.id}::uuid
+        and p.status in (${renewing})
+        and not exists (
+          select 1 from ${professionalDeclarations} as prev
+          where prev.profile_id = p.id and prev.version = ${DECLARATIONS_VERSION}::text
+        )
+    `);
+  } catch (error) {
+    console.error("[onboarding] declarations not renewed", { userId: user.id, error });
+    return { message: "generique", ticked };
+  }
+
+  redirect(SPACE);
 }
 
 // ---------------------------------------------------------------------------
