@@ -14,7 +14,7 @@ import { tarifs } from "./tarifs";
  * The vitrine's writing rules, asserted over the catalogue's values (never its
  * comments), from the spec's acceptance criteria: Surya's punctuation rules
  * (D-19), no insurance (D-8), no Facebook group (D-23), no subscription tier
- * and no price but the range and the fee (D-2, D-3, D-4), and the guide's
+ * and no price but the floor and the fee (D-2, D-3, D-4), and the guide's
  * title and meta lengths.
  */
 
@@ -85,16 +85,14 @@ describe("the vitrine's catalogue", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("names no amount in euros but 100 € and 300 € (D-4)", () => {
+  it("names no amount in euros but the 130 € floor (D-4, profil-tarifs)", () => {
     const amounts = prose.flatMap(([path, text]) =>
       [...text.matchAll(/(\d[\d  .,]*)\s*€/g)].map(
         (match) => [path, match[1].replace(/[\s  ]/g, "")] as const,
       ),
     );
     expect(amounts.length).toBeGreaterThan(0);
-    expect(amounts.filter(([, amount]) => !["100", "300"].includes(amount))).toEqual(
-      [],
-    );
+    expect(amounts.filter(([, amount]) => amount !== "130")).toEqual([]);
   });
 
   it("mentions a subscription only to say there is none (D-3)", () => {

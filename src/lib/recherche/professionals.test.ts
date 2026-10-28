@@ -19,7 +19,7 @@ function names(columns: Record<string, unknown>): string[] {
     .filter((name): name is string => name !== null);
 }
 
-const HIDDEN = ["last_name", "email", "phone", "inami_number", "night_rate_eur", "storage_key", "review_reason"];
+const HIDDEN = ["last_name", "email", "phone", "inami_number", "night_rate_eur", "extra_hour_rate_eur", "storage_key", "review_reason"];
 
 describe("what leaves the search (D-14, D-126)", () => {
   it("a public teaser selects her id, first name, profession, bio and trainings, nothing else", async () => {

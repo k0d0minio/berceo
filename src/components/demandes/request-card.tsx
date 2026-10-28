@@ -7,7 +7,7 @@ import { reservations } from "@/content/reservations"
 import { cardTitle, childrenLine, nightLine, placeLine } from "@/lib/demandes/format"
 import type { RequestCard as Request } from "@/lib/demandes/requests"
 import type { DisplayStatus } from "@/lib/demandes/rules"
-import { rateLine } from "@/lib/reservations/format"
+import { extraHourLine, rateLine } from "@/lib/reservations/format"
 import { cn } from "@/lib/utils"
 
 /*
@@ -44,6 +44,7 @@ function RequestCard({
   showPublished = false,
   priority = false,
   rate,
+  extraHourRate,
   note,
   footer,
 }: {
@@ -57,6 +58,8 @@ function RequestCard({
   priority?: boolean
   /** The professional's view: her rate, the DA's « 150 € pour la garde de nuit ». */
   rate?: number | null
+  /** The professional's view: her rate for each extra hour, « 15 € par heure supplémentaire » (profil-tarifs). */
+  extraHourRate?: number | null
   /** A short line under the card's facts: « 2 réponses », « Vous avez répondu ». */
   note?: string
   /** The professional's view: her answer's buttons. */
@@ -89,6 +92,9 @@ function RequestCard({
         {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
       </p>
       {rate ? <p className="text-corps font-semibold text-encre-sauge">{rateLine(rate)}</p> : null}
+      {extraHourRate ? (
+        <p className="text-corps font-semibold text-encre-sauge">{extraHourLine(extraHourRate)}</p>
+      ) : null}
       {showPublished ? (
         <p className="text-legende text-encre-taupe">{fill(t.carte.publiee, { date: published })}</p>
       ) : null}

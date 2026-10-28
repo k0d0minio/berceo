@@ -20,6 +20,11 @@ export function rateLine(nightRateEur: number): string {
   return fill(t.tarif, { montant: String(nightRateEur) });
 }
 
+/** « 15 € par heure supplémentaire »: her rate for each hour past the night's 11 (profil-tarifs). */
+export function extraHourLine(extraHourRateEur: number): string {
+  return fill(t.tarifHeure, { montant: String(extraHourRateEur) });
+}
+
 /** « Sage-femme », as a label. */
 export function professionLabel(profession: Profession | null): string {
   return profession ? professions[profession] : "";

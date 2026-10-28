@@ -487,17 +487,23 @@ export type ProfessionalRequest = RequestCard & {
 
 export type ProfessionalView =
   | { validated: false }
-  | { validated: true; nightRateEur: number | null; requests: ProfessionalRequest[] };
+  | {
+      validated: true;
+      nightRateEur: number | null;
+      extraHourRateEur: number | null;
+      requests: ProfessionalRequest[];
+    };
 
-/** Her profile: its id, its status and her current rate. */
+/** Her profile: its id, its status and her current rates. */
 export async function professionalProfileOf(
   userId: string,
-): Promise<{ id: string; status: string; nightRateEur: number | null } | null> {
+): Promise<{ id: string; status: string; nightRateEur: number | null; extraHourRateEur: number | null } | null> {
   const [profile] = await db
     .select({
       id: professionalProfiles.id,
       status: professionalProfiles.status,
       nightRateEur: professionalProfiles.nightRateEur,
+      extraHourRateEur: professionalProfiles.extraHourRateEur,
     })
     .from(professionalProfiles)
     .where(eq(professionalProfiles.userId, userId))
@@ -520,6 +526,7 @@ export async function professionalRequests(userId: string): Promise<Professional
   return {
     validated: true,
     nightRateEur: profile.nightRateEur,
+    extraHourRateEur: profile.extraHourRateEur,
     requests: requests.map((request) => ({ ...request, family: notes.get(request.id) ?? NO_NOTE })),
   };
 }

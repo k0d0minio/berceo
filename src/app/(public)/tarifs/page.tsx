@@ -18,8 +18,8 @@ const p = words(photos);
 export const metadata = pageMetadata(t.meta, c.pages.tarifs.href);
 
 /**
- * The only numbers the sources give: the professional's night rate between
- * 100 € and 300 €, paid to her directly, and the 3 % fee with its refund
+ * The only numbers the sources give: the professional's night rate from
+ * 130 € (profil-tarifs), paid to her directly, and the 3 % fee with its refund
  * rule (D-1, D-2, D-4). No subscription (D-3).
  */
 export default function TarifsPage() {

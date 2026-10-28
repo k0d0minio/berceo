@@ -3,7 +3,7 @@ import { catalogue } from "./locale";
 /**
  * `/tarifs`. The guide's page presented four subscriptions; the scope took
  * them out of V1 (D-3), so this page carries only the numbers the sources
- * give: the night rate each professional sets between 100 € and 300 € (D-4),
+ * give: the night rate each professional sets from 130 € (profil-tarifs, which lifts D-4's ceiling),
  * paid to her directly (D-1), and the 3 % service fee with its refund rule
  * (D-2). No other amount appears.
  *
@@ -15,9 +15,9 @@ export const tarifs = catalogue({
     meta: {
       /** @relecture Surya — titre du guide sans « Abonnements » (D-3). */
       title: "Prix d'une garde de nuit bébé en Belgique | Tarifs Berceo",
-      /** @relecture Surya — meta du guide réécrite sans les formules d'abonnement (D-3). */
+      /** @relecture Surya — meta du guide réécrite sans les formules d'abonnement (D-3), le tarif à partir de 130 € (profil-tarifs). */
       description:
-        "Combien coûte une garde de nuit pour un nourrisson ? Chaque professionnelle fixe son tarif entre 100 € et 300 €, avec 3 % de frais de service, sans abonnement.",
+        "Combien coûte une garde de nuit pour un nourrisson ? Chaque professionnelle fixe son tarif, à partir de 130 €, avec 3 % de frais de service, sans abonnement.",
     },
 
     /** @relecture Surya — H1 et introduction. */
@@ -27,11 +27,11 @@ export const tarifs = catalogue({
       "Le prix d'une garde de nuit est simple : le tarif de la professionnelle, et des frais de service de 3 %. Rien d'autre.",
 
     tarif: {
-      /** @relecture Surya — section rédigée d'après D-1 et D-4. */
+      /** @relecture Surya — section rédigée d'après D-1 et D-4, le plancher de profil-tarifs. */
       title: "Le tarif de la professionnelle",
       /** @relecture Surya — idem. */
       paragraphs: [
-        "Chaque professionnelle fixe elle-même son tarif de nuit, entre 100 € et 300 €. Vous le voyez sur son profil avant de la choisir.",
+        "Chaque professionnelle fixe elle-même son tarif de nuit, à partir de 130 €, et son tarif par heure supplémentaire. Vous les voyez sur son profil avant de la choisir.",
         "Vous la rémunérez directement, après la garde. Berceo est un intermédiaire : la plateforme ne perçoit pas ce montant.",
       ],
     },

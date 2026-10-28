@@ -30,7 +30,7 @@ import { gardeFee } from "@/lib/gardes/gardes";
 import { cancelledLine, feeText } from "@/lib/gardes/format";
 import { canCancel, canReportAbsence, canRepublish, gardeState } from "@/lib/gardes/rules";
 import { familyBooking } from "@/lib/reservations/bookings";
-import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import {
   FAMILY_BOOKINGS_PATH,
   familyBookingPath,
@@ -106,6 +106,8 @@ export default async function ReservationPage({
     [l.professionnelle, professional.firstName],
     [l.profession, professionLabel(professional.profession)],
     [l.tarif, rateLine(booking.nightRateEur)],
+    // A booking made before profil-tarifs carries no extra hour's rate.
+    ...(booking.extraHourRateEur ? [[l.tarifHeure, extraHourLine(booking.extraHourRateEur)] as [string, string]] : []),
   ];
   const notice = noticeText(query, professional.firstName);
   const now = new Date();

@@ -88,6 +88,7 @@ export default async function DemandesProfessionnellePage({
                       showPublished
                       priority={request.priority}
                       rate={view.nightRateEur}
+                      extraHourRate={view.extraHourRateEur}
                       note={answered ? r.repondu : undefined}
                       footer={
                         <>

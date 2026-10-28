@@ -63,6 +63,8 @@ export const admin = catalogue({
         formations: "Formations complémentaires",
         zone: "Zone d'intervention",
         tarif: "Tarif de nuit",
+        /** @relecture Surya — profil-tarifs. */
+        tarifHeure: "Heure supplémentaire",
         bio: "Quelques mots sur elle",
         inami: "Numéro INAMI",
         photo: "Photo",
@@ -75,6 +77,8 @@ export const admin = catalogue({
       inamiNonRenseigne: "INAMI non renseigné",
       /** @relecture Surya — tarif affiché. */
       tarif: "{montant} € par nuit",
+      /** @relecture Surya — profil-tarifs. */
+      tarifHeure: "{montant} € par heure",
       /** @relecture Surya — états du dossier hors file. */
       etats: {
         brouillon: "Dossier en cours de remplissage",
