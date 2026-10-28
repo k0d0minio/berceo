@@ -6,6 +6,9 @@ import { listHref } from "@/components/admin/list-controls";
 import { admin } from "@/content/admin";
 import { comptes } from "@/content/comptes";
 import { fill, words } from "@/content/locale";
+import { ADMIN_SUBSCRIPTIONS_PATH } from "@/lib/abonnements/paths";
+import { ACTIVE_FILTER } from "@/lib/abonnements/rules";
+import { activeSubscriptionCount } from "@/lib/abonnements/subscriptions";
 import { bookingCount, reportCount } from "@/lib/admin/lists";
 import { ADMIN_BOOKINGS_PATH, ADMIN_FILES_PATH, ADMIN_REPORTS_PATH } from "@/lib/admin/paths";
 import { loadQueue } from "@/lib/admin/review";
@@ -27,7 +30,8 @@ export const dynamic = "force-dynamic";
 
 /*
  * « Vue d'ensemble » (the guide, « Le backoffice »; back-office-admin, D-133):
- * four blocks, each a number and a link to the full list. Each number is
+ * four blocks, each a number and a link to the full list, and a fifth, the
+ * active subscriptions (abonnements-back-office). Each number is
  * counted by the same condition its list filters on, so the two never
  * disagree. The payments block also names the fees still owed after a
  * professional's cancellation, only when there are some, linking to the
@@ -38,12 +42,13 @@ export default async function AdminPage() {
   const user = await requireAccess(SPACES.admin);
   const now = new Date();
 
-  const [queue, bookings, reports, payments, toRefund] = await Promise.all([
+  const [queue, bookings, reports, payments, toRefund, subscriptions] = await Promise.all([
     loadQueue(),
     bookingCount("en-cours"),
     reportCount(),
     paymentCountSince(recentPaymentCutoff(now)),
     awaitingRefundCount(),
+    activeSubscriptionCount(now),
   ]);
 
   const blocks = [
@@ -51,6 +56,7 @@ export default async function AdminPage() {
     { key: "reservations", n: bookings, href: listHref(ADMIN_BOOKINGS_PATH, { etat: "en-cours" }) },
     { key: "signalements", n: reports, href: ADMIN_REPORTS_PATH },
     { key: "paiements", n: payments, href: listHref(ADMIN_PAYMENTS_PATH, { periode: RECENT_PERIOD }) },
+    { key: "abonnements", n: subscriptions, href: listHref(ADMIN_SUBSCRIPTIONS_PATH, { statut: ACTIVE_FILTER }) },
   ] as const;
 
   return (

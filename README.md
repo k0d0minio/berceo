@@ -588,6 +588,15 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
     gardes stay whole: the phone, cancelling, the absence, the conversation and the rating.
   - The professionals' side reads none of it.
 - **Invoices:** Stripe sends each invoice and receipt by e-mail. The platform lists none.
+- **The founders' list (abonnements-back-office):** `/admin/abonnements` lists every
+  subscription Stripe created, newest first, 50 per page: the family (linked to her account
+  page), the plan, the state, the start, the renewal date (or the end once cancelled or ended),
+  the grace period's end, and a link to the subscription in Stripe's dashboard (test mode with a
+  test key). A Checkout left unpaid is no subscription and is not listed. `?statut=actifs` keeps
+  the rows `hasActiveSubscription` counts, with one SQL condition, `subscriptionListCondition`,
+  which « Vue d'ensemble »'s « Abonnements actifs » counts too. A family's account page shows
+  her plan and its state: her live subscription, else her latest ended one. Nothing in the
+  back-office changes a subscription: Stripe does.
 - **Configuration, per Stripe account (test on UAT, live on Production):**
   1. Make four products, each with one recurring price in euros: monthly, every 3 months,
      every 6 months, yearly. Put each price id in its Vercel variable.
@@ -766,14 +775,17 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
 
 - **Navigation (D-132):** every `/admin` page goes through `AdminShell`
   (`src/components/admin/admin-shell.tsx`): « Vue d'ensemble », Dossiers, Utilisateurs, Demandes,
-  Réservations, Signalements, Paiements, Avis, Journal. All 404 to anyone but an admin (D-33).
+  Réservations, Signalements, Paiements, Abonnements, Avis, Journal. All 404 to anyone but an
+  admin (D-33).
   `/admin/absences` redirects permanently to `/admin/signalements`.
-- **« Vue d'ensemble » (D-133):** `/admin`, the guide's four blocks, each a number and a link:
-  the verification queue, `/admin/reservations?etat=en-cours` (confirmed gardes not ended),
-  `/admin/signalements` (cancelled gardes and absences not marked handled) and
-  `/admin/paiements?periode=7j` (fees paid in the last 7 days). Each number is counted with the
-  same exported condition its list filters on (`src/lib/admin/lists.ts`,
-  `paymentCountSince` in `src/lib/paiements/payments.ts`). The payments block adds
+- **« Vue d'ensemble » (D-133):** `/admin`, the guide's four blocks and a fifth, each a number
+  and a link: the verification queue, `/admin/reservations?etat=en-cours` (confirmed gardes not
+  ended), `/admin/signalements` (cancelled gardes and absences not marked handled),
+  `/admin/paiements?periode=7j` (fees paid in the last 7 days) and
+  `/admin/abonnements?statut=actifs` (the active subscriptions, abonnements-back-office). Each
+  number is counted with the same exported condition its list filters on
+  (`src/lib/admin/lists.ts`, `paymentCountSince` in `src/lib/paiements/payments.ts`,
+  `subscriptionListCondition` in `src/lib/abonnements/subscriptions.ts`). The payments block adds
   « {n} frais à rembourser », linking to `/admin/paiements?statut=a-rembourser`, only when a
   professional's cancellation left a fee unrefunded (`awaitingRefundCount`, D-164).
 - **Accounts:** `/admin/utilisateurs` searches first name, last name, full name and e-mail

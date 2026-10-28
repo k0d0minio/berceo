@@ -350,6 +350,49 @@ export const admin = catalogue({
       videARembourser: "Aucun frais à rembourser.",
     },
 
+    /** Les abonnements des familles (abonnements-back-office). */
+    abonnements: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Abonnements des familles",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        famille: "Famille",
+        formule: "Formule",
+        statut: "Statut",
+        debut: "Début",
+        renouvellement: "Renouvellement",
+        grace: "Période de grâce",
+        stripe: "Stripe",
+      },
+      /** @relecture Surya — l'état d'un abonnement, les mots de « Votre abonnement » quand ils existent. */
+      etats: {
+        en_attente: "Premier paiement en cours",
+        active: "Actif",
+        resiliee: "Résiliation programmée",
+        grace: "Paiement en attente",
+        suspendue: "Suspendu",
+        terminee: "Terminé",
+      },
+      /** @relecture Surya — la date dans la colonne du renouvellement, quand l'abonnement ne se renouvelle plus. */
+      finLe: "Fin le {date}",
+      termineLe: "Terminé le {date}",
+      /** @relecture Surya — la fin de la période de grâce. */
+      graceJusquau: "Jusqu'au {date}",
+      /** @relecture Surya — le lien vers l'abonnement dans Stripe. */
+      voirStripe: "Voir dans Stripe",
+      /** @relecture Surya — compte supprimé depuis. */
+      inconnu: "Compte supprimé",
+      /** @relecture Surya — les filtres (D-133). */
+      filtres: {
+        libelle: "Filtrer les abonnements",
+        tous: "Tous les abonnements",
+        actifs: "Actifs",
+      },
+      /** @relecture Surya — listes vides. */
+      vide: "Aucun abonnement enregistré.",
+      videActifs: "Aucun abonnement actif.",
+    },
+
     /** La navigation de chaque page de l'administration (back-office-admin, D-132). */
     nav: {
       /** @relecture Surya — nom de la navigation pour les lecteurs d'écran. */
@@ -362,6 +405,7 @@ export const admin = catalogue({
       reservations: "Réservations",
       signalements: "Signalements",
       paiements: "Paiements",
+      abonnements: "Abonnements",
       avis: "Avis",
       journal: "Journal",
     },
@@ -374,6 +418,8 @@ export const admin = catalogue({
         reservations: "Réservations en cours",
         signalements: "Signalements à traiter",
         paiements: "Paiements récents",
+        /** @relecture Surya — le bloc des abonnements (abonnements-back-office). */
+        abonnements: "Abonnements actifs",
       },
       /** @relecture Surya — ce que chaque chiffre compte (D-133). */
       precisions: {
@@ -381,6 +427,7 @@ export const admin = catalogue({
         reservations: "Gardes confirmées à venir ou en cours",
         signalements: "Gardes annulées et absences signalées, pas encore traitées",
         paiements: "Frais de service payés ces 7 derniers jours",
+        abonnements: "Abonnements en cours, période de grâce comprise",
       },
       /** @relecture Surya — le lien de chaque bloc. */
       voir: "Voir la liste complète",
@@ -454,7 +501,12 @@ export const admin = catalogue({
         communes: "Communes desservies",
         tarif: "Tarif de nuit",
         note: "Note",
+        /** @relecture Surya — la ligne d'abonnement d'une famille (abonnements-back-office). */
+        abonnement: "Abonnement",
+        etatAbonnement: "État de l'abonnement",
       },
+      /** @relecture Surya — une famille qui n'a jamais eu d'abonnement. */
+      sansAbonnement: "Aucun abonnement",
       /** @relecture Surya — l'état avec sa date. */
       suspenduLe: "Suspendu depuis le {date}",
       supprimeLe: "Supprimé le {date}",

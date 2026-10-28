@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { abonnements } from "@/content/abonnements";
+import { admin } from "@/content/admin";
 import { subscriptionPlanEnum, subscriptionStatusEnum } from "@/db/schema";
 
 import {
+  ACTIVE_FILTER,
+  adminSubscriptionState,
   cancelsAt,
   checkoutExpiry,
   FAMILY_ACTIONS,
@@ -11,6 +14,7 @@ import {
   GRACE_DAYS,
   graceEndsAt,
   hasActiveSubscription,
+  isActiveFilter,
   isLive,
   isPlan,
   LIVE,
@@ -19,6 +23,7 @@ import {
   planToFinish,
   PRICE_ENV,
   statusFromStripe,
+  stripeSubscriptionUrl,
   subscriptionState,
   testClocksEnabled,
 } from "./rules";
@@ -34,6 +39,10 @@ import {
  * status, active, cancelled at the period's end, in its grace period or
  * suspended after it; a cancellation's date comes from Stripe; a new Stripe
  * customer gets a test clock only with a test key and STRIPE_TEST_CLOCKS=1.
+ *
+ * Spec (abonnements-back-office): the founders' list shows each
+ * subscription's status and links it in Stripe; « Vue d'ensemble » counts the
+ * active ones, linked to the list.
  */
 
 const now = new Date("2026-11-10T12:00:00Z");
@@ -291,5 +300,45 @@ describe("the test clocks", () => {
     expect(testClocksEnabled({ STRIPE_SECRET_KEY: "sk_test_abc" })).toBe(false);
     expect(testClocksEnabled({ STRIPE_SECRET_KEY: "sk_test_abc", STRIPE_TEST_CLOCKS: "true" })).toBe(false);
     expect(testClocksEnabled({ STRIPE_TEST_CLOCKS: "1" })).toBe(false);
+  });
+});
+
+describe("the founders' list of subscriptions", () => {
+  const graceEnd = new Date(now.getTime() + day);
+
+  it("names the state of every row, the pending and the ended included", () => {
+    expect(adminSubscriptionState({ status: "en_attente", graceEndsAt: null, cancelsAt: null }, now)).toBe("en_attente");
+    expect(adminSubscriptionState({ status: "active", graceEndsAt: null, cancelsAt: null }, now)).toBe("active");
+    expect(adminSubscriptionState({ status: "active", graceEndsAt: null, cancelsAt: graceEnd }, now)).toBe("resiliee");
+    expect(adminSubscriptionState({ status: "impayee", graceEndsAt: graceEnd, cancelsAt: null }, now)).toBe("grace");
+    expect(adminSubscriptionState({ status: "impayee", graceEndsAt: graceEnd, cancelsAt: null }, graceEnd)).toBe(
+      "suspendue",
+    );
+    expect(adminSubscriptionState({ status: "terminee", graceEndsAt: null, cancelsAt: null }, now)).toBe("terminee");
+  });
+
+  it("has a word for every state", () => {
+    expect(Object.keys(admin.fr.abonnements.etats).sort()).toEqual(
+      ["active", "en_attente", "grace", "resiliee", "suspendue", "terminee"],
+    );
+  });
+
+  it("filters the active ones only on ?statut=actifs, the overview's link", () => {
+    expect(ACTIVE_FILTER).toBe("actifs");
+    expect(isActiveFilter("actifs")).toBe(true);
+    expect(isActiveFilter("tous")).toBe(false);
+    expect(isActiveFilter(undefined)).toBe(false);
+  });
+
+  it("links a subscription in Stripe's test mode with a test key, in live mode otherwise", () => {
+    expect(stripeSubscriptionUrl("sub_123", { STRIPE_SECRET_KEY: "sk_test_abc" })).toBe(
+      "https://dashboard.stripe.com/test/subscriptions/sub_123",
+    );
+    expect(stripeSubscriptionUrl("sub_123", { STRIPE_SECRET_KEY: "rk_test_abc" })).toBe(
+      "https://dashboard.stripe.com/test/subscriptions/sub_123",
+    );
+    expect(stripeSubscriptionUrl("sub_123", { STRIPE_SECRET_KEY: "sk_live_abc" })).toBe(
+      "https://dashboard.stripe.com/subscriptions/sub_123",
+    );
   });
 });

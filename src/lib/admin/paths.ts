@@ -1,9 +1,9 @@
 import { SPACES } from "@/lib/auth/routing";
 
 /**
- * The back-office's pages (back-office-admin, D-132). The payments, ratings
- * and absences keep their paths in their own modules; the absences page now
- * answers with a permanent redirect to the reports.
+ * The back-office's pages (back-office-admin, D-132). The payments,
+ * subscriptions, ratings and absences keep their paths in their own modules;
+ * the absences page now answers with a permanent redirect to the reports.
  */
 export const ADMIN_OVERVIEW_PATH = SPACES.admin;
 export const ADMIN_FILES_PATH = `${SPACES.admin}/dossiers`;
