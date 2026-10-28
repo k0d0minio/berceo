@@ -188,7 +188,6 @@ function ProfileForm({
               name="rayon"
               value={choice}
               defaultChecked={rayon === choice}
-              aria-invalid={e.rayon ? true : undefined}
               className="size-5 shrink-0 accent-sauge"
             />
             {t.rayons[choice]}

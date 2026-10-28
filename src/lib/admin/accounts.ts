@@ -198,6 +198,9 @@ export type AccountView = {
     status: ProfileStatus;
     profession: Profession | null;
     nightRateEur: number | null;
+    /** Her radius around her communes (profil-zone-rayon-saisie). */
+    zoneRadiusKm: number;
+    zoneWholeBelgium: boolean;
     communes: string[];
     note: Note;
   } | null;
