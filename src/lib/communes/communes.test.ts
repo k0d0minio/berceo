@@ -55,6 +55,14 @@ describe("the commune reference", () => {
     expect(melle?.commune).toBe("Merelbeke-Melle");
   });
 
+  it("places Bastogne and Bertogne's localities under the merged Bastogne, 82039", () => {
+    expect(findLocality("6600", "Bastogne")?.ins).toBe("82039");
+    expect(findLocality("6687", "Bertogne")?.ins).toBe("82039");
+    expect(findLocality("6687", "Bertogne")?.commune).toBe("Bastogne");
+    expect(communeName("82003")).toBeNull();
+    expect(labels("bastenaken")).toContain("6600 Bastogne");
+  });
+
   it("round-trips the form value and refuses one that names no entry", () => {
     const ixelles = findLocality("1050", "Ixelles")!;
     expect(parseLocalityValue(localityValue(ixelles))).toEqual(ixelles);

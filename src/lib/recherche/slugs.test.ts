@@ -38,6 +38,11 @@ describe("the commune pages (D-127)", () => {
     expect(slugify("Écaussinnes")).toBe("ecaussinnes");
   });
 
+  it("keeps Bastogne's slug under its 2025 code", () => {
+    expect(communeOfSlug("bastogne")).toBe("82039");
+    expect(communePath("82039")).toBe("/garde-de-nuit/bastogne");
+  });
+
   it("answers nothing for an unknown slug or code", () => {
     expect(communeOfSlug("atlantide")).toBeNull();
     expect(communePath("99999")).toBeNull();
