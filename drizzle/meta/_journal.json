@@ -152,8 +152,15 @@
     {
       "idx": 21,
       "version": "7",
-      "when": 1793207731067,
-      "tag": "0021_abonnements",
+      "when": 1793207206344,
+      "tag": "0021_declarations_charte",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793208022771,
+      "tag": "0022_abonnements",
       "breakpoints": true
     }
   ]

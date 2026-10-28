@@ -149,7 +149,7 @@ The platform's data starts here: one Neon Postgres database, read through
   side's read marker, `last_message_at`); `messages` holds the people's text (1 to 2 000
   characters, the browser's id as key) or one of Berceo's two keys (`amorce`, `bonne_garde`, at
   most one each). The migration backfilled a conversation for every earlier answer and booking.
-  Subscriptions (0021): `subscriptions` is one row per Stripe subscription (the plan, the
+  Subscriptions (0022): `subscriptions` is one row per Stripe subscription (the plan, the
   status, the Stripe ids, the renewal date, the grace period's end, the end), at most one live
   per family, and `users.stripe_customer_id` is the family's Stripe customer (**The subscriptions**).
   Identity itself lives in Neon Auth's `neon_auth` schema, which Neon manages and Drizzle never
@@ -631,6 +631,16 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   experience: migration 0016 dropped the band and the specialisations list.
 - **The students switch (D-7)** is `etudiantes_admises` in `app_settings`, flipped on
   `/admin/dossiers`. It offers or hides the two student years together.
+- **The declarations and the charter:** step 4 shows six declarations, then « Charte des
+  professionnelles Berceo » in full and its own checkbox. Sending the file needs the seven
+  ticks, and stores seven rows in `professional_declarations`, each with the version and the
+  moment. The version is `DECLARATIONS_VERSION` in `rules.ts`, `feedback-2026-10-23` since
+  feedback round 1. A submitted file (`en_attente`, `complement_demande` or `valide`) whose last
+  acceptance carries an older version accepts the new set at `/espace/professionnelle/declarations`
+  before any other page of her space opens: `requireAccess` sends her there. Her status and her
+  place in the queue stay. « Mon dossier » and the founders' file page read each row in the words
+  of its version (`src/lib/professionnelle/wording.ts`). The charter's text is
+  `src/content/charte.ts`, also public and indexed at `/charte-des-professionnelles`.
 
 ## The founders' verification
 

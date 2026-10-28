@@ -19,6 +19,7 @@ import {
   isStudent,
   missingDocuments,
   missingProfile,
+  needsNewDeclarations,
   normalizeInami,
   parseExtraHourRate,
   parseRate,
@@ -337,11 +338,14 @@ describe("the steps", () => {
 });
 
 describe("step 4 and the states", () => {
-  it("submits only with all five declarations ticked", () => {
-    expect(DECLARATIONS).toHaveLength(5);
-    expect(DECLARATIONS_VERSION).toBe("cdc-2026-08-02");
+  it("submits only with the six declarations and the charter ticked", () => {
+    expect(DECLARATIONS).toHaveLength(7);
+    expect(DECLARATIONS).toContain("changement_de_situation");
+    expect(DECLARATIONS.at(-1)).toBe("charte");
+    expect(DECLARATIONS_VERSION).toBe("feedback-2026-10-23");
     expect(canSubmit(complete, DECLARATIONS)).toBe(true);
-    expect(canSubmit(complete, DECLARATIONS.slice(0, 4))).toBe(false);
+    expect(canSubmit(complete, DECLARATIONS.slice(0, 6))).toBe(false);
+    expect(canSubmit(complete, DECLARATIONS.filter((d) => d !== "changement_de_situation"))).toBe(false);
     expect(canSubmit({ ...complete, files: { photo: 1 } }, DECLARATIONS)).toBe(false);
     expect(canSubmit({ ...complete, status: "en_attente" }, DECLARATIONS)).toBe(false);
   });
@@ -360,9 +364,26 @@ describe("step 4 and the states", () => {
     expect(changeNeedsReview("valide", "documents")).toBe(true);
     // Trainings, rate, zone, bio and photo apply at once.
     expect(changeNeedsReview("valide", "details")).toBe(false);
-    // Reopened, she resubmits through step 4, which appends five new declarations.
+    // Reopened, she resubmits through step 4, which appends seven new declarations.
     expect(reopenedStatus("valide")).toBe("brouillon");
     expect(canSubmit({ ...complete, status: reopenedStatus("valide") }, DECLARATIONS)).toBe(true);
+  });
+});
+
+describe("the declarations of a new version (onboarding-retour-1)", () => {
+  it("asks a submitted file with an older version to accept them again", () => {
+    for (const status of ["en_attente", "complement_demande", "valide"] as const) {
+      expect(needsNewDeclarations(status, "cdc-2026-08-02")).toBe(true);
+      expect(needsNewDeclarations(status, null)).toBe(true);
+      expect(needsNewDeclarations(status, DECLARATIONS_VERSION)).toBe(false);
+    }
+  });
+
+  it("never asks a draft or a refused file", () => {
+    // A draft accepts on step 4, and a refused file has no space to open.
+    expect(needsNewDeclarations("brouillon", "cdc-2026-08-02")).toBe(false);
+    expect(needsNewDeclarations("brouillon", null)).toBe(false);
+    expect(needsNewDeclarations("refuse", "cdc-2026-08-02")).toBe(false);
   });
 });
 

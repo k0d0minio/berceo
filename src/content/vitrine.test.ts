@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { abonnements } from "./abonnements";
 import { accueil } from "./accueil";
+import { charte } from "./charte";
 import { commentCaMarche } from "./comment-ca-marche";
 import { common } from "./common";
 import { faq } from "./faq";
@@ -22,6 +23,7 @@ import { tarifs } from "./tarifs";
 const surfaces = {
   abonnements: words(abonnements),
   accueil: words(accueil),
+  charte: words(charte),
   commentCaMarche: words(commentCaMarche),
   common: words(common),
   faq: words(faq),
@@ -144,6 +146,7 @@ describe("the vitrine's titles and meta descriptions", () => {
     surfaces.tarifs.meta,
     surfaces.faq.meta,
     surfaces.quiSommesNous.meta,
+    surfaces.charte.meta,
     surfaces.legal.conditionsGenerales.meta,
     surfaces.legal.confidentialite.meta,
   ];
