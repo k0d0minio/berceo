@@ -79,7 +79,7 @@ export const commentCaMarche = catalogue({
       steps: [
         {
           title: "Créez votre profil",
-          text: "Présentez votre profession, votre expérience, votre zone et votre tarif de nuit.",
+          text: "Présentez votre profession, votre zone et votre tarif de nuit.",
         },
         {
           title: "Faites vérifier votre dossier",
@@ -108,7 +108,7 @@ export const commentCaMarche = catalogue({
         },
         {
           title: "Des profils transparents",
-          text: "Photo, prénom, profession, zone, expérience et note : vous savez qui vient chez vous.",
+          text: "Photo, prénom, profession, zone et note : vous savez qui vient chez vous.",
         },
         {
           title: "Une adresse protégée",
