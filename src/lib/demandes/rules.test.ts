@@ -17,6 +17,8 @@ import {
   isDigestTime,
   isExtraHours,
   isStartTime,
+  MAX_SERIES_NIGHTS,
+  seriesWindow,
 } from "./rules";
 
 /**
@@ -67,6 +69,39 @@ describe("a normal request's date", () => {
     // 00:30 on the 26th in Brussels: the 28th is the first night allowed.
     const justAfterMidnight = new Date("2026-09-25T22:30:00Z");
     expect(dateWindow(false, justAfterMidnight)).toEqual({ min: "2026-09-28", max: "2026-11-21" });
+  });
+});
+
+/**
+ * Spec (demande-nuits-regulieres): regular nights run from the day after
+ * tomorrow to the last day of next month in Brussels, 31 nights at most
+ * (Jamie, 2026-10-28). Day 56 does not bind a series.
+ */
+describe("regular nights' window", () => {
+  it("runs from the day after tomorrow to the last day of next month", () => {
+    expect(seriesWindow(SUMMER_NOON)).toEqual({ min: "2026-09-27", max: "2026-10-31" });
+    expect(seriesWindow(new Date("2026-10-28T11:00:00Z"))).toEqual({ min: "2026-10-30", max: "2026-11-30" });
+  });
+
+  it("crosses the year in December and ends on 28 or 29 February in January", () => {
+    expect(seriesWindow(new Date("2026-12-15T11:00:00Z"))).toEqual({ min: "2026-12-17", max: "2027-01-31" });
+    expect(seriesWindow(new Date("2027-01-31T11:00:00Z"))).toEqual({ min: "2027-02-02", max: "2027-02-28" });
+    expect(seriesWindow(new Date("2028-01-10T11:00:00Z")).max).toBe("2028-02-29");
+  });
+
+  it("reaches past day 56 at the start of a month", () => {
+    // 1 October: day 56 is 26 November, the window ends on 30 November.
+    const first = new Date("2026-10-01T10:00:00Z");
+    expect(seriesWindow(first).max > dateWindow(false, first).max).toBe(true);
+  });
+
+  it("follows the Brussels day just after midnight on the last day of a month", () => {
+    // 00:30 on 1 November in Brussels (winter): next month is December.
+    expect(seriesWindow(new Date("2026-10-31T23:30:00Z"))).toEqual({ min: "2026-11-03", max: "2026-12-31" });
+  });
+
+  it("holds 31 nights at most", () => {
+    expect(MAX_SERIES_NIGHTS).toBe(31);
   });
 });
 

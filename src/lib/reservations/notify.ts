@@ -1,7 +1,7 @@
 import "server-only";
 
 import { formatDate, formatTime } from "@/lib/demandes/format";
-import { logFailures, summary } from "@/lib/demandes/notify";
+import { logFailures, seriesSummary, summary } from "@/lib/demandes/notify";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
 import { sendEmail } from "@/lib/email/send";
 import {
@@ -132,5 +132,36 @@ export async function notifyPriority(requestId: string, siteUrl: string): Promis
     );
   } catch (error) {
     logError("priority e-mail not sent", { requestId }, error);
+  }
+}
+
+/**
+ * Regular nights sent in priority (demande-nuits-regulieres, D-71): one e-mail
+ * for the series, with each night still open, keyed by its first night, so a
+ * retry sends it once. Each night is a request she answers on its own.
+ */
+export async function notifySeriesPriority(requestIds: readonly string[], siteUrl: string): Promise<void> {
+  if (requestIds.length === 0) return;
+  try {
+    const notices = (await Promise.all(requestIds.map((id) => priorityNotice(id)))).filter(
+      (notice) => notice !== null,
+    );
+    if (notices.length === 0) return;
+    const [first] = notices;
+    const nights = notices
+      .map((notice) => notice.request)
+      .sort((a, b) => a.nightDate.localeCompare(b.nightDate));
+    await sendEmail(
+      first.email,
+      priorityRequestEmail({
+        siteUrl,
+        prenom: first.firstName,
+        url: `${siteUrl}${PROFESSIONAL_REQUESTS_PATH}`,
+        request: seriesSummary(nights),
+      }),
+      `priorite-${requestIds[0]}`,
+    );
+  } catch (error) {
+    logError("priority e-mail not sent", { requestId: requestIds[0] }, error);
   }
 }

@@ -15,7 +15,6 @@ Set by Jamie on 2026-10-27.
 
 1. abonnements-familles
 2. onboarding-retour-1
-3. demande-retour-1
 
 ## The backlog on 2026-10-23
 

@@ -8,9 +8,10 @@ import {
   requestDigestEmail,
   urgentRequestEmail,
   type RequestSummary,
+  type SeriesSummary,
 } from "@/lib/email/templates";
 
-import { childrenLine, formatDate, nightLine } from "./format";
+import { childrenLine, formatDate, hoursLine, nightLine } from "./format";
 import { PROFESSIONAL_REQUESTS_PATH } from "./paths";
 import {
   claimDigestRequests,
@@ -22,6 +23,7 @@ import {
   type RequestCard,
 } from "./requests";
 import { brusselsNow, isDigestTime } from "./rules";
+import { groupForDigest } from "./series";
 
 /**
  * The two e-mails a professional receives about requests in her communes
@@ -39,6 +41,22 @@ export function summary(request: RequestCard): RequestSummary {
     nuit: nightLine(request.nightDate, request.startTime, request.extraHours),
     enfants: childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit),
     date: formatDate(request.nightDate),
+  };
+}
+
+/**
+ * Nights that read the same, as one e-mail line (demande-nuits-regulieres): the
+ * first night's commune, hours and children, and every night's date in order.
+ * One night reads as `summary` does.
+ */
+export function seriesSummary(nights: readonly RequestCard[]): RequestSummary | SeriesSummary {
+  const [first] = nights;
+  if (nights.length === 1) return summary(first);
+  return {
+    commune: communeName(first.communeIns) ?? first.locality,
+    horaire: hoursLine(first.startTime, first.extraHours),
+    dates: nights.map((night) => formatDate(night.nightDate)),
+    enfants: childrenLine(first.children, first.babyAgeValue, first.babyAgeUnit),
   };
 }
 
@@ -106,7 +124,7 @@ export type DigestOutcome =
  * It claims every normal request no digest has carried (a request is in one
  * digest at most, even when no professional serves its commune), then sends
  * each validated professional one e-mail with her requests. A professional
- * with none gets nothing.
+ * with none gets nothing. The nights of one series read as one line.
  */
 export async function sendRequestDigest(now: Date, siteUrl: string): Promise<DigestOutcome> {
   if (!isDigestTime(now)) return { skipped: "avant-18h" };
@@ -130,9 +148,9 @@ export async function sendRequestDigest(now: Date, siteUrl: string): Promise<Dig
 
   const url = `${siteUrl}${PROFESSIONAL_REQUESTS_PATH}`;
   const sends = [...byProfessional.values()].flatMap(({ recipient, communes }) => {
-    const hers = claimed
-      .filter((r) => communes.has(r.communeIns) && !declined.has(`${r.id}:${recipient.profileId}`))
-      .sort((a, b) => `${a.nightDate}T${a.startTime}`.localeCompare(`${b.nightDate}T${b.startTime}`));
+    const hers = claimed.filter(
+      (r) => communes.has(r.communeIns) && !declined.has(`${r.id}:${recipient.profileId}`),
+    );
     // Declined on every request of hers in this digest: nothing to send her.
     if (hers.length === 0) return [];
     // Per professional, per day and per set of requests: a retry of the same
@@ -150,7 +168,8 @@ export async function sendRequestDigest(now: Date, siteUrl: string): Promise<Dig
             siteUrl,
             prenom: recipient.firstName,
             url,
-            requests: hers.map(summary),
+            // A series is one line with its nights (demande-nuits-regulieres), in night order.
+            requests: groupForDigest(hers).map(seriesSummary),
           }),
           `digest-${recipient.profileId}-${day}-${batch}`,
         ),

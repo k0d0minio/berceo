@@ -14,7 +14,17 @@ import { famille } from "@/content/famille"
 import { fill, words } from "@/content/locale"
 import { parseLocalityValue } from "@/lib/communes"
 import { formatDate, formatTime } from "@/lib/demandes/format"
-import { AGE_UNITS, CHILDREN, FEEDINGS, MAX_EXTRA_HOURS, REASON_MAX, START_TIMES } from "@/lib/demandes/rules"
+import {
+  AGE_UNITS,
+  CHILDREN,
+  FEEDINGS,
+  MAX_EXTRA_HOURS,
+  MAX_SERIES_NIGHTS,
+  REASON_MAX,
+  REQUEST_KINDS,
+  START_TIMES,
+  type RequestKind,
+} from "@/lib/demandes/rules"
 import type { RequestError, RequestField, RequestInput } from "@/lib/demandes/validation"
 import { characterCount } from "@/lib/famille/validation"
 import { cn } from "@/lib/utils"
@@ -29,8 +39,11 @@ import { cn } from "@/lib/utils"
  * Three modes: a normal request, an urgent one (tonight or tomorrow night,
  * D-60), and an edit, which never shows the checkbox again nor changes the
  * commune or the urgency: the rue, the numéro and the boîte change. Published from a professional's profile, it carries her id and says
- * the request goes to her in priority. Validation is the server's; a refused
- * form keeps what was typed.
+ * the request goes to her in priority. A normal request is « Nuit ponctuelle »
+ * or « Nuits régulières » (demande-nuits-regulieres): regular nights replace
+ * the date with a calendar where she ticks each night, and every other field
+ * applies to every night. Validation is the server's; a refused form keeps
+ * what was typed.
  */
 
 export type RequestFormMode = "normale" | "urgente" | "modification"
@@ -89,6 +102,7 @@ function RequestForm({
   action,
   mode,
   dates,
+  seriesDates,
   commune,
   id,
   defaults,
@@ -98,6 +112,8 @@ function RequestForm({
   mode: RequestFormMode
   /** The first and last night allowed, `YYYY-MM-DD`, computed on the server in Brussels. */
   dates: { min: string; max: string }
+  /** A normal publication: the first and last night of regular nights (`seriesWindow`). */
+  seriesDates?: { min: string; max: string }
   /** « 1050 Ixelles »: the request's commune, shown read-only on an edit. */
   commune?: string
   /** The request being edited. */
@@ -111,12 +127,25 @@ function RequestForm({
   const e = state.errors ?? {}
   const v = state.values ?? defaults
   const bounds = { min: formatDate(dates.min), max: formatDate(dates.max) }
+  const seriesBounds = seriesDates
+    ? { min: formatDate(seriesDates.min), max: formatDate(seriesDates.max) }
+    : bounds
+  // Regular nights exist on the normal publish form only.
+  const [kind, setKind] = useState<RequestKind>(
+    mode === "normale" && seriesDates && v?.nature === "reguliere" ? "reguliere" : "ponctuelle"
+  )
 
   function errorOf(field: RequestField): string | undefined {
     const error: RequestError | undefined = e[field]
     if (error === undefined) return undefined
     if (error === "requis") return c.erreurs.requis
     if (error === "date") return fill(t.erreurs.date, bounds)
+    if (field === "nuits") {
+      if (error === "nuits") return fill(t.erreurs.nuits, seriesBounds)
+      if (error === "doublon") {
+        return fill(t.erreurs.doublonNuits, { dates: (state.conflits ?? []).map(formatDate).join(", ") })
+      }
+    }
     // The address follows the profile's rules, in the profile's words.
     if (error === "commune" || error === "adresseIncomplete" || error === "boiteSeule" || error === "long") {
       return f.erreurs[error]
@@ -150,30 +179,80 @@ function RequestForm({
         </>
       ) : null}
 
-      <div className="flex flex-col gap-2">
-        <p id="champ-date-libelle" className={legend}>
-          {t.formulaire.champs.date}
-        </p>
-        <NightPicker
-          // A refused form remounts the calendar with what was chosen.
-          key={`date-${v?.date ?? ""}`}
-          name="date"
-          labelId="champ-date-libelle"
-          min={dates.min}
-          max={dates.max}
-          defaultValue={v?.date ?? ""}
-          invalid={Boolean(e.date)}
-          describedBy={["champ-date-aide", e.date ? "champ-date-erreur" : ""].filter(Boolean).join(" ")}
-        />
-        <p id="champ-date-aide" className={helpText}>
-          {mode === "urgente" ? t.formulaire.aides.dateUrgente : fill(t.formulaire.aides.date, bounds)}
-        </p>
-        {e.date ? (
-          <p id="champ-date-erreur" className={errorClasses}>
-            {errorOf("date")}
+      {mode === "normale" && seriesDates ? (
+        <fieldset className="flex flex-col gap-3">
+          <legend className={cn(legend, "mb-3")}>{t.formulaire.champs.nature}</legend>
+          <div className="flex flex-wrap gap-6 px-2">
+            {REQUEST_KINDS.map((key) => (
+              <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-encre-taupe">
+                <input
+                  type="radio"
+                  name="nature"
+                  value={key}
+                  checked={kind === key}
+                  onChange={() => setKind(key)}
+                  className="size-5 shrink-0 accent-sauge"
+                />
+                {t.formulaire.natures[key]}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
+
+      {kind === "reguliere" && seriesDates ? (
+        <div className="flex flex-col gap-2">
+          <p id="champ-nuits-libelle" className={legend}>
+            {t.formulaire.champs.nuits}
           </p>
-        ) : null}
-      </div>
+          <NightPicker
+            // A refused form remounts the calendar with the nights ticked.
+            key={`nuits-${v?.nuits ?? ""}`}
+            name="nuits"
+            labelId="champ-nuits-libelle"
+            min={seriesDates.min}
+            max={seriesDates.max}
+            defaultValue={v?.nuits ?? ""}
+            multiple
+            maxCount={MAX_SERIES_NIGHTS}
+            invalid={Boolean(e.nuits)}
+            describedBy={["champ-nuits-aide", e.nuits ? "champ-nuits-erreur" : ""].filter(Boolean).join(" ")}
+          />
+          <p id="champ-nuits-aide" className={helpText}>
+            {fill(t.formulaire.aides.nuits, { ...seriesBounds, n: String(MAX_SERIES_NIGHTS) })}
+          </p>
+          {e.nuits ? (
+            <p id="champ-nuits-erreur" className={errorClasses}>
+              {errorOf("nuits")}
+            </p>
+          ) : null}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <p id="champ-date-libelle" className={legend}>
+            {t.formulaire.champs.date}
+          </p>
+          <NightPicker
+            // A refused form remounts the calendar with what was chosen.
+            key={`date-${v?.date ?? ""}`}
+            name="date"
+            labelId="champ-date-libelle"
+            min={dates.min}
+            max={dates.max}
+            defaultValue={v?.date ?? ""}
+            invalid={Boolean(e.date)}
+            describedBy={["champ-date-aide", e.date ? "champ-date-erreur" : ""].filter(Boolean).join(" ")}
+          />
+          <p id="champ-date-aide" className={helpText}>
+            {mode === "urgente" ? t.formulaire.aides.dateUrgente : fill(t.formulaire.aides.date, bounds)}
+          </p>
+          {e.date ? (
+            <p id="champ-date-erreur" className={errorClasses}>
+              {errorOf("date")}
+            </p>
+          ) : null}
+        </div>
+      )}
 
       <div className="flex flex-col gap-2">
         <label htmlFor="champ-heure" className={legend}>

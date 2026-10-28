@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RequestCard } from "@/lib/demandes/requests";
 
-import { notifyBooking, notifyNewAnswer, notifyPriority } from "./notify";
+import { notifyBooking, notifyNewAnswer, notifyPriority, notifySeriesPriority } from "./notify";
 
 /**
  * Spec (candidature-et-reservation): each answer e-mails the family with a
@@ -115,6 +115,37 @@ describe("a priority request", () => {
   it("sends nothing when the request is no longer open or she is no longer validated", async () => {
     priorityNotice.mockResolvedValue(null);
     await notifyPriority("r1", SITE);
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Spec (demande-nuits-regulieres, D-71): regular nights sent in priority are
+ * one e-mail with each night still open, keyed by the first night.
+ */
+describe("regular nights sent in priority", () => {
+  const notice = (id: string, nightDate: string) => ({
+    key: id,
+    email: "emma@example.be",
+    firstName: "Emma",
+    request: { ...card, id, nightDate },
+  });
+
+  it("sends one e-mail with each night still open, keyed by the first", async () => {
+    priorityNotice.mockImplementation(async (id: string) =>
+      id === "r2" ? null : notice(id, id === "r1" ? "2026-11-02" : "2026-11-09"),
+    );
+    await notifySeriesPriority(["r1", "r2", "r3"], SITE);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const [to, email, key] = sendEmail.mock.calls[0];
+    expect(to).toBe("emma@example.be");
+    expect(email.text).toContain("2 nuits régulières de 20h00 à 7h00 : 02/11/2026 et 09/11/2026.");
+    expect(key).toBe("priorite-r1");
+  });
+
+  it("sends nothing when no night is still open", async () => {
+    priorityNotice.mockResolvedValue(null);
+    await notifySeriesPriority(["r1", "r2"], SITE);
     expect(sendEmail).not.toHaveBeenCalled();
   });
 });

@@ -10,10 +10,12 @@ import { words } from "@/content/locale"
 /*
  * Cancelling a request goes through the confirmation dialog (D-24): cancelling
  * is the sensitive answer (red), keeping it the confirming one (green). The
- * action is scoped to the family's own open request on the server.
+ * action is scoped to the family's own open request on the server. With
+ * `serie`, it cancels every open night of regular nights
+ * (demande-nuits-regulieres), in that dialog's own words.
  */
-function CancelRequest({ onCancel }: { onCancel: () => Promise<void> }) {
-  const t = words(demandes).annulation
+function CancelRequest({ onCancel, serie = false }: { onCancel: () => Promise<void>; serie?: boolean }) {
+  const t = serie ? words(demandes).annulationSerie : words(demandes).annulation
   const [pending, startTransition] = useTransition()
 
   return (

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react"
 
 import { disponibilites } from "@/content/disponibilites"
 import { demandes } from "@/content/demandes"
-import { words } from "@/content/locale"
+import { fill, words } from "@/content/locale"
 import { addDays } from "@/lib/demandes/rules"
 // Pure date helpers only: the calendar's months and the night's words. Nothing here reads availability (D-12).
 import { dayNumber, monthHeading, nightName } from "@/lib/disponibilites/format"
@@ -22,7 +22,10 @@ import { cn } from "@/lib/utils"
  * keyboard moves day by day (arrows), week by week (up, down), to the week's
  * ends (Home, End) and month by month (Page Up, Page Down); Enter or Space
  * chooses. The chosen night goes to the server in a hidden `date` field, as
- * the native input sent it, and the server still checks it.
+ * the native input sent it, and the server still checks it. With `multiple`
+ * (« Nuits régulières », demande-nuits-regulieres) each tap ticks or unticks a
+ * night, up to `maxCount`, and the hidden field holds the nights in date order,
+ * joined by commas.
  */
 
 const t = words(demandes).formulaire.calendrier
@@ -54,6 +57,8 @@ function NightPicker({
   defaultValue,
   invalid,
   describedBy,
+  multiple = false,
+  maxCount,
 }: {
   name: string
   /** The id of the visible label, « Date de la garde ». */
@@ -61,17 +66,24 @@ function NightPicker({
   /** The first and last night allowed, `YYYY-MM-DD`, computed on the server in Brussels. */
   min: string
   max: string
+  /** One night, or with `multiple` the nights joined by commas. */
   defaultValue?: string
   invalid?: boolean
   describedBy?: string
+  /** Tick several nights (« Nuits régulières »). */
+  multiple?: boolean
+  /** With `multiple`: the most nights a tap may tick. */
+  maxCount?: number
 }) {
   function clamp(date: string): string {
     return date < min ? min : date > max ? max : date
   }
 
-  const [selected, setSelected] = useState(defaultValue ?? "")
+  const [selected, setSelected] = useState<string[]>(() =>
+    (defaultValue ?? "").split(",").filter(Boolean).sort()
+  )
   // The day that holds the tab stop; its month is the month on screen.
-  const [active, setActive] = useState(() => clamp(selected || min))
+  const [active, setActive] = useState(() => clamp(selected[0] || min))
   const grid = useRef<HTMLDivElement>(null)
   const moved = useRef(false)
 
@@ -111,9 +123,19 @@ function NightPicker({
     setActive(next)
   }
 
+  function choose(date: string) {
+    setActive(date)
+    if (!multiple) {
+      setSelected([date])
+      return
+    }
+    if (selected.includes(date)) setSelected(selected.filter((night) => night !== date))
+    else if (maxCount === undefined || selected.length < maxCount) setSelected([...selected, date].sort())
+  }
+
   return (
     <div className="flex w-full max-w-md flex-col gap-2">
-      <input type="hidden" name={name} value={selected} />
+      <input type="hidden" name={name} value={selected.join(",")} />
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
@@ -156,7 +178,7 @@ function NightPicker({
             {week.map((day) => {
               if (!day.inWindow) return <span key={day.date} aria-hidden="true" className="min-h-11" />
               const open = day.date >= min && day.date <= max
-              const isSelected = day.date === selected
+              const isSelected = selected.includes(day.date)
               return (
                 <button
                   key={day.date}
@@ -166,10 +188,7 @@ function NightPicker({
                   aria-pressed={isSelected}
                   disabled={!open}
                   tabIndex={day.date === active ? 0 : -1}
-                  onClick={() => {
-                    setSelected(day.date)
-                    setActive(day.date)
-                  }}
+                  onClick={() => choose(day.date)}
                   onKeyDown={(event) => onKeyDown(event, day.date)}
                   className={cn(
                     "flex min-h-11 min-w-0 items-center justify-center rounded-md text-corps font-semibold transition-colors duration-200 ease-out focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-encre-taupe focus-visible:outline-solid disabled:opacity-50",
@@ -189,9 +208,13 @@ function NightPicker({
         ))}
       </div>
 
-      {selected ? (
+      {selected.length > 0 ? (
         <p aria-live="polite" className="px-2 text-corps font-semibold text-encre-taupe">
-          {nightName(selected)}
+          {!multiple
+            ? nightName(selected[0])
+            : selected.length === 1
+              ? t.uneNuitChoisie
+              : fill(t.nuitsChoisies, { n: String(selected.length) })}
         </p>
       ) : null}
     </div>

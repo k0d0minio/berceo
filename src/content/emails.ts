@@ -87,6 +87,8 @@ export const emails = catalogue({
       intro: "{n} nouvelles demandes ont été publiées dans les communes où vous intervenez.",
       /** @relecture Surya — une ligne par demande. */
       ligne: "{commune}, nuit du {nuit}. {enfants}.",
+      /** @relecture Surya — une ligne pour des nuits régulières (demande-nuits-regulieres). */
+      ligneSerie: "{commune}, {n} nuits régulières {horaire} : {dates}. {enfants}.",
       cta: "Voir les demandes disponibles",
     },
 
@@ -131,6 +133,9 @@ export const emails = catalogue({
      * Berceo est un intermédiaire. »), sans mention d'assurance (D-8). Sous le bouton des deux
      * confirmations et des deux rappels, et nulle part ailleurs.
      */
+    /** @relecture Surya — avant la dernière date d'une liste : « 02/11/2026, 05/11/2026 et 09/11/2026 ». */
+    et: "et",
+
     cadre:
       "Berceo est un intermédiaire : la rémunération de la professionnelle se fait directement entre vous, après la garde.",
 
@@ -231,6 +236,10 @@ export const emails = catalogue({
       objet: "Une famille vous envoie sa demande en priorité",
       /** @relecture Surya — corps : la nuit et les enfants. */
       corps: "Une famille de {commune} vous a choisie pour la nuit du {nuit}. {enfants}.",
+      /** @relecture Surya — corps pour des nuits régulières (demande-nuits-regulieres). */
+      corpsSerie: "Une famille de {commune} vous a choisie pour {n} nuits régulières {horaire} : {dates}. {enfants}.",
+      /** @relecture Surya — chaque nuit est une demande à part (demande-nuits-regulieres). */
+      nuitParNuit: "Chaque nuit est une demande à part. Vous pouvez répondre pour une nuit, pour plusieurs ou pour toutes.",
       /** @relecture Surya — la demande reste visible des autres (le guide, « La mise en relation »). */
       suite:
         "Sa demande reste visible des autres professionnelles de sa zone jusqu'à ce qu'elle confirme une réservation.",

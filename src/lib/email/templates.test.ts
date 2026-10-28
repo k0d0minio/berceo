@@ -27,6 +27,7 @@ import {
   welcomeFamilyEmail,
   type RenderedEmail,
   type RequestSummary,
+  type SeriesSummary,
 } from "./templates";
 
 /**
@@ -48,6 +49,12 @@ const UCCLE: RequestSummary = {
   nuit: "02/10/2026 de 21h00 à 8h00",
   enfants: "Jumeaux de six semaines",
   date: "02/10/2026",
+};
+const SERIE: SeriesSummary = {
+  commune: "Ixelles",
+  horaire: "de 20h00 à 7h00",
+  dates: ["02/11/2026", "05/11/2026", "09/11/2026"],
+  enfants: "Un bébé de trois mois",
 };
 const LIST = `${SITE}/espace/professionnelle/demandes`;
 
@@ -83,6 +90,8 @@ const all: [string, RenderedEmail][] = [
   ],
   ["not retained", notRetainedEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES })],
   ["priority request", priorityRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: IXELLES })],
+  ["priority series", priorityRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: SERIE })],
+  ["digest with a series", requestDigestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, requests: [SERIE, UCCLE] })],
   [
     "fee refunded",
     refundFamilyEmail({ siteUrl: SITE, prenom: "Julie", date: "30/09/2026", montant: "4,11 €", url: `${SITE}/d` }),
@@ -241,6 +250,16 @@ describe("digest e-mail", () => {
     expect(email.text).toContain(`Voir les demandes disponibles : ${LIST}`);
   });
 
+  // Spec (demande-nuits-regulieres): a series is one line with its nights; the count is one per night.
+  it("shows a series as one line with its nights, and counts each night", () => {
+    const email = requestDigestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, requests: [SERIE, UCCLE] });
+    expect(email.subject).toBe("4 nouvelles demandes de garde dans votre zone");
+    expect(email.text).toContain(
+      "Ixelles, 3 nuits régulières de 20h00 à 7h00 : 02/11/2026, 05/11/2026 et 09/11/2026. Un bébé de trois mois.",
+    );
+    expect(email.text).toContain("Uccle, nuit du 02/10/2026 de 21h00 à 8h00. Jumeaux de six semaines.");
+  });
+
   it("speaks of one request when there is one", () => {
     const email = requestDigestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, requests: [IXELLES] });
     expect(email.subject).toBe("Une nouvelle demande de garde dans votre zone");
@@ -314,6 +333,16 @@ describe("the answer and the booking e-mails", () => {
     expect(email.subject).toBe("Une famille vous envoie sa demande en priorité");
     expect(email.text).toContain("Une famille de Ixelles vous a choisie pour la nuit du 30/09/2026 de 20h00 à 7h00. Un bébé de trois mois.");
     expect(email.text).toContain(`Voir la demande : ${LIST}`);
+  });
+
+  // Spec (demande-nuits-regulieres, D-71): regular nights sent in priority are one e-mail with every night.
+  it("sends regular nights in priority as one e-mail with every night, answered night by night", () => {
+    const email = priorityRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: SERIE });
+    expect(email.subject).toBe("Une famille vous envoie sa demande en priorité");
+    expect(email.text).toContain(
+      "Une famille de Ixelles vous a choisie pour 3 nuits régulières de 20h00 à 7h00 : 02/11/2026, 05/11/2026 et 09/11/2026. Un bébé de trois mois.",
+    );
+    expect(email.text).toContain("Chaque nuit est une demande à part.");
   });
 });
 

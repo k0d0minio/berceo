@@ -31,6 +31,16 @@ export const NORMAL_LAST_DAY = 56;
 /** An urgent request: tonight or tomorrow night (D-60). */
 export const URGENT_LAST_DAY = 1;
 
+/**
+ * « Nuit ponctuelle » or « Nuits régulières » (demande-nuits-regulieres). Regular
+ * nights are one request per night with a shared series id, never urgent.
+ */
+export const REQUEST_KINDS = ["ponctuelle", "reguliere"] as const;
+export type RequestKind = (typeof REQUEST_KINDS)[number];
+
+/** The most nights one series holds (Jamie, 2026-10-28). */
+export const MAX_SERIES_NIGHTS = 31;
+
 /** Start times: every half hour from 18:00 to 23:00 (D-65). */
 export const START_TIMES: readonly string[] = Array.from({ length: 11 }, (_, i) => {
   const minutes = 18 * 60 + i * 30;
@@ -109,6 +119,22 @@ export function dateWindow(urgent: boolean, now: Date): { min: string; max: stri
   return urgent
     ? { min: today, max: addDays(today, URGENT_LAST_DAY) }
     : { min: addDays(today, NORMAL_FIRST_DAY), max: addDays(today, NORMAL_LAST_DAY) };
+}
+
+/**
+ * The nights a series may hold, as of `now`: from the day after tomorrow, as a
+ * normal request (D-60), to the last day of next month in Brussels (« le mois
+ * qui suit », Jamie, 2026-10-28). D-60's day 56 does not bind a series.
+ */
+export function seriesWindow(now: Date): { min: string; max: string } {
+  const today = brusselsNow(now).date;
+  const [y, m] = today.split("-").map(Number);
+  // Day 0 of the month after next is the last day of next month.
+  const last = new Date(Date.UTC(y, m + 1, 0));
+  return {
+    min: addDays(today, NORMAL_FIRST_DAY),
+    max: `${last.getUTCFullYear()}-${pad(last.getUTCMonth() + 1)}-${pad(last.getUTCDate())}`,
+  };
 }
 
 /** Whether `date` is inside the window of its kind. ISO dates compare as strings. */

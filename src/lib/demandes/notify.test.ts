@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { notifyUrgentRequest, sendRequestDigest } from "./notify";
-import type { Recipient, RequestCard } from "./requests";
+import type { DigestRequest, Recipient } from "./requests";
 
 /**
  * Spec (demande-de-garde, D-61): the digest leaves at 18:00 Brussels or later,
@@ -12,7 +12,7 @@ import type { Recipient, RequestCard } from "./requests";
  */
 
 const { claimDigestRequests, declinedPairs, digestSentOn, professionalsServing, requestForNotice, sendEmail } = vi.hoisted(() => ({
-  claimDigestRequests: vi.fn<() => Promise<RequestCard[]>>(),
+  claimDigestRequests: vi.fn<() => Promise<DigestRequest[]>>(),
   declinedPairs: vi.fn<(ids: string[]) => Promise<Set<string>>>(),
   digestSentOn: vi.fn<(day: string) => Promise<boolean>>(),
   professionalsServing: vi.fn<(communes: string[]) => Promise<Recipient[]>>(),
@@ -35,9 +35,10 @@ const AFTER_SIX = new Date("2026-09-25T16:05:00Z");
 // 17:55 in Brussels, summer time.
 const BEFORE_SIX = new Date("2026-09-25T15:55:00Z");
 
-function request(id: string, communeIns: string, nightDate = "2026-09-30"): RequestCard {
+function request(id: string, communeIns: string, nightDate = "2026-09-30", seriesId: string | null = null): DigestRequest {
   return {
     id,
+    seriesId,
     urgent: false,
     nightDate,
     startTime: "20:00:00",
@@ -124,6 +125,28 @@ describe("the daily digest", () => {
     const [to, email] = sendEmail.mock.calls[0];
     expect(to).toBe(julie.email);
     expect(email.subject).toBe("Une nouvelle demande de garde dans votre zone");
+  });
+
+  // Spec (demande-nuits-regulieres): a series is one line with its nights, and
+  // the count is the requests, one per night.
+  it("shows the nights of a series as one line with its nights", async () => {
+    claimDigestRequests.mockResolvedValue([
+      request("s2", "21009", "2026-10-05", "S"),
+      request("r1", "21009", "2026-10-03"),
+      request("s1", "21009", "2026-10-02", "S"),
+      request("s3", "21009", "2026-10-09", "S"),
+    ]);
+    professionalsServing.mockResolvedValue([julie]);
+
+    expect(await sendRequestDigest(AFTER_SIX, SITE)).toEqual({ requests: 4, professionals: 1, failed: 0 });
+    const [, email] = sendEmail.mock.calls[0];
+    expect(email.subject).toBe("4 nouvelles demandes de garde dans votre zone");
+    expect(email.text).toContain(
+      "Ixelles, 3 nuits régulières de 20h00 à 7h00 : 02/10/2026, 05/10/2026 et 09/10/2026. Un bébé de trois mois.",
+    );
+    expect(email.text).toContain("Ixelles, nuit du 03/10/2026 de 20h00 à 7h00. Un bébé de trois mois.");
+    // The series' line comes first: its first night is the soonest.
+    expect(email.text.indexOf("3 nuits")).toBeLessThan(email.text.indexOf("nuit du 03/10/2026"));
   });
 
   it("counts a failed send without throwing", async () => {

@@ -208,6 +208,27 @@ export function profileRefusedEmail(input: {
 /** One request as the e-mails name it: its commune, its night, its children. */
 export type RequestSummary = { commune: string; nuit: string; enfants: string; date: string };
 
+/**
+ * Regular nights as the e-mails name them (demande-nuits-regulieres): one line
+ * with the commune, the hours, every night and the children.
+ */
+export type SeriesSummary = { commune: string; horaire: string; dates: readonly string[]; enfants: string };
+
+function isSeries(line: RequestSummary | SeriesSummary): line is SeriesSummary {
+  return "dates" in line;
+}
+
+/** « 02/11/2026, 05/11/2026 et 09/11/2026 ». */
+function dateList(dates: readonly string[]): string {
+  return dates.length < 2 ? dates.join("") : `${dates.slice(0, -1).join(", ")} ${t.et} ${dates[dates.length - 1]}`;
+}
+
+/** A series' line: « Ixelles, 3 nuits de 20h00 à 7h00 : 02/11/2026, 05/11/2026 et 09/11/2026. Un bébé de trois mois. » */
+function seriesLine(template: string, series: SeriesSummary): string {
+  const { commune, horaire, dates, enfants } = series;
+  return fill(template, { commune, n: String(dates.length), horaire, dates: dateList(dates), enfants });
+}
+
 /** A new urgent request in her communes, sent at once (D-61). */
 export function urgentRequestEmail(input: {
   siteUrl: string;
@@ -228,16 +249,21 @@ export function urgentRequestEmail(input: {
   };
 }
 
-/** The daily digest of the normal requests published in her communes (D-61). */
+/**
+ * The daily digest of the normal requests published in her communes (D-61). A
+ * series is one line with its nights (demande-nuits-regulieres); the count is
+ * the requests, one per night.
+ */
 export function requestDigestEmail(input: {
   siteUrl: string;
   prenom: string;
   url: string;
-  requests: readonly RequestSummary[];
+  requests: readonly (RequestSummary | SeriesSummary)[];
 }): RenderedEmail {
   const r = t.resumeDemandes;
-  const n = String(input.requests.length);
-  const one = input.requests.length === 1;
+  const count = input.requests.reduce((sum, line) => sum + (isSeries(line) ? line.dates.length : 1), 0);
+  const n = String(count);
+  const one = count === 1;
   return {
     subject: one ? r.objetUne : fill(r.objet, { n }),
     ...layout({
@@ -245,7 +271,9 @@ export function requestDigestEmail(input: {
       prenom: input.prenom,
       paragraphs: [
         one ? r.introUne : fill(r.intro, { n }),
-        ...input.requests.map(({ commune, nuit, enfants }) => fill(r.ligne, { commune, nuit, enfants })),
+        ...input.requests.map((line) =>
+          isSeries(line) ? seriesLine(r.ligneSerie, line) : fill(r.ligne, line),
+        ),
       ],
       cta: { label: r.cta, href: input.url },
     }),
@@ -518,16 +546,19 @@ export function priorityRequestEmail(input: {
   siteUrl: string;
   prenom: string;
   url: string;
-  request: RequestSummary;
+  /** Regular nights are one e-mail with every night (demande-nuits-regulieres). */
+  request: RequestSummary | SeriesSummary;
 }): RenderedEmail {
   const r = t.prioritaire;
-  const { commune, nuit, enfants } = input.request;
+  const request = input.request;
   return {
     subject: r.objet,
     ...layout({
       siteUrl: input.siteUrl,
       prenom: input.prenom,
-      paragraphs: [fill(r.corps, { commune, nuit, enfants }), r.suite],
+      paragraphs: isSeries(request)
+        ? [seriesLine(r.corpsSerie, request), r.nuitParNuit, r.suite]
+        : [fill(r.corps, request), r.suite],
       cta: { label: r.cta, href: input.url },
     }),
   };
