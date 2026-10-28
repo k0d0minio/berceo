@@ -8,11 +8,11 @@ import { describe, expect, it } from "vitest";
  * 11-hour night, and the database holds them to 0 to 6.
  */
 const sql = readFileSync(
-  fileURLToPath(new URL("../../drizzle/0017_demande_heures_supplementaires.sql", import.meta.url)),
+  fileURLToPath(new URL("../../drizzle/0019_demande_heures_supplementaires.sql", import.meta.url)),
   "utf8",
 );
 
-describe("migration 0017_demande_heures_supplementaires", () => {
+describe("migration 0019_demande_heures_supplementaires", () => {
   it("adds the column with default 0 for the existing requests", () => {
     expect(sql).toContain(`ALTER TABLE "care_requests" ADD COLUMN "extra_hours" smallint DEFAULT 0 NOT NULL`);
   });

@@ -5,9 +5,11 @@ import {
   isChildren,
   isDateInWindow,
   isExtraHours,
+  isFeeding,
   isStartTime,
   type AgeUnit,
   type Children,
+  type Feeding,
 } from "./rules";
 
 /**
@@ -26,6 +28,7 @@ export type RequestInput = {
   enfants: string;
   ageValeur: string;
   ageUnite: string;
+  alimentation: string;
   /** Present only on the publish form: an edit keeps the stored tick. */
   confirmation: boolean;
 };
@@ -37,9 +40,17 @@ export type RequestValues = {
   children: Children;
   babyAgeValue: number;
   babyAgeUnit: AgeUnit;
+  feeding: Feeding;
 };
 
-export type RequestField = "date" | "heure" | "heuresSupplementaires" | "enfants" | "age" | "confirmation";
+export type RequestField =
+  | "date"
+  | "heure"
+  | "heuresSupplementaires"
+  | "enfants"
+  | "age"
+  | "alimentation"
+  | "confirmation";
 export type RequestError =
   | "requis"
   | "date"
@@ -48,6 +59,7 @@ export type RequestError =
   | "heuresSupplementaires"
   | "enfants"
   | "age"
+  | "alimentation"
   | "confirmation"
   | "doublon";
 export type RequestErrors = Partial<Record<RequestField, RequestError>>;
@@ -69,6 +81,7 @@ export function readRequestForm(form: FormData): RequestInput {
     enfants: text(form, "enfants"),
     ageValeur: text(form, "ageValeur"),
     ageUnite: text(form, "ageUnite"),
+    alimentation: text(form, "alimentation"),
     confirmation: form.get("confirmation") === "oui",
   };
 }
@@ -111,6 +124,9 @@ export function validateRequest(
   if (!input.ageValeur || !input.ageUnite) errors.age = "requis";
   else if (!isAgeUnit(input.ageUnite) || !isAgeInRange(age, input.ageUnite)) errors.age = "age";
 
+  // Missing or unknown, the error names the three answers: required on a publication and on an edit.
+  if (!isFeeding(input.alimentation)) errors.alimentation = "alimentation";
+
   if (publishing && !input.confirmation) errors.confirmation = "confirmation";
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
@@ -124,6 +140,7 @@ export function validateRequest(
       children: input.enfants as Children,
       babyAgeValue: age,
       babyAgeUnit: input.ageUnite as AgeUnit,
+      feeding: input.alimentation as Feeding,
     },
   };
 }

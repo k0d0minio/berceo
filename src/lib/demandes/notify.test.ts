@@ -45,6 +45,7 @@ function request(id: string, communeIns: string, nightDate = "2026-09-30"): Requ
     children: "un_bebe",
     babyAgeValue: 3,
     babyAgeUnit: "mois",
+    feeding: "allaitement_maternel",
     communeIns,
     postcode: "1050",
     locality: "Ixelles",

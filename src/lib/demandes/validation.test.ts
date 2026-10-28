@@ -8,6 +8,8 @@ import { validateRequest, type RequestInput } from "./validation";
  * tonight or tomorrow night and never a start already past (D-60); the start
  * time, the children and the age are checked against their lists (D-64, D-65);
  * the extra hours are whole hours from 0 to 6 (demande-heures-supplementaires).
+ * Spec (demande-enfants-alimentation): « Triplés » is a third choice, and one
+ * of the three feedings is required to publish and to edit.
  */
 
 // 25 September 2026, 12:00 in Brussels.
@@ -22,6 +24,7 @@ const valid: RequestInput = {
   enfants: "un_bebe",
   ageValeur: "3",
   ageUnite: "mois",
+  alimentation: "allaitement_maternel",
   confirmation: true,
 };
 
@@ -38,6 +41,7 @@ describe("publishing a normal request", () => {
         children: "un_bebe",
         babyAgeValue: 3,
         babyAgeUnit: "mois",
+        feeding: "allaitement_maternel",
       },
     });
   });
@@ -61,12 +65,27 @@ describe("publishing a normal request", () => {
 
   it("asks for every field", () => {
     const checked = validateRequest(
-      { date: "", heure: "", heuresSupplementaires: "", enfants: "", ageValeur: "", ageUnite: "", confirmation: true },
+      {
+        date: "",
+        heure: "",
+        heuresSupplementaires: "",
+        enfants: "",
+        ageValeur: "",
+        ageUnite: "",
+        alimentation: "",
+        confirmation: true,
+      },
       publishNormal,
     );
     expect(checked).toEqual({
       ok: false,
-      errors: { date: "requis", heure: "requis", enfants: "requis", age: "requis" },
+      errors: {
+        date: "requis",
+        heure: "requis",
+        enfants: "requis",
+        age: "requis",
+        alimentation: "alimentation",
+      },
     });
   });
 
@@ -78,7 +97,7 @@ describe("publishing a normal request", () => {
     expect(refused({ heure: "17:30" })).toEqual({ heure: "heure" });
     expect(refused({ heure: "23:30" })).toEqual({ heure: "heure" });
     expect(refused({ heure: "20:15" })).toEqual({ heure: "heure" });
-    expect(refused({ enfants: "triples" })).toEqual({ enfants: "enfants" });
+    expect(refused({ enfants: "quadruples" })).toEqual({ enfants: "enfants" });
     expect(refused({ ageValeur: "13", ageUnite: "semaines" })).toEqual({ age: "age" });
     expect(refused({ ageValeur: "0", ageUnite: "mois" })).toEqual({ age: "age" });
     expect(refused({ ageValeur: "25", ageUnite: "mois" })).toEqual({ age: "age" });
@@ -107,6 +126,36 @@ describe("publishing a normal request", () => {
     for (const value of ["7", "-1", "1.5", "1,5", "10", "deux"]) {
       expect(refused(value)).toEqual({ heuresSupplementaires: "heuresSupplementaires" });
     }
+  });
+});
+
+describe("the children and their feeding", () => {
+  const values = (input: Partial<RequestInput>) => {
+    const checked = validateRequest({ ...valid, ...input }, publishNormal);
+    return checked.ok ? checked.values : checked.errors;
+  };
+
+  it("accepts triplets", () => {
+    expect(values({ enfants: "triples" })).toMatchObject({ children: "triples" });
+  });
+
+  it("accepts each of the three feedings and stores it", () => {
+    expect(values({ alimentation: "allaitement_maternel" })).toMatchObject({ feeding: "allaitement_maternel" });
+    expect(values({ alimentation: "lait_infantile" })).toMatchObject({ feeding: "lait_infantile" });
+    expect(values({ alimentation: "allaitement_mixte" })).toMatchObject({ feeding: "allaitement_mixte" });
+  });
+
+  it("refuses a request without a feeding, or with an unknown one", () => {
+    expect(values({ alimentation: "" })).toEqual({ alimentation: "alimentation" });
+    expect(values({ alimentation: "biberon" })).toEqual({ alimentation: "alimentation" });
+  });
+
+  it("asks for the feeding on an edit too", () => {
+    const checked = validateRequest(
+      { ...valid, alimentation: "" },
+      { urgent: false, now: NOON, publishing: false, storedDate: "2026-09-30" },
+    );
+    expect(checked).toEqual({ ok: false, errors: { alimentation: "alimentation" } });
   });
 });
 

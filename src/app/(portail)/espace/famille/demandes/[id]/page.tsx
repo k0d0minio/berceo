@@ -33,7 +33,7 @@ import { isSessionId } from "@/lib/paiements/rules";
 import { familyAnswers } from "@/lib/reservations/answers";
 import { gardeState } from "@/lib/gardes/rules";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
-import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import { familyBookingPath, professionalProfilePath } from "@/lib/reservations/paths";
 import { canRepublish } from "@/lib/reservations/rules";
 
@@ -180,6 +180,11 @@ export default async function DemandePage({
                       </div>
                       <NoteDisplay note={answer.note} />
                       <p className="text-corps font-semibold text-encre-sauge">{rateLine(answer.nightRateEur)}</p>
+                      {answer.extraHourRateEur ? (
+                        <p className="text-corps font-semibold text-encre-sauge">
+                          {extraHourLine(answer.extraHourRateEur)}
+                        </p>
+                      ) : null}
                       <div className="flex flex-wrap items-center gap-3">
                         <Link
                           href={professionalProfilePath(answer.profileId, request.id)}
@@ -203,6 +208,9 @@ export default async function DemandePage({
                               prenom: answer.firstName,
                               profession: professionLabel(answer.profession),
                               tarif: rateLine(answer.nightRateEur),
+                              tarifHeure: answer.extraHourRateEur
+                                ? extraHourLine(answer.extraHourRateEur)
+                                : undefined,
                               frais: feeLine(answer.nightRateEur),
                             }}
                             onAccept={acceptAnswerAction.bind(null, request.id, answer.applicationId)}

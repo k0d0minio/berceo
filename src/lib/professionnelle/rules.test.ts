@@ -20,6 +20,7 @@ import {
   missingDocuments,
   missingProfile,
   normalizeInami,
+  parseExtraHourRate,
   parseRate,
   recordAnswer,
   recordOutcome,
@@ -47,6 +48,7 @@ const blank: ProfileInput = {
   formations: "",
   communes: [],
   tarif: "",
+  tarifHeure: "",
   bio: "",
 };
 
@@ -57,6 +59,7 @@ const complete: FileState = {
     formationsComplementaires: null,
     communes: ["21009"],
     nightRateEur: 150,
+    extraHourRateEur: 15,
     bio: "Sage-femme en maternité depuis trois ans.",
   },
   inamiNumber: "12345678901",
@@ -70,22 +73,51 @@ const PNG = bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
 const WEBP = bytes(0x52, 0x49, 0x46, 0x46, 1, 2, 3, 4, 0x57, 0x45, 0x42, 0x50);
 const EXE = bytes(0x4d, 0x5a, 0x90, 0x00);
 
-describe("the night rate (D-4)", () => {
-  it("accepts whole euros from 100 to 300", () => {
-    expect(parseRate("100")).toEqual({ ok: true, value: 100 });
-    expect(parseRate(" 300 ")).toEqual({ ok: true, value: 300 });
+describe("the night rate (profil-tarifs)", () => {
+  it("accepts whole euros from 130, with no ceiling", () => {
+    expect(parseRate("130")).toEqual({ ok: true, value: 130 });
+    expect(parseRate(" 450 ")).toEqual({ ok: true, value: 450 });
+    expect(parseRate("1200")).toEqual({ ok: true, value: 1200 });
     expect(parseRate("150,00")).toEqual({ ok: true, value: 150 });
   });
 
-  it("refuses below 100, above 300 and anything not a whole number", () => {
-    for (const raw of ["99", "301", "0", "-150", "150,5", "150.25", "abc", "1e2"]) {
+  it("refuses below 130 and anything not a whole number", () => {
+    for (const raw of ["129", "100", "0", "-150", "150,5", "150.25", "abc", "1e3"]) {
       expect(parseRate(raw).ok, raw).toBe(false);
     }
   });
 
+  it("refuses an amount the database cannot hold", () => {
+    expect(parseRate("99999999999").ok).toBe(false);
+  });
+
   it("is refused by the form's check with a message on the rate", () => {
-    expect(checkProfile({ ...blank, tarif: "99" }, context).errors.tarif).toBe("tarif");
-    expect(checkProfile({ ...blank, tarif: "301" }, context).errors.tarif).toBe("tarif");
+    expect(checkProfile({ ...blank, tarif: "129" }, context).errors.tarif).toBe("tarif");
+    expect(checkProfile({ ...blank, tarif: "450" }, context).values.nightRateEur).toBe(450);
+  });
+});
+
+describe("the extra hour's rate (profil-tarifs)", () => {
+  it("accepts whole euros from 1", () => {
+    expect(parseExtraHourRate("1")).toEqual({ ok: true, value: 1 });
+    expect(parseExtraHourRate(" 25 ")).toEqual({ ok: true, value: 25 });
+  });
+
+  it("refuses 0 and anything not a whole number", () => {
+    for (const raw of ["0", "-5", "12,5", "abc"]) {
+      expect(parseExtraHourRate(raw).ok, raw).toBe(false);
+    }
+  });
+
+  it("is refused by the form's check with a message on its own field", () => {
+    expect(checkProfile({ ...blank, tarifHeure: "0" }, context).errors).toEqual({ tarifHeure: "tarifHeure" });
+    expect(checkProfile({ ...blank, tarifHeure: "20" }, context).values.extraHourRateEur).toBe(20);
+  });
+
+  it("is required to continue", () => {
+    expect(missingProfile({ ...complete.draft, extraHourRateEur: null }, true)).toEqual({
+      tarifHeure: "requis",
+    });
   });
 });
 
@@ -96,6 +128,7 @@ describe("step 2", () => {
       profession: "requis",
       communes: "communesMin",
       tarif: "requis",
+      tarifHeure: "requis",
       bio: "requis",
       photo: "photo",
     });
@@ -107,7 +140,7 @@ describe("step 2", () => {
 
   it("keeps every valid answer when another is wrong, so a partial save loses nothing", () => {
     const { values, errors } = checkProfile(
-      { ...blank, profession: "puericultrice", communes: ["21009"], tarif: "999" },
+      { ...blank, profession: "puericultrice", communes: ["21009"], tarif: "129" },
       context,
     );
     expect(values.profession).toBe("puericultrice");

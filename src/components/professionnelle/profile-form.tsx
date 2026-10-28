@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { fill, words } from "@/content/locale"
 import { professionnelle } from "@/content/professionnelle"
 import type { Profession } from "@/db/schema"
-import { BIO_MAX, FORMATIONS_MAX, RATE_MAX, RATE_MIN } from "@/lib/professionnelle/rules"
+import { BIO_MAX, EXTRA_HOUR_RATE_MIN, FORMATIONS_MAX, RATE_MIN } from "@/lib/professionnelle/rules"
 
 /*
  * Step 2, "Complétez votre profil", with the guide's labels, and the same form
@@ -26,6 +26,7 @@ export type ProfileValues = {
   formationsComplementaires: string | null
   communes: string[]
   nightRateEur: number | null
+  extraHourRateEur: number | null
   bio: string | null
 }
 
@@ -158,12 +159,24 @@ function ProfileForm({
         type="number"
         inputMode="numeric"
         min={RATE_MIN}
-        max={RATE_MAX}
         step={1}
         label={t.champs.tarif}
         help={t.aides.tarif}
         defaultValue={v?.tarif ?? (saved.nightRateEur !== null ? String(saved.nightRateEur) : "")}
         error={errorOf("tarif")}
+        className="max-w-48"
+      />
+
+      <Field
+        name="tarifHeure"
+        type="number"
+        inputMode="numeric"
+        min={EXTRA_HOUR_RATE_MIN}
+        step={1}
+        label={t.champs.tarifHeure}
+        help={t.aides.tarifHeure}
+        defaultValue={v?.tarifHeure ?? (saved.extraHourRateEur !== null ? String(saved.extraHourRateEur) : "")}
+        error={errorOf("tarifHeure")}
         className="max-w-48"
       />
 

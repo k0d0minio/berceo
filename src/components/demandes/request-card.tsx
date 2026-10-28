@@ -4,15 +4,15 @@ import Link from "next/link"
 import { demandes } from "@/content/demandes"
 import { fill, words } from "@/content/locale"
 import { reservations } from "@/content/reservations"
-import { cardTitle, childrenLine, nightLine, placeLine } from "@/lib/demandes/format"
+import { cardTitle, childrenLine, feedingLine, nightLine, placeLine } from "@/lib/demandes/format"
 import type { RequestCard as Request } from "@/lib/demandes/requests"
 import type { DisplayStatus } from "@/lib/demandes/rules"
-import { rateLine } from "@/lib/reservations/format"
+import { extraHourLine, rateLine } from "@/lib/reservations/format"
 import { cn } from "@/lib/utils"
 
 /*
  * The DA's request card (Cartes et blocs de contenu): « Garde de nuit à
- * <Commune> », the locality, the night, the children, 32 px corners, flat
+ * <Commune> », the locality, the night, the children and their feeding, 32 px corners, flat
  * pearl, no shadow. An urgent request carries a butter-yellow mark, never red
  * (D-24). The family's card adds its status, its answers and a link; a
  * professional's card shows when it was published, a request sent to her in
@@ -44,6 +44,7 @@ function RequestCard({
   showPublished = false,
   priority = false,
   rate,
+  extraHourRate,
   note,
   footer,
 }: {
@@ -57,6 +58,8 @@ function RequestCard({
   priority?: boolean
   /** The professional's view: her rate, the DA's « 150 € pour la garde de nuit ». */
   rate?: number | null
+  /** The professional's view: her rate for each extra hour, « 15 € par heure supplémentaire » (profil-tarifs). */
+  extraHourRate?: number | null
   /** A short line under the card's facts: « 2 réponses », « Vous avez répondu ». */
   note?: string
   /** The professional's view: her answer's buttons. */
@@ -88,7 +91,12 @@ function RequestCard({
       <p className="text-corps text-encre-taupe">
         {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
       </p>
+      {/* A request published before the field has no feeding. */}
+      {request.feeding ? <p className="text-corps text-encre-taupe">{feedingLine(request.feeding)}</p> : null}
       {rate ? <p className="text-corps font-semibold text-encre-sauge">{rateLine(rate)}</p> : null}
+      {extraHourRate ? (
+        <p className="text-corps font-semibold text-encre-sauge">{extraHourLine(extraHourRate)}</p>
+      ) : null}
       {showPublished ? (
         <p className="text-legende text-encre-taupe">{fill(t.carte.publiee, { date: published })}</p>
       ) : null}

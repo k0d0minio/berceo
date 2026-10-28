@@ -35,12 +35,13 @@ describe("the amount (D-99)", () => {
     expect(eurosFromCents(feeCents(100))).toBe("3,00");
     expect(eurosFromCents(feeCents(300))).toBe("9,00");
     expect(eurosFromCents(feeCents(150))).toBe("4,50");
+    expect(eurosFromCents(feeCents(450))).toBe("13,50");
   });
 
-  it("refuses a rate outside 100 to 300 €, or not whole", () => {
+  it("refuses a rate under 100 €, or not whole, and has no ceiling (profil-tarifs)", () => {
     expect(() => feeCents(99)).toThrow(RangeError);
-    expect(() => feeCents(301)).toThrow(RangeError);
     expect(() => feeCents(150.5)).toThrow(RangeError);
+    expect(feeCents(1200)).toBe(3600);
   });
 });
 

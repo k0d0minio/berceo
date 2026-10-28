@@ -85,7 +85,7 @@ export const accueil = catalogue({
         },
         {
           title: "Vous savez qui vient",
-          text: "Photo, prénom, profession, zone, expérience et note : chaque profil est transparent.",
+          text: "Photo, prénom, profession, zone et note : chaque profil est transparent.",
         },
         {
           title: "Votre adresse reste privée",

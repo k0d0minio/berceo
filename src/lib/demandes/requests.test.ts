@@ -5,10 +5,10 @@ import { cardColumns } from "./requests";
 /**
  * Spec (demande-de-garde, D-15): a professional's list shows no family name,
  * address, phone or e-mail, and its query selects none of them. The card is
- * the night (its extra hours too), the children and the commune.
+ * the night (its extra hours too), the children, their feeding and the commune.
  */
 describe("the columns a professional reads", () => {
-  it("are the night, the children and the commune, nothing about the family", () => {
+  it("are the night, the children, their feeding and the commune, nothing about the family", () => {
     const columns = Object.values(cardColumns).map((column) => column.name);
     expect(columns.sort()).toEqual(
       [
@@ -18,6 +18,7 @@ describe("the columns a professional reads", () => {
         "commune_ins",
         "created_at",
         "extra_hours",
+        "feeding",
         "id",
         "locality",
         "night_date",

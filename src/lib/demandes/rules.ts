@@ -1,6 +1,7 @@
 /**
  * The rules of a care request that do not need the database: which nights a
- * request may be for, the start times, the baby's age, when a night has
+ * request may be for, the start times, the baby's age, the children and
+ * their feeding, when a night has
  * started and when it has ended, the two sides of it, and when the daily
  * digest may leave. Pure and dependency-free, so the form, the server actions,
  * the digest route and the tests read the same rules; the conversation (D-89),
@@ -44,8 +45,12 @@ export const AGE_RANGES: Readonly<Record<AgeUnit, { min: number; max: number }>>
   mois: { min: 1, max: 24 },
 };
 
-export const CHILDREN = ["un_bebe", "jumeaux"] as const;
+export const CHILDREN = ["un_bebe", "jumeaux", "triples"] as const;
 export type Children = (typeof CHILDREN)[number];
+
+/** How the children are fed, in the founders' order (demande-retour-1). */
+export const FEEDINGS = ["allaitement_maternel", "lait_infantile", "allaitement_mixte"] as const;
+export type Feeding = (typeof FEEDINGS)[number];
 
 /** The daily digest leaves at 18:00 in Brussels, or at the first call after (D-61). */
 export const DIGEST_HOUR = 18;
@@ -168,6 +173,10 @@ export function isAgeInRange(value: number, unit: AgeUnit): boolean {
 
 export function isChildren(value: string): value is Children {
   return (CHILDREN as readonly string[]).includes(value);
+}
+
+export function isFeeding(value: string): value is Feeding {
+  return (FEEDINGS as readonly string[]).includes(value);
 }
 
 /** Whether the digest may leave at `now`: 18:00 or later in Brussels, summer and winter. */

@@ -25,7 +25,8 @@ export const dynamic = "force-dynamic";
 
 /*
  * Editing an open request: the night (within its own kind's window, as of
- * today), the start time, the children and the age. The commune and the
+ * today), the start time, the children, the age and the feeding, which a
+ * request published before the field gets here. The commune and the
  * urgency stay as published. An answer waiting on it locks it (D-76).
  */
 export default async function ModifierDemandePage({ params }: { params: Promise<{ id: string }> }) {
@@ -53,6 +54,7 @@ export default async function ModifierDemandePage({ params }: { params: Promise<
           enfants: request.children,
           ageValeur: String(request.babyAgeValue),
           ageUnite: request.babyAgeUnit,
+          alimentation: request.feeding ?? "",
         }}
       />
     </SpaceShell>

@@ -46,6 +46,7 @@ function List({
             <RequestCard
               request={booking.request}
               rate={booking.nightRateEur}
+              extraHourRate={booking.extraHourRateEur}
               footer={
                 <>
                   <GardeStateMark

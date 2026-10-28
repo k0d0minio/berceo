@@ -60,7 +60,10 @@ export const demandes = catalogue({
         /** Le libellé des fondatrices (retour 1, demande-heures-supplementaires). */
         heuresSupplementaires: "Heures supplémentaires",
         enfants: "Nombre d'enfants",
-        age: "Âge du bébé",
+        /** @relecture Surya — le libellé des fondatrices, retour 1 (2026-10-23). */
+        age: "Âge du/des enfants",
+        /** @relecture Surya — le libellé des fondatrices, retour 1 (2026-10-23). */
+        alimentation: "Alimentation du/des enfants",
         commune: "Votre commune",
         /** @relecture Surya — nom du champ nombre, pour les lecteurs d'écran. */
         ageValeur: "Âge",
@@ -88,6 +91,18 @@ export const demandes = catalogue({
       enfants: {
         un_bebe: "Un bébé",
         jumeaux: "Jumeaux",
+        /** @relecture Surya — le choix des fondatrices, retour 1 (2026-10-23). */
+        triples: "Triplés",
+      },
+
+      /** Les trois réponses des fondatrices, retour 1 (2026-10-23), dans leur ordre. */
+      alimentation: {
+        /** @relecture Surya — la majuscule d'un choix du formulaire. */
+        allaitement_maternel: "Allaitement maternel",
+        /** @relecture Surya — la majuscule d'un choix du formulaire. */
+        lait_infantile: "Lait infantile",
+        /** @relecture Surya — la majuscule d'un choix du formulaire. */
+        allaitement_mixte: "Allaitement mixte",
       },
 
       unites: {
@@ -118,10 +133,13 @@ export const demandes = catalogue({
       heure: "Choisissez une heure dans la liste.",
       /** @relecture Surya — heures supplémentaires hors des bornes ou non entières. */
       heuresSupplementaires: "Indiquez un nombre d'heures entier entre 0 et 6.",
-      /** @relecture Surya — ni bébé ni jumeaux. */
-      enfants: "Indiquez s'il s'agit d'un bébé ou de jumeaux.",
+      /** @relecture Surya — ni bébé, ni jumeaux, ni triplés. */
+      enfants: "Indiquez s'il s'agit d'un bébé, de jumeaux ou de triplés.",
       /** @relecture Surya — âge hors des bornes (D-64). */
       age: "Indiquez un âge entre 0 et 12 semaines, ou entre 1 et 24 mois.",
+      /** @relecture Surya — alimentation absente, nomme les trois réponses. */
+      alimentation:
+        "Indiquez s'il s'agit d'allaitement maternel, de lait infantile ou d'allaitement mixte.",
       /** @relecture Surya — case non cochée (D-20). */
       confirmation: "Cochez cette case pour publier votre demande.",
       /** @relecture Surya — une seule demande ouverte ou réservée par nuit (D-65, D-156, D-157). */
@@ -167,6 +185,17 @@ export const demandes = catalogue({
         un_bebe: "Un bébé",
         /** @relecture Surya — jumeaux du même âge. */
         jumeaux: "Jumeaux",
+        /** @relecture Surya — triplés du même âge. */
+        triples: "Triplés",
+      },
+      /** La ligne de l'alimentation sur la carte. */
+      alimentation: {
+        /** @relecture Surya — une des trois réponses des fondatrices. */
+        allaitement_maternel: "Allaitement maternel",
+        /** @relecture Surya — une des trois réponses des fondatrices. */
+        lait_infantile: "Lait infantile",
+        /** @relecture Surya — une des trois réponses des fondatrices. */
+        allaitement_mixte: "Allaitement mixte",
       },
       /** @relecture Surya — « Un bébé de trois mois ». */
       enfantsAge: "{enfants} de {age}",

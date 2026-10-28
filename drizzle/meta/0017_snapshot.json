@@ -1,5 +1,5 @@
 {
-  "id": "74a56aa8-c09e-4838-8d17-9390a1f3b413",
+  "id": "52b3009c-a2f0-49ff-be5b-fb083343c599",
   "prevId": "1b9e27b6-c910-456e-b87d-54f13b315cee",
   "version": "7",
   "dialect": "postgresql",
@@ -684,13 +684,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "extra_hours": {
-          "name": "extra_hours",
-          "type": "smallint",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
         "children": {
           "name": "children",
           "type": "care_request_children",
@@ -710,6 +703,13 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
+        },
+        "feeding": {
+          "name": "feeding",
+          "type": "feeding",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
         },
         "commune_ins": {
           "name": "commune_ins",
@@ -919,10 +919,6 @@
         "care_requests_start_time_slot": {
           "name": "care_requests_start_time_slot",
           "value": "\"care_requests\".\"start_time\" BETWEEN '18:00' AND '23:00' AND date_part('minute', \"care_requests\".\"start_time\") IN (0, 30) AND date_part('second', \"care_requests\".\"start_time\") = 0"
-        },
-        "care_requests_extra_hours_range": {
-          "name": "care_requests_extra_hours_range",
-          "value": "\"care_requests\".\"extra_hours\" BETWEEN 0 AND 6"
         },
         "care_requests_baby_age_range": {
           "name": "care_requests_baby_age_range",
@@ -2574,7 +2570,8 @@
       "schema": "public",
       "values": [
         "un_bebe",
-        "jumeaux"
+        "jumeaux",
+        "triples"
       ]
     },
     "public.care_request_status": {
@@ -2612,6 +2609,15 @@
         "diplome",
         "attestation_inscription",
         "photo"
+      ]
+    },
+    "public.feeding": {
+      "name": "feeding",
+      "schema": "public",
+      "values": [
+        "allaitement_maternel",
+        "lait_infantile",
+        "allaitement_mixte"
       ]
     },
     "public.message_author": {
