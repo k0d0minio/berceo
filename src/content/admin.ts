@@ -72,6 +72,8 @@ export const admin = catalogue({
       /** @relecture Surya — valeurs absentes. */
       aucune: "Aucune",
       nonRenseigne: "Non renseigné",
+      /** @relecture Surya — le numéro INAMI est facultatif (onboarding-retour-1). */
+      inamiNonRenseigne: "INAMI non renseigné",
       /** @relecture Surya — tarif affiché. */
       tarif: "{montant} € par nuit",
       /** @relecture Surya — états du dossier hors file. */
@@ -193,7 +195,7 @@ export const admin = catalogue({
       titre: "Accueillir les étudiantes sages-femmes",
       /** @relecture Surya — ce que fait le réglage. */
       description:
-        "Activé, « étudiante sage-femme (3e ou 4e année) » est proposé aux professionnelles qui s'inscrivent. Désactivé, il ne l'est plus, et les dossiers qui le portent déjà le gardent.",
+        "Activé, « étudiante sage-femme, 3e année » et « étudiante sage-femme, 4e année » sont proposés aux professionnelles qui s'inscrivent. Désactivé, ils ne le sont plus, et les dossiers qui portent déjà l'un d'eux le gardent.",
       /** @relecture Surya — état du réglage. */
       active: "Activé",
       desactive: "Désactivé",
@@ -207,9 +209,9 @@ export const admin = catalogue({
         titreActiver: "Accueillir les étudiantes sages-femmes ?",
         titreDesactiver: "Ne plus accueillir les étudiantes sages-femmes ?",
         descriptionActiver:
-          "Les professionnelles qui s'inscrivent pourront choisir « étudiante sage-femme (3e ou 4e année) ».",
+          "Les professionnelles qui s'inscrivent pourront choisir « étudiante sage-femme, 3e année » ou « étudiante sage-femme, 4e année ».",
         descriptionDesactiver:
-          "Ce choix ne sera plus proposé. Les dossiers qui le portent déjà le garderont.",
+          "Ces deux choix ne seront plus proposés. Les dossiers qui portent déjà l'un d'eux le garderont.",
         oui: "Oui, confirmer",
         non: "Non, ne rien changer",
       },

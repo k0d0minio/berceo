@@ -28,7 +28,7 @@ queue shows the year of a student and « INAMI non renseigné » when empty.
 - [ ] A midwife submits her file with the INAMI field empty and her file reaches `en_attente`.
 - [ ] A filled INAMI field with other than eleven digits is refused at the field.
 - [ ] Each student year asks for the attendance certificate, the three professions for the diploma.
-- [ ] The migration adds the two enum values and moves existing student rows to the third year.
+- [ ] The migration renames the old value to the third year and adds the fourth year.
 - [ ] `src/lib/professionnelle/rules.test.ts` covers the two years and the optional INAMI.
 
 ## Out of scope
@@ -39,7 +39,7 @@ queue shows the year of a student and « INAMI non renseigné » when empty.
 
 - Question, with a default: existing `etudiante_sage_femme` rows. Default: migrate to
   `etudiante_sage_femme_3e` and let the founders correct the year in the queue.
-- Drizzle adds enum values and cannot drop one. The old value stays in the enum, unused.
+- Drizzle adds enum values and cannot drop one. Decided at Spec approved (2026-10-28): rename the old value to `etudiante_sage_femme_3e` and add `etudiante_sage_femme_4e`. Postgres refuses a new enum value in the transaction that adds it, so an UPDATE cannot follow an ADD VALUE in one run.
 - `REQUIREMENTS[profession].inami` becomes `"optional"` for midwives and nurses and `false` for
   the others. The field label gets « (facultatif) ».
 - Files: `src/db/schema.ts`, `drizzle/`, `src/lib/professionnelle/rules.ts`,

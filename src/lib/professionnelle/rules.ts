@@ -23,11 +23,19 @@ export const PROFESSIONS = [
   "sage_femme",
   "infirmiere_neonatologie",
   "puericultrice",
-  "etudiante_sage_femme",
+  "etudiante_sage_femme_3e",
+  "etudiante_sage_femme_4e",
 ] as const satisfies readonly Profession[];
 
-/** The profession the founders' switch gates (D-7). */
-export const STUDENT: Profession = "etudiante_sage_femme";
+/** The two student years, which the founders' switch gates together (D-7). */
+export const STUDENTS = [
+  "etudiante_sage_femme_3e",
+  "etudiante_sage_femme_4e",
+] as const satisfies readonly Profession[];
+
+export function isStudent(profession: Profession | null): boolean {
+  return (STUDENTS as readonly (Profession | null)[]).includes(profession);
+}
 
 export const EXPERIENCES = [
   "moins_d_un_an",
@@ -71,15 +79,19 @@ export const DECLARATIONS_VERSION = "cdc-2026-08-02";
 export type Requirement = {
   /** The document kinds she must upload, one to three files each. */
   documents: readonly Exclude<DocumentKind, "photo">[];
-  /** Whether she types her INAMI number. */
-  inami: boolean;
+  /**
+   * Whether the INAMI field is shown. It is never required: not every midwife
+   * has a number (onboarding-retour-1). A filled field still needs eleven digits.
+   */
+  inami: "optional" | false;
 };
 
 export const REQUIREMENTS: Record<Profession, Requirement> = {
-  sage_femme: { documents: ["diplome"], inami: true },
-  infirmiere_neonatologie: { documents: ["diplome"], inami: true },
+  sage_femme: { documents: ["diplome"], inami: "optional" },
+  infirmiere_neonatologie: { documents: ["diplome"], inami: "optional" },
   puericultrice: { documents: ["diplome"], inami: false },
-  etudiante_sage_femme: { documents: ["attestation_inscription"], inami: false },
+  etudiante_sage_femme_3e: { documents: ["attestation_inscription"], inami: false },
+  etudiante_sage_femme_4e: { documents: ["attestation_inscription"], inami: false },
 };
 
 // ---------------------------------------------------------------------------
@@ -192,7 +204,7 @@ export type ProfileInput = {
  * tard" saves what is valid (D-21); an empty field is simply not answered yet.
  *
  * - `studentsAdmitted` is the founders' switch; `currentProfession` lets a file
- *   that already carries the student option keep it when the switch is off.
+ *   that already carries a student year keep either year when the switch is off.
  * - `isKnownCommune` checks a NIS code against the register.
  */
 export function checkProfile(
@@ -217,9 +229,9 @@ export function checkProfile(
   if (profession) {
     if (!isProfession(profession)) errors.profession = "profession";
     else if (
-      profession === STUDENT &&
+      isStudent(profession) &&
       !context.studentsAdmitted &&
-      context.currentProfession !== STUDENT
+      !isStudent(context.currentProfession)
     ) {
       errors.profession = "etudiantesFermees";
     } else values.profession = profession;
@@ -293,15 +305,16 @@ export function isProfileComplete(file: FileState): boolean {
 
 export type DocumentsField = "inami" | Exclude<DocumentKind, "photo">;
 
-/** What step 3 still lacks for her profession (nothing to say before one is chosen). */
+/**
+ * What step 3 still lacks for her profession (nothing to say before one is
+ * chosen). The INAMI number is optional, so an empty field lacks nothing.
+ */
 export function missingDocuments(file: FileState): FieldErrors<DocumentsField> {
   const missing: FieldErrors<DocumentsField> = {};
   if (!file.draft.profession) return missing;
-  const requirement = REQUIREMENTS[file.draft.profession];
-  for (const kind of requirement.documents) {
+  for (const kind of REQUIREMENTS[file.draft.profession].documents) {
     if ((file.files[kind] ?? 0) === 0) missing[kind] = "document";
   }
-  if (requirement.inami && !file.inamiNumber) missing.inami = "inami";
   return missing;
 }
 

@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   DECLARATIONS,
   DECLARATIONS_VERSION,
+  PROFESSIONS,
   REQUIREMENTS,
+  STUDENTS,
   areDocumentsComplete,
   canOpenStep,
   canReadFile,
@@ -13,6 +15,7 @@ import {
   checkProfile,
   checkUpload,
   firstIncompleteStep,
+  isStudent,
   missingDocuments,
   missingProfile,
   normalizeInami,
@@ -139,42 +142,96 @@ describe("step 2", () => {
   });
 });
 
+describe("the profession list (onboarding-retour-1)", () => {
+  it("lists the three professions, then the two student years last", () => {
+    expect(PROFESSIONS).toEqual([
+      "sage_femme",
+      "infirmiere_neonatologie",
+      "puericultrice",
+      "etudiante_sage_femme_3e",
+      "etudiante_sage_femme_4e",
+    ]);
+    expect(STUDENTS).toEqual(["etudiante_sage_femme_3e", "etudiante_sage_femme_4e"]);
+    expect(PROFESSIONS.slice(-2)).toEqual([...STUDENTS]);
+  });
+
+  it("counts both years, and only them, as students", () => {
+    expect(isStudent("etudiante_sage_femme_3e")).toBe(true);
+    expect(isStudent("etudiante_sage_femme_4e")).toBe(true);
+    expect(isStudent("sage_femme")).toBe(false);
+    expect(isStudent(null)).toBe(false);
+  });
+});
+
 describe("the students switch (D-7)", () => {
-  const student = { ...blank, profession: "etudiante_sage_femme" };
+  it.each(["etudiante_sage_femme_3e", "etudiante_sage_femme_4e"])(
+    "refuses %s while the switch is off",
+    (year) => {
+      expect(checkProfile({ ...blank, profession: year }, context).errors.profession).toBe("etudiantesFermees");
+    },
+  );
 
-  it("refuses the student option while the switch is off", () => {
-    expect(checkProfile(student, context).errors.profession).toBe("etudiantesFermees");
-  });
-
-  it("accepts it while the switch is on", () => {
+  it.each(["etudiante_sage_femme_3e", "etudiante_sage_femme_4e"])("accepts %s while the switch is on", (year) => {
     const on = { ...context, studentsAdmitted: true };
-    expect(checkProfile(student, on).values.profession).toBe("etudiante_sage_femme");
+    expect(checkProfile({ ...blank, profession: year }, on).values.profession).toBe(year);
   });
 
-  it("lets a file that already carries it keep it when the switch goes off", () => {
-    const carrying = { ...context, currentProfession: "etudiante_sage_femme" as const };
-    expect(checkProfile(student, carrying).values.profession).toBe("etudiante_sage_femme");
+  it("lets a file that already carries a year keep it, or change it, when the switch goes off", () => {
+    const carrying = { ...context, currentProfession: "etudiante_sage_femme_3e" as const };
+    const third = { ...blank, profession: "etudiante_sage_femme_3e" };
+    const fourth = { ...blank, profession: "etudiante_sage_femme_4e" };
+    expect(checkProfile(third, carrying).values.profession).toBe("etudiante_sage_femme_3e");
+    expect(checkProfile(fourth, carrying).values.profession).toBe("etudiante_sage_femme_4e");
+  });
+
+  it("never lets another profession move to a year while the switch is off", () => {
+    const midwife = { ...context, currentProfession: "sage_femme" as const };
+    const fourth = { ...blank, profession: "etudiante_sage_femme_4e" };
+    expect(checkProfile(fourth, midwife).errors.profession).toBe("etudiantesFermees");
   });
 });
 
 describe("step 3", () => {
-  it("asks each profession for exactly its documents, and the INAMI number where it applies", () => {
-    expect(REQUIREMENTS.sage_femme).toEqual({ documents: ["diplome"], inami: true });
-    expect(REQUIREMENTS.infirmiere_neonatologie).toEqual({ documents: ["diplome"], inami: true });
+  it("asks each profession for exactly its documents, and offers the INAMI field where it applies", () => {
+    expect(REQUIREMENTS.sage_femme).toEqual({ documents: ["diplome"], inami: "optional" });
+    expect(REQUIREMENTS.infirmiere_neonatologie).toEqual({ documents: ["diplome"], inami: "optional" });
     expect(REQUIREMENTS.puericultrice).toEqual({ documents: ["diplome"], inami: false });
-    expect(REQUIREMENTS.etudiante_sage_femme).toEqual({
+    expect(REQUIREMENTS.etudiante_sage_femme_3e).toEqual({
+      documents: ["attestation_inscription"],
+      inami: false,
+    });
+    expect(REQUIREMENTS.etudiante_sage_femme_4e).toEqual({
       documents: ["attestation_inscription"],
       inami: false,
     });
   });
 
-  it("refuses to continue while a document or the INAMI number is missing", () => {
+  it("refuses to continue while a document is missing", () => {
     expect(missingDocuments({ ...complete, files: { photo: 1 } })).toEqual({ diplome: "document" });
-    expect(missingDocuments({ ...complete, inamiNumber: null })).toEqual({ inami: "inami" });
     expect(areDocumentsComplete(complete)).toBe(true);
     const puericultrice = { ...complete, draft: { ...complete.draft, profession: "puericultrice" as const } };
     expect(areDocumentsComplete({ ...puericultrice, inamiNumber: null })).toBe(true);
   });
+
+  it.each(["sage_femme", "infirmiere_neonatologie"] as const)(
+    "lets a %s continue and submit with no INAMI number",
+    (profession) => {
+      const file = { ...complete, draft: { ...complete.draft, profession }, inamiNumber: null };
+      expect(missingDocuments(file)).toEqual({});
+      expect(areDocumentsComplete(file)).toBe(true);
+      expect(firstIncompleteStep(file)).toBe("declarations");
+      expect(canSubmit(file, DECLARATIONS)).toBe(true);
+    },
+  );
+
+  it.each(["etudiante_sage_femme_3e", "etudiante_sage_femme_4e"] as const)(
+    "asks %s for the attendance certificate",
+    (year) => {
+      const file = { ...complete, draft: { ...complete.draft, profession: year }, inamiNumber: null };
+      expect(missingDocuments({ ...file, files: { photo: 1 } })).toEqual({ attestation_inscription: "document" });
+      expect(areDocumentsComplete({ ...file, files: { photo: 1, attestation_inscription: 1 } })).toBe(true);
+    },
+  );
 
   it("normalises the INAMI number to eleven digits", () => {
     expect(normalizeInami("1-23456-78-901")).toBe("12345678901");

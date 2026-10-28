@@ -14,7 +14,7 @@ import { REQUIREMENTS } from "@/lib/professionnelle/rules"
 /*
  * Step 3, "Déposez vos justificatifs" (D-5, D-6): exactly the documents her
  * profession requires, one to three files each, and her INAMI number where it
- * applies. The criminal record is not here: it is a declaration at step 4.
+ * applies, always optional. The criminal record is not here: it is a declaration at step 4.
  * The files upload on their own; the form carries the INAMI number and the
  * way forward.
  */

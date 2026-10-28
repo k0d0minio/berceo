@@ -42,8 +42,8 @@ export const professionnelle = catalogue({
       bio: "Quelques mots sur moi",
       /** @relecture Surya — le guide ne nomme pas le champ de la photo. */
       photo: "Ma photo",
-      /** @relecture Surya — le numéro INAMI, à l'étape 3 (« INAMI si applicable »). */
-      inami: "Mon numéro INAMI",
+      /** @relecture Surya — le numéro INAMI, à l'étape 3, facultatif (onboarding-retour-1). */
+      inami: "Mon numéro INAMI (facultatif)",
     },
 
     aides: {
@@ -71,12 +71,13 @@ export const professionnelle = catalogue({
       rechercheCommune: "Rechercher une commune",
     },
 
-    /** Les professions du guide, en tête de choix. @relecture Surya — la mention de l'année des étudiantes (D-7). */
+    /** Les professions du guide, en tête de choix. @relecture Surya — les deux années des étudiantes (D-7, onboarding-retour-1). */
     professions: {
       sage_femme: "Sage-femme",
       infirmiere_neonatologie: "Infirmière en néonatologie",
       puericultrice: "Puéricultrice",
-      etudiante_sage_femme: "Étudiante sage-femme (3e ou 4e année)",
+      etudiante_sage_femme_3e: "Étudiante sage-femme, 3e année",
+      etudiante_sage_femme_4e: "Étudiante sage-femme, 4e année",
     },
 
     /** @relecture Surya — liste provisoire, à corriger avec les fondatrices. */
@@ -108,7 +109,8 @@ export const professionnelle = catalogue({
         sage_femme: "Mon diplôme de sage-femme",
         infirmiere_neonatologie: "Mon diplôme d'infirmière",
         puericultrice: "Mon diplôme ou certificat de puériculture",
-        etudiante_sage_femme: "Mon attestation d'inscription pour l'année en cours",
+        etudiante_sage_femme_3e: "Mon attestation d'inscription pour l'année en cours",
+        etudiante_sage_femme_4e: "Mon attestation d'inscription pour l'année en cours",
       },
       /** @relecture Surya — boutons des fichiers. */
       ajouter: "Ajouter un fichier",
@@ -223,7 +225,8 @@ export const professionnelle = catalogue({
       bioLongue: "Votre présentation dépasse 500 caractères.",
       specialisation: "Choisissez vos spécialisations dans la liste.",
       photo: "Ajoutez une photo de vous.",
-      inami: "Indiquez votre numéro INAMI, en onze chiffres.",
+      /** @relecture Surya — le numéro est facultatif, l'erreur ne vient que d'un numéro mal saisi. */
+      inami: "Le numéro INAMI compte onze chiffres.",
       document: "Ajoutez ce justificatif.",
       declarations: "Cochez les cinq déclarations pour envoyer votre dossier.",
       /** @relecture Surya — erreurs d'envoi de fichier. */

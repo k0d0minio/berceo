@@ -543,7 +543,14 @@ never touches the money for the night (D-1).
 - **Her zone (D-11)** is one to fifty communes from the shared commune list (below), stored as
   REFNIS codes in `professional_communes.commune_ins`, the key `family_profiles` carries too.
   `searchCommunes` in `src/lib/communes/` groups the list's localities by commune for the picker.
-- **The students switch (D-7)** is `etudiantes_admises` in `app_settings`, flipped on `/admin/dossiers`.
+- **The professions:** sage-femme, infirmière en néonatologie and puéricultrice upload their
+  diploma. The two student years, « Étudiante sage-femme, 3e année » and « 4e année », come last
+  and upload the attendance certificate. Migration 0015 renamed the old single student value to
+  the third year. The INAMI field shows for midwives and nurses and is optional: an empty field
+  never blocks step 3, a filled one needs eleven digits, and the founders' page reads
+  « INAMI non renseigné » when it is empty.
+- **The students switch (D-7)** is `etudiantes_admises` in `app_settings`, flipped on
+  `/admin/dossiers`. It offers or hides the two student years together.
 
 ## The founders' verification
 
