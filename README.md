@@ -104,9 +104,9 @@ vouvoiement, no exclamation mark, no em dash, no ellipsis, the validated lexicon
   `@relecture Surya — <why>` tag (on an object, it covers every entry inside it).
   `grep -rn @relecture src/content` is the list to send Surya.
 - **The rules are tested**: `src/content/vitrine.test.ts` fails on `!`, `…`, `—`, insurance
-  wording (D-8), Facebook (D-23), a subscription tier, an amount in euros other than 100 and
-  300, "abonnement" except to say there is none, and a title or description out of the
-  guide's lengths (50–60, 140–160) or used twice.
+  wording (D-8), Facebook (D-23), an amount in euros other than the four subscription prices
+  and 130, a percentage other than 3, "sans abonnement" or "aucun abonnement", and a title or
+  description out of the guide's lengths (50–60, 140–160) or used twice.
 - **Adding a language**: add its code to `locales` in `locale.ts`, then add the same key to
   every `catalogue({ … })`. The type is derived from French, so a surface that misses the new
   locale, or a key inside it, fails the typecheck.
@@ -649,8 +649,11 @@ never touches the money for the night (D-1).
   is used only under text that names health professionals; everywhere else it is "Trouver une
   professionnelle" (D-25).
 - **Reassurance is the manual verification**, never insurance (D-8).
-- **Prices**: the professional's night rate between 100 € and 300 €, paid to her directly, and
-  the 3 % service fee with its refund rule. No subscription in V1 (D-3).
+- **Prices**: the four family subscriptions of the devis (Découverte, 1 mois, 24,90 € ·
+  Parenthèse, 3 mois, 59,90 € · Sérénité, 6 mois, 94,90 € · Premium, 12 mois, 159,90 €) in
+  `src/content/abonnements.ts`, the professional's night rate from 130 € with no ceiling, paid
+  to her directly, and the 3 % service fee with its refund rule. The founders' feedback round 1
+  supersedes D-3 and D-4.
 - **The founders' story**: `/qui-sommes-nous` carries their first-person text (D-23), verbatim
   but for the guide's punctuation. It is indexed and in the sitemap.
 - **Placeholders**: the two legal pages wait for the founders' texts. Both are `noindex` and

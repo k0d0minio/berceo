@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { abonnements } from "./abonnements";
 import { accueil } from "./accueil";
 import { commentCaMarche } from "./comment-ca-marche";
 import { common } from "./common";
@@ -13,12 +14,13 @@ import { tarifs } from "./tarifs";
 /*
  * The vitrine's writing rules, asserted over the catalogue's values (never its
  * comments), from the spec's acceptance criteria: Surya's punctuation rules
- * (D-19), no insurance (D-8), no Facebook group (D-23), no subscription tier
- * and no price but the range and the fee (D-2, D-3, D-4), and the guide's
- * title and meta lengths.
+ * (D-19), no insurance (D-8), no Facebook group (D-23), no amount but the
+ * four subscriptions, the 130 € floor and the 3 % fee (feedback round 1,
+ * which supersedes D-3 and D-4), and the guide's title and meta lengths.
  */
 
 const surfaces = {
+  abonnements: words(abonnements),
   accueil: words(accueil),
   commentCaMarche: words(commentCaMarche),
   common: words(common),
@@ -63,7 +65,6 @@ const banned: [string, RegExp][] = [
   ["insurance (D-8)", word("assurances?|assuré(?:e|es|s)?")],
   ["coverage (D-8)", word("couvert(?:e|es|s)?")],
   ["Facebook group (D-23)", word("facebook")],
-  ["subscription tier (D-3)", word("Découverte|Parenthèse|Sérénité|Premium", "u")],
 ];
 
 describe("the vitrine's catalogue", () => {
@@ -85,26 +86,53 @@ describe("the vitrine's catalogue", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("names no amount in euros but 100 € and 300 € (D-4)", () => {
+  it("names no amount in euros but the four subscriptions and 130 € (feedback round 1)", () => {
     const amounts = prose.flatMap(([path, text]) =>
       [...text.matchAll(/(\d[\d  .,]*)\s*€/g)].map(
         (match) => [path, match[1].replace(/[\s  ]/g, "")] as const,
       ),
     );
     expect(amounts.length).toBeGreaterThan(0);
-    expect(amounts.filter(([, amount]) => !["100", "300"].includes(amount))).toEqual(
-      [],
-    );
+    expect(
+      amounts.filter(
+        ([, amount]) =>
+          !["24,90", "59,90", "94,90", "159,90", "130"].includes(amount),
+      ),
+    ).toEqual([]);
   });
 
-  it("mentions a subscription only to say there is none (D-3)", () => {
+  it("names no percentage but the 3 % fee (D-2)", () => {
+    const percents = prose.flatMap(([path, text]) =>
+      [...text.matchAll(/(\d[\d,]*)\s*%/g)].map(
+        (match) => [path, match[1]] as const,
+      ),
+    );
+    expect(percents.length).toBeGreaterThan(0);
+    expect(percents.filter(([, n]) => n !== "3")).toEqual([]);
+  });
+
+  it("never says there is no subscription (feedback round 1)", () => {
     const offenders = prose.filter(([, text]) =>
-      [...text.matchAll(/abonnements?/gi)].some((match) => {
-        const before = text.slice(0, match.index);
-        return !/(?:sans|aucun|pas d['’])\s*$/i.test(before);
-      }),
+      /(?:sans|aucun|pas d['’])\s*abonnements?/i.test(text),
     );
     expect(offenders).toEqual([]);
+  });
+});
+
+describe("the subscriptions on « Tarifs »", () => {
+  it("lists the four plans of the devis, in its order", () => {
+    expect(surfaces.abonnements.plans).toEqual([
+      { name: "Découverte", duree: "1 mois", prix: "24,90 €" },
+      { name: "Parenthèse", duree: "3 mois", prix: "59,90 €" },
+      { name: "Sérénité", duree: "6 mois", prix: "94,90 €" },
+      { name: "Premium", duree: "12 mois", prix: "159,90 €" },
+    ]);
+  });
+
+  it("sets the night rate from 130 € and names no ceiling", () => {
+    const [rate] = surfaces.tarifs.tarif.paragraphs;
+    expect(rate).toContain("à partir de 130 €");
+    expect(rate).not.toMatch(/\bentre\b|maximum|jusqu/i);
   });
 });
 

@@ -95,7 +95,7 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
   pink or blue, no naïve illustration, no gadget animation; red and green only in confirmation
   dialogs (D-24). There is no dark theme and no toggle.
 - Every word follows Surya's guide (D-19). Vouvoiement; no `!`, `…` or `—`; no insurance
-  wording (D-8), no Facebook group (D-23), no price but 100–300 € and 3 % (D-2–D-4), no blanket
+  wording (D-8), no Facebook group (D-23), no price but the four subscriptions, 130 € and 3 % (feedback round 1), no blanket
   « diplômées » (D-7); `@relecture` on anything not quoted from the guide.
   `src/content/vitrine.test.ts` enforces the mechanical part.
 - Never commit archives or binaries over a few MB. `.gitignore` blocks `*.zip` and friends.
