@@ -1,5 +1,5 @@
 {
-  "id": "d7d15c55-44fc-4bd7-b15f-deac12ecfb79",
+  "id": "0c2d6832-9a5f-4fb8-8a4d-dcdd7b5b5e9c",
   "prevId": "bb77ab56-f512-4618-b70d-fb6899495502",
   "version": "7",
   "dialect": "postgresql",
@@ -704,6 +704,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "extra_hours": {
+          "name": "extra_hours",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "children": {
           "name": "children",
           "type": "care_request_children",
@@ -957,6 +964,10 @@
         "care_requests_start_time_slot": {
           "name": "care_requests_start_time_slot",
           "value": "\"care_requests\".\"start_time\" BETWEEN '18:00' AND '23:00' AND date_part('minute', \"care_requests\".\"start_time\") IN (0, 30) AND date_part('second', \"care_requests\".\"start_time\") = 0"
+        },
+        "care_requests_extra_hours_range": {
+          "name": "care_requests_extra_hours_range",
+          "value": "\"care_requests\".\"extra_hours\" BETWEEN 0 AND 6"
         },
         "care_requests_baby_age_range": {
           "name": "care_requests_baby_age_range",
@@ -2647,9 +2658,7 @@
         "autorisee_a_exercer",
         "fausse_declaration",
         "verifications",
-        "casier_judiciaire",
-        "changement_de_situation",
-        "charte"
+        "casier_judiciaire"
       ]
     },
     "public.document_kind": {

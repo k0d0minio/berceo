@@ -50,10 +50,7 @@ function List({
               footer={
                 <>
                   <GardeStateMark
-                    state={gardeState(
-                      { status: booking.garde.status, nightDate: booking.request.nightDate, startTime: booking.request.startTime },
-                      now,
-                    )}
+                    state={gardeState({ ...booking.request, status: booking.garde.status }, now)}
                   />
                   <Link
                     href={professionalBookingPath(booking.id)}
@@ -61,11 +58,7 @@ function List({
                   >
                     {t.gardes.voir}
                   </Link>
-                  {canRate(
-                    { status: booking.garde.status, nightDate: booking.request.nightDate, startTime: booking.request.startTime },
-                    rated.has(booking.id),
-                    now,
-                  ) ? (
+                  {canRate({ ...booking.request, status: booking.garde.status }, rated.has(booking.id), now) ? (
                     <Link
                       href={professionalRatingPath(booking.id)}
                       className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"

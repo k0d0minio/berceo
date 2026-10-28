@@ -27,7 +27,13 @@ import {
  */
 
 // The night of 30 September 2026 from 20:00 ends on 1 October at 07:00 in Brussels (CEST, UTC+2).
-const night = { nightDate: "2026-09-30", startTime: "20:00:00", profileStatus: "valide", booked: false } as const;
+const night = {
+  nightDate: "2026-09-30",
+  startTime: "20:00:00",
+  extraHours: 0,
+  profileStatus: "valide",
+  booked: false,
+} as const;
 const BEFORE_END = new Date("2026-10-01T04:59:00Z"); // 06:59 in Brussels
 const AT_END = new Date("2026-10-01T05:00:00Z"); // 07:00 in Brussels
 const DURING = new Date("2026-09-30T20:00:00Z"); // 22:00 in Brussels, the night under way
@@ -58,20 +64,27 @@ describe("normalizeBody", () => {
 
 describe("when a conversation accepts messages (D-89)", () => {
   it("ends the night 11 hours after it starts, in Brussels", () => {
-    expect(hasNightEnded(night.nightDate, night.startTime, BEFORE_END)).toBe(false);
-    expect(hasNightEnded(night.nightDate, night.startTime, AT_END)).toBe(true);
+    expect(hasNightEnded(night.nightDate, night.startTime, night.extraHours, BEFORE_END)).toBe(false);
+    expect(hasNightEnded(night.nightDate, night.startTime, night.extraHours, AT_END)).toBe(true);
   });
 
   it("keeps a late night's end the next morning", () => {
     // 23:00 on 30 September ends at 10:00 on 1 October.
-    expect(hasNightEnded("2026-09-30", "23:00:00", new Date("2026-10-01T07:59:00Z"))).toBe(false);
-    expect(hasNightEnded("2026-09-30", "23:00:00", new Date("2026-10-01T08:00:00Z"))).toBe(true);
+    expect(hasNightEnded("2026-09-30", "23:00:00", 0, new Date("2026-10-01T07:59:00Z"))).toBe(false);
+    expect(hasNightEnded("2026-09-30", "23:00:00", 0, new Date("2026-10-01T08:00:00Z"))).toBe(true);
   });
 
   it("follows Brussels across the change to winter time", () => {
     // 24 October 2026 at 20:00 ends on 25 October at 07:00, after the clocks went back (CET, UTC+1).
-    expect(hasNightEnded("2026-10-24", "20:00:00", new Date("2026-10-25T05:59:00Z"))).toBe(false);
-    expect(hasNightEnded("2026-10-24", "20:00:00", new Date("2026-10-25T06:00:00Z"))).toBe(true);
+    expect(hasNightEnded("2026-10-24", "20:00:00", 0, new Date("2026-10-25T05:59:00Z"))).toBe(false);
+    expect(hasNightEnded("2026-10-24", "20:00:00", 0, new Date("2026-10-25T06:00:00Z"))).toBe(true);
+  });
+
+  it("closes after the extra hours: two of them keep it open until 09:00", () => {
+    const longer = { ...night, extraHours: 2, status: "attribuee" } as const;
+    expect(isConversationOpen(longer, AT_END)).toBe(true);
+    expect(isConversationOpen(longer, new Date("2026-10-01T06:59:00Z"))).toBe(true);
+    expect(isConversationOpen(longer, new Date("2026-10-01T07:00:00Z"))).toBe(false);
   });
 
   it.each(["ouverte", "attribuee"] as const)("stays open for a request %s until the night ends", (status) => {

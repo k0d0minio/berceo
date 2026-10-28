@@ -13,7 +13,8 @@ import {
   type BookingSide,
   type CancellationKind,
 } from "@/db";
-import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
+import { nightEnd as nightEndOf } from "@/lib/demandes/night-end";
+import { TIME_ZONE } from "@/lib/demandes/rules";
 import { gardeState, type GardeState } from "@/lib/gardes/rules";
 import { bookingFees, type BookingFee } from "@/lib/paiements/payments";
 
@@ -34,7 +35,7 @@ const professionalUser = alias(users, "professional_user");
 
 const localNow = sql`(now() AT TIME ZONE ${TIME_ZONE})`;
 const nightStart = sql`(${careRequests.nightDate} + ${careRequests.startTime})`;
-const nightEnd = sql`(${nightStart} + make_interval(hours => ${NIGHT_HOURS}::int))`;
+const nightEnd = nightEndOf(careRequests);
 
 function pages(total: number): number {
   return Math.max(1, Math.ceil(total / LIST_PAGE_SIZE));
@@ -160,6 +161,7 @@ const bookingColumns = {
   status: bookings.status,
   nightDate: careRequests.nightDate,
   startTime: careRequests.startTime,
+  extraHours: careRequests.extraHours,
   nightRateEur: bookings.nightRateEur,
   familyId: familyUser.id,
   familyFirst: familyUser.firstName,

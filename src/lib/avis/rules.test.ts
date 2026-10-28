@@ -26,7 +26,7 @@ import {
  */
 
 // The night of 30 September 2026 from 20:00 ends on 1 October at 07:00 in Brussels (CEST, UTC+2).
-const garde: GardeFacts = { status: "confirmee", nightDate: "2026-09-30", startTime: "20:00:00" };
+const garde: GardeFacts = { status: "confirmee", nightDate: "2026-09-30", startTime: "20:00:00", extraHours: 0 };
 const cancelled: GardeFacts = { ...garde, status: "annulee" };
 const DURING = new Date("2026-10-01T04:59:00Z"); // 06:59, still en cours
 const AT_END = new Date("2026-10-01T05:00:00Z"); // 07:00, terminée
@@ -48,17 +48,22 @@ describe("the criteria", () => {
 
 describe("the window", () => {
   it("closes 14 days after the night's end", () => {
-    expect(windowCloses("2026-09-30", "20:00:00")).toBe("2026-10-15T07:00");
-    expect(hasWindowClosed("2026-09-30", "20:00", LAST_MINUTE)).toBe(false);
-    expect(hasWindowClosed("2026-09-30", "20:00", AT_CLOSE)).toBe(true);
+    expect(windowCloses("2026-09-30", "20:00:00", 0)).toBe("2026-10-15T07:00");
+    expect(hasWindowClosed("2026-09-30", "20:00", 0, LAST_MINUTE)).toBe(false);
+    expect(hasWindowClosed("2026-09-30", "20:00", 0, AT_CLOSE)).toBe(true);
+  });
+
+  it("starts at the end of the extra hours", () => {
+    expect(windowCloses("2026-09-30", "20:00:00", 2)).toBe("2026-10-15T09:00");
+    expect(hasWindowClosed("2026-09-30", "20:00", 2, AT_CLOSE)).toBe(false);
   });
 
   it("keeps Brussels wall-clock time across the change to winter time", () => {
     // 20 October 2026 from 21:00 ends on 21 October at 08:00 (CEST); the window closes on
     // 4 November at 08:00, after the clocks go back on 25 October: 07:00 UTC (CET, UTC+1).
-    expect(windowCloses("2026-10-20", "21:00")).toBe("2026-11-04T08:00");
-    expect(hasWindowClosed("2026-10-20", "21:00", new Date("2026-11-04T06:59:00Z"))).toBe(false);
-    expect(hasWindowClosed("2026-10-20", "21:00", new Date("2026-11-04T07:00:00Z"))).toBe(true);
+    expect(windowCloses("2026-10-20", "21:00", 0)).toBe("2026-11-04T08:00");
+    expect(hasWindowClosed("2026-10-20", "21:00", 0, new Date("2026-11-04T06:59:00Z"))).toBe(false);
+    expect(hasWindowClosed("2026-10-20", "21:00", 0, new Date("2026-11-04T07:00:00Z"))).toBe(true);
   });
 });
 
@@ -72,6 +77,10 @@ describe("rateRefusal", () => {
   it("refuses a garde not yet terminée", () => {
     expect(rateRefusal(garde, false, new Date("2026-09-30T12:00:00Z"))).toBe("pasTerminee");
     expect(rateRefusal(garde, false, DURING)).toBe("pasTerminee");
+  });
+
+  it("waits for the end of the extra hours", () => {
+    expect(rateRefusal({ ...garde, extraHours: 2 }, false, AT_END)).toBe("pasTerminee");
   });
 
   it("refuses an annulée garde at any hour, an absence reported after its end included", () => {

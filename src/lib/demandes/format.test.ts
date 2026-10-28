@@ -5,7 +5,7 @@ import { cardTitle, childrenLine, feedingLine, formatDate, formatTime, nightLine
 /**
  * Spec (demande-de-garde): the request card reads like the DA's example
  * (« Garde de nuit à Bruxelles », « 30/09/2026 de 20h00 à 7h00 », « Un bébé de
- * trois mois »), the end of the night 11 hours after its start.
+ * trois mois »), the end of the night 11 hours plus its extra hours after its start.
  * Spec (demande-enfants-alimentation): « Triplés » reads like the two others,
  * and the card names the feeding in the founders' words.
  */
@@ -15,8 +15,12 @@ describe("the night", () => {
     expect(formatDate("2026-09-30")).toBe("30/09/2026");
     expect(formatTime("07:00:00")).toBe("7h00");
     expect(formatTime("20:30")).toBe("20h30");
-    expect(nightLine("2026-09-30", "20:00:00")).toBe("30/09/2026 de 20h00 à 7h00");
-    expect(nightLine("2026-09-30", "23:00")).toBe("30/09/2026 de 23h00 à 10h00");
+    expect(nightLine("2026-09-30", "20:00:00", 0)).toBe("30/09/2026 de 20h00 à 7h00");
+    expect(nightLine("2026-09-30", "23:00", 0)).toBe("30/09/2026 de 23h00 à 10h00");
+  });
+
+  it("ends later by the extra hours: « de 19h00 à 8h00 » with two from 19:00", () => {
+    expect(nightLine("2026-09-30", "19:00:00", 2)).toBe("30/09/2026 de 19h00 à 8h00");
   });
 });
 
