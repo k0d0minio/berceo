@@ -2,7 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import type Stripe from "stripe";
 
 import { db, subscriptions, users, type Subscription, type SubscriptionPlan, type User } from "@/db";
@@ -73,6 +73,16 @@ export async function liveSubscription(userId: string): Promise<Subscription | n
     .orderBy(desc(subscriptions.createdAt))
     .limit(1);
   return row ?? null;
+}
+
+/** Whether a Checkout of the family's ever completed: a row Stripe gave a subscription, whatever its status since. */
+export async function hasCompletedCheckout(userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: subscriptions.id })
+    .from(subscriptions)
+    .where(and(eq(subscriptions.userId, userId), isNotNull(subscriptions.stripeSubscriptionId)))
+    .limit(1);
+  return row !== undefined;
 }
 
 /** Whether the family is subscribed now: `hasActiveSubscription` on her live row. */

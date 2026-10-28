@@ -162,6 +162,13 @@
       "when": 1793208022771,
       "tag": "0022_abonnements",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793210645108,
+      "tag": "0023_inscription_formule",
+      "breakpoints": true
     }
   ]
 }

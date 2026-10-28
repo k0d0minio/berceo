@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import type { User } from "@/db";
+import { SUBSCRIPTION_START_PATH } from "@/lib/abonnements/paths";
 import { RETURN_COOKIE, verifiedLanding } from "@/lib/auth/retour";
 import { SIGN_IN_PATH } from "@/lib/auth/routing";
 import { getAuth } from "@/lib/auth/server";
@@ -14,7 +15,9 @@ import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
  * `verifyEmail()` cannot be used: it POSTs, and Neon's endpoint is GET-only.
  *
  * - First click: verified and signed in → space, or the full profile a family
- *   was reading before she signed up (D-129). A family's welcome e-mail goes
+ *   was reading before she signed up (D-129). A family who picked a plan goes
+ *   to its Checkout first, and the way back waits for her return from Stripe
+ *   (abonnements-inscription-famille). A family's welcome e-mail goes
  *   out after the redirect (D-166); her home retries it if it failed (D-165).
  * - First click, but the `users` read fails: Neon has already consumed the
  *   token, so the session cookies still go out and the user lands on sign-in,
@@ -71,9 +74,11 @@ export async function GET(request: NextRequest) {
     response = to(request, `${SIGN_IN_PATH}?erreur=compte`);
   } else {
     scheduleWelcomeIfDue(row, request.nextUrl.origin);
-    // A family who came from a full profile goes back to it (D-129); anyone else, home.
-    response = to(request, verifiedLanding(row.role, request.cookies.get(RETURN_COOKIE)?.value));
-    response.cookies.delete(RETURN_COOKIE);
+    // A family with a plan pays first; one who came from a full profile goes back to it (D-129); anyone else, home.
+    const landing = verifiedLanding(row.role, request.cookies.get(RETURN_COOKIE)?.value, row.signupPlan);
+    response = to(request, landing);
+    // The way back outlives the Checkout: the subscription's return page reads and clears it.
+    if (landing !== SUBSCRIPTION_START_PATH) response.cookies.delete(RETURN_COOKIE);
   }
 
   for (const cookie of cookies) response.headers.append("Set-Cookie", cookie);

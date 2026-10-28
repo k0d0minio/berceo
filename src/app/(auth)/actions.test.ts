@@ -5,8 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * `users` row fails to write never locks the address out. The identity is
  * deleted when the batch fails; a retry that meets an identity with no row (an
  * orphan) replaces it, once; a real account still reads like a new sign-up
- * (D-34); an orphan that signs in is told to sign up again. Neon Auth, the
- * database and the orphan helpers are mocked at their module boundary.
+ * (D-34); an orphan that signs in is told to sign up again.
+ *
+ * Spec (abonnements-inscription-famille): a family's sign-up needs one of the
+ * four plans, and her users row keeps it beside the two consent rows; a
+ * professional's sign-up has no plan. Neon Auth, the database and the orphan helpers are mocked at their module boundary.
  */
 
 const m = vi.hoisted(() => {
@@ -66,6 +69,7 @@ function signUpForm(): FormData {
   form.set("motDePasse", "nuit-calme");
   form.set("confirmation", "nuit-calme");
   form.set("consentement", "on");
+  form.set("formule", "serenite");
   return form;
 }
 
@@ -104,7 +108,13 @@ describe("a sign-up whose users row fails to write (D-159)", () => {
     expect(result).toEqual({
       state: {
         message: "generique",
-        values: { prenom: "Julie", nom: "Dupont", email: "Julie.Dupont@Exemple.be", telephone: "0470 12 34 56" },
+        values: {
+          prenom: "Julie",
+          nom: "Dupont",
+          email: "Julie.Dupont@Exemple.be",
+          telephone: "0470 12 34 56",
+          formule: "serenite",
+        },
       },
     });
   });
@@ -176,6 +186,41 @@ describe("a sign-up retry on an address Neon Auth already has (D-160, D-34)", ()
 
     expect(await signUpParent()).toMatchObject({ state: { errors: { motDePasse: "motDePasseCourt" } } });
     expect(m.signUpEmail).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("the plan on a sign-up (abonnements-inscription-famille)", () => {
+  beforeEach(() => {
+    m.signUpEmail.mockResolvedValue(created("auth-1"));
+  });
+
+  it("writes a family's plan on her users row, beside the two consent rows", async () => {
+    expect(await signUpParent()).toEqual({ redirect: "/verification-email" });
+    const [statements] = m.batch.mock.calls[0] as [{ values: unknown }[]];
+    const [userRow, consents] = statements.map((statement) => statement.values);
+    expect(userRow).toMatchObject({ role: "parent", signupPlan: "serenite" });
+    expect(consents).toEqual([
+      expect.objectContaining({ document: "cgu" }),
+      expect.objectContaining({ document: "confidentialite" }),
+    ]);
+  });
+
+  it.each([[""], ["gratuit"]])("refuses a family's form whose plan is %o, and keeps the typed values", async (formule) => {
+    const form = signUpForm();
+    form.set("formule", formule);
+    const result = await outcome(signUp("parent", null, {}, form));
+    expect(result).toMatchObject({
+      state: { errors: { formule: "formule" }, values: { email: "Julie.Dupont@Exemple.be", formule } },
+    });
+    expect(m.signUpEmail).not.toHaveBeenCalled();
+  });
+
+  it("signs a professional up with no plan, whatever the form sends", async () => {
+    const form = signUpForm();
+    form.delete("formule");
+    expect(await outcome(signUp("professionnel", null, {}, form))).toEqual({ redirect: "/verification-email" });
+    const [statements] = m.batch.mock.calls[0] as [{ values: unknown }[]];
+    expect(statements[0].values).toMatchObject({ role: "professionnel", signupPlan: null });
   });
 });
 
