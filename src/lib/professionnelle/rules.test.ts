@@ -23,11 +23,14 @@ import {
   normalizeInami,
   parseExtraHourRate,
   parseRate,
+  parseZoneChoice,
   recordAnswer,
   recordOutcome,
   reopenedStatus,
   replacesPhotos,
   uploadMatches,
+  zoneChoice,
+  ZONE_CHOICES,
   type FileState,
   type ProfileInput,
 } from "./rules";
@@ -48,6 +51,7 @@ const blank: ProfileInput = {
   profession: "",
   formations: "",
   communes: [],
+  rayon: "",
   tarif: "",
   tarifHeure: "",
   bio: "",
@@ -59,6 +63,7 @@ const complete: FileState = {
     profession: "sage_femme",
     formationsComplementaires: null,
     communes: ["21009"],
+    zone: { radiusKm: 0, wholeBelgium: false },
     nightRateEur: 150,
     extraHourRateEur: 15,
     bio: "Sage-femme en maternité depuis trois ans.",
@@ -95,6 +100,48 @@ describe("the night rate (profil-tarifs)", () => {
   it("is refused by the form's check with a message on the rate", () => {
     expect(checkProfile({ ...blank, tarif: "129" }, context).errors.tarif).toBe("tarif");
     expect(checkProfile({ ...blank, tarif: "450" }, context).values.nightRateEur).toBe(450);
+  });
+});
+
+describe("the radius of her zone (profil-zone-rayon-saisie)", () => {
+  it("offers seven choices: her communes only, 10 to 50 km, and the whole country", () => {
+    expect([...ZONE_CHOICES]).toEqual(["0", "10", "20", "30", "40", "50", "belgique"]);
+  });
+
+  it("reads each choice as a radius and a flag", () => {
+    expect(parseZoneChoice("0")).toEqual({ radiusKm: 0, wholeBelgium: false });
+    expect(parseZoneChoice("30")).toEqual({ radiusKm: 30, wholeBelgium: false });
+    expect(parseZoneChoice(" 50 ")).toEqual({ radiusKm: 50, wholeBelgium: false });
+    // « Toute la Belgique » holds the radius at 0, as the database checks.
+    expect(parseZoneChoice("belgique")).toEqual({ radiusKm: 0, wholeBelgium: true });
+  });
+
+  it("refuses any value outside the seven choices", () => {
+    for (const raw of ["5", "15", "60", "100", "-10", "10.0", "10 km", "Belgique", "abc"]) {
+      expect(parseZoneChoice(raw), raw).toBeNull();
+    }
+    expect(checkProfile({ ...blank, rayon: "15" }, context).errors).toEqual({ rayon: "rayon" });
+    expect(checkProfile({ ...blank, rayon: "15" }, context).values.zone).toBeNull();
+  });
+
+  it("keeps a valid choice, and keeps the stored radius when the form sends none", () => {
+    expect(checkProfile({ ...blank, rayon: "20" }, context).values.zone).toEqual({ radiusKm: 20, wholeBelgium: false });
+    expect(checkProfile(blank, context).values.zone).toBeNull();
+  });
+
+  it("is never missing: a new profile starts at her communes only", () => {
+    expect(missingProfile({ ...complete.draft, zone: null }, true)).toEqual({});
+    expect(zoneChoice({ radiusKm: 0, wholeBelgium: false })).toBe("0");
+  });
+
+  it("shows a stored radius as its choice", () => {
+    expect(zoneChoice({ radiusKm: 40, wholeBelgium: false })).toBe("40");
+    expect(zoneChoice({ radiusKm: 0, wholeBelgium: true })).toBe("belgique");
+    expect(zoneChoice({ radiusKm: 15, wholeBelgium: false })).toBe("0");
+  });
+
+  it("reopens no review on a validated file", () => {
+    expect(changeNeedsReview("valide", "details")).toBe(false);
   });
 });
 

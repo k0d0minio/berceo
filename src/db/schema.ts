@@ -280,6 +280,13 @@ export const professionalProfiles = pgTable(
      * a draft, and on a file validated before the field existed.
      */
     extraHourRateEur: integer("extra_hour_rate_eur"),
+    /**
+     * How far she travels around her communes (profil-zone-rayon-saisie): 0 is
+     * her communes only. `zone_whole_belgium` is « Toute la Belgique », with the
+     * radius held at 0. The communes the radius reaches are `professional_reach`.
+     */
+    zoneRadiusKm: smallint("zone_radius_km").notNull().default(0),
+    zoneWholeBelgium: boolean("zone_whole_belgium").notNull().default(false),
     bio: text("bio"),
     /** Eleven digits, never shown to families. */
     inamiNumber: text("inami_number"),
@@ -318,6 +325,11 @@ export const professionalProfiles = pgTable(
       "professional_profiles_inami_format",
       sql`${table.inamiNumber} IS NULL OR ${table.inamiNumber} ~ '^[0-9]{11}$'`,
     ),
+    check("professional_profiles_zone_radius", sql`${table.zoneRadiusKm} IN (0, 10, 20, 30, 40, 50)`),
+    check(
+      "professional_profiles_zone_whole_belgium",
+      sql`NOT ${table.zoneWholeBelgium} OR ${table.zoneRadiusKm} = 0`,
+    ),
   ],
 );
 
@@ -337,6 +349,27 @@ export const professionalCommunes = pgTable(
   (table) => [
     primaryKey({ columns: [table.profileId, table.communeIns] }),
     index("professional_communes_commune_ins_idx").on(table.communeIns),
+  ],
+);
+
+/**
+ * Every commune her radius reaches, her own communes included
+ * (profil-zone-rayon-saisie), by REFNIS code: `communesWithin` in
+ * src/lib/communes/ computes it on the server at each save of her zone, in the
+ * batch that writes `professional_communes`. « Toute la Belgique » stores no
+ * row: `professional_profiles.zone_whole_belgium` carries it.
+ */
+export const professionalReach = pgTable(
+  "professional_reach",
+  {
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => professionalProfiles.id, { onDelete: "cascade" }),
+    communeIns: text("commune_ins").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.profileId, table.communeIns] }),
+    index("professional_reach_commune_ins_idx").on(table.communeIns),
   ],
 );
 

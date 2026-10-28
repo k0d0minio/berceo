@@ -11,6 +11,7 @@ import {
   professionalCommunes,
   professionalDocuments,
   professionalProfiles,
+  professionalReach,
   users,
   type AdminJournalEntry,
   type Profession,
@@ -233,6 +234,8 @@ export async function accountView(userId: string): Promise<AccountView | null> {
             status: professionalProfiles.status,
             profession: professionalProfiles.profession,
             nightRateEur: professionalProfiles.nightRateEur,
+            zoneRadiusKm: professionalProfiles.zoneRadiusKm,
+            zoneWholeBelgium: professionalProfiles.zoneWholeBelgium,
           })
           .from(professionalProfiles)
           .where(eq(professionalProfiles.userId, userId))
@@ -407,7 +410,7 @@ export type DeleteResult = ActResult | { ok: false; error: "nomDifferent" };
  * « Supprimer le compte » (D-136, D-137): anonymisation, never a removed row.
  * One transaction: the row renamed « Compte supprimé » with a dead address and
  * no phone, her family profile and the addresses of her requests, her
- * profile's personal fields, her communes and nights gone, her Neon Auth identity deleted (its sessions and accounts go
+ * profile's personal fields and her radius, her communes, her reach and nights gone, her Neon Auth identity deleted (its sessions and accounts go
  * with it), and the journal entry under the name she had. Then her files leave
  * the bucket, each object before its row; whatever fails there stays listed
  * and the daily purge finishes it.
@@ -464,10 +467,13 @@ export async function deleteAccount(
           inamiNumber: null,
           formationsComplementaires: null,
           reviewReason: null,
+          zoneRadiusKm: 0,
+          zoneWholeBelgium: false,
           updatedAt: now,
         })
         .where(and(eq(professionalProfiles.userId, userId), deleted)),
       db.delete(professionalCommunes).where(and(inArray(professionalCommunes.profileId, ownProfile), deleted)),
+      db.delete(professionalReach).where(and(inArray(professionalReach.profileId, ownProfile), deleted)),
       deletionForgetsAvailability(userId, now),
       db.execute(sql`delete from neon_auth."user" where id::text = ${account.authUserId} and ${deleted}`),
       journalInsertIf(
