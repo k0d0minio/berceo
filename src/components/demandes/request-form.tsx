@@ -4,7 +4,8 @@ import Link from "next/link"
 import { useActionState } from "react"
 
 import type { RequestState } from "@/app/(portail)/espace/famille/demandes/actions"
-import { Field, FormMessage } from "@/components/auth/field"
+import { FormMessage } from "@/components/auth/field"
+import { NightPicker } from "@/components/demandes/night-picker"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { comptes } from "@/content/comptes"
@@ -17,14 +18,15 @@ import { PROFILE_PATH } from "@/lib/famille/paths"
 import { cn } from "@/lib/utils"
 
 /*
- * The request form (the guide, "Les annonces"): the date, the start time with
- * the 11-hour note, the number of children, the baby's age, the commune from
- * her profile (read-only, D-63) with the address note, and the mandatory
- * checkbox (D-20). Three modes: a normal request, an urgent one (tonight or
- * tomorrow night, D-60), and an edit, which never shows the checkbox again nor
- * changes the commune or the urgency. Published from a professional's
- * profile, it carries her id and says the request goes to her in priority.
- * Validation is the server's; a refused form keeps what was typed.
+ * The request form (the guide, "Les annonces"): the date in a month calendar
+ * a phone can read, the start time with the 11-hour note, the number of
+ * children, the baby's age, the commune from her profile (read-only, D-63)
+ * with the address note, and the mandatory checkbox (D-20). Three modes: a
+ * normal request, an urgent one (tonight or tomorrow night, D-60), and an
+ * edit, which never shows the checkbox again nor changes the commune or the
+ * urgency. Published from a professional's profile, it carries her id and says
+ * the request goes to her in priority. Validation is the server's; a refused
+ * form keeps what was typed.
  */
 
 export type RequestFormMode = "normale" | "urgente" | "modification"
@@ -96,19 +98,30 @@ function RequestForm({
         </>
       ) : null}
 
-      <Field
-        // A refused form remounts the field with what was typed.
-        key={`date-${v?.date ?? ""}`}
-        name="date"
-        type="date"
-        label={t.formulaire.champs.date}
-        help={mode === "urgente" ? t.formulaire.aides.dateUrgente : fill(t.formulaire.aides.date, bounds)}
-        min={dates.min}
-        max={dates.max}
-        defaultValue={v?.date ?? ""}
-        error={errorOf("date")}
-        required
-      />
+      <div className="flex flex-col gap-2">
+        <p id="champ-date-libelle" className={legend}>
+          {t.formulaire.champs.date}
+        </p>
+        <NightPicker
+          // A refused form remounts the calendar with what was chosen.
+          key={`date-${v?.date ?? ""}`}
+          name="date"
+          labelId="champ-date-libelle"
+          min={dates.min}
+          max={dates.max}
+          defaultValue={v?.date ?? ""}
+          invalid={Boolean(e.date)}
+          describedBy={["champ-date-aide", e.date ? "champ-date-erreur" : ""].filter(Boolean).join(" ")}
+        />
+        <p id="champ-date-aide" className={helpText}>
+          {mode === "urgente" ? t.formulaire.aides.dateUrgente : fill(t.formulaire.aides.date, bounds)}
+        </p>
+        {e.date ? (
+          <p id="champ-date-erreur" className={errorClasses}>
+            {errorOf("date")}
+          </p>
+        ) : null}
+      </div>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="champ-heure" className={legend}>

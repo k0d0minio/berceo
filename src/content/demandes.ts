@@ -95,6 +95,13 @@ export const demandes = catalogue({
         mois: "mois",
       },
 
+      calendrier: {
+        /** @relecture Surya — bouton du calendrier de la date, pour les lecteurs d'écran. */
+        precedent: "Mois précédent",
+        /** @relecture Surya — bouton du calendrier de la date, pour les lecteurs d'écran. */
+        suivant: "Mois suivant",
+      },
+
       /** La case à cocher obligatoire du guide (D-20). */
       confirmation:
         "Mon enfant n'a pas de condition médicale particulière nécessitant des soins spécialisés.",
