@@ -5,6 +5,8 @@ import { subscriptionPlanEnum, subscriptionStatusEnum } from "@/db/schema";
 
 import {
   checkoutExpiry,
+  FAMILY_ACTIONS,
+  familyMay,
   GRACE_DAYS,
   graceEndsAt,
   hasActiveSubscription,
@@ -175,5 +177,45 @@ describe("the plan a family's home asks her to finish", () => {
 
   it("is none for a family who signed up before the plans were part of sign-up", () => {
     expect(planToFinish(null, false)).toBeNull();
+  });
+});
+
+/*
+ * Spec (abonnements-acces): an active subscription, or one in its grace
+ * period, opens publishing, editing, booking, the priority request, the full
+ * profile and writing. Without one, a family does none of these, except
+ * writing in the booked answer's conversation, which stays open until the
+ * night is over. A pending first payment opens nothing.
+ */
+describe("what a subscription opens", () => {
+  const gate = (row: Parameters<typeof hasActiveSubscription>[0], booked = false) =>
+    FAMILY_ACTIONS.filter((action) => familyMay(action, { subscribed: hasActiveSubscription(row, now), booked }));
+
+  it("names the six gated actions", () => {
+    expect([...FAMILY_ACTIONS]).toEqual(["publier", "modifier", "reserver", "priorite", "profil", "ecrire"]);
+  });
+
+  it("opens every action for an active subscription", () => {
+    expect(gate({ status: "active", graceEndsAt: null })).toEqual([...FAMILY_ACTIONS]);
+  });
+
+  it("opens every action in the grace period, and none once it ends", () => {
+    const graceEnd = new Date(now.getTime() + day);
+    expect(gate({ status: "impayee", graceEndsAt: graceEnd })).toEqual([...FAMILY_ACTIONS]);
+    expect(gate({ status: "impayee", graceEndsAt: new Date(now.getTime() - 1) })).toEqual([]);
+  });
+
+  it("closes each action without a subscription, a pending one or an ended one", () => {
+    const rows = [null, { status: "en_attente", graceEndsAt: null }, { status: "terminee", graceEndsAt: null }] as const;
+    for (const row of rows) {
+      const subscribed = hasActiveSubscription(row, now);
+      for (const action of FAMILY_ACTIONS) expect(familyMay(action, { subscribed })).toBe(false);
+    }
+  });
+
+  it("keeps writing open in a booked answer's conversation, and nothing else", () => {
+    expect(gate(null, true)).toEqual(["ecrire"]);
+    expect(gate({ status: "terminee", graceEndsAt: null }, true)).toEqual(["ecrire"]);
+    expect(familyMay("ecrire", { subscribed: false, booked: false })).toBe(false);
   });
 });

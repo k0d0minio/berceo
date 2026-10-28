@@ -4,8 +4,9 @@ import type { SubscriptionPlan, SubscriptionStatus } from "@/db/schema";
  * The family subscription's rules that need neither the database nor Stripe
  * (abonnements-catalogue-stripe): the four plans and the variables naming
  * their Stripe prices, how Stripe's status reads here, the grace period after
- * a failed renewal, and `hasActiveSubscription`, which every later stub of the
- * epic reads. Pure, so the tests hold them to the spec; `./subscriptions.ts`
+ * a failed renewal, `hasActiveSubscription`, which every later stub of the
+ * epic reads, and `familyMay`, what it opens (abonnements-acces). Pure, so
+ * the tests hold them to the spec; `./subscriptions.ts`
  * holds the live-row rule again in its SQL.
  */
 
@@ -89,6 +90,28 @@ export function hasActiveSubscription(
   if (!row) return false;
   if (row.status === "active") return true;
   return row.status === "impayee" && row.graceEndsAt !== null && now.getTime() < row.graceEndsAt.getTime();
+}
+
+/**
+ * What a subscription opens (abonnements-acces). Without one, a family keeps
+ * her account, her past gardes and her conversations in read-only, and
+ * cancelling a request never closes. A confirmed booking is never cut: its
+ * conversation stays writable until the night is over, which the closing rule
+ * of `src/lib/messagerie/` holds. The professionals' side reads none of this.
+ */
+export const FAMILY_ACTIONS = ["publier", "modifier", "reserver", "priorite", "profil", "ecrire"] as const;
+
+export type FamilyAction = (typeof FAMILY_ACTIONS)[number];
+
+/**
+ * Whether a family may do `action`: `subscribed` is `hasActiveSubscription`,
+ * so the grace period opens everything; `booked` (the conversation's answer is
+ * the booked one) opens `ecrire` alone. The one gate: pages and actions read
+ * it, none decides on its own.
+ */
+export function familyMay(action: FamilyAction, facts: { subscribed: boolean; booked?: boolean }): boolean {
+  if (facts.subscribed) return true;
+  return action === "ecrire" && facts.booked === true;
 }
 
 /**

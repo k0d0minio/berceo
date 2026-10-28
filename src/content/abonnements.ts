@@ -12,7 +12,9 @@ import { catalogue } from "./locale";
  * the notices after Stripe's page and the block on her home
  * (abonnements-catalogue-stripe). `inscription` is the plans' block of the
  * family sign-up, and `accueil.finaliser*` the call on her home when she left
- * the Checkout unpaid (abonnements-inscription-famille). Every `@relecture` entry is ours, written
+ * the Checkout unpaid (abonnements-inscription-famille). `requis` is the line
+ * that takes the place of an action a family without a subscription cannot
+ * do (abonnements-acces). Every `@relecture` entry is ours, written
  * in the guide's rules, and waits for Surya. `{name}` slots are filled with
  * `fill()` from ./locale.
  *
@@ -93,6 +95,14 @@ export const abonnements = catalogue({
       finaliser: "Finaliser mon abonnement",
       /** @relecture Surya — le lien vers les quatre formules. */
       autreFormule: "Choisir une autre formule",
+    },
+
+    /** La ligne à la place d'une action réservée aux familles abonnées. */
+    requis: {
+      /** @relecture Surya — l'action est réservée aux familles abonnées. */
+      texte: "Cette action est réservée aux familles abonnées.",
+      /** @relecture Surya — le lien vers les formules. */
+      lien: "Choisir mon abonnement",
     },
   },
 });

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { after } from "next/server";
 
+import { familyMayNow } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { notifyUrgentRequest } from "@/lib/demandes/notify";
@@ -79,11 +80,14 @@ export async function reportAbsenceAction(bookingId: string): Promise<void> {
 /**
  * « Republier ma demande » on a cancelled garde (D-107): a new request for the
  * same night, carried by the urgent e-mail at once or by the next digest. An
- * open request of hers that night is where she lands instead.
+ * open request of hers that night is where she lands instead. It publishes, so
+ * it needs a subscription (abonnements-acces). Cancelling and reporting an
+ * absence never do.
  */
 export async function republishGardeAction(bookingId: string): Promise<void> {
   const id = checkedId(bookingId);
   const user = await requireAccess(familyBookingPath(id));
+  if (!(await familyMayNow(user.id, "publier", new Date()))) redirect(familyBookingPath(id));
 
   let result: RepublishResult;
   try {
