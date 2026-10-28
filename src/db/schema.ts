@@ -910,6 +910,8 @@ export const subscriptions = pgTable(
     currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
     /** 7 days after the first failed renewal; set while `impayee` only. */
     graceEndsAt: timestamp("grace_ends_at", { withTimezone: true }),
+    /** When a cancellation set in Stripe's portal ends the subscription; null while it renews. */
+    cancelsAt: timestamp("cancels_at", { withTimezone: true }),
     endedAt: timestamp("ended_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

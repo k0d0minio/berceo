@@ -13,7 +13,7 @@ import { fill, words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
 import { planWords, renewalDate } from "@/lib/abonnements/format";
 import { SUBSCRIPTION_PATH } from "@/lib/abonnements/paths";
-import { planToFinish } from "@/lib/abonnements/rules";
+import { planToFinish, subscriptionState } from "@/lib/abonnements/rules";
 import { hasCompletedCheckout, liveSubscription } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
@@ -45,7 +45,8 @@ export const dynamic = "force-dynamic";
  * profile. The two ways to publish (D-60) and her requests are one tap away.
  * Her own note and gardes count close the page (avis-etoiles, D-121). « Votre
  * abonnement » shows her plan and its renewal date, or leads to the four plans
- * (abonnements-catalogue-stripe). A family who left the Checkout of the plan
+ * (abonnements-catalogue-stripe); a cancelled one shows its end date and a
+ * failed renewal one line of warning (abonnements-espace-echec-paiement). A family who left the Checkout of the plan
  * she picked at sign-up gets one call to finish it instead
  * (abonnements-inscription-famille). An outlined button opens the charter the
  * professionals accept (charte-cote-parents). A welcome
@@ -61,6 +62,7 @@ export default async function EspaceFamillePage() {
     hasCompletedCheckout(user.id),
   ]);
   const running = live && (live.status === "active" || live.status === "impayee") ? live : null;
+  const state = running ? subscriptionState(running, new Date()) : null;
   const toFinish = planToFinish(user.signupPlan, completed);
 
   return (
@@ -78,8 +80,15 @@ export default async function EspaceFamillePage() {
         <h2 className="font-display text-h3 text-encre-sauge">{a.accueil.titre}</h2>
         {running ? (
           <>
+            {state === "grace" || state === "suspendue" ? (
+              <p role="alert" className="rounded-carte bg-beurre px-4 py-3 text-corps text-encre-taupe">
+                {a.accueil.alerte}
+              </p>
+            ) : null}
             <p className="text-corps text-encre-taupe">{fill(a.espace.formule, { plan: planWords(running.plan).name })}</p>
-            {running.currentPeriodEnd ? (
+            {state === "resiliee" && running.cancelsAt ? (
+              <p className="text-corps text-encre-taupe">{fill(a.espace.finLe, { date: renewalDate(running.cancelsAt) })}</p>
+            ) : running.currentPeriodEnd ? (
               <p className="text-corps text-encre-taupe">
                 {fill(a.espace.renouvellement, { date: renewalDate(running.currentPeriodEnd) })}
               </p>

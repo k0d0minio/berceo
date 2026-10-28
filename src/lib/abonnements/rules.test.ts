@@ -4,6 +4,7 @@ import { abonnements } from "@/content/abonnements";
 import { subscriptionPlanEnum, subscriptionStatusEnum } from "@/db/schema";
 
 import {
+  cancelsAt,
   checkoutExpiry,
   FAMILY_ACTIONS,
   familyMay,
@@ -18,6 +19,8 @@ import {
   planToFinish,
   PRICE_ENV,
   statusFromStripe,
+  subscriptionState,
+  testClocksEnabled,
 } from "./rules";
 
 /*
@@ -26,6 +29,11 @@ import {
  * payment, past due after a failed renewal, ended after a cancellation); a
  * failed renewal opens 7 days of grace, counted from the first failure; one
  * rule, `hasActiveSubscription`, says whether a family is subscribed.
+ *
+ * Spec (abonnements-espace-echec-paiement): « Votre abonnement » shows the
+ * status, active, cancelled at the period's end, in its grace period or
+ * suspended after it; a cancellation's date comes from Stripe; a new Stripe
+ * customer gets a test clock only with a test key and STRIPE_TEST_CLOCKS=1.
  */
 
 const now = new Date("2026-11-10T12:00:00Z");
@@ -217,5 +225,71 @@ describe("what a subscription opens", () => {
     expect(gate(null, true)).toEqual(["ecrire"]);
     expect(gate({ status: "terminee", graceEndsAt: null }, true)).toEqual(["ecrire"]);
     expect(familyMay("ecrire", { subscribed: false, booked: false })).toBe(false);
+  });
+});
+
+describe("the cancellation date", () => {
+  const periodEnd = new Date(now.getTime() + 30 * day);
+
+  it("is the period's end when the portal cancels at the period's end", () => {
+    expect(cancelsAt({ cancelAt: null, cancelAtPeriodEnd: true }, periodEnd, "active")).toEqual(periodEnd);
+  });
+
+  it("is Stripe's cancel_at when Stripe gives one", () => {
+    const at = Math.floor((now.getTime() + 10 * day) / 1000);
+    expect(cancelsAt({ cancelAt: at, cancelAtPeriodEnd: false }, periodEnd, "active")).toEqual(new Date(at * 1000));
+    expect(cancelsAt({ cancelAt: at, cancelAtPeriodEnd: true }, periodEnd, "impayee")).toEqual(new Date(at * 1000));
+  });
+
+  it("is null while the subscription renews, and on a row that does not run", () => {
+    expect(cancelsAt({ cancelAt: null, cancelAtPeriodEnd: false }, periodEnd, "active")).toBeNull();
+    expect(cancelsAt({ cancelAt: null, cancelAtPeriodEnd: true }, periodEnd, "terminee")).toBeNull();
+    expect(cancelsAt({ cancelAt: 1, cancelAtPeriodEnd: true }, periodEnd, "en_attente")).toBeNull();
+  });
+});
+
+describe("the status on « Votre abonnement »", () => {
+  const graceEnd = new Date(now.getTime() + day);
+
+  it("reads active while the subscription renews, cancelled once a cancellation is set", () => {
+    expect(subscriptionState({ status: "active", graceEndsAt: null, cancelsAt: null }, now)).toBe("active");
+    expect(subscriptionState({ status: "active", graceEndsAt: null, cancelsAt: graceEnd }, now)).toBe("resiliee");
+  });
+
+  it("reads the grace period inside the 7 days, suspended once they end", () => {
+    const row = { status: "impayee" as const, graceEndsAt: graceEnd, cancelsAt: null };
+    expect(subscriptionState(row, now)).toBe("grace");
+    expect(subscriptionState(row, graceEnd)).toBe("suspendue");
+    expect(subscriptionState({ ...row, cancelsAt: graceEnd }, now)).toBe("grace");
+  });
+
+  it("agrees with the gate: the grace period opens it, suspended closes it", () => {
+    const row = { status: "impayee" as const, graceEndsAt: graceEnd, cancelsAt: null };
+    for (const at of [now, graceEnd]) {
+      expect(subscriptionState(row, at) === "grace").toBe(hasActiveSubscription(row, at));
+    }
+  });
+
+  it("says nothing of a pending or an ended row", () => {
+    expect(subscriptionState({ status: "en_attente", graceEndsAt: null, cancelsAt: null }, now)).toBeNull();
+    expect(subscriptionState({ status: "terminee", graceEndsAt: null, cancelsAt: null }, now)).toBeNull();
+  });
+});
+
+describe("the test clocks", () => {
+  it("run with a test key and STRIPE_TEST_CLOCKS=1", () => {
+    expect(testClocksEnabled({ STRIPE_SECRET_KEY: "sk_test_abc", STRIPE_TEST_CLOCKS: "1" })).toBe(true);
+    expect(testClocksEnabled({ STRIPE_SECRET_KEY: "rk_test_abc", STRIPE_TEST_CLOCKS: "1" })).toBe(true);
+  });
+
+  it("never run with a live key, whatever the variable says", () => {
+    expect(testClocksEnabled({ STRIPE_SECRET_KEY: "sk_live_abc", STRIPE_TEST_CLOCKS: "1" })).toBe(false);
+    expect(testClocksEnabled({ STRIPE_SECRET_KEY: "rk_live_abc", STRIPE_TEST_CLOCKS: "1" })).toBe(false);
+  });
+
+  it("stay off without the variable, or with another value", () => {
+    expect(testClocksEnabled({ STRIPE_SECRET_KEY: "sk_test_abc" })).toBe(false);
+    expect(testClocksEnabled({ STRIPE_SECRET_KEY: "sk_test_abc", STRIPE_TEST_CLOCKS: "true" })).toBe(false);
+    expect(testClocksEnabled({ STRIPE_TEST_CLOCKS: "1" })).toBe(false);
   });
 });

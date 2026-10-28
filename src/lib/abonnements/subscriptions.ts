@@ -2,16 +2,20 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
+import { after } from "next/server";
 import type Stripe from "stripe";
 
 import { db, subscriptions, users, type Subscription, type SubscriptionPlan, type User } from "@/db";
 import { isUniqueViolation, UUID } from "@/lib/demandes/requests";
 import { isSessionId } from "@/lib/paiements/rules";
 import { stripe } from "@/lib/paiements/stripe";
+import { siteOrigin } from "@/lib/site-origin";
 
-import { SUBSCRIPTION_PATH, SUBSCRIPTION_RETURN_PATH } from "./paths";
+import { notifyGracePeriod } from "./notify";
+import { SUBSCRIPTION_PATH, SUBSCRIPTION_PORTAL_RETURN_PATH, SUBSCRIPTION_RETURN_PATH } from "./paths";
 import {
+  cancelsAt,
   checkoutExpiry,
   familyMay,
   graceEndsAt,
@@ -20,6 +24,7 @@ import {
   planOfPrice,
   PRICE_ENV,
   statusFromStripe,
+  testClocksEnabled,
   type FamilyAction,
 } from "./rules";
 
@@ -32,7 +37,9 @@ import {
  * whichever comes first, as often as either likes. The rules are
  * `./rules.ts`; the one live row per family is held again by a partial
  * unique index. It shares the Stripe client with the 3 % fee and changes
- * nothing of it.
+ * nothing of it. The family manages a running subscription in Stripe's
+ * customer portal (`openPortal`), and the row's move into `impayee` sends
+ * her the one e-mail of the grace period (abonnements-espace-echec-paiement).
  */
 
 function logError(what: string, context: Record<string, unknown>, error?: unknown): void {
@@ -137,16 +144,26 @@ export type StartResult =
 /**
  * The family's Stripe customer: the one on her row, or a new one, made once
  * (one idempotency key per family) and kept with a conditional update, so two
- * racing calls end on the same customer.
+ * racing calls end on the same customer. With test clocks on (`testClocksEnabled`)
+ * a new customer gets its own clock, made once the same way.
  */
 async function customerFor(user: Pick<User, "id" | "email" | "firstName" | "lastName" | "stripeCustomerId">): Promise<string> {
   if (user.stripeCustomerId) return user.stripeCustomerId;
+  let testClock: string | undefined;
+  if (testClocksEnabled(process.env)) {
+    const clock = await stripe().testHelpers.testClocks.create(
+      { frozen_time: Math.floor(Date.now() / 1000), name: `abonnement-${user.id}` },
+      { idempotencyKey: `abonnement-horloge-${user.id}` },
+    );
+    testClock = clock.id;
+  }
   const customer = await stripe().customers.create(
     {
       email: user.email,
       name: `${user.firstName} ${user.lastName}`,
       preferred_locales: ["fr"],
       metadata: { user_id: user.id },
+      ...(testClock ? { test_clock: testClock } : {}),
     },
     { idempotencyKey: `abonnement-client-${user.id}` },
   );
@@ -291,11 +308,15 @@ export async function startSubscription(input: {
 
 /**
  * Copies Stripe's subscription onto its row: the status, the plan, the
- * renewal date, the grace period and the end. The subscription is read from
- * Stripe, so a late, repeated or reordered event writes the same row. A row is
- * found by the subscription id, or, the first time, by the row id the
- * Checkout put in the subscription's metadata. A subscription that is none of
- * ours changes nothing.
+ * renewal date, the grace period, the cancellation date and the end. The
+ * subscription is read from Stripe, so a late, repeated or reordered event
+ * writes the same row. A row is found by the subscription id, or, the first
+ * time, by the row id the Checkout put in the subscription's metadata. A
+ * subscription that is none of ours changes nothing.
+ *
+ * The move into `impayee` is claimed by a conditional update: the one call
+ * that makes it sends the grace period's e-mail after the response, so
+ * Stripe's retries and two racing events send one e-mail per failed renewal.
  */
 export async function syncSubscription(stripeSubscriptionId: string, now: Date): Promise<Subscription | null> {
   const subscription = await stripe().subscriptions.retrieve(stripeSubscriptionId);
@@ -329,6 +350,7 @@ export async function syncSubscription(stripeSubscriptionId: string, now: Date):
       ? (row.endedAt ?? (subscription.ended_at ? new Date(subscription.ended_at * 1000) : now))
       : null;
 
+  const entering = status === "impayee" && row.status !== "impayee";
   const [updated] = await db
     .update(subscriptions)
     .set({
@@ -338,12 +360,75 @@ export async function syncSubscription(stripeSubscriptionId: string, now: Date):
       status,
       currentPeriodEnd: periodEnd,
       graceEndsAt: graceEndsAt(row, status, now),
+      cancelsAt: cancelsAt(
+        { cancelAt: subscription.cancel_at, cancelAtPeriodEnd: subscription.cancel_at_period_end },
+        periodEnd,
+        status,
+      ),
       endedAt,
       updatedAt: now,
     })
-    .where(eq(subscriptions.id, row.id))
+    .where(entering ? and(eq(subscriptions.id, row.id), ne(subscriptions.status, "impayee")) : eq(subscriptions.id, row.id))
     .returning();
-  return updated ?? null;
+  if (!updated) {
+    if (!entering) return null;
+    // Another call made the move first, and sends the e-mail.
+    const [current] = await db.select().from(subscriptions).where(eq(subscriptions.id, row.id)).limit(1);
+    return current ?? null;
+  }
+  if (entering) {
+    const siteUrl = await siteOrigin();
+    after(async () => notifyGracePeriod(updated.id, await unpaidInvoiceUrl(subscription.id), siteUrl));
+  }
+  return updated;
+}
+
+/** The family's live row synced from Stripe, back from the portal: a row without a subscription yet is left as it is. */
+export async function syncLiveSubscription(userId: string, now: Date): Promise<void> {
+  const live = await liveSubscription(userId);
+  if (live?.stripeSubscriptionId) await syncSubscription(live.stripeSubscriptionId, now);
+}
+
+// ---------------------------------------------------------------------------
+// The portal and the unpaid renewal
+// ---------------------------------------------------------------------------
+
+/**
+ * A session of Stripe's customer portal for the family's customer: she changes
+ * her card or her plan, cancels and downloads her invoices there. The portal's
+ * settings live in Stripe's dashboard (README). Null without a customer, or
+ * when Stripe refuses.
+ */
+export async function openPortal(user: Pick<User, "id" | "stripeCustomerId">, siteUrl: string): Promise<string | null> {
+  if (!user.stripeCustomerId) return null;
+  try {
+    const session = await stripe().billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      locale: "fr",
+      return_url: `${siteUrl}${SUBSCRIPTION_PORTAL_RETURN_PATH}`,
+    });
+    return session.url;
+  } catch (error) {
+    logError("portal not opened", { userId: user.id }, error);
+    return null;
+  }
+}
+
+/**
+ * Stripe's page for the renewal that failed (« Régler maintenant »): the
+ * hosted page of the subscription's latest invoice while it is still open.
+ * Null once it is paid or voided, or when Stripe cannot be read.
+ */
+export async function unpaidInvoiceUrl(stripeSubscriptionId: string): Promise<string | null> {
+  try {
+    const subscription = await stripe().subscriptions.retrieve(stripeSubscriptionId, { expand: ["latest_invoice"] });
+    const invoice = subscription.latest_invoice;
+    if (!invoice || typeof invoice === "string" || invoice.status !== "open") return null;
+    return invoice.hosted_invoice_url ?? null;
+  } catch (error) {
+    logError("unpaid invoice not read", { subscriptionId: stripeSubscriptionId }, error);
+    return null;
+  }
 }
 
 export type ConfirmResult =

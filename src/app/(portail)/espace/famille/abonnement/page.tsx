@@ -9,13 +9,13 @@ import { comptes } from "@/content/comptes";
 import { fill, words } from "@/content/locale";
 import { planWords, renewalDate } from "@/lib/abonnements/format";
 import { SUBSCRIPTION_PATH, SUBSCRIPTION_RETURN_PATH } from "@/lib/abonnements/paths";
-import { PLANS } from "@/lib/abonnements/rules";
-import { liveSubscription } from "@/lib/abonnements/subscriptions";
+import { PLANS, subscriptionState } from "@/lib/abonnements/rules";
+import { liveSubscription, unpaidInvoiceUrl } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES, withQuery } from "@/lib/auth/routing";
 import { isSessionId } from "@/lib/paiements/rules";
 
-import { startSubscriptionAction } from "./actions";
+import { openPortalAction, startSubscriptionAction } from "./actions";
 
 const t = words(abonnements);
 
@@ -28,7 +28,7 @@ export const dynamic = "force-dynamic";
 
 type Notice = { retour?: string; session_id?: string };
 
-const NOTICES = ["active", "enCours", "abandonne", "dejaAbonnee", "erreur"] as const;
+const NOTICES = ["active", "enCours", "abandonne", "dejaAbonnee", "erreur", "portail"] as const;
 
 function noticeKey(retour: string | undefined): (typeof NOTICES)[number] | null {
   return (NOTICES as readonly string[]).includes(retour ?? "") ? (retour as (typeof NOTICES)[number]) : null;
@@ -36,8 +36,11 @@ function noticeKey(retour: string | undefined): (typeof NOTICES)[number] | null 
 
 /*
  * « Votre abonnement » (abonnements-catalogue-stripe): a running
- * subscription shows its plan and its renewal date; a first payment still
- * pending says so; otherwise the four plans of the devis, each opening
+ * subscription shows its plan, its price, its renewal or end date and its
+ * status, and « Gérer mon abonnement » opens Stripe's customer portal
+ * (abonnements-espace-echec-paiement). A failed renewal adds the warning,
+ * with Stripe's page for the unpaid invoice while it is open. A first payment
+ * still pending says so; otherwise the four plans of the devis, each opening
  * Stripe's Checkout. The notices come back from Stripe or from a refusal;
  * « Actualiser la page » goes through the return page again with the session.
  */
@@ -48,6 +51,9 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
   const notice = noticeKey(query.retour);
   const running = live && (live.status === "active" || live.status === "impayee") ? live : null;
   const pending = live?.status === "en_attente" && live.stripeSubscriptionId !== null;
+  const state = running ? subscriptionState(running, new Date()) : null;
+  const unpaid = state === "grace" || state === "suspendue";
+  const invoiceUrl = unpaid && running?.stripeSubscriptionId ? await unpaidInvoiceUrl(running.stripeSubscriptionId) : null;
 
   return (
     <SpaceShell user={user} title={t.espace.titre}>
@@ -68,18 +74,44 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
         </FormMessage>
       ) : null}
 
-      {running ? (
-        <section className="flex max-w-2xl flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-          <h2 className="font-display text-h3 text-encre-sauge">
-            {fill(t.espace.formule, { plan: planWords(running.plan).name })}
-          </h2>
-          {running.currentPeriodEnd ? (
-            <p className="text-corps text-encre-taupe">
-              {fill(t.espace.renouvellement, { date: renewalDate(running.currentPeriodEnd) })}
-            </p>
+      {running && state ? (
+        <>
+          {unpaid ? (
+            <section role="alert" className="flex max-w-2xl flex-col items-start gap-4 rounded-carte bg-beurre px-6 py-6 md:px-8">
+              <p className="text-corps text-encre-taupe">
+                {state === "grace" && running.graceEndsAt
+                  ? fill(t.espace.alerte.grace, { date: renewalDate(running.graceEndsAt) })
+                  : t.espace.alerte.suspendue}
+              </p>
+              {invoiceUrl ? (
+                <Button asChild>
+                  <a href={invoiceUrl}>{t.espace.alerte.regler}</a>
+                </Button>
+              ) : null}
+            </section>
           ) : null}
-          <p className="text-corps text-encre-taupe">{t.espace.factures}</p>
-        </section>
+          <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+            <h2 className="font-display text-h3 text-encre-sauge">
+              {fill(t.espace.formule, { plan: planWords(running.plan).name })}
+            </h2>
+            <p className="text-corps text-encre-taupe">
+              {fill(t.espace.prix, { prix: planWords(running.plan).prix, duree: planWords(running.plan).duree })}
+            </p>
+            {state === "resiliee" && running.cancelsAt ? (
+              <p className="text-corps text-encre-taupe">{fill(t.espace.finLe, { date: renewalDate(running.cancelsAt) })}</p>
+            ) : running.currentPeriodEnd ? (
+              <p className="text-corps text-encre-taupe">
+                {fill(t.espace.renouvellement, { date: renewalDate(running.currentPeriodEnd) })}
+              </p>
+            ) : null}
+            <p className="text-corps font-semibold text-encre-taupe">{t.espace.statut[state]}</p>
+            <p className="text-corps text-encre-taupe">{t.espace.gererAide}</p>
+            <form action={openPortalAction}>
+              <Button type="submit">{t.espace.gerer}</Button>
+            </form>
+            <p className="text-corps text-encre-taupe">{t.espace.factures}</p>
+          </section>
+        </>
       ) : pending ? (
         <p className="max-w-2xl rounded-carte bg-perle px-6 py-6 text-corps text-encre-taupe md:px-8">
           {t.espace.enAttente}
