@@ -5,6 +5,7 @@ import { OwnNote } from "@/components/avis/stars";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { abonnements } from "@/content/abonnements";
+import { common } from "@/content/common";
 import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
 import { famille } from "@/content/famille";
@@ -27,6 +28,7 @@ const t = words(comptes);
 const f = words(famille).accueil;
 const d = words(demandes);
 const a = words(abonnements);
+const c = words(common);
 
 export const metadata: Metadata = {
   title: t.meta.espace,
@@ -40,7 +42,8 @@ export const dynamic = "force-dynamic";
  * profile. The two ways to publish (D-60) and her requests are one tap away.
  * Her own note and gardes count close the page (avis-etoiles, D-121). « Votre
  * abonnement » shows her plan and its renewal date, or leads to the four plans
- * (abonnements-catalogue-stripe). A welcome
+ * (abonnements-catalogue-stripe). An outlined button opens the charter the
+ * professionals accept (charte-cote-parents). A welcome
  * e-mail that failed to send is tried again after the page (D-165).
  */
 export default async function EspaceFamillePage() {
@@ -111,6 +114,9 @@ export default async function EspaceFamillePage() {
       >
         {d.famille.titre}
       </Link>
+      <Button asChild variant="blanc" className="self-start">
+        <Link href={c.pages.charte.href}>{f.charte}</Link>
+      </Button>
       <OwnNote note={note} />
     </SpaceShell>
   );

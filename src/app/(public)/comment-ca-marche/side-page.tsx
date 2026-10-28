@@ -36,7 +36,8 @@ type Side = keyof typeof sides;
 /**
  * One side of « Comment ça marche »: the switch at the top right, the three
  * steps of that side, what Berceo guarantees (no insurance line, D-8), then
- * that side's sign-up button.
+ * that side's sign-up button. The family's side closes the guarantees with
+ * the charter the professionals accept (charte-cote-parents).
  */
 export function SidePage({ side }: { side: Side }) {
   const page = t[side];
@@ -64,6 +65,11 @@ export function SidePage({ side }: { side: Side }) {
 
       <VitrineSection title={t.garanties.title} tone="sauge">
         <ReasonGrid items={t.garanties.items} />
+        {side === "familles" ? (
+          <Button asChild variant="blanc" className="self-start">
+            <Link href={c.pages.charte.href}>{t.garanties.charte}</Link>
+          </Button>
+        ) : null}
       </VitrineSection>
 
       <VitrineSection>
