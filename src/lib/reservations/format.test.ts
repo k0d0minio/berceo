@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { answersCount, professionInSentence, professionLabel, rateLine, recapNight } from "./format";
+import {
+  answersCount,
+  extraHourLine,
+  professionInSentence,
+  professionLabel,
+  rateLine,
+  recapNight,
+} from "./format";
 
 /**
  * Spec (candidature-et-reservation): the card's price line is her rate with
@@ -11,6 +18,7 @@ import { answersCount, professionInSentence, professionLabel, rateLine, recapNig
 describe("the answer and the booking, as they read", () => {
   it("writes the price line of the DA's card", () => {
     expect(rateLine(150)).toBe("150 € pour la garde de nuit");
+    expect(extraHourLine(15)).toBe("15 € par heure supplémentaire");
   });
 
   it("writes the récapitulatif's date, hours and duration", () => {

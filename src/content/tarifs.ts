@@ -41,7 +41,7 @@ export const tarifs = catalogue({
       title: "Le tarif de la professionnelle",
       /** @relecture Surya — idem. */
       paragraphs: [
-        "Chaque professionnelle fixe elle-même son tarif de nuit, à partir de 130 €. Vous le voyez sur son profil avant de la choisir.",
+        "Chaque professionnelle fixe elle-même son tarif de nuit, à partir de 130 €, et son tarif par heure supplémentaire. Vous les voyez sur son profil avant de la choisir.",
         "Vous la rémunérez directement, après la garde. Berceo est un intermédiaire : la plateforme ne perçoit pas ce montant.",
       ],
     },

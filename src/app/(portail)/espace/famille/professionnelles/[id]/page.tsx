@@ -21,7 +21,7 @@ import { PROFILE_PATH } from "@/lib/famille/paths";
 import { requestHasAddress } from "@/lib/famille/request-address";
 import { waitingAnswerOf } from "@/lib/reservations/answers";
 import { feeLine } from "@/lib/paiements/format";
-import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import { priorityPath, professionalProfilePath } from "@/lib/reservations/paths";
 import { publicProfile } from "@/lib/reservations/profiles";
 
@@ -88,6 +88,9 @@ export default async function ProfilProfessionnellePage({
         {profile.nightRateEur ? (
           <p className="text-corps font-semibold text-encre-sauge">{rateLine(profile.nightRateEur)}</p>
         ) : null}
+        {profile.extraHourRateEur ? (
+          <p className="text-corps font-semibold text-encre-sauge">{extraHourLine(profile.extraHourRateEur)}</p>
+        ) : null}
         <dl className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <dt className="text-legende font-semibold text-encre-taupe">{r.profil.zone}</dt>
@@ -131,6 +134,7 @@ export default async function ProfilProfessionnellePage({
               prenom: profile.firstName,
               profession: professionLabel(profile.profession),
               tarif: rateLine(answer.nightRateEur),
+              tarifHeure: answer.extraHourRateEur ? extraHourLine(answer.extraHourRateEur) : undefined,
               frais: feeLine(answer.nightRateEur),
             }}
             onAccept={acceptAnswerAction.bind(null, request.id, answer.applicationId)}

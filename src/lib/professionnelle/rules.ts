@@ -78,8 +78,15 @@ export const REQUIREMENTS: Record<Profession, Requirement> = {
 // Limits
 // ---------------------------------------------------------------------------
 
-export const RATE_MIN = 100;
-export const RATE_MAX = 300;
+/** The night rate's floor, with no ceiling (onboarding-retour-1, Jamie 2026-10-23). */
+export const RATE_MIN = 130;
+/** The extra hour's floor: any whole euro (onboarding-retour-1). */
+export const EXTRA_HOUR_RATE_MIN = 1;
+/**
+ * The largest rate the database holds with its fee: the fee in cents is the
+ * rate × 3, in a Postgres integer. A guard against a typing error, not a ceiling.
+ */
+export const RATE_STORABLE_MAX = Math.floor(2_147_483_647 / 3);
 export const BIO_MAX = 500;
 /** « Formations complémentaires », free text: hundreds of trainings exist (onboarding-retour-1). */
 export const FORMATIONS_MAX = 300;
@@ -113,6 +120,7 @@ export type FieldError =
   | "communesMax"
   | "commune"
   | "tarif"
+  | "tarifHeure"
   | "bioLongue"
   | "formationsLongues"
   | "photo"
@@ -125,6 +133,7 @@ export type ProfileField =
   | "formations"
   | "communes"
   | "tarif"
+  | "tarifHeure"
   | "bio"
   | "photo";
 
@@ -134,15 +143,22 @@ export function isProfession(value: unknown): value is Profession {
   return (PROFESSIONS as readonly unknown[]).includes(value);
 }
 
-/**
- * A night rate in whole euros from 100 to 300, or an error. "150", " 150 " and
- * "150,00" are 150; "150,5", "99", "301" and "abc" are refused (D-4).
- */
-export function parseRate(raw: string): { ok: true; value: number } | { ok: false } {
+/** Whole euros from `min`, or an error. "150", " 150 " and "150,00" are 150; "150,5" and "abc" are refused. */
+function parseWholeEuros(raw: string, min: number): { ok: true; value: number } | { ok: false } {
   const text = raw.trim().replace(/[,.]0+$/, "");
   if (!/^\d+$/.test(text)) return { ok: false };
   const value = Number(text);
-  return value >= RATE_MIN && value <= RATE_MAX ? { ok: true, value } : { ok: false };
+  return value >= min && value <= RATE_STORABLE_MAX ? { ok: true, value } : { ok: false };
+}
+
+/** A night rate in whole euros from 130, with no ceiling: "129" is refused, "450" accepted. */
+export function parseRate(raw: string): { ok: true; value: number } | { ok: false } {
+  return parseWholeEuros(raw, RATE_MIN);
+}
+
+/** The rate of an extra hour in whole euros from 1: "0" is refused. */
+export function parseExtraHourRate(raw: string): { ok: true; value: number } | { ok: false } {
+  return parseWholeEuros(raw, EXTRA_HOUR_RATE_MIN);
 }
 
 /** Eleven digits, separators dropped, or null (no checksum: the founders verify it). */
@@ -157,6 +173,7 @@ export type ProfileDraft = {
   formationsComplementaires: string | null;
   communes: string[];
   nightRateEur: number | null;
+  extraHourRateEur: number | null;
   bio: string | null;
 };
 
@@ -165,6 +182,7 @@ export type ProfileInput = {
   formations: string;
   communes: string[];
   tarif: string;
+  tarifHeure: string;
   bio: string;
 };
 
@@ -191,6 +209,7 @@ export function checkProfile(
     formationsComplementaires: null,
     communes: [],
     nightRateEur: null,
+    extraHourRateEur: null,
     bio: null,
   };
 
@@ -223,6 +242,12 @@ export function checkProfile(
     else errors.tarif = "tarif";
   }
 
+  if (input.tarifHeure.trim()) {
+    const rate = parseExtraHourRate(input.tarifHeure);
+    if (rate.ok) values.extraHourRateEur = rate.value;
+    else errors.tarifHeure = "tarifHeure";
+  }
+
   const bio = input.bio.trim();
   if (bio) {
     if (bio.length > BIO_MAX) errors.bio = "bioLongue";
@@ -232,7 +257,11 @@ export function checkProfile(
   return { values, errors };
 }
 
-/** What step 2 still lacks before "Continuer" (the trainings are optional). */
+/**
+ * What step 2 still lacks before "Continuer" (the trainings are optional). A
+ * file validated before the extra hour's rate existed lacks it too: her next
+ * save asks for it, and her profile stays validated meanwhile.
+ */
 export function missingProfile(
   draft: ProfileDraft,
   hasPhoto: boolean,
@@ -241,6 +270,7 @@ export function missingProfile(
   if (!draft.profession) missing.profession = "requis";
   if (draft.communes.length < COMMUNES_MIN) missing.communes = "communesMin";
   if (draft.nightRateEur === null) missing.tarif = "requis";
+  if (draft.extraHourRateEur === null) missing.tarifHeure = "requis";
   if (!draft.bio) missing.bio = "requis";
   if (!hasPhoto) missing.photo = "photo";
   return missing;

@@ -11,7 +11,7 @@ import { reservations } from "@/content/reservations"
 /*
  * « Accepter et réserver » opens « Récapitulatif de votre garde » (the guide,
  * « La réservation »): the date, the hours, the duration, her first name, her
- * profession, her rate and the 3 % service fee, the line saying the family
+ * profession, her rates (the extra hour's too, profil-tarifs) and the 3 % service fee, the line saying the family
  * pays her directly (D-1), then the guide's two fee sentences and where the
  * fee is paid (frais-de-service). Confirming is green, going back red (D-24).
  * No word about insurance (D-8). Confirming opens Stripe's page; the booking
@@ -25,6 +25,8 @@ export type Recap = {
   prenom: string
   profession: string
   tarif: string
+  /** « 15 € par heure supplémentaire »; absent on an answer given before profil-tarifs. */
+  tarifHeure?: string
   /** « 4,11 € », computed on the server from the answer's rate (D-99). */
   frais: string
 }
@@ -41,6 +43,7 @@ function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promi
     [l.professionnelle, recap.prenom],
     [l.profession, recap.profession],
     [l.tarif, recap.tarif],
+    ...(recap.tarifHeure ? [[l.tarifHeure, recap.tarifHeure] as [string, string]] : []),
     [f.frais, recap.frais],
   ]
 

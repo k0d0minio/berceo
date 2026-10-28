@@ -29,6 +29,7 @@ export const profileColumns = {
   formationsComplementaires: professionalProfiles.formationsComplementaires,
   bio: professionalProfiles.bio,
   nightRateEur: professionalProfiles.nightRateEur,
+  extraHourRateEur: professionalProfiles.extraHourRateEur,
   photoId,
 };
 
@@ -39,6 +40,7 @@ export type PublicProfile = {
   formationsComplementaires: string | null;
   bio: string | null;
   nightRateEur: number | null;
+  extraHourRateEur: number | null;
   photoId: string | null;
   /** The communes she serves, by INS code. */
   communes: string[];

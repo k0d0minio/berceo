@@ -1,5 +1,5 @@
 {
-  "id": "99fb5ab7-13d4-41d1-b41d-3941872be6bb",
+  "id": "0c2c1056-c853-476d-90be-c5aeb3b32225",
   "prevId": "52b3009c-a2f0-49ff-be5b-fb083343c599",
   "version": "7",
   "dialect": "postgresql",
@@ -197,6 +197,12 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "extra_hour_rate_eur": {
+          "name": "extra_hour_rate_eur",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         },
         "confirmed_at": {
           "name": "confirmed_at",
@@ -457,9 +463,13 @@
       },
       "policies": {},
       "checkConstraints": {
-        "bookings_night_rate_range": {
-          "name": "bookings_night_rate_range",
-          "value": "\"bookings\".\"night_rate_eur\" BETWEEN 100 AND 300"
+        "bookings_night_rate_min": {
+          "name": "bookings_night_rate_min",
+          "value": "\"bookings\".\"night_rate_eur\" >= 100"
+        },
+        "bookings_extra_hour_rate_min": {
+          "name": "bookings_extra_hour_rate_min",
+          "value": "\"bookings\".\"extra_hour_rate_eur\" IS NULL OR \"bookings\".\"extra_hour_rate_eur\" >= 1"
         },
         "bookings_report_handled": {
           "name": "bookings_report_handled",
@@ -512,6 +522,12 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "extra_hour_rate_eur": {
+          "name": "extra_hour_rate_eur",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         },
         "answered_at": {
           "name": "answered_at",
@@ -634,9 +650,13 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
-        "care_request_applications_night_rate_range": {
-          "name": "care_request_applications_night_rate_range",
-          "value": "\"care_request_applications\".\"night_rate_eur\" BETWEEN 100 AND 300"
+        "care_request_applications_night_rate_min": {
+          "name": "care_request_applications_night_rate_min",
+          "value": "\"care_request_applications\".\"night_rate_eur\" >= 100"
+        },
+        "care_request_applications_extra_hour_rate_min": {
+          "name": "care_request_applications_extra_hour_rate_min",
+          "value": "\"care_request_applications\".\"extra_hour_rate_eur\" IS NULL OR \"care_request_applications\".\"extra_hour_rate_eur\" >= 1"
         }
       },
       "isRLSEnabled": false
@@ -728,24 +748,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "night_street": {
-          "name": "night_street",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "night_house_number": {
-          "name": "night_house_number",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "night_box": {
-          "name": "night_box",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "no_medical_condition_at": {
           "name": "no_medical_condition_at",
@@ -1630,9 +1632,9 @@
       },
       "policies": {},
       "checkConstraints": {
-        "payments_amount_range": {
-          "name": "payments_amount_range",
-          "value": "\"payments\".\"amount_cents\" BETWEEN 300 AND 900"
+        "payments_amount_min": {
+          "name": "payments_amount_min",
+          "value": "\"payments\".\"amount_cents\" >= 300"
         },
         "payments_currency": {
           "name": "payments_currency",
@@ -1992,6 +1994,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "extra_hour_rate_eur": {
+          "name": "extra_hour_rate_eur",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "bio": {
           "name": "bio",
           "type": "text",
@@ -2065,9 +2073,13 @@
       },
       "policies": {},
       "checkConstraints": {
-        "professional_profiles_night_rate_range": {
-          "name": "professional_profiles_night_rate_range",
-          "value": "\"professional_profiles\".\"night_rate_eur\" IS NULL OR (\"professional_profiles\".\"night_rate_eur\" BETWEEN 100 AND 300)"
+        "professional_profiles_night_rate_min": {
+          "name": "professional_profiles_night_rate_min",
+          "value": "\"professional_profiles\".\"night_rate_eur\" IS NULL OR \"professional_profiles\".\"night_rate_eur\" >= 130"
+        },
+        "professional_profiles_extra_hour_rate_min": {
+          "name": "professional_profiles_extra_hour_rate_min",
+          "value": "\"professional_profiles\".\"extra_hour_rate_eur\" IS NULL OR \"professional_profiles\".\"extra_hour_rate_eur\" >= 1"
         },
         "professional_profiles_bio_length": {
           "name": "professional_profiles_bio_length",

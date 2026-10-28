@@ -99,8 +99,8 @@ export async function answerRequest(userId: string, requestId: string, now: Date
   // The answer and its conversation, with Berceo's amorce, in one statement (messagerie, D-87).
   const written = await db.execute<{ id: string; answer_count: number }>(withConversation(sql`
     insert into care_request_applications
-      (request_id, profile_id, night_rate_eur, answered_at, created_at, updated_at)
-    select r.id, p.id, p.night_rate_eur, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
+      (request_id, profile_id, night_rate_eur, extra_hour_rate_eur, answered_at, created_at, updated_at)
+    select r.id, p.id, p.night_rate_eur, p.extra_hour_rate_eur, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
     from care_requests r, professional_profiles p
     where r.id = ${requestId}
       and p.id = ${profile.id}
@@ -123,6 +123,7 @@ export async function answerRequest(userId: string, requestId: string, now: Date
     on conflict (request_id, profile_id) do update
       set status = 'en_attente',
           night_rate_eur = excluded.night_rate_eur,
+          extra_hour_rate_eur = excluded.extra_hour_rate_eur,
           answered_at = excluded.answered_at,
           answer_count = care_request_applications.answer_count + 1,
           updated_at = excluded.updated_at
@@ -225,6 +226,7 @@ export type Applicant = {
   firstName: string;
   profession: Profession | null;
   nightRateEur: number;
+  extraHourRateEur: number | null;
   photoId: string | null;
   answeredAt: Date;
   /** Her note and gardes count (avis-etoiles, D-119). */
@@ -254,6 +256,7 @@ export async function familyAnswers(userId: string, requestId: string): Promise<
       firstName: users.firstName,
       profession: professionalProfiles.profession,
       nightRateEur: careRequestApplications.nightRateEur,
+      extraHourRateEur: careRequestApplications.extraHourRateEur,
       photoId,
       answeredAt: careRequestApplications.answeredAt,
     })
@@ -287,13 +290,19 @@ export async function waitingAnswerOf(
   userId: string,
   requestId: string,
   profileId: string,
-): Promise<{ applicationId: string; status: ApplicationStatus; nightRateEur: number } | null> {
+): Promise<{
+  applicationId: string;
+  status: ApplicationStatus;
+  nightRateEur: number;
+  extraHourRateEur: number | null;
+} | null> {
   if (!UUID.test(requestId) || !UUID.test(profileId)) return null;
   const [row] = await db
     .select({
       applicationId: careRequestApplications.id,
       status: careRequestApplications.status,
       nightRateEur: careRequestApplications.nightRateEur,
+      extraHourRateEur: careRequestApplications.extraHourRateEur,
     })
     .from(careRequestApplications)
     .innerJoin(careRequests, eq(careRequests.id, careRequestApplications.requestId))
