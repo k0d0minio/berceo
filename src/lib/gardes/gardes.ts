@@ -3,7 +3,8 @@ import "server-only";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { bookings, careRequests, db, type BookingSide } from "@/db";
-import { addDays, brusselsNow, NIGHT_HOURS, otherSide, TIME_ZONE, URGENT_LAST_DAY } from "@/lib/demandes/rules";
+import { nightEnd } from "@/lib/demandes/night-end";
+import { addDays, brusselsNow, otherSide, TIME_ZONE, URGENT_LAST_DAY } from "@/lib/demandes/rules";
 import {
   cancelBookedRequestStatement,
   liveRequestOn,
@@ -39,6 +40,13 @@ export function logError(what: string, context: Record<string, unknown>, error?:
 
 /** Brussels wall-clock now, the form `night_date + start_time` compares with. */
 const localNow = sql`(now() AT TIME ZONE ${TIME_ZONE})`;
+
+/** The night's end of the request `r` in the raw statements below. */
+const requestNightEnd = nightEnd({
+  nightDate: sql`r.night_date`,
+  startTime: sql`r.start_time`,
+  extraHours: sql`r.extra_hours`,
+});
 
 /** Only the side's own garde: the family who booked it, or the professional booked. */
 function partyOf(side: BookingSide, userId: string) {
@@ -110,7 +118,6 @@ export async function reportAbsence(
 ): Promise<GardeWrite> {
   if (!UUID.test(bookingId)) return { ok: false };
   const at = now.toISOString();
-  const window = NIGHT_HOURS + ABSENCE_HOURS_AFTER_END;
   const [reported] = await db.batch([
     db.execute<{ id: string }>(sql`
       update bookings b
@@ -121,7 +128,7 @@ export async function reportAbsence(
         and r.id = b.request_id
         and b.status = 'confirmee'
         and (r.night_date + r.start_time) <= ${localNow}
-        and (r.night_date + r.start_time + make_interval(hours => ${window}::int)) > ${localNow}
+        and (${requestNightEnd} + make_interval(hours => ${ABSENCE_HOURS_AFTER_END}::int)) > ${localNow}
         and ${partyOf(side, userId)}
       returning b.id
     `),
@@ -137,7 +144,7 @@ export type RepublishResult =
 
 /**
  * « Republier ma demande » on one of her cancelled gardes (D-107): a new
- * request for the same night, start, children and age, published like any
+ * request for the same night, start, extra hours, children and age, published like any
  * other (`publishRequest`: her profile's commune, D-63), urgent when the night
  * is tonight or tomorrow (D-60), sent to nobody in priority. Refused once the
  * night has started; a live request of hers that night (open, or booked again)
@@ -150,6 +157,7 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
       status: bookings.status,
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
+      extraHours: careRequests.extraHours,
       children: careRequests.children,
       babyAgeValue: careRequests.babyAgeValue,
       babyAgeUnit: careRequests.babyAgeUnit,
@@ -166,6 +174,7 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
   const values = {
     nightDate: row.nightDate,
     startTime: row.startTime,
+    extraHours: row.extraHours,
     children: row.children,
     babyAgeValue: row.babyAgeValue,
     babyAgeUnit: row.babyAgeUnit,

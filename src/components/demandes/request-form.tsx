@@ -12,15 +12,15 @@ import { comptes } from "@/content/comptes"
 import { demandes } from "@/content/demandes"
 import { fill, words } from "@/content/locale"
 import { formatDate, formatTime } from "@/lib/demandes/format"
-import { AGE_UNITS, CHILDREN, START_TIMES } from "@/lib/demandes/rules"
+import { AGE_UNITS, CHILDREN, MAX_EXTRA_HOURS, START_TIMES } from "@/lib/demandes/rules"
 import type { RequestError, RequestField, RequestInput } from "@/lib/demandes/validation"
 import { PROFILE_PATH } from "@/lib/famille/paths"
 import { cn } from "@/lib/utils"
 
 /*
  * The request form (the guide, "Les annonces"): the date in a month calendar
- * a phone can read, the start time with the 11-hour note, the number of
- * children, the baby's age, the commune from her profile (read-only, D-63)
+ * a phone can read, the start time, the extra hours with the 11-hour note,
+ * the number of children, the baby's age, the commune from her profile (read-only, D-63)
  * with the address note, and the mandatory checkbox (D-20). Three modes: a
  * normal request, an urgent one (tonight or tomorrow night, D-60), and an
  * edit, which never shows the checkbox again nor changes the commune or the
@@ -134,9 +134,7 @@ function RequestForm({
           defaultValue={v?.heure ?? ""}
           required
           aria-invalid={e.heure ? true : undefined}
-          aria-describedby={["champ-heure-aide", e.heure ? "champ-heure-erreur" : ""]
-            .filter(Boolean)
-            .join(" ")}
+          aria-describedby={e.heure ? "champ-heure-erreur" : undefined}
           className={selectClasses}
         >
           <option value="" disabled>
@@ -148,12 +146,42 @@ function RequestForm({
             </option>
           ))}
         </select>
-        <p id="champ-heure-aide" className={helpText}>
-          {t.formulaire.aides.heure}
-        </p>
         {e.heure ? (
           <p id="champ-heure-erreur" className={errorClasses}>
             {errorOf("heure")}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="champ-heures-supplementaires" className={legend}>
+          {t.formulaire.champs.heuresSupplementaires}
+        </label>
+        <Input
+          key={`heures-supplementaires-${v?.heuresSupplementaires ?? ""}`}
+          id="champ-heures-supplementaires"
+          name="heuresSupplementaires"
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={MAX_EXTRA_HOURS}
+          step={1}
+          defaultValue={v?.heuresSupplementaires || "0"}
+          aria-invalid={e.heuresSupplementaires ? true : undefined}
+          aria-describedby={[
+            "champ-heures-supplementaires-aide",
+            e.heuresSupplementaires ? "champ-heures-supplementaires-erreur" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          className="max-w-32"
+        />
+        <p id="champ-heures-supplementaires-aide" className={helpText}>
+          {t.formulaire.aides.heuresSupplementaires}
+        </p>
+        {e.heuresSupplementaires ? (
+          <p id="champ-heures-supplementaires-erreur" className={errorClasses}>
+            {errorOf("heuresSupplementaires")}
           </p>
         ) : null}
       </div>

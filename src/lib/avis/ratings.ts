@@ -15,7 +15,8 @@ import {
   type RatingSide,
 } from "@/db";
 import { notSuspended } from "@/lib/auth/suspension";
-import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
+import { nightEnd as nightEndOf } from "@/lib/demandes/night-end";
+import { TIME_ZONE } from "@/lib/demandes/rules";
 
 import { rateRefusal, WINDOW_DAYS, type RateRefusal, type Scores } from "./rules";
 
@@ -44,8 +45,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** Brussels wall-clock now, the form `night_date + start_time` compares with. */
 const localNow = sql`(now() AT TIME ZONE ${TIME_ZONE})`;
 
-/** The night's end, a Brussels wall-clock timestamp: start + 11 hours. */
-const nightEnd = sql`(${careRequests.nightDate} + ${careRequests.startTime} + make_interval(hours => ${NIGHT_HOURS}::int))`;
+/** The night's end, a Brussels wall-clock timestamp: start + 11 hours + the extra hours. */
+const nightEnd = nightEndOf(careRequests);
 
 /** The end of the rating window: the night's end + 14 days. */
 const windowEnd = sql`(${nightEnd} + make_interval(days => ${WINDOW_DAYS}::int))`;
@@ -201,6 +202,7 @@ export type RatingTarget = {
   status: BookingStatus;
   nightDate: string;
   startTime: string;
+  extraHours: number;
   otherFirstName: string;
   given: GivenRating | null;
 };
@@ -216,6 +218,7 @@ export async function ratingTarget(side: RatingSide, userId: string, bookingId: 
       status: bookings.status,
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
+      extraHours: careRequests.extraHours,
       otherFirstName: otherUser.firstName,
     })
     .from(bookings)
@@ -262,11 +265,7 @@ export async function submitRating(
 
   const target = await ratingTarget(side, userId, bookingId);
   if (!target) return { ok: false, reason: "introuvable" };
-  const refusal = rateRefusal(
-    { status: target.status, nightDate: target.nightDate, startTime: target.startTime },
-    target.given !== null,
-    now,
-  );
+  const refusal = rateRefusal(target, target.given !== null, now);
   return { ok: false, reason: refusal ?? "dejaNote" };
 }
 

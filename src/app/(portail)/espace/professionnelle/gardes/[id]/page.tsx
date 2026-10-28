@@ -28,6 +28,7 @@ import { conversationPath } from "@/lib/messagerie/paths";
 import { cancelledLine } from "@/lib/gardes/format";
 import { canCancel, canReportAbsence, gardeState, isAddressVisible } from "@/lib/gardes/rules";
 import { professionalBooking } from "@/lib/reservations/bookings";
+import { recapNight } from "@/lib/reservations/format";
 import { PROFESSIONAL_BOOKINGS_PATH, professionalBookingPath } from "@/lib/reservations/paths";
 
 import { cancelGardeAction, reportAbsenceAction } from "../actions";
@@ -97,7 +98,14 @@ export default async function GardePage({
   const address = family.address;
   const notice = noticeText(query);
   const now = new Date();
-  const facts = { status: booking.garde.status, nightDate: booking.request.nightDate, startTime: booking.request.startTime };
+  const facts = {
+    status: booking.garde.status,
+    nightDate: booking.request.nightDate,
+    startTime: booking.request.startTime,
+    extraHours: booking.request.extraHours,
+  };
+  // The duration names the extra hours apart, as on the family's récapitulatif: she prices them apart.
+  const duration = recapNight(booking.request.nightDate, booking.request.startTime, booking.request.extraHours).duree;
   const cancelled = cancelledLine(booking.garde, "professionnelle", family.firstName);
   const [familyNotes, given] = await Promise.all([
     familyNotesOfRequests([booking.request.id]),
@@ -111,7 +119,7 @@ export default async function GardePage({
       {notice ? <FormMessage>{notice}</FormMessage> : null}
       <div className="flex max-w-2xl flex-col gap-3">
         <GardeStateMark state={gardeState(facts, now)} />
-        <RequestCard request={booking.request} rate={booking.nightRateEur} />
+        <RequestCard request={booking.request} rate={booking.nightRateEur} note={duration} />
         {cancelled ? <p className="text-corps font-semibold text-encre-taupe">{cancelled}</p> : null}
       </div>
       <section className="flex max-w-2xl flex-col gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">

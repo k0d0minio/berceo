@@ -49,6 +49,7 @@ export default async function ModifierDemandePage({ params }: { params: Promise<
         defaults={{
           date: request.nightDate,
           heure: toHourMinute(request.startTime),
+          heuresSupplementaires: String(request.extraHours),
           enfants: request.children,
           ageValeur: String(request.babyAgeValue),
           ageUnite: request.babyAgeUnit,

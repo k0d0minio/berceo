@@ -131,6 +131,10 @@ export const reservations = catalogue({
       heures: "de {debut} à {fin}",
       /** @relecture Surya — la durée standard (le guide : 11 heures). */
       duree: "{n} heures",
+      /** @relecture Surya — la durée avec une heure supplémentaire (retour 1). */
+      dureeUneSupplementaire: "{n} heures et 1 heure supplémentaire",
+      /** @relecture Surya — la durée avec des heures supplémentaires (retour 1). */
+      dureeSupplementaires: "{n} heures et {extra} heures supplémentaires",
       /** @relecture Surya — la famille règle la garde directement, sans dire comment (D-1). */
       paiement: "Vous réglez la garde directement à la professionnelle.",
       /** @relecture Surya — réponse qui renonce (rouge, D-24). */

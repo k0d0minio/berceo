@@ -388,7 +388,8 @@ export const babyAgeUnitEnum = pgEnum("baby_age_unit", ["semaines", "mois"]);
  * no address column exists here: a professional only ever learns the commune
  * (D-15). The rules that depend on today (the date windows, a night already
  * started) live in `src/lib/demandes/rules.ts`; the checks below hold the rest.
- * The end of the night is start + 11 hours, never stored.
+ * The end of the night is start + 11 hours + `extra_hours`, never stored
+ * (`endTime` in the rules, `nightEnd` in `src/lib/demandes/night-end.ts`).
  */
 export const careRequests = pgTable(
   "care_requests",
@@ -403,6 +404,8 @@ export const careRequests = pgTable(
     nightDate: date("night_date").notNull(),
     /** A half hour from 18:00 to 23:00, stored as `HH:MM:SS`. */
     startTime: time("start_time").notNull(),
+    /** Whole hours the family adds to the 11-hour night, 0 to 6 (feedback round 1). */
+    extraHours: smallint("extra_hours").notNull().default(0),
     children: careRequestChildrenEnum("children").notNull(),
     babyAgeValue: smallint("baby_age_value").notNull(),
     babyAgeUnit: babyAgeUnitEnum("baby_age_unit").notNull(),
@@ -454,6 +457,7 @@ export const careRequests = pgTable(
       "care_requests_start_time_slot",
       sql`${table.startTime} BETWEEN '18:00' AND '23:00' AND date_part('minute', ${table.startTime}) IN (0, 30) AND date_part('second', ${table.startTime}) = 0`,
     ),
+    check("care_requests_extra_hours_range", sql`${table.extraHours} BETWEEN 0 AND 6`),
     check(
       "care_requests_baby_age_range",
       sql`(${table.babyAgeUnit} = 'semaines' AND ${table.babyAgeValue} BETWEEN 0 AND 12) OR (${table.babyAgeUnit} = 'mois' AND ${table.babyAgeValue} BETWEEN 1 AND 24)`,

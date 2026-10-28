@@ -242,10 +242,16 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
 - **The professional's list:** `/espace/professionnelle/demandes` — open requests whose night
   has not started, in the communes she serves, urgent first then newest; a profile that is not
   `valide` sees a line instead. The card (`src/components/demandes/request-card.tsx`) shows the
-  commune, the night (start + 11 h) and the children, never the family: `cardColumns` in
+  commune, the night (start + 11 h + the extra hours) and the children, never the family: `cardColumns` in
   `src/lib/demandes/requests.ts` is what a professional's query selects, and a test holds it.
+- **The extra hours:** « Heures supplémentaires », 0 to 6 whole hours, default 0, under « Heure
+  de début ». `care_requests.extra_hours` stores them. The night ends at start + 11 h + the extra
+  hours. `endTime` and `hasNightEnded` in `rules.ts` compute it, `nightEnd` in `night-end.ts`
+  holds it in SQL, and `night-end-isolation.test.ts` refuses any other file that adds hours to a
+  start. The récapitulatif names them apart: « 11 heures et 2 heures supplémentaires ».
 - **The rules:** `src/lib/demandes/rules.ts` (pure: date windows, start times 18:00 to 23:00 by
-  half hour, age 0–12 semaines or 1–24 mois, a night started, the digest's 18:00 gate),
+  half hour, extra hours 0 to 6, age 0–12 semaines or 1–24 mois, a night started and ended, the
+  digest's 18:00 gate),
   `validation.ts` (the form), `format.ts` (« Un bébé de trois mois », « 30/09/2026 de 20h00 à
   7h00 »). Words in `src/content/demandes.ts`; e-mails in `src/content/emails.ts`.
 - **E-mails (D-61):** an urgent request e-mails every validated professional serving its commune
@@ -311,7 +317,7 @@ writes of a booking's status columns (`gardes.ts`); creating a booking and both 
 in `src/lib/reservations/bookings.ts`.
 
 - **The state, by the clock (D-109):** a booking stores only `confirmee` or `annulee`. « À venir »
-  before the start hour, « En cours » until start + 11 h, « Terminée » after, all Brussels time,
+  before the start hour, « En cours » until start + 11 h + the extra hours, « Terminée » after, all Brussels time,
   are read by `gardeState` at display time; no job changes a state. Both lists, both garde pages
   and the family's request page show it.
 - **Cancelling (D-105, D-2):** either side, from its garde page, until the start hour, through
@@ -487,8 +493,8 @@ never touches the money for the night (D-1).
   browser gave it: a retry inserts once. Each inserted message e-mails the other side once,
   without its text (`notify.ts`, key `message-<id>`, D-90). A reminder line follows every third
   message of the two people outside the booked conversation (D-88).
-- **Closing (D-89):** a conversation accepts messages until the night ends (start + 11 h,
-  Brussels), whatever its answer's state; a cancelled request closes it at once. Closed, it stays
+- **Closing (D-89):** a conversation accepts messages until the night ends (start + 11 h + the
+  extra hours, Brussels), whatever its answer's state; a cancelled request closes it at once. Closed, it stays
   readable. `isConversationOpen` in `rules.ts` is the one rule; `sendMessage` holds it again in
   SQL. A cancelled garde cancels its request (D-110), so its conversations close at once too.
   While the professional's profile is not `valide`, her conversations are closed for both sides

@@ -127,7 +127,7 @@ export default async function ProfilProfessionnellePage({
         {answer && request && hasAddress ? (
           <AcceptAnswer
             recap={{
-              ...recapNight(request.nightDate, request.startTime),
+              ...recapNight(request.nightDate, request.startTime, request.extraHours),
               prenom: profile.firstName,
               profession: professionLabel(profile.profession),
               tarif: rateLine(answer.nightRateEur),

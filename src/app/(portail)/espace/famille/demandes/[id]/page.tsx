@@ -119,7 +119,7 @@ export default async function DemandePage({
     // A booked request, and one whose garde was cancelled since (D-110), link to the garde.
     request.status !== "ouverte" ? bookingOfRequest(user.id, request.id) : Promise.resolve(null),
   ]);
-  const night = recapNight(request.nightDate, request.startTime);
+  const night = recapNight(request.nightDate, request.startTime, request.extraHours);
   const conversationIds = await conversationsOfAnswers(user.id, answers.map((answer) => answer.applicationId));
 
   return (
@@ -144,7 +144,7 @@ export default async function DemandePage({
       {booking ? (
         <div className="flex flex-wrap items-center gap-3">
           <GardeStateMark
-            state={gardeState({ status: booking.status, nightDate: request.nightDate, startTime: request.startTime }, now)}
+            state={gardeState({ ...request, status: booking.status }, now)}
           />
           <Button asChild>
             <Link href={familyBookingPath(booking.id)}>{r.famille.voirReservation}</Link>

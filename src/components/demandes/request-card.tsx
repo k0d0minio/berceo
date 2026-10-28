@@ -83,7 +83,7 @@ function RequestCard({
       </h2>
       <p className="text-corps text-encre-taupe">{placeLine(request.postcode, request.locality)}</p>
       <p className="text-corps font-semibold text-encre-taupe">
-        {nightLine(request.nightDate, request.startTime)}
+        {nightLine(request.nightDate, request.startTime, request.extraHours)}
       </p>
       <p className="text-corps text-encre-taupe">
         {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}

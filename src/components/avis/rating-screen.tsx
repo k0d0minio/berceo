@@ -37,11 +37,7 @@ function RatingScreen({
   const t = words(avis)
   const f = t.formulaire
   const labels = criteriaLabels(side)
-  const refusal = rateRefusal(
-    { status: target.status, nightDate: target.nightDate, startTime: target.startTime },
-    target.given !== null,
-    new Date(),
-  )
+  const refusal = rateRefusal(target, target.given !== null, new Date())
   const prenom = target.otherFirstName
 
   return (

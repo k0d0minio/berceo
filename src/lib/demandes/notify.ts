@@ -36,7 +36,7 @@ import { brusselsNow, isDigestTime } from "./rules";
 export function summary(request: RequestCard): RequestSummary {
   return {
     commune: communeName(request.communeIns) ?? request.locality,
-    nuit: nightLine(request.nightDate, request.startTime),
+    nuit: nightLine(request.nightDate, request.startTime, request.extraHours),
     enfants: childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit),
     date: formatDate(request.nightDate),
   };

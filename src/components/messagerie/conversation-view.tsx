@@ -55,7 +55,9 @@ function ConversationView({ side, thread }: { side: Side; thread: ThreadData }) 
         {thread.profession ? (
           <p className="text-corps text-encre-taupe">{professionLabel(thread.profession)}</p>
         ) : null}
-        <p className="text-corps font-semibold text-encre-taupe">{conversationNight(thread.nightDate, thread.startTime)}</p>
+        <p className="text-corps font-semibold text-encre-taupe">
+          {conversationNight(thread.nightDate, thread.startTime, thread.extraHours)}
+        </p>
       </div>
       <div className="flex flex-wrap gap-3">
         <Button asChild variant="raye">

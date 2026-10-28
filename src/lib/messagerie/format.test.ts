@@ -11,7 +11,8 @@ import { conversationNight, listNight, messageDay, messageTime, preview, unreadL
 describe("how a conversation reads", () => {
   it("names the night", () => {
     expect(listNight("2026-09-30")).toBe("Garde du 30/09/2026");
-    expect(conversationNight("2026-09-30", "20:00:00")).toBe("Garde du 30/09/2026, de 20h00 à 7h00");
+    expect(conversationNight("2026-09-30", "20:00:00", 0)).toBe("Garde du 30/09/2026, de 20h00 à 7h00");
+    expect(conversationNight("2026-09-30", "19:00:00", 2)).toBe("Garde du 30/09/2026, de 19h00 à 8h00");
   });
 
   it("dates a message in Brussels", () => {

@@ -97,7 +97,7 @@ export default async function ReservationPage({
 
   const { request, professional } = booking;
   const conversationId = await conversationOfBooking(user.id, "famille", id);
-  const night = recapNight(request.nightDate, request.startTime);
+  const night = recapNight(request.nightDate, request.startTime, request.extraHours);
   const l = t.recapitulatif.libelles;
   const rows: [string, string][] = [
     [l.date, night.date],
@@ -109,7 +109,7 @@ export default async function ReservationPage({
   ];
   const notice = noticeText(query, professional.firstName);
   const now = new Date();
-  const facts = { status: booking.garde.status, nightDate: request.nightDate, startTime: request.startTime };
+  const facts = { ...request, status: booking.garde.status };
   const state = gardeState(facts, now);
   const republishable = canRepublish(facts, now);
   const [fee, liveRequest, given] = await Promise.all([

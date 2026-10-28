@@ -24,7 +24,7 @@ import type { RequestValues } from "./validation";
  * from the session (the caller's `requireAccess`), never from a form, and
  * answer only for her own rows: another family's id reads as not found.
  *
- * What a professional reads is `cardColumns`: the night, the children, the
+ * What a professional reads is `cardColumns`: the night (its extra hours too), the children, the
  * commune. Never the family's id, name, e-mail, phone or address (D-15); the
  * tests hold the list of columns. Answers and bookings are
  * `src/lib/reservations/`'s; the request's own side of them (the list with her
@@ -38,6 +38,7 @@ export const cardColumns = {
   urgent: careRequests.urgent,
   nightDate: careRequests.nightDate,
   startTime: careRequests.startTime,
+  extraHours: careRequests.extraHours,
   children: careRequests.children,
   babyAgeValue: careRequests.babyAgeValue,
   babyAgeUnit: careRequests.babyAgeUnit,
@@ -55,6 +56,7 @@ export type RequestCard = {
   urgent: boolean;
   nightDate: string;
   startTime: string;
+  extraHours: number;
   children: "un_bebe" | "jumeaux";
   babyAgeValue: number;
   babyAgeUnit: "semaines" | "mois";

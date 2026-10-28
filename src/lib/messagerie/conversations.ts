@@ -19,9 +19,17 @@ import {
 } from "@/db";
 import { suspended } from "@/lib/auth/suspension";
 import { UUID } from "@/lib/demandes/requests";
-import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
+import { nightEnd } from "@/lib/demandes/night-end";
+import { TIME_ZONE } from "@/lib/demandes/rules";
 
 import { isConversationOpen, type Author, type Side } from "./rules";
+
+/** The night's end of the request `r` in the raw statements below. */
+const requestNightEnd = nightEnd({
+  nightDate: sql`r.night_date`,
+  startTime: sql`r.start_time`,
+  extraHours: sql`r.extra_hours`,
+});
 
 /**
  * Every read and write of a conversation and its messages (messagerie). Only
@@ -140,6 +148,7 @@ export type ConversationRow = {
   profession: Profession | null;
   nightDate: string;
   startTime: string;
+  extraHours: number;
   status: CareRequestStatus;
   /** Her profile's status and whether her answer is booked: the closing rule's facts (D-156), never shown. */
   profileStatus: ProfileStatus;
@@ -158,6 +167,7 @@ export async function conversationList(userId: string, side: Side): Promise<Conv
       profession: professionalProfiles.profession,
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
+      extraHours: careRequests.extraHours,
       status: careRequests.status,
       profileStatus: professionalProfiles.status,
       answerStatus: careRequestApplications.status,
@@ -207,6 +217,7 @@ export type Thread = {
   profession: Profession | null;
   nightDate: string;
   startTime: string;
+  extraHours: number;
   status: CareRequestStatus;
   /** Her profile's status: the closing rule's fact (D-156), never shown. */
   profileStatus: ProfileStatus;
@@ -228,6 +239,7 @@ export async function conversationFor(userId: string, side: Side, id: string): P
       profession: professionalProfiles.profession,
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
+      extraHours: careRequests.extraHours,
       status: careRequests.status,
       profileStatus: professionalProfiles.status,
       answerStatus: careRequestApplications.status,
@@ -342,6 +354,7 @@ export async function sendMessage(
       status: careRequests.status,
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
+      extraHours: careRequests.extraHours,
       profileStatus: professionalProfiles.status,
       answerStatus: careRequestApplications.status,
     })
@@ -367,7 +380,7 @@ export async function sendMessage(
       where c.id = ${conversationId}
         and ${partyOfC(side, userId)}
         and r.status <> 'annulee'
-        and (r.night_date + r.start_time + ${`${NIGHT_HOURS} hours`}::interval) > (now() at time zone ${TIME_ZONE})
+        and ${requestNightEnd} > (now() at time zone ${TIME_ZONE})
         and (pp.status = 'valide' or a.status = 'retenue')
     ),
     inserted as (

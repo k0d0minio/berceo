@@ -36,6 +36,7 @@ export type ConversationRequest = {
   status: "ouverte" | "annulee" | "attribuee";
   nightDate: string;
   startTime: string;
+  extraHours: number;
   /** The status of the conversation's professional's profile, read now (D-158). */
   profileStatus: ProfileStatus;
   /** Her answer is the booked one (`retenue`). */
@@ -52,7 +53,8 @@ export type ConversationRequest = {
  */
 export function isConversationOpen(request: ConversationRequest, now: Date): boolean {
   if (request.profileStatus !== "valide" && !request.booked) return false;
-  return request.status !== "annulee" && !hasNightEnded(request.nightDate, request.startTime, now);
+  if (request.status === "annulee") return false;
+  return !hasNightEnded(request.nightDate, request.startTime, request.extraHours, now);
 }
 
 export type TimedMessage = { author: Author; createdAt: Date };
