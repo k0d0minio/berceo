@@ -12,6 +12,7 @@ import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { loadFile } from "@/lib/professionnelle/file";
 import { PROFESSIONS, isStudent, firstIncompleteStep, isEditable } from "@/lib/professionnelle/rules";
+import { declarationText } from "@/lib/professionnelle/wording";
 import { studentsAdmitted } from "@/lib/settings";
 
 import { ONBOARDING } from "../inscription/step";
@@ -91,7 +92,7 @@ export default async function DossierPage() {
       <ul className="flex flex-col gap-3">
         {latest.map((d, i) => (
           <li key={i} className="flex flex-col gap-1 rounded-carte bg-perle px-6 py-4 text-corps text-encre-taupe">
-            <span>{t.declarations.textes[d.declaration as keyof typeof t.declarations.textes]}</span>
+            <span>{declarationText(d.declaration, d.version)}</span>
             <span className="text-legende">{fill(t.declarations.accepteeLe, { date: date.format(d.acceptedAt) })}</span>
           </li>
         ))}

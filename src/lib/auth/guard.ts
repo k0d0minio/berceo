@@ -3,6 +3,8 @@ import "server-only";
 import { notFound, redirect } from "next/navigation";
 
 import type { User } from "@/db";
+import { mustRenewDeclarations } from "@/lib/professionnelle/declarations";
+import { NEW_DECLARATIONS_PATH } from "@/lib/professionnelle/paths";
 
 import { currentUser } from "./current-user";
 import { accessFor, landingFor, pathnameOf, signInWithReturn } from "./routing";
@@ -15,6 +17,10 @@ import { SUSPENDED_PATH } from "./suspension";
  *
  * `path` may carry the page's query (`withQuery`): the role is read on the
  * pathname alone, and the way back through sign-in keeps both (D-150).
+ *
+ * A professional whose submitted file carries declarations of an older
+ * version accepts the new ones before any other page of her space opens, at
+ * sign-in and on every later visit (onboarding-retour-1).
  */
 export async function requireAccess(path: string): Promise<User> {
   const who = await currentUser();
@@ -32,6 +38,13 @@ export async function requireAccess(path: string): Promise<User> {
   const access = accessFor(who.user.role, pathname);
   if (access.kind === "not-found") notFound();
   if (access.kind === "redirect") redirect(access.to);
+  if (
+    who.user.role === "professionnel" &&
+    pathname !== NEW_DECLARATIONS_PATH &&
+    (await mustRenewDeclarations(who.user.id))
+  ) {
+    redirect(NEW_DECLARATIONS_PATH);
+  }
   return who.user;
 }
 

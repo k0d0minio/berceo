@@ -24,6 +24,11 @@ export const common = catalogue({
       tarifs: { label: "Tarifs", href: "/tarifs" },
       quiSommesNous: { label: "Qui sommes-nous", href: "/qui-sommes-nous" },
       faq: { label: "FAQ", href: "/faq" },
+      /** The charter each professional accepts at step 4 (onboarding-retour-1). */
+      charte: {
+        label: "Charte des professionnelles Berceo",
+        href: "/charte-des-professionnelles",
+      },
       inscriptionFamille: {
         label: "Inscription famille",
         href: "/inscription-famille",

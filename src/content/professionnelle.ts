@@ -106,11 +106,13 @@ export const professionnelle = catalogue({
 
     declarations: {
       /** @relecture Surya — introduction de l'étape 4. */
-      intro: "Pour envoyer votre dossier, confirmez chacune des déclarations suivantes.",
+      intro: "Pour envoyer votre dossier, confirmez chacune des déclarations suivantes, puis lisez et acceptez la Charte des professionnelles Berceo.",
       /**
-       * Les quatre déclarations du cahier des charges, accordées au féminin
-       * selon le guide (« autorisée »). Leur texte définitif viendra des
-       * fondatrices (version `cdc-2026-08-02`). @relecture Surya
+       * Les déclarations, version `feedback-2026-10-23`. Les quatre premières
+       * viennent du cahier des charges, accordées au féminin selon le guide
+       * (« autorisée »). Le casier judiciaire, le changement de situation et la
+       * case de la charte sont les phrases des fondatrices (retour 1,
+       * onboarding-retour-1). @relecture Surya
        */
       textes: {
         documents_authentiques:
@@ -121,12 +123,36 @@ export const professionnelle = catalogue({
           "Je reconnais que toute fausse déclaration ou tout document falsifié entraînera la suppression immédiate de mon compte, sans remboursement, et pourra être signalé aux autorités compétentes.",
         verifications:
           "J'accepte que la plateforme procède à toute vérification qu'elle juge utile auprès des organismes compétents.",
-        /** @relecture Surya — le casier judiciaire, déclaré et non déposé (D-6). */
+        /** Le casier judiciaire, déclaré et non déposé (D-6), dans les mots des fondatrices. */
         casier_judiciaire:
-          "Je déclare que mon extrait de casier judiciaire destiné aux activités avec des mineurs est vierge.",
+          "Je déclare et certifie que mon extrait de casier judiciaire destiné aux activités avec des mineurs est vierge.",
+        /** La phrase des fondatrices. */
+        changement_de_situation:
+          "Je m'engage à avertir directement Berceo de tout changement de ma situation qui m'empêcherait de travailler sur la plateforme.",
+        /** La case de la charte, dans les mots des fondatrices (src/content/charte.ts). */
+        charte:
+          "J'ai lu et compris la Charte des professionnelles Berceo et je m'engage à la respecter.",
+      },
+      /**
+       * Les phrases d'une version précédente qui ont changé depuis, pour lire
+       * une acceptation dans les mots qu'elle a acceptés. Une phrase absente
+       * ici se lit dans `textes`.
+       */
+      anciens: {
+        "cdc-2026-08-02": {
+          casier_judiciaire:
+            "Je déclare que mon extrait de casier judiciaire destiné aux activités avec des mineurs est vierge.",
+        },
       },
       /** @relecture Surya — bouton d'envoi du dossier. */
       envoyer: "Envoyer mon dossier",
+      /** @relecture Surya — titre de la page où elle accepte les nouvelles déclarations. */
+      nouvelles: "Vos déclarations ont changé",
+      /** @relecture Surya — introduction de cette page. */
+      nouvellesIntro:
+        "Berceo a mis à jour les déclarations et ajouté la Charte des professionnelles Berceo. Pour continuer, confirmez chacune des déclarations suivantes, puis lisez et acceptez la charte. Votre profil reste tel qu'il est.",
+      /** @relecture Surya — bouton de cette page. */
+      confirmer: "Confirmer mes déclarations",
       /** @relecture Surya — titre de la liste des déclarations sur la page du dossier. */
       acceptees: "Mes déclarations",
       /** @relecture Surya — date d'acceptation. */
@@ -211,7 +237,8 @@ export const professionnelle = catalogue({
       /** @relecture Surya — le numéro est facultatif, l'erreur ne vient que d'un numéro mal saisi. */
       inami: "Le numéro INAMI compte onze chiffres.",
       document: "Ajoutez ce justificatif.",
-      declarations: "Cochez les cinq déclarations pour envoyer votre dossier.",
+      /** @relecture Surya — les sept cases de l'étape 4 et de la page des nouvelles déclarations. */
+      declarations: "Cochez chacune des déclarations et la case de la charte pour continuer.",
       /** @relecture Surya — erreurs d'envoi de fichier. */
       type: "Ce format n'est pas accepté.",
       taille: "Ce fichier est trop lourd.",

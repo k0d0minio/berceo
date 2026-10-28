@@ -20,6 +20,7 @@ import { SPACES } from "@/lib/auth/routing";
 import { communeName } from "@/lib/communes";
 import { loadFileById } from "@/lib/professionnelle/file";
 import { REQUIREMENTS } from "@/lib/professionnelle/rules";
+import { declarationText } from "@/lib/professionnelle/wording";
 import { studentsAdmitted } from "@/lib/settings";
 
 const a = words(admin);
@@ -155,7 +156,7 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         <ul className="flex flex-col gap-3">
           {file.declarations.map((d, i) => (
             <li key={i} className="flex flex-col gap-1 rounded-carte bg-perle px-6 py-4 text-corps text-encre-taupe">
-              <span>{p.declarations.textes[d.declaration as keyof typeof p.declarations.textes]}</span>
+              <span>{declarationText(d.declaration, d.version)}</span>
               <span className="text-legende">
                 {fill(a.dossier.accepteeLe, { date: dateTime.format(d.acceptedAt), version: d.version })}
               </span>

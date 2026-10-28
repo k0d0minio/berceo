@@ -566,6 +566,16 @@ never touches the money for the night (D-1).
   experience: migration 0016 dropped the band and the specialisations list.
 - **The students switch (D-7)** is `etudiantes_admises` in `app_settings`, flipped on
   `/admin/dossiers`. It offers or hides the two student years together.
+- **The declarations and the charter:** step 4 shows six declarations, then « Charte des
+  professionnelles Berceo » in full and its own checkbox. Sending the file needs the seven
+  ticks, and stores seven rows in `professional_declarations`, each with the version and the
+  moment. The version is `DECLARATIONS_VERSION` in `rules.ts`, `feedback-2026-10-23` since
+  feedback round 1. A submitted file (`en_attente`, `complement_demande` or `valide`) whose last
+  acceptance carries an older version accepts the new set at `/espace/professionnelle/declarations`
+  before any other page of her space opens: `requireAccess` sends her there. Her status and her
+  place in the queue stay. « Mon dossier » and the founders' file page read each row in the words
+  of its version (`src/lib/professionnelle/wording.ts`). The charter's text is
+  `src/content/charte.ts`, also public and indexed at `/charte-des-professionnelles`.
 
 ## The founders' verification
 

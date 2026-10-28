@@ -218,13 +218,18 @@ export const documentKindEnum = pgEnum("document_kind", [
   "photo",
 ]);
 
-/** The five step-4 declarations: the cahier des charges' four, and the criminal record (D-6). */
+/**
+ * The step-4 declarations: the cahier des charges' four, the criminal record (D-6),
+ * the change of situation and the charter (onboarding-retour-1).
+ */
 export const declarationEnum = pgEnum("declaration", [
   "documents_authentiques",
   "autorisee_a_exercer",
   "fausse_declaration",
   "verifications",
   "casier_judiciaire",
+  "changement_de_situation",
+  "charte",
 ]);
 
 /**
