@@ -1,30 +1,32 @@
 "use client"
 
-import Link from "next/link"
 import { useActionState } from "react"
 
 import type { RequestState } from "@/app/(portail)/espace/famille/demandes/actions"
-import { FormMessage } from "@/components/auth/field"
+import { Field, FormMessage } from "@/components/auth/field"
 import { NightPicker } from "@/components/demandes/night-picker"
+import { CommuneCombobox } from "@/components/famille/commune-combobox"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { comptes } from "@/content/comptes"
 import { demandes } from "@/content/demandes"
+import { famille } from "@/content/famille"
 import { fill, words } from "@/content/locale"
+import { parseLocalityValue } from "@/lib/communes"
 import { formatDate, formatTime } from "@/lib/demandes/format"
 import { AGE_UNITS, CHILDREN, FEEDINGS, MAX_EXTRA_HOURS, START_TIMES } from "@/lib/demandes/rules"
 import type { RequestError, RequestField, RequestInput } from "@/lib/demandes/validation"
-import { PROFILE_PATH } from "@/lib/famille/paths"
 import { cn } from "@/lib/utils"
 
 /*
  * The request form (the guide, "Les annonces"): the date in a month calendar
  * a phone can read, the start time, the extra hours with the 11-hour note,
- * the number of children, their age, how they are fed, the commune from her profile (read-only, D-63)
- * with the address note, and the mandatory checkbox (D-20). Three modes: a
- * normal request, an urgent one (tonight or tomorrow night, D-60), and an
- * edit, which never shows the checkbox again nor changes the commune or the
- * urgency. Published from a professional's profile, it carries her id and says
+ * the number of children, their age, how they are fed, the night's commune
+ * and address with the address note, prefilled from her profile and hers to
+ * change (demande-adresse-de-la-nuit), and the mandatory checkbox (D-20).
+ * Three modes: a normal request, an urgent one (tonight or tomorrow night,
+ * D-60), and an edit, which never shows the checkbox again nor changes the
+ * commune or the urgency: the rue, the numéro and the boîte change. Published from a professional's profile, it carries her id and says
  * the request goes to her in priority. Validation is the server's; a refused
  * form keeps what was typed.
  */
@@ -33,6 +35,7 @@ export type RequestFormMode = "normale" | "urgente" | "modification"
 
 const c = words(comptes)
 const t = words(demandes)
+const f = words(famille).profil
 
 // The DA's field construction for a native select: same capsule as the input.
 const selectClasses =
@@ -54,11 +57,12 @@ function RequestForm({
   mode: RequestFormMode
   /** The first and last night allowed, `YYYY-MM-DD`, computed on the server in Brussels. */
   dates: { min: string; max: string }
-  /** « 1050 Ixelles »: the profile's commune, or the request's when editing. */
-  commune: string
+  /** « 1050 Ixelles »: the request's commune, shown read-only on an edit. */
+  commune?: string
   /** The request being edited. */
   id?: string
-  defaults?: Omit<RequestInput, "confirmation">
+  /** What is stored: the profile's place on a publication, the request on an edit. */
+  defaults?: Partial<Omit<RequestInput, "confirmation">>
   /** Published from a professional's profile: sent to her « en priorité » (D-71), with the line saying so. */
   priority?: { profileId: string; note: string }
 }) {
@@ -72,8 +76,15 @@ function RequestForm({
     if (error === undefined) return undefined
     if (error === "requis") return c.erreurs.requis
     if (error === "date") return fill(t.erreurs.date, bounds)
+    // The address follows the profile's rules, in the profile's words.
+    if (error === "commune" || error === "adresseIncomplete" || error === "boiteSeule" || error === "long") {
+      return f.erreurs[error]
+    }
     return t.erreurs[error]
   }
+
+  // A refused form shows the commune as typed: a picked entry, or text not picked.
+  const locality = v?.commune ? parseLocalityValue(v.commune) : null
 
   const submitLabel =
     mode === "urgente"
@@ -282,33 +293,67 @@ function RequestForm({
         ) : null}
       </fieldset>
 
-      {/* Not a form field: the commune is the profile's, never read from this form (D-63). */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="champ-commune" className={legend}>
-          {t.formulaire.champs.commune}
-        </label>
-        <Input
-          id="champ-commune"
-          value={commune}
-          readOnly
-          aria-readonly
-          aria-describedby="champ-commune-aide"
-          className="bg-perle"
-        />
-        <p id="champ-commune-aide" className={helpText}>
-          {t.formulaire.aides.commune}
+      <fieldset className="flex flex-col gap-6" aria-describedby="champ-adresse-aide">
+        <legend className={cn(legend, "mb-2")}>{t.formulaire.champs.adresse}</legend>
+        <p id="champ-adresse-aide" className="text-corps text-encre-taupe">
+          {mode === "modification" ? t.formulaire.aides.adresseModification : t.formulaire.aides.adresse}
         </p>
         {mode === "modification" ? (
-          <p className={helpText}>{t.formulaire.aides.nonModifiable}</p>
+          // Not a form field: the commune stays as published.
+          <div className="flex flex-col gap-2">
+            <label htmlFor="champ-commune" className={legend}>
+              {t.formulaire.champs.commune}
+            </label>
+            <Input
+              id="champ-commune"
+              value={commune ?? ""}
+              readOnly
+              aria-readonly
+              aria-describedby="champ-commune-aide"
+              className="bg-perle"
+            />
+            <p id="champ-commune-aide" className={helpText}>
+              {t.formulaire.aides.nonModifiable}
+            </p>
+          </div>
         ) : (
-          <Link
-            href={PROFILE_PATH}
-            className="w-fit rounded-md px-6 text-legende font-semibold text-encre-sauge underline underline-offset-4"
-          >
-            {t.formulaire.aides.lienProfil}
-          </Link>
+          <CommuneCombobox
+            // A refused form remounts the field with what was typed.
+            key={`commune-${v?.commune ?? ""}`}
+            name="commune"
+            label={t.formulaire.champs.commune}
+            help={f.aides.commune}
+            error={errorOf("commune")}
+            placeholder={f.commune.exemple}
+            emptyText={f.commune.aucunResultat}
+            listLabel={f.commune.liste}
+            defaultValue={locality}
+            defaultText={v?.commune && !locality ? v.commune : undefined}
+          />
         )}
-      </div>
+        <div
+          key={`adresse-${v?.rue ?? ""}-${v?.numero ?? ""}-${v?.boite ?? ""}`}
+          className="grid gap-6 md:grid-cols-[1fr_8rem_8rem]"
+        >
+          <Field
+            name="rue"
+            label={f.champs.rue}
+            autoComplete="address-line1"
+            defaultValue={v?.rue ?? ""}
+            error={errorOf("rue")}
+            required
+          />
+          <Field
+            name="numero"
+            label={f.champs.numero}
+            defaultValue={v?.numero ?? ""}
+            error={errorOf("numero")}
+            required
+          />
+          <Field name="boite" label={f.champs.boite} defaultValue={v?.boite ?? ""} error={errorOf("boite")} />
+        </div>
+        <p className={helpText}>{t.formulaire.aides.commune}</p>
+      </fieldset>
 
       {mode === "modification" ? null : (
         <div className="flex flex-col gap-2">

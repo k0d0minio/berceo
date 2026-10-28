@@ -10,6 +10,9 @@ import { validateRequest, type RequestInput } from "./validation";
  * the extra hours are whole hours from 0 to 6 (demande-heures-supplementaires).
  * Spec (demande-enfants-alimentation): « Triplés » is a third choice, and one
  * of the three feedings is required to publish and to edit.
+ * Spec (demande-adresse-de-la-nuit): the night's commune and its rue with its
+ * numéro are required to publish, by the profile's rules; an edit changes the
+ * rue, the numéro and the boîte, never the commune.
  */
 
 // 25 September 2026, 12:00 in Brussels.
@@ -25,8 +28,14 @@ const valid: RequestInput = {
   ageValeur: "3",
   ageUnite: "mois",
   alimentation: "allaitement_maternel",
+  commune: "1050|Ixelles",
+  rue: "Rue du Bailli",
+  numero: "12",
+  boite: "",
   confirmation: true,
 };
+
+const IXELLES = { postcode: "1050", locality: "Ixelles", ins: "21009", commune: "Ixelles" };
 
 const publishNormal = { urgent: false, now: NOON, publishing: true };
 
@@ -42,6 +51,10 @@ describe("publishing a normal request", () => {
         babyAgeValue: 3,
         babyAgeUnit: "mois",
         feeding: "allaitement_maternel",
+      },
+      place: {
+        locality: IXELLES,
+        address: { street: "Rue du Bailli", houseNumber: "12", box: null },
       },
     });
   });
@@ -73,6 +86,10 @@ describe("publishing a normal request", () => {
         ageValeur: "",
         ageUnite: "",
         alimentation: "",
+        commune: "",
+        rue: "",
+        numero: "",
+        boite: "",
         confirmation: true,
       },
       publishNormal,
@@ -85,6 +102,9 @@ describe("publishing a normal request", () => {
         enfants: "requis",
         age: "requis",
         alimentation: "alimentation",
+        commune: "requis",
+        rue: "requis",
+        numero: "requis",
       },
     });
   });
@@ -156,6 +176,46 @@ describe("the children and their feeding", () => {
       { urgent: false, now: NOON, publishing: false, storedDate: "2026-09-30" },
     );
     expect(checked).toEqual({ ok: false, errors: { alimentation: "alimentation" } });
+  });
+});
+
+describe("the night's address", () => {
+  const errors = (input: Partial<RequestInput>, publishing = true) => {
+    const checked = validateRequest({ ...valid, ...input }, { urgent: false, now: NOON, publishing });
+    return checked.ok ? {} : checked.errors;
+  };
+
+  it("takes the commune of the form, not of the profile", () => {
+    const checked = validateRequest({ ...valid, commune: "4000|Liège" }, publishNormal);
+    expect(checked.ok && checked.place.locality?.ins).toBe("62063");
+  });
+
+  it("refuses a commune that is not an entry of the list", () => {
+    expect(errors({ commune: "Ixelles" })).toEqual({ commune: "commune" });
+    expect(errors({ commune: "9999|Ixelles" })).toEqual({ commune: "commune" });
+  });
+
+  it("requires the rue and the numéro, together, and the boîte only with them", () => {
+    expect(errors({ rue: "", numero: "" })).toEqual({ rue: "requis", numero: "requis" });
+    expect(errors({ numero: "" })).toEqual({ numero: "adresseIncomplete" });
+    expect(errors({ rue: "" })).toEqual({ rue: "adresseIncomplete" });
+    expect(errors({ rue: "", numero: "", boite: "3" })).toEqual({
+      rue: "requis",
+      numero: "requis",
+      boite: "boiteSeule",
+    });
+  });
+
+  it("stores the boîte when there is one, and refuses a value too long", () => {
+    const checked = validateRequest({ ...valid, boite: " 3 " }, publishNormal);
+    expect(checked.ok && checked.place.address).toEqual({ street: "Rue du Bailli", houseNumber: "12", box: "3" });
+    expect(errors({ rue: "r".repeat(121) })).toEqual({ rue: "long" });
+  });
+
+  it("never reads the commune on an edit, and still asks for the rue and the numéro", () => {
+    const checked = validateRequest({ ...valid, commune: "" }, { urgent: false, now: NOON, publishing: false });
+    expect(checked.ok && checked.place.locality).toBeNull();
+    expect(errors({ commune: "", rue: "", numero: "" }, false)).toEqual({ rue: "requis", numero: "requis" });
   });
 });
 

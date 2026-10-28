@@ -135,7 +135,8 @@ The platform's data starts here: one Neon Postgres database, read through
   `care_requests` (0005): a family's night, its start, children, baby's age, the commune copied
   from her profile, the urgent flag, when the no-medical-condition box was ticked, and
   `digest_sent_at`; at most one open request per family and night (widened to open or booked
-  in 0014, D-156).
+  in 0014, D-156). The night's address (0019): `night_street`, `night_house_number` and
+  `night_box`, null on a request published before them.
   Answers and bookings (0007): `care_request_status` gains `attribuee`; `care_requests` gains
   its priority professional (`priority_profile_id`, `priority_sent_at`, set once) and
   `republished_at` / `republish_count`; `care_request_applications` is one answer per
@@ -240,7 +241,13 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   cancel through the confirmation dialog) and `/[id]/modifier`. Both publish buttons also sit on
   `/espace/famille`. A normal request is for the day after tomorrow up to day 56, an urgent one
   for tonight or tomorrow night (D-60), in Brussels time; the urgency and the commune are fixed
-  at publication. Without a commune in her profile she is sent to `/espace/famille/profil?completer=1`.
+  at publication. Without a profile she is sent to `/espace/famille/profil?completer=1`.
+- **The night's address (demande-adresse-de-la-nuit, D-63 superseded):** the form asks for the
+  commune, the rue, the numéro and the boîte, prefilled from her profile. She can change them
+  for this request, and her profile does not change. The rue and the numéro are required. The
+  professionals of the request's commune see it. The edit page changes the rue, the numéro and
+  the boîte. Only `src/lib/famille/` names the three columns (`request-address.ts`), and
+  `address-guard.test.ts` holds it. A deletion clears them.
 - **The professional's list:** `/espace/professionnelle/demandes` — open requests whose night
   has not started, in the communes she serves, urgent first then newest; a profile that is not
   `valide` sees a line instead. The card (`src/components/demandes/request-card.tsx`) shows the
@@ -316,7 +323,8 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   professional's phone, re-contact in priority) and « Mes gardes »
   (`/espace/professionnelle/gardes`). The family's name, address and phone reach the
   professional only on her own booking's page; the address is read live through
-  `bookingAddress` in `src/lib/famille/profile.ts`, still the only reader of `family_profiles`.
+  `bookingAddress` in `src/lib/famille/profile.ts`, still the only reader of `family_profiles`:
+  the request's own address, or the profile's for a request published before it had one.
 - **Words:** `src/content/reservations.ts`; e-mails in `src/content/emails.ts`.
 
 ## The garde's life
@@ -343,8 +351,8 @@ in `src/lib/reservations/bookings.ts`.
   every cancellation) and refund from `/admin/paiements` if they judge it fair.
 - **Republishing (D-107, D-112):** on a cancelled garde whose night has not started, « Republier
   ma demande » publishes a new request for the same night through `publishRequest` (the
-  profile's commune, the urgent flag by the date window), or links to her live request that
-  night if she already has one.
+  cancelled request's commune and address, the urgent flag by the date window), or links to
+  her live request that night if she already has one.
 - **The address (D-110):** `bookingAddress` returns it only on a confirmed garde whose night has
   not ended.
 - **The reminder of the day before (D-108, D-113):** `.github/workflows/gardes-rappel.yml` calls

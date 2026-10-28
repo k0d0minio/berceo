@@ -1,5 +1,5 @@
 {
-  "id": "d30e46f7-566f-46f9-9efb-2980cf1a0427",
+  "id": "bb77ab56-f512-4618-b70d-fb6899495502",
   "prevId": "0c2c1056-c853-476d-90be-c5aeb3b32225",
   "version": "7",
   "dialect": "postgresql",
@@ -704,13 +704,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "extra_hours": {
-          "name": "extra_hours",
-          "type": "smallint",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
         "children": {
           "name": "children",
           "type": "care_request_children",
@@ -755,6 +748,24 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "night_street": {
+          "name": "night_street",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "night_house_number": {
+          "name": "night_house_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "night_box": {
+          "name": "night_box",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "no_medical_condition_at": {
           "name": "no_medical_condition_at",
@@ -946,10 +957,6 @@
         "care_requests_start_time_slot": {
           "name": "care_requests_start_time_slot",
           "value": "\"care_requests\".\"start_time\" BETWEEN '18:00' AND '23:00' AND date_part('minute', \"care_requests\".\"start_time\") IN (0, 30) AND date_part('second', \"care_requests\".\"start_time\") = 0"
-        },
-        "care_requests_extra_hours_range": {
-          "name": "care_requests_extra_hours_range",
-          "value": "\"care_requests\".\"extra_hours\" BETWEEN 0 AND 6"
         },
         "care_requests_baby_age_range": {
           "name": "care_requests_baby_age_range",

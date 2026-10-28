@@ -1,3 +1,6 @@
+import type { Locality } from "@/lib/communes";
+import { checkAddress, checkCommune, type Address } from "@/lib/famille/validation";
+
 import {
   hasNightStarted,
   isAgeInRange,
@@ -15,9 +18,12 @@ import {
 /**
  * The request form, read and checked. Pure: the server action runs it with the
  * clock, the tests with a fixed one. Errors are catalogue keys; the form looks
- * the words up. The commune is never read from the form: it is the profile's
- * (D-63). Whether the request is urgent comes from the caller, which knows
- * which form was posted, or from the stored request when it is edited.
+ * the words up. The night's place is the form's, prefilled from the profile
+ * (demande-adresse-de-la-nuit, D-63 superseded): a commune of the list and a
+ * rue with its numéro, by the profile's rules. The commune is read on a
+ * publication only: an edit keeps the stored one. Whether the request is
+ * urgent comes from the caller, which knows which form was posted, or from the
+ * stored request when it is edited.
  */
 
 export type RequestInput = {
@@ -29,6 +35,11 @@ export type RequestInput = {
   ageValeur: string;
   ageUnite: string;
   alimentation: string;
+  /** Present only on the publish form: an edit keeps the stored commune. */
+  commune: string;
+  rue: string;
+  numero: string;
+  boite: string;
   /** Present only on the publish form: an edit keeps the stored tick. */
   confirmation: boolean;
 };
@@ -43,6 +54,9 @@ export type RequestValues = {
   feeding: Feeding;
 };
 
+/** Where the night takes place. The locality is null on an edit: the stored one stands. */
+export type RequestPlace = { locality: Locality | null; address: Address };
+
 export type RequestField =
   | "date"
   | "heure"
@@ -50,9 +64,17 @@ export type RequestField =
   | "enfants"
   | "age"
   | "alimentation"
+  | "commune"
+  | "rue"
+  | "numero"
+  | "boite"
   | "confirmation";
 export type RequestError =
   | "requis"
+  | "commune"
+  | "adresseIncomplete"
+  | "boiteSeule"
+  | "long"
   | "date"
   | "heurePassee"
   | "heure"
@@ -65,7 +87,7 @@ export type RequestError =
 export type RequestErrors = Partial<Record<RequestField, RequestError>>;
 
 export type Checked =
-  | { ok: true; values: RequestValues }
+  | { ok: true; values: RequestValues; place: RequestPlace }
   | { ok: false; errors: RequestErrors };
 
 function text(form: FormData, name: string): string {
@@ -82,6 +104,10 @@ export function readRequestForm(form: FormData): RequestInput {
     ageValeur: text(form, "ageValeur"),
     ageUnite: text(form, "ageUnite"),
     alimentation: text(form, "alimentation"),
+    commune: text(form, "commune"),
+    rue: text(form, "rue"),
+    numero: text(form, "numero"),
+    boite: text(form, "boite"),
     confirmation: form.get("confirmation") === "oui",
   };
 }
@@ -91,8 +117,8 @@ export function readRequestForm(form: FormData): RequestInput {
  * the night already saved: kept as it is, it is not held to today's window
  * (a normal request edited the day before its night keeps its night); a new
  * date is. `publishing` asks for the
- * checkbox; an edit does not show it again, the tick stored at publication
- * stands.
+ * checkbox and the commune; an edit shows neither again, the tick and the
+ * commune stored at publication stand.
  */
 export function validateRequest(
   input: RequestInput,
@@ -127,9 +153,18 @@ export function validateRequest(
   // Missing or unknown, the error names the three answers: required on a publication and on an edit.
   if (!isFeeding(input.alimentation)) errors.alimentation = "alimentation";
 
+  let locality: Locality | null = null;
+  if (publishing) {
+    const commune = checkCommune(input.commune);
+    if (commune.error) errors.commune = commune.error;
+    locality = commune.locality;
+  }
+  const { address, errors: addressErrors } = checkAddress(input, true);
+  Object.assign(errors, addressErrors);
+
   if (publishing && !input.confirmation) errors.confirmation = "confirmation";
 
-  if (Object.keys(errors).length > 0) return { ok: false, errors };
+  if (Object.keys(errors).length > 0 || address === null) return { ok: false, errors };
 
   return {
     ok: true,
@@ -142,5 +177,6 @@ export function validateRequest(
       babyAgeUnit: input.ageUnite as AgeUnit,
       feeding: input.alimentation as Feeding,
     },
+    place: { locality, address },
   };
 }

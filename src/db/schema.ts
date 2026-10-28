@@ -401,10 +401,11 @@ export const feedingEnum = pgEnum("feeding", [
 export const babyAgeUnitEnum = pgEnum("baby_age_unit", ["semaines", "mois"]);
 
 /**
- * One night a family asks for (D-20). The commune is copied from her profile
- * when she publishes (D-63), so a later change of profile never moves it, and
- * no address column exists here: a professional only ever learns the commune
- * (D-15). The rules that depend on today (the date windows, a night already
+ * One night a family asks for (D-20). The commune and the night's address come
+ * from the form, prefilled from her profile (demande-adresse-de-la-nuit, D-63
+ * superseded), so a later change of profile never moves them. A professional
+ * only ever learns the commune (D-15): only `src/lib/famille/` names the
+ * `night_*` columns, and a test holds it. The rules that depend on today (the date windows, a night already
  * started) live in `src/lib/demandes/rules.ts`; the checks below hold the rest.
  * The end of the night is start + 11 hours + `extra_hours`, never stored
  * (`endTime` in the rules, `nightEnd` in `src/lib/demandes/night-end.ts`).
@@ -432,6 +433,13 @@ export const careRequests = pgTable(
     communeIns: text("commune_ins").notNull(),
     postcode: text("postcode").notNull(),
     locality: text("locality").notNull(),
+    /**
+     * The night's address in the commune above. Null on a request published
+     * before demande-adresse-de-la-nuit: the reveal reads her profile's then.
+     */
+    nightStreet: text("night_street"),
+    nightHouseNumber: text("night_house_number"),
+    nightBox: text("night_box"),
     /** When the family ticked « Mon enfant n'a pas de condition médicale particulière… ». */
     noMedicalConditionAt: timestamp("no_medical_condition_at", { withTimezone: true }).notNull(),
     /** Set when a daily digest carried it (normal requests only); null until then. */

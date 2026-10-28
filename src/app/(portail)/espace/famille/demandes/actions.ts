@@ -70,9 +70,20 @@ export async function publishRequestAction(
   const priority = priorityId ? await publicProfile(priorityId) : null;
   if (priorityId && !priority) return { message: "generique", values: input };
 
+  // A publication always reads the commune: the check refused the form without one.
+  const { locality, address } = checked.place;
+  if (!locality) return { errors: { commune: "requis" }, values: input };
+
   let result: PublishResult;
   try {
-    result = await publishRequest(user.id, checked.values, urgent, now, priority?.id ?? null);
+    result = await publishRequest(
+      user.id,
+      checked.values,
+      { locality, address },
+      urgent,
+      now,
+      priority?.id ?? null,
+    );
   } catch (error) {
     logWriteError("request not published", { userId: user.id }, error);
     return { message: "generique", values: input };
@@ -124,7 +135,7 @@ export async function updateRequestAction(
 
   let result: Awaited<ReturnType<typeof updateRequest>>;
   try {
-    result = await updateRequest(user.id, id, checked.values, now);
+    result = await updateRequest(user.id, id, checked.values, checked.place.address, now);
   } catch (error) {
     logWriteError("request not updated", { userId: user.id, requestId: id }, error);
     return { message: "generique", values: input };

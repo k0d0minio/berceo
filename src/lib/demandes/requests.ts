@@ -14,7 +14,10 @@ import {
 } from "@/db";
 import { notSuspended, suspendedAtExactly } from "@/lib/auth/suspension";
 import { familyNotesOfRequests, NO_NOTE, type Note } from "@/lib/avis/ratings";
+import type { Locality } from "@/lib/communes";
 import { familyCommune } from "@/lib/famille/profile";
+import { requestAddressValues } from "@/lib/famille/request-address";
+import type { Address } from "@/lib/famille/validation";
 
 import { isChangeable, TIME_ZONE, type Children, type Feeding, type RequestStatus } from "./rules";
 import type { RequestValues } from "./validation";
@@ -26,7 +29,8 @@ import type { RequestValues } from "./validation";
  *
  * What a professional reads is `cardColumns`: the night (its extra hours too), the children,
  * their feeding, the commune. Never the family's id, name, e-mail, phone or address (D-15); the
- * tests hold the list of columns. Answers and bookings are
+ * tests hold the list of columns. The night's address is written here through
+ * `requestAddressValues` and read only by `src/lib/famille/`. Answers and bookings are
  * `src/lib/reservations/`'s; the request's own side of them (the list with her
  * answer, the priority professional, cancelling with its declined answers) is
  * here.
@@ -104,22 +108,29 @@ export type PublishResult =
   | { ok: true; id: string }
   | { ok: false; reason: "commune" | "doublon" };
 
+/** Where a published night takes place: a commune of the list, and its address. */
+export type PublishPlace = {
+  locality: Pick<Locality, "ins" | "postcode" | "locality">;
+  address: Address | null;
+};
+
 /**
- * Publishes a request for the family `userId`. The commune is her profile's,
- * copied now (D-63); without one there is nothing to publish. Published from a
- * professional's profile, it carries her as its priority professional (D-71);
- * the caller has checked she is validated. A republished garde copies its
- * request's feeding, null when that request predates the field.
+ * Publishes a request for the family `userId` at `place`: the form's commune
+ * and address, prefilled from her profile (demande-adresse-de-la-nuit). Without
+ * a profile there is nothing to publish. Published from a professional's
+ * profile, it carries her as its priority professional (D-71); the caller has
+ * checked she is validated. A republished garde copies its request's feeding
+ * and address, null when that request predates the field.
  */
 export async function publishRequest(
   userId: string,
   values: Omit<RequestValues, "feeding"> & { feeding: Feeding | null },
+  place: PublishPlace,
   urgent: boolean,
   now: Date,
   priorityProfileId: string | null = null,
 ): Promise<PublishResult> {
-  const commune = await familyCommune(userId);
-  if (!commune) return { ok: false, reason: "commune" };
+  if (!(await familyCommune(userId))) return { ok: false, reason: "commune" };
 
   try {
     const [row] = await db
@@ -128,9 +139,10 @@ export async function publishRequest(
         familyUserId: userId,
         urgent,
         ...values,
-        communeIns: commune.ins,
-        postcode: commune.postcode,
-        locality: commune.locality,
+        communeIns: place.locality.ins,
+        postcode: place.locality.postcode,
+        locality: place.locality.locality,
+        ...requestAddressValues(place.address),
         noMedicalConditionAt: now,
         priorityProfileId,
         prioritySentAt: priorityProfileId ? now : null,
@@ -182,8 +194,8 @@ function changeable(userId: string, id: string) {
 export type ChangeResult = "ok" | "nonModifiable" | "doublon";
 
 /**
- * Saves an edit: the night, the start, the children, the age, the feeding.
- * Never the commune or the urgency, and never while a validated professional's answer
+ * Saves an edit: the night, the start, the children, the age, the feeding,
+ * the night's address. Never the commune or the urgency, and never while a validated professional's answer
  * waits on it (D-76, D-85): the lock is held in the UPDATE itself, so an answer
  * given while the form was open still wins.
  */
@@ -191,13 +203,14 @@ export async function updateRequest(
   userId: string,
   id: string,
   values: RequestValues,
+  address: Address,
   now: Date,
 ): Promise<ChangeResult> {
   if (!UUID.test(id)) return "nonModifiable";
   try {
     const updated = await db
       .update(careRequests)
-      .set({ ...values, updatedAt: now })
+      .set({ ...values, ...requestAddressValues(address), updatedAt: now })
       .where(
         and(
           changeable(userId, id),
