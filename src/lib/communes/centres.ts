@@ -9,7 +9,7 @@
  * - download: https://ac.ngi.be/remoteclient-open/ngi-standard-open/Vectordata/TerritorialDivisions/TerritorialDivisions-AdminVector/fb1e2993-2020-428c-9188-eb5f75e284b9_x-shapefile_4326.zip
  * - the geo.be record: fb1e2993-2020-428c-9188-eb5f75e284b9
  * - licence: Creative Commons Attribution 4.0 (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/
- * - codes mapped to ours: 82039 → 82003
+ * - codes mapped to ours: none
  */
 import "server-only";
 
@@ -503,13 +503,13 @@ export const CENTRES: Record<string, readonly [number, number]> = {
   "81004": [49.56131, 5.83035],
   "81013": [49.83060, 5.73523],
   "81015": [49.59485, 5.81413],
-  "82003": [50.00228, 5.71768],
   "82009": [49.85072, 5.66670],
   "82014": [50.13029, 5.78975],
   "82032": [50.28473, 5.91689],
   "82036": [49.91032, 5.56534],
   "82037": [50.22457, 5.91739],
   "82038": [50.03594, 5.52455],
+  "82039": [50.00228, 5.71768],
   "83012": [50.35178, 5.49636],
   "83013": [50.29362, 5.55782],
   "83028": [50.27022, 5.44940],

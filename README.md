@@ -247,8 +247,7 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   NGI-IGN AdminVector, layer `municipalcenter`, under the Creative Commons Attribution 4.0
   licence (CC BY 4.0). `python3 scripts/communes/generate.py centres` writes it from the
   committed `data.ts` (Python 3 with `pyshp`), and fails on a code that is in one list and not
-  in the other. Its header names the download URL and the date. One override maps AdminVector's
-  Bastogne, `82039`, to our `82003` until `triage/communes-bastogne-refnis` ships.
+  in the other. Its header names the download URL and the date.
   `src/lib/communes/distance.ts` measures the straight line between two centres
   (`distanceKm`, haversine on 6371 km) and returns the communes within a distance of a set of
   communes (`communesWithin`). Both files are server-only, apart from `index.ts`, so the browser

@@ -20,7 +20,7 @@ Three inputs, joined here:
    REFNIS file sits behind a bot challenge that a script cannot pass; the LAU
    codes for Belgium are Statbel's REFNIS codes. The latest LAU file still
    describes the 581 communes of 2024.
-3. MERGERS_2025 below: the 13 communes the 2025 mergers created or enlarged,
+3. MERGERS_2025 below: the 14 communes the 2025 mergers created or enlarged,
    with the REFNIS code Statbel gave each. Verify them against Statbel's REFNIS
    list whenever this script runs.
 
@@ -76,6 +76,7 @@ MERGERS_2025: dict[str, tuple[str, str]] = {
     "HASSELT": ("71072", "Hasselt"),  # absorbs Kortessem
     "BILZEN-HOESELT": ("73110", "Bilzen-Hoeselt"),
     "TONGEREN-BORGLOON": ("73111", "Tongeren-Borgloon"),
+    "BASTOGNE": ("82039", "Bastogne"),  # absorbs Bertogne
 }
 
 # bpost names the name-matching cannot place on its own, by (commune, province).
@@ -91,12 +92,8 @@ ADMINVECTOR_URL = (
 ADMINVECTOR_RECORD = "fb1e2993-2020-428c-9188-eb5f75e284b9"  # the dataset's record on geo.be
 ADMINVECTOR_LAYER = "municipalcenter_4326"
 
-# AdminVector's REFNIS code → ours, where the two lists differ. AdminVector carries
-# the 2025 merger of Bastogne and Bertogne as 82039; data.ts still carries 82003.
-# Remove the line when triage/communes-bastogne-refnis ships.
-ADMINVECTOR_OVERRIDES: dict[str, str] = {
-    "82039": "82003",
-}
+# AdminVector's REFNIS code → ours, where the two lists differ.
+ADMINVECTOR_OVERRIDES: dict[str, str] = {}
 
 OUT = Path(__file__).resolve().parents[2] / "src" / "lib" / "communes" / "data.ts"
 CENTRES_OUT = OUT.with_name("centres.ts")
@@ -162,7 +159,9 @@ def write_data() -> set[str]:
 
         if main_commune in MERGERS_2025:
             code, name = MERGERS_2025[main_commune]
-            aliases = {main_commune.title()} if key(main_commune) != key(name) else set()
+            # A merger that kept an old commune's name keeps its other name too (Bastenaken).
+            names = {main_commune.title(), *(strip_paren(communes[c][0]) for c in by_name.get(key(main_commune), set()))}
+            aliases = {n for n in names if key(n) != key(name)}
         else:
             override = BPOST_OVERRIDES.get((main_commune, str(province).strip()))
             codes = {override} if override else by_name.get(key(main_commune), set())
