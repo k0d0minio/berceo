@@ -21,6 +21,7 @@ const PRIVATE = {
   phone: "+32470998877",
   street: "Rue de la Zzqx",
   nightRateEur: 187,
+  extraHourRateEur: 4217,
   photoId: "9d7e1c2b-photo-zzqx",
   inamiNumber: "12345678901",
 };

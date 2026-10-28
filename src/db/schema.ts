@@ -230,9 +230,10 @@ export const declarationEnum = pgEnum("declaration", [
 /**
  * One per professional. The step-2 fields are nullable so a step can be saved
  * half-filled (D-21); whether a step is complete is decided in code
- * (`src/lib/professionnelle/`). The rate, the bio and the trainings are also
- * held here, so nothing outside 100 to 300 € (D-4), no bio over 500 characters
- * and no trainings over 300 characters is ever stored.
+ * (`src/lib/professionnelle/`). The rates, the bio and the trainings are also
+ * held here, so no night rate under 130 € (onboarding-retour-1, which lifts
+ * D-4's ceiling), no extra hour under 1 €, no bio over 500 characters and no
+ * trainings over 300 characters is ever stored.
  */
 export const professionalProfiles = pgTable(
   "professional_profiles",
@@ -247,6 +248,11 @@ export const professionalProfiles = pgTable(
     /** « Formations complémentaires », in her own words (onboarding-retour-1). */
     formationsComplementaires: text("formations_complementaires"),
     nightRateEur: integer("night_rate_eur"),
+    /**
+     * Her rate for each hour past the night's 11 (onboarding-retour-1). Null on
+     * a draft, and on a file validated before the field existed.
+     */
+    extraHourRateEur: integer("extra_hour_rate_eur"),
     bio: text("bio"),
     /** Eleven digits, never shown to families. */
     inamiNumber: text("inami_number"),
@@ -266,8 +272,12 @@ export const professionalProfiles = pgTable(
   },
   (table) => [
     check(
-      "professional_profiles_night_rate_range",
-      sql`${table.nightRateEur} IS NULL OR (${table.nightRateEur} BETWEEN 100 AND 300)`,
+      "professional_profiles_night_rate_min",
+      sql`${table.nightRateEur} IS NULL OR ${table.nightRateEur} >= 130`,
+    ),
+    check(
+      "professional_profiles_extra_hour_rate_min",
+      sql`${table.extraHourRateEur} IS NULL OR ${table.extraHourRateEur} >= 1`,
     ),
     check(
       "professional_profiles_bio_length",
@@ -499,9 +509,10 @@ export const applicationStatusEnum = pgEnum("application_status", [
 
 /**
  * « Je suis disponible pour cette garde »: one row per professional per
- * request, re-answering after a withdrawal updates it. The rate is hers at
+ * request, re-answering after a withdrawal updates it. The rates are hers at
  * the moment she answered (D-74): what the family compares and what a booking
- * carries.
+ * carries. An answer given before the 130 € floor keeps its rate, so the
+ * floor here stays 100 €.
  */
 export const careRequestApplications = pgTable(
   "care_request_applications",
@@ -515,6 +526,8 @@ export const careRequestApplications = pgTable(
       .references(() => professionalProfiles.id, { onDelete: "cascade" }),
     status: applicationStatusEnum("status").notNull().default("en_attente"),
     nightRateEur: integer("night_rate_eur").notNull(),
+    /** Her extra hour's rate when she answered; null when her profile had none. */
+    extraHourRateEur: integer("extra_hour_rate_eur"),
     /** Her latest « Je suis disponible », a re-answer included. */
     answeredAt: timestamp("answered_at", { withTimezone: true }).notNull().defaultNow(),
     /** How many times she answered; keys the family's e-mail per answer. */
@@ -529,9 +542,10 @@ export const careRequestApplications = pgTable(
     uniqueIndex("care_request_applications_one_retenue")
       .on(table.requestId)
       .where(sql`${table.status} = 'retenue'`),
+    check("care_request_applications_night_rate_min", sql`${table.nightRateEur} >= 100`),
     check(
-      "care_request_applications_night_rate_range",
-      sql`${table.nightRateEur} BETWEEN 100 AND 300`,
+      "care_request_applications_extra_hour_rate_min",
+      sql`${table.extraHourRateEur} IS NULL OR ${table.extraHourRateEur} >= 1`,
     ),
   ],
 );
@@ -579,6 +593,8 @@ export const bookings = pgTable(
     /** The request's night, copied so the index below can hold one garde a night. */
     nightDate: date("night_date").notNull(),
     nightRateEur: integer("night_rate_eur").notNull(),
+    /** The answer's extra hour's rate, copied with its night rate. */
+    extraHourRateEur: integer("extra_hour_rate_eur"),
     confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull().defaultNow(),
     status: bookingStatusEnum("status").notNull().default("confirmee"),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
@@ -613,7 +629,11 @@ export const bookings = pgTable(
     index("bookings_reports_pending_idx")
       .on(table.cancelledAt)
       .where(sql`${table.status} = 'annulee' AND ${table.reportHandledAt} IS NULL`),
-    check("bookings_night_rate_range", sql`${table.nightRateEur} BETWEEN 100 AND 300`),
+    check("bookings_night_rate_min", sql`${table.nightRateEur} >= 100`),
+    check(
+      "bookings_extra_hour_rate_min",
+      sql`${table.extraHourRateEur} IS NULL OR ${table.extraHourRateEur} >= 1`,
+    ),
     check("bookings_report_handled", sql`${table.reportHandledAt} IS NULL OR ${table.status} = 'annulee'`),
     check("bookings_cancelled_at", sql`(${table.status} = 'annulee') = (${table.cancelledAt} IS NOT NULL)`),
     check(
@@ -787,7 +807,8 @@ export const payments = pgTable(
       .where(sql`${table.status} = 'en_attente'`),
     index("payments_created_at_idx").on(table.createdAt),
     index("payments_payment_intent_idx").on(table.stripePaymentIntentId),
-    check("payments_amount_range", sql`${table.amountCents} BETWEEN 300 AND 900`),
+    // 3 % of a rate from 100 €, with no ceiling (onboarding-retour-1).
+    check("payments_amount_min", sql`${table.amountCents} >= 300`),
     check("payments_currency", sql`${table.currency} = 'eur'`),
     check(
       "payments_paid_at",

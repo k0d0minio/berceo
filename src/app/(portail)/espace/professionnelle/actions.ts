@@ -111,6 +111,7 @@ export type ProfileState = {
     formations: string;
     communes: string[];
     tarif: string;
+    tarifHeure: string;
     bio: string;
   };
 };
@@ -131,6 +132,7 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
     formations: String(form.get("formations") ?? ""),
     communes: form.getAll("communes").map(String),
     tarif: String(form.get("tarif") ?? ""),
+    tarifHeure: String(form.get("tarifHeure") ?? ""),
     bio: String(form.get("bio") ?? ""),
   };
 
@@ -169,6 +171,7 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
       ? profile.formationsComplementaires
       : values.formationsComplementaires,
     nightRateEur: errors.tarif ? profile.nightRateEur : values.nightRateEur,
+    extraHourRateEur: errors.tarifHeure ? profile.extraHourRateEur : values.extraHourRateEur,
     bio: errors.bio ? profile.bio : values.bio,
     updatedAt: new Date(),
   };

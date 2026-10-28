@@ -18,10 +18,12 @@ export const FEE_PERCENT = 3;
 
 /**
  * The fee in cents for a whole-euro rate: rate × 3 cents is exactly 3 % of it,
- * never rounded, 300 to 900 cents for 100 to 300 € (D-4).
+ * never rounded, from 300 cents for 100 €. The rate has no ceiling
+ * (profil-tarifs). Its floor stays 100 €: an answer given before the 130 €
+ * floor keeps its rate and can still be booked.
  */
 export function feeCents(nightRateEur: number): number {
-  if (!Number.isInteger(nightRateEur) || nightRateEur < 100 || nightRateEur > 300) {
+  if (!Number.isInteger(nightRateEur) || nightRateEur < 100) {
     throw new RangeError(`night rate out of range: ${nightRateEur}`);
   }
   return nightRateEur * FEE_PERCENT;
