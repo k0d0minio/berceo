@@ -24,7 +24,7 @@ import { FAMILY_REQUESTS_PATH, familyRequestPath } from "@/lib/demandes/paths";
 import { ownRequest } from "@/lib/demandes/requests";
 import { displayStatus, isChangeable, isEditable } from "@/lib/demandes/rules";
 import { PROFILE_PATH } from "@/lib/famille/paths";
-import { familyHasAddress } from "@/lib/famille/profile";
+import { requestHasAddress } from "@/lib/famille/request-address";
 import { conversationsOfAnswers } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
 import { feeLine } from "@/lib/paiements/format";
@@ -115,7 +115,7 @@ export default async function DemandePage({
   const facts = { ...request, priorityProfileId: null };
   const [answers, hasAddress, booking] = await Promise.all([
     open ? familyAnswers(user.id, request.id) : Promise.resolve([]),
-    open ? familyHasAddress(user.id) : Promise.resolve(false),
+    open ? requestHasAddress(user.id, request.id) : Promise.resolve(false),
     // A booked request, and one whose garde was cancelled since (D-110), link to the garde.
     request.status !== "ouverte" ? bookingOfRequest(user.id, request.id) : Promise.resolve(null),
   ]);

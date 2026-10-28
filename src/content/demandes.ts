@@ -63,6 +63,8 @@ export const demandes = catalogue({
         /** @relecture Surya — le libellé des fondatrices, retour 1 (2026-10-23). */
         alimentation: "Alimentation du/des enfants",
         commune: "Votre commune",
+        /** @relecture Surya — titre du bloc de l'adresse de la nuit (demande-adresse-de-la-nuit). */
+        adresse: "Adresse de la garde",
         /** @relecture Surya — nom du champ nombre, pour les lecteurs d'écran. */
         ageValeur: "Âge",
         /** @relecture Surya — nom du choix semaines ou mois, pour les lecteurs d'écran. */
@@ -79,8 +81,12 @@ export const demandes = catalogue({
         dateUrgente: "Ce soir ou demain soir.",
         /** @relecture Surya — l'âge en semaines puis en mois (D-64). */
         age: "En semaines jusqu'à 12 semaines, puis en mois jusqu'à 24 mois.",
-        /** @relecture Surya — la commune vient du profil (D-63). */
-        lienProfil: "Modifier ma commune dans mon profil",
+        /** @relecture Surya — l'adresse reprise du profil, modifiable pour cette demande (demande-adresse-de-la-nuit). */
+        adresse:
+          "Nous reprenons l'adresse de votre profil. Si la garde a lieu ailleurs, indiquez ici l'adresse de cette nuit. Votre profil ne change pas.",
+        /** @relecture Surya — l'adresse d'une demande publiée, modifiable tant qu'elle est ouverte. */
+        adresseModification:
+          "Vous pouvez changer la rue, le numéro et la boîte tant que votre demande est ouverte.",
         /** @relecture Surya — ce qui ne se modifie pas après la publication. */
         nonModifiable:
           "La commune et l'urgence d'une demande ne se modifient pas. Pour les changer, annulez la demande et publiez-en une nouvelle.",
