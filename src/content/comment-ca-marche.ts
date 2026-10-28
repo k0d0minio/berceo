@@ -95,6 +95,12 @@ export const commentCaMarche = catalogue({
     garanties: {
       title: "Ce que garantit Berceo",
       /**
+       * The family's side only: the charter every professional accepts
+       * (onboarding-retour-1, charte-cote-parents). The founders' wording.
+       * @relecture Surya — bouton vers la charte des professionnelles.
+       */
+      charte: "Lire la charte des professionnelles",
+      /**
        * @relecture Surya — éléments de réassurance du guide, sans l'assurance (D-8), avec l'adresse (D-15) et le paiement direct (D-1).
        */
       items: [
