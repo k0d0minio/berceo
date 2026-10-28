@@ -24,12 +24,12 @@ export function formatTime(time: string): string {
   return `${Number(h)}h${m}`;
 }
 
-/** « 30/09/2026 de 20h00 à 7h00 »: the night, its end 11 hours after its start. */
-export function nightLine(nightDate: string, startTime: string): string {
+/** « 30/09/2026 de 20h00 à 7h00 »: the night, its end 11 hours plus its extra hours after its start. */
+export function nightLine(nightDate: string, startTime: string, extraHours: number): string {
   return fill(t.nuit, {
     date: formatDate(nightDate),
     debut: formatTime(startTime),
-    fin: formatTime(endTime(startTime)),
+    fin: formatTime(endTime(startTime, extraHours)),
   });
 }
 

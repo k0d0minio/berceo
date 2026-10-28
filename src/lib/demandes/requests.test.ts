@@ -5,7 +5,7 @@ import { cardColumns } from "./requests";
 /**
  * Spec (demande-de-garde, D-15): a professional's list shows no family name,
  * address, phone or e-mail, and its query selects none of them. The card is
- * the night, the children, their feeding and the commune.
+ * the night (its extra hours too), the children, their feeding and the commune.
  */
 describe("the columns a professional reads", () => {
   it("are the night, the children, their feeding and the commune, nothing about the family", () => {
@@ -17,6 +17,7 @@ describe("the columns a professional reads", () => {
         "children",
         "commune_ins",
         "created_at",
+        "extra_hours",
         "feeding",
         "id",
         "locality",

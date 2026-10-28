@@ -1,0 +1,2 @@
+ALTER TABLE "care_requests" ADD COLUMN "extra_hours" smallint DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "care_requests" ADD CONSTRAINT "care_requests_extra_hours_range" CHECK ("care_requests"."extra_hours" BETWEEN 0 AND 6);

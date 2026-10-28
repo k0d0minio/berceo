@@ -17,7 +17,7 @@ import {
 /**
  * Spec (cycle-de-garde-et-annulation, D-2, D-17, D-105 to D-110): a confirmed
  * garde reads « À venir » before its start hour, « En cours » from it until
- * start + 11 h, « Terminée » after, with no job run; an annulée one reads
+ * start + 11 h + the extra hours, « Terminée » after, with no job run; an annulée one reads
  * « Annulée » at any hour. Either side cancels until the start hour; either
  * side reports the other absent from the start hour until 24 h after the night
  * ends; the family republishes an annulée garde whose night has not started;
@@ -29,7 +29,7 @@ import {
  */
 
 // The night of 30 September 2026 from 20:00 ends on 1 October at 07:00 in Brussels (CEST, UTC+2).
-const confirmed: GardeFacts = { status: "confirmee", nightDate: "2026-09-30", startTime: "20:00:00" };
+const confirmed: GardeFacts = { status: "confirmee", nightDate: "2026-09-30", startTime: "20:00:00", extraHours: 0 };
 const cancelled: GardeFacts = { ...confirmed, status: "annulee" };
 const BEFORE_START = new Date("2026-09-30T17:59:00Z"); // 19:59 in Brussels
 const AT_START = new Date("2026-09-30T18:00:00Z"); // 20:00
@@ -53,7 +53,7 @@ describe("gardeState", () => {
 
   it("keeps Brussels time across the change to winter time", () => {
     // 24 October 2026 from 23:00 (CEST) ends on 25 October at 10:00 (CET, UTC+1), after the clocks go back.
-    const garde: GardeFacts = { status: "confirmee", nightDate: "2026-10-24", startTime: "23:00:00" };
+    const garde: GardeFacts = { status: "confirmee", nightDate: "2026-10-24", startTime: "23:00:00", extraHours: 0 };
     expect(gardeState(garde, new Date("2026-10-24T20:59:00Z"))).toBe("a_venir");
     expect(gardeState(garde, new Date("2026-10-24T21:00:00Z"))).toBe("en_cours");
     expect(gardeState(garde, new Date("2026-10-25T08:59:00Z"))).toBe("en_cours");
@@ -62,10 +62,18 @@ describe("gardeState", () => {
 
   it("starts a night across midnight at the right hour in winter", () => {
     // 15 January 2027 from 18:30 (CET, UTC+1).
-    const garde: GardeFacts = { status: "confirmee", nightDate: "2027-01-15", startTime: "18:30:00" };
+    const garde: GardeFacts = { status: "confirmee", nightDate: "2027-01-15", startTime: "18:30:00", extraHours: 0 };
     expect(gardeState(garde, new Date("2027-01-15T17:29:00Z"))).toBe("a_venir");
     expect(gardeState(garde, new Date("2027-01-15T17:30:00Z"))).toBe("en_cours");
     expect(gardeState(garde, new Date("2027-01-16T04:30:00Z"))).toBe("terminee");
+  });
+
+  it("stays en cours through the extra hours", () => {
+    // Two extra hours: the night of 30 September from 20:00 ends at 09:00.
+    const longer: GardeFacts = { ...confirmed, extraHours: 2 };
+    expect(gardeState(longer, AT_END)).toBe("en_cours");
+    expect(gardeState(longer, new Date("2026-10-01T06:59:00Z"))).toBe("en_cours");
+    expect(gardeState(longer, new Date("2026-10-01T07:00:00Z"))).toBe("terminee");
   });
 });
 
@@ -90,6 +98,12 @@ describe("canReportAbsence", () => {
     expect(canReportAbsence(confirmed, AT_DEADLINE)).toBe(false);
   });
 
+  it("closes 24 hours after the end of the extra hours", () => {
+    const longer: GardeFacts = { ...confirmed, extraHours: 2 };
+    expect(canReportAbsence(longer, AT_DEADLINE)).toBe(true);
+    expect(canReportAbsence(longer, new Date("2026-10-02T07:00:00Z"))).toBe(false);
+  });
+
   it("is refused once the garde is annulée, an absence already reported included", () => {
     expect(canReportAbsence(cancelled, AT_START)).toBe(false);
   });
@@ -111,6 +125,12 @@ describe("isAddressVisible", () => {
     expect(isAddressVisible(confirmed, BEFORE_START)).toBe(true);
     expect(isAddressVisible(confirmed, BEFORE_END)).toBe(true);
     expect(isAddressVisible(confirmed, AT_END)).toBe(false);
+  });
+
+  it("keeps it through the extra hours", () => {
+    const longer: GardeFacts = { ...confirmed, extraHours: 2 };
+    expect(isAddressVisible(longer, AT_END)).toBe(true);
+    expect(isAddressVisible(longer, new Date("2026-10-01T07:00:00Z"))).toBe(false);
   });
 
   it("hides it on a cancelled garde at once", () => {

@@ -48,9 +48,7 @@ function List({
         {items.map(({ id, request, professional, garde }) => (
           <li key={id}>
             <article className="flex flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-              <GardeStateMark
-                state={gardeState({ status: garde.status, nightDate: request.nightDate, startTime: request.startTime }, now)}
-              />
+              <GardeStateMark state={gardeState({ ...request, status: garde.status }, now)} />
               <div className="flex items-center gap-4">
                 <ProfessionalPhoto photoId={professional.photoId} prenom={professional.firstName} className="size-14" />
                 <div className="flex flex-col gap-1">
@@ -59,11 +57,13 @@ function List({
                 </div>
               </div>
               <p className="text-corps text-encre-taupe">{cardTitle(request.communeIns, request.locality)}</p>
-              <p className="text-corps font-semibold text-encre-taupe">{nightLine(request.nightDate, request.startTime)}</p>
+              <p className="text-corps font-semibold text-encre-taupe">
+                {nightLine(request.nightDate, request.startTime, request.extraHours)}
+              </p>
               <Link href={familyBookingPath(id)} className={link}>
                 {t.reservationsFamille.voir}
               </Link>
-              {canRate({ status: garde.status, nightDate: request.nightDate, startTime: request.startTime }, rated.has(id), now) ? (
+              {canRate({ ...request, status: garde.status }, rated.has(id), now) ? (
                 <Link href={familyRatingPath(id)} className={link}>
                   {words(avis).lien}
                 </Link>

@@ -38,13 +38,13 @@ function nowStamp(now: Date): string {
 }
 
 /** The last moment a garde can be rated: the night's end plus 14 days (excluded). */
-export function windowCloses(nightDate: string, startTime: string): string {
-  return `${addDays(nightDate, 1 + WINDOW_DAYS)}T${endTime(toHourMinute(startTime))}`;
+export function windowCloses(nightDate: string, startTime: string, extraHours: number): string {
+  return `${addDays(nightDate, 1 + WINDOW_DAYS)}T${endTime(toHourMinute(startTime), extraHours)}`;
 }
 
 /** Whether the 14 days after the night's end are over in Brussels at `now`. */
-export function hasWindowClosed(nightDate: string, startTime: string, now: Date): boolean {
-  return windowCloses(nightDate, startTime) <= nowStamp(now);
+export function hasWindowClosed(nightDate: string, startTime: string, extraHours: number, now: Date): boolean {
+  return windowCloses(nightDate, startTime, extraHours) <= nowStamp(now);
 }
 
 /** Why a side may not rate a garde now, or null when it may. */
@@ -59,7 +59,7 @@ export function rateRefusal(garde: GardeFacts, alreadyRated: boolean, now: Date)
   if (state === "annulee") return "annulee";
   if (state !== "terminee") return "pasTerminee";
   if (alreadyRated) return "dejaNote";
-  if (hasWindowClosed(garde.nightDate, garde.startTime, now)) return "delaiPasse";
+  if (hasWindowClosed(garde.nightDate, garde.startTime, garde.extraHours, now)) return "delaiPasse";
   return null;
 }
 
@@ -76,10 +76,10 @@ export function canRate(garde: GardeFacts, alreadyRated: boolean, now: Date): bo
  */
 export function isPublished(
   otherSideRated: boolean,
-  garde: Pick<GardeFacts, "nightDate" | "startTime">,
+  garde: Pick<GardeFacts, "nightDate" | "startTime" | "extraHours">,
   now: Date,
 ): boolean {
-  return otherSideRated || hasWindowClosed(garde.nightDate, garde.startTime, now);
+  return otherSideRated || hasWindowClosed(garde.nightDate, garde.startTime, garde.extraHours, now);
 }
 
 /** The mean of a rating's four scores. */

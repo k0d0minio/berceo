@@ -1,5 +1,5 @@
 {
-  "id": "13b8b855-9a34-4746-ba35-6df596cc3125",
+  "id": "0c2d6832-9a5f-4fb8-8a4d-dcdd7b5b5e9c",
   "prevId": "bb77ab56-f512-4618-b70d-fb6899495502",
   "version": "7",
   "dialect": "postgresql",
@@ -704,6 +704,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "extra_hours": {
+          "name": "extra_hours",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "children": {
           "name": "children",
           "type": "care_request_children",
@@ -957,6 +964,10 @@
         "care_requests_start_time_slot": {
           "name": "care_requests_start_time_slot",
           "value": "\"care_requests\".\"start_time\" BETWEEN '18:00' AND '23:00' AND date_part('minute', \"care_requests\".\"start_time\") IN (0, 30) AND date_part('second', \"care_requests\".\"start_time\") = 0"
+        },
+        "care_requests_extra_hours_range": {
+          "name": "care_requests_extra_hours_range",
+          "value": "\"care_requests\".\"extra_hours\" BETWEEN 0 AND 6"
         },
         "care_requests_baby_age_range": {
           "name": "care_requests_baby_age_range",
@@ -2353,156 +2364,6 @@
       },
       "isRLSEnabled": false
     },
-    "public.subscriptions": {
-      "name": "subscriptions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "plan": {
-          "name": "plan",
-          "type": "subscription_plan",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "subscription_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'en_attente'"
-        },
-        "stripe_customer_id": {
-          "name": "stripe_customer_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "stripe_subscription_id": {
-          "name": "stripe_subscription_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "stripe_checkout_session_id": {
-          "name": "stripe_checkout_session_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "current_period_end": {
-          "name": "current_period_end",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "grace_ends_at": {
-          "name": "grace_ends_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "ended_at": {
-          "name": "ended_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "subscriptions_one_live_per_family": {
-          "name": "subscriptions_one_live_per_family",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "where": "\"subscriptions\".\"status\" IN ('en_attente', 'active', 'impayee')",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "subscriptions_user_id_users_id_fk": {
-          "name": "subscriptions_user_id_users_id_fk",
-          "tableFrom": "subscriptions",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "subscriptions_stripe_subscription_id_unique": {
-          "name": "subscriptions_stripe_subscription_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "stripe_subscription_id"
-          ]
-        },
-        "subscriptions_stripe_checkout_session_id_unique": {
-          "name": "subscriptions_stripe_checkout_session_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "stripe_checkout_session_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "subscriptions_grace": {
-          "name": "subscriptions_grace",
-          "value": "(\"subscriptions\".\"status\" = 'impayee') = (\"subscriptions\".\"grace_ends_at\" IS NOT NULL)"
-        },
-        "subscriptions_period": {
-          "name": "subscriptions_period",
-          "value": "\"subscriptions\".\"status\" NOT IN ('active', 'impayee') OR \"subscriptions\".\"current_period_end\" IS NOT NULL"
-        },
-        "subscriptions_ended": {
-          "name": "subscriptions_ended",
-          "value": "(\"subscriptions\".\"status\" = 'terminee') = (\"subscriptions\".\"ended_at\" IS NOT NULL)"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "public.user_consents": {
       "name": "user_consents",
       "schema": "",
@@ -2651,12 +2512,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "stripe_customer_id": {
-          "name": "stripe_customer_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -2688,13 +2543,6 @@
           "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
-        },
-        "users_stripe_customer_id_unique": {
-          "name": "users_stripe_customer_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "stripe_customer_id"
           ]
         }
       },
@@ -2890,26 +2738,6 @@
         "reservation_impossible",
         "berceo",
         "stripe"
-      ]
-    },
-    "public.subscription_plan": {
-      "name": "subscription_plan",
-      "schema": "public",
-      "values": [
-        "decouverte",
-        "parenthese",
-        "serenite",
-        "premium"
-      ]
-    },
-    "public.subscription_status": {
-      "name": "subscription_status",
-      "schema": "public",
-      "values": [
-        "en_attente",
-        "active",
-        "impayee",
-        "terminee"
       ]
     },
     "public.user_role": {
