@@ -44,6 +44,7 @@ The contract: `.icm/uat/CONTEXT.md`.
 | [src/lib/messagerie/](src/lib/messagerie/), [src/components/messagerie/](src/components/messagerie/) | The conversation per answer: its rules, reads and writes, the send action, the new-message e-mail. See **The conversation** below. |
 | [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
 | [src/lib/paiements/](src/lib/paiements/), [src/app/api/webhooks/stripe/](src/app/api/webhooks/stripe/) | The 3 % service fee through Stripe: the Checkout, the webhook, refunds, the founders' list. See **The service fee** below. |
+| [src/lib/abonnements/](src/lib/abonnements/) | The four family subscriptions through Stripe: the plans, the Checkout in subscription mode, the row the webhook keeps true, `hasActiveSubscription`. See **The subscriptions** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
 | [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
@@ -471,6 +472,49 @@ never touches the money for the night (D-1).
   `STRIPE_WEBHOOK_SECRET`. The client pins the API version `2026-08-26.dahlia`.
 - **Words:** `src/content/paiement.ts`; the admin page in `src/content/admin.ts`; the refund
   e-mail in `src/content/emails.ts`.
+
+## The subscriptions
+
+The four family plans of the devis (abonnements-familles), sold through Stripe Checkout in
+subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
+
+- **The plans:** Découverte (every month), Parenthèse (every 3 months), Sérénité (every 6
+  months), Premium (every 12 months), at the prices of **The vitrine**, VAT included, Stripe
+  Tax off. No trial. Stripe holds the amounts. Each plan's price id is an environment variable,
+  `STRIPE_PRICE_DECOUVERTE`, `STRIPE_PRICE_PARENTHESE`, `STRIPE_PRICE_SERENITE`,
+  `STRIPE_PRICE_PREMIUM`: names in `.env.example`, values in Vercel, never in git. A missing
+  one makes its plan fail with the generic error.
+- **The row:** `subscriptions`, one row per Stripe subscription, kept after it ends. At most
+  one live row (`en_attente`, `active`, `impayee`) per family, held by a partial unique index.
+  The family's Stripe customer is `users.stripe_customer_id`, made at her first Checkout.
+  `src/lib/abonnements/subscriptions.ts` holds the only reads and writes of both.
+- **Choosing:** `/espace/famille/abonnement` shows the four plans, each with « Choisir ».
+  The family's home links to it. A Checkout is refused while a subscription is `active` or
+  `impayee`, or while its first payment is pending. An earlier open Checkout is expired first.
+  The Checkout lasts 30 minutes and takes Bancontact, cards, Apple Pay and Google Pay. Stripe
+  takes the renewals of a Bancontact subscription by SEPA Direct Debit.
+- **Stripe's word:** `syncSubscription` reads the subscription from Stripe and copies its
+  status, plan, renewal date and end onto the row, so a late or repeated event writes the same
+  row. Two paths call it: the webhook and the return page
+  `/espace/famille/abonnement/retour` (so previews, which Stripe cannot reach, still
+  subscribe). Stripe's `active` reads `active`, `incomplete` reads `en_attente`, `past_due` and
+  `unpaid` read `impayee`, anything else reads `terminee`.
+- **The grace period:** 7 days from the first failed renewal, on `grace_ends_at`. Stripe's
+  later retries never extend it. A paid renewal clears it.
+- **The one rule:** `hasActiveSubscription(row, now)` in `src/lib/abonnements/rules.ts`: an
+  `active` row, or an `impayee` row before its grace period's end. `isSubscribed(userId, now)`
+  reads it for a family. Every later stub of the epic reads this rule.
+- **Invoices:** Stripe sends each invoice and receipt by e-mail. The platform lists none.
+- **Configuration, per Stripe account (test on UAT, live on Production):**
+  1. Make four products, each with one recurring price in euros: monthly, every 3 months,
+     every 6 months, yearly. Put each price id in its Vercel variable.
+  2. Enable Bancontact and SEPA Direct Debit.
+  3. Settings, Billing, Subscriptions and emails: after the last failed retry, cancel the
+     subscription. Turn on the e-mails of invoices and receipts.
+  4. Add these events to the webhook endpoint of **The service fee**:
+     `customer.subscription.created`, `customer.subscription.updated`,
+     `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`.
+- **Words:** `src/content/abonnements.ts`, under `espace`, `retour` and `accueil`.
 
 ## The conversation
 

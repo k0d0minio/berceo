@@ -5,7 +5,14 @@ import { catalogue } from "./locale";
  * of 27 August 2026 (the answers [4.3]), which the founders' feedback round 1
  * asks the site to carry. `/tarifs` reads them, and the sign-up of the epic
  * `abonnements-familles` reads the same words. The prices are what a visitor
- * reads: Stripe holds the amounts charged.
+ * reads: Stripe holds the amounts charged. The plans' order is
+ * `PLANS` in `src/lib/abonnements/rules.ts`.
+ *
+ * `espace`, `retour` and `accueil` are the family's page « Votre abonnement »,
+ * the notices after Stripe's page and the block on her home
+ * (abonnements-catalogue-stripe). Every `@relecture` entry is ours, written
+ * in the guide's rules, and waits for Surya. `{name}` slots are filled with
+ * `fill()` from ./locale.
  *
  * @relecture Surya — noms, durées et prix repris du devis.
  */
@@ -17,5 +24,55 @@ export const abonnements = catalogue({
       { name: "Sérénité", duree: "6 mois", prix: "94,90 €" },
       { name: "Premium", duree: "12 mois", prix: "159,90 €" },
     ],
+
+    espace: {
+      /** @relecture Surya — le titre de la page et de l'onglet. */
+      titre: "Votre abonnement",
+      /** @relecture Surya — l'introduction, avant le choix. */
+      intro: "Choisissez la formule qui vous convient. Votre abonnement se renouvelle automatiquement à la fin de chaque période.",
+      /** @relecture Surya — la durée d'une formule (« Pour 3 mois »). */
+      duree: "Pour {duree}",
+      /** @relecture Surya — le bouton qui ouvre la page de paiement. */
+      choisir: "Choisir {plan}",
+      /** @relecture Surya — les moyens de paiement, et la domiciliation après Bancontact. */
+      paiement:
+        "Vous réglez votre abonnement sur la page sécurisée de Stripe, par Bancontact, par carte, Apple Pay ou Google Pay. Si vous payez par Bancontact, les renouvellements sont prélevés par domiciliation SEPA.",
+      /** @relecture Surya — les factures. */
+      factures: "Stripe vous envoie chaque facture par e-mail.",
+      /** @relecture Surya — la formule en cours. */
+      formule: "Votre formule : {plan}",
+      /** @relecture Surya — la date du prochain renouvellement. */
+      renouvellement: "Prochain renouvellement le {date}",
+      /** @relecture Surya — le premier paiement est en cours. */
+      enAttente: "Votre premier paiement est en cours de traitement.",
+    },
+
+    /** Au retour de la page de Stripe, ou après un refus. */
+    retour: {
+      /** @relecture Surya — payé, l'abonnement est actif. */
+      active: "Merci. Votre abonnement est actif.",
+      /** @relecture Surya — payé, la confirmation de Stripe n'est pas encore arrivée. */
+      enCours: "Votre paiement est reçu, la confirmation de votre abonnement est en cours.",
+      /** @relecture Surya — lien pour recharger la page. */
+      actualiser: "Actualiser la page",
+      /** @relecture Surya — paiement abandonné ou refusé. */
+      abandonne: "Le paiement n'a pas abouti. Vous pouvez choisir une formule à nouveau.",
+      /** @relecture Surya — un abonnement court déjà. */
+      dejaAbonnee: "Vous avez déjà un abonnement en cours.",
+      /** @relecture Surya — la page de paiement n'a pas pu s'ouvrir. */
+      erreur: "La page de paiement n'a pas pu s'ouvrir. Réessayez dans un instant.",
+    },
+
+    /** Le bloc de l'accueil de l'espace famille. */
+    accueil: {
+      /** @relecture Surya — le titre du bloc. */
+      titre: "Votre abonnement",
+      /** @relecture Surya — l'invitation à choisir une formule. */
+      choisir: "Choisissez la formule d'abonnement qui vous convient.",
+      /** @relecture Surya — le bouton vers les formules. */
+      voir: "Voir les formules",
+      /** @relecture Surya — le lien vers la page de l'abonnement. */
+      gerer: "Voir mon abonnement",
+    },
   },
 });
