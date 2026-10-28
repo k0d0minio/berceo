@@ -18,7 +18,7 @@ import { ownRequest } from "@/lib/demandes/requests";
 import { isChangeable } from "@/lib/demandes/rules";
 import { nextAvailableNights } from "@/lib/disponibilites/nights";
 import { PROFILE_PATH } from "@/lib/famille/paths";
-import { familyHasAddress } from "@/lib/famille/profile";
+import { requestHasAddress } from "@/lib/famille/request-address";
 import { waitingAnswerOf } from "@/lib/reservations/answers";
 import { feeLine } from "@/lib/paiements/format";
 import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
@@ -67,7 +67,7 @@ export default async function ProfilProfessionnellePage({
   const answer =
     request && isChangeable(request, now) ? await waitingAnswerOf(user.id, request.id, profile.id) : null;
   const [hasAddress, nights] = await Promise.all([
-    answer ? familyHasAddress(user.id) : Promise.resolve(false),
+    answer && request ? requestHasAddress(user.id, request.id) : Promise.resolve(false),
     nextAvailableNights(profile.id, now),
   ]);
 
