@@ -9,13 +9,13 @@ import type { Note } from "@/lib/avis/ratings"
 import { nightName } from "@/lib/disponibilites/format"
 import type { Profession } from "@/db/schema"
 import { professionLabel } from "@/lib/reservations/format"
-import { zoneLine } from "@/lib/recherche/rules"
+import { reachLine, zoneLine } from "@/lib/recherche/rules"
 import { cn } from "@/lib/utils"
 
 /*
  * The DA's profile card, as a signed-in family reads it in the search (D-11):
  * photo, first name, profession, « Profil vérifié par Berceo », her zone with
- * the searched commune first, her note and gardes count, and her next
+ * the searched commune first and her radius (zone-rayon-lecture), her note and gardes count, and her next
  * indicative nights. The whole card is one link to her full profile, named by
  * her first name. 32 px corners, flat white on pearl, no shadow.
  */
@@ -27,6 +27,8 @@ type CardProps = {
   firstName: string
   profession: Profession | null
   zone: readonly string[]
+  /** Her radius around her communes, and « Toute la Belgique ». */
+  reach: { zoneRadiusKm: number; zoneWholeBelgium: boolean }
   note: Note
   className?: string
 }
@@ -66,6 +68,17 @@ function Identity({ firstName, profession }: { firstName: string; profession: Pr
   )
 }
 
+/** Her communes, then her radius when she has one: a commune listed can be one her radius reaches. */
+function Zone({ zone, reach }: Pick<CardProps, "zone" | "reach">) {
+  const line = reachLine(reach)
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="text-corps break-words text-encre-taupe">{zoneLine(zone)}</p>
+      {line ? <p className="text-corps break-words text-encre-taupe">{line}</p> : null}
+    </div>
+  )
+}
+
 /** A signed-in family's card: with her photo and her next nights. */
 function ProfessionalCard({
   photoId,
@@ -78,7 +91,7 @@ function ProfessionalCard({
         <ProfessionalPhoto photoId={photoId} prenom={props.firstName} className="size-20" />
         <Identity firstName={props.firstName} profession={props.profession} />
       </div>
-      <p className="text-corps break-words text-encre-taupe">{zoneLine(props.zone)}</p>
+      <Zone zone={props.zone} reach={props.reach} />
       <NoteDisplay note={props.note} />
       <div className="flex flex-col gap-1">
         <p className="text-legende font-semibold text-encre-taupe">{t.prochaines}</p>
@@ -103,7 +116,7 @@ function TeaserCard(props: CardProps) {
   return (
     <CardFrame href={props.href} firstName={props.firstName} className={props.className}>
       <Identity firstName={props.firstName} profession={props.profession} />
-      <p className="text-corps break-words text-encre-taupe">{zoneLine(props.zone)}</p>
+      <Zone zone={props.zone} reach={props.reach} />
       <NoteDisplay note={props.note} />
     </CardFrame>
   )

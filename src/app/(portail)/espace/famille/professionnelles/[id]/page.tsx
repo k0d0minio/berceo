@@ -25,6 +25,7 @@ import { waitingAnswerOf } from "@/lib/reservations/answers";
 import { feeLine } from "@/lib/paiements/format";
 import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import { priorityPath, professionalProfilePath } from "@/lib/reservations/paths";
+import { reachLine } from "@/lib/recherche/rules";
 import { publicProfile } from "@/lib/reservations/profiles";
 
 import { acceptAnswerAction } from "../../demandes/actions";
@@ -83,6 +84,8 @@ export default async function ProfilProfessionnellePage({
     nextAvailableNights(profile.id, now),
   ]);
 
+  // Her radius in one line under her chosen communes (zone-rayon-lecture).
+  const reach = reachLine(profile);
   const communes = profile.communes.map((ins) => communeName(ins) ?? ins).sort((a, b) => a.localeCompare(b, "fr"));
 
   return (
@@ -107,6 +110,7 @@ export default async function ProfilProfessionnellePage({
           <div className="flex flex-col gap-1">
             <dt className="text-legende font-semibold text-encre-taupe">{r.profil.zone}</dt>
             <dd className="text-corps text-encre-taupe">{communes.join(", ")}</dd>
+            {reach ? <dd className="text-corps text-encre-taupe">{reach}</dd> : null}
           </div>
           {profile.formationsComplementaires ? (
             <div className="flex flex-col gap-1">

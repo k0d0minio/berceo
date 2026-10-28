@@ -30,6 +30,9 @@ export const profileColumns = {
   bio: professionalProfiles.bio,
   nightRateEur: professionalProfiles.nightRateEur,
   extraHourRateEur: professionalProfiles.extraHourRateEur,
+  // Her radius and « Toute la Belgique » (zone-rayon-lecture), shown in one line.
+  zoneRadiusKm: professionalProfiles.zoneRadiusKm,
+  zoneWholeBelgium: professionalProfiles.zoneWholeBelgium,
   photoId,
 };
 
@@ -42,7 +45,9 @@ export type PublicProfile = {
   nightRateEur: number | null;
   extraHourRateEur: number | null;
   photoId: string | null;
-  /** The communes she serves, by INS code. */
+  zoneRadiusKm: number;
+  zoneWholeBelgium: boolean;
+  /** The communes she chose, by INS code: never the ones her radius reaches. */
   communes: string[];
   /** Her note and gardes count (avis-etoiles, D-119), read by `src/lib/avis/`. */
   note: Note;

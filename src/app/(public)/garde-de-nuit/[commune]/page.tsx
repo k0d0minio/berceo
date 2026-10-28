@@ -69,6 +69,7 @@ export default async function CommunePage({ params }: { params: Promise<{ commun
                   firstName={teaser.firstName}
                   profession={teaser.profession}
                   zone={zoneNames(teaser.communes, [ins])}
+                  reach={teaser}
                   note={teaser.note}
                   className="h-full"
                 />

@@ -9,8 +9,8 @@ import {
   careRequestApplications,
   careRequests,
   db,
-  professionalCommunes,
   professionalProfiles,
+  professionalReach,
   users,
   type ApplicationStatus,
 } from "@/db";
@@ -691,7 +691,7 @@ export async function professionalProfileOf(
 }
 
 /**
- * Her list: the open requests ahead in the communes she serves, and those sent
+ * Her list: the open requests ahead in the communes she reaches, and those sent
  * to her in priority wherever they are (D-71); never one she was declined on,
  * nor one on a night she is booked (D-73). Priority first, then urgent, then
  * newest. Only a validated profile sees any (D-5, D-10).
@@ -761,12 +761,20 @@ export function herListQuery(profileId: string, requestId?: string) {
         nightAhead,
         or(
           eq(careRequests.priorityProfileId, profileId),
+          // Her reach (zone-rayon-lecture): « Toute la Belgique », or a commune her radius
+          // reaches, her own communes included.
+          exists(
+            db
+              .select({ id: professionalProfiles.id })
+              .from(professionalProfiles)
+              .where(and(eq(professionalProfiles.id, profileId), eq(professionalProfiles.zoneWholeBelgium, true))),
+          ),
           inArray(
             careRequests.communeIns,
             db
-              .select({ ins: professionalCommunes.communeIns })
-              .from(professionalCommunes)
-              .where(eq(professionalCommunes.profileId, profileId)),
+              .select({ ins: professionalReach.communeIns })
+              .from(professionalReach)
+              .where(eq(professionalReach.profileId, profileId)),
           ),
         ),
         or(isNull(careRequestApplications.status), ne(careRequestApplications.status, "non_retenue")),
@@ -790,28 +798,52 @@ export function herListQuery(profileId: string, requestId?: string) {
 export type Recipient = { profileId: string; email: string; firstName: string; communeIns: string };
 
 /**
- * Every validated professional serving one of `communes`, once per commune she
- * serves there; never a suspended one, who can answer nothing (D-134).
+ * Every validated professional reaching one of `communes`, once per commune she
+ * reaches there; never a suspended one, who can answer nothing (D-134). Her
+ * reach is her radius around her communes (zone-rayon-lecture): a « Toute la
+ * Belgique » profile reaches each of `communes`. The callers group the rows by
+ * profile, so a request goes to her once.
  */
 export async function professionalsServing(communes: string[]): Promise<Recipient[]> {
   if (communes.length === 0) return [];
+  const [reached, wholeBelgium] = await Promise.all([reachingQuery(communes), wholeBelgiumQuery()]);
+  return recipientsOf(reached, wholeBelgium, communes);
+}
+
+/** The reached rows, and one row per commune of `communes` for each « Toute la Belgique » profile. */
+export function recipientsOf(
+  reached: readonly Recipient[],
+  wholeBelgium: readonly Omit<Recipient, "communeIns">[],
+  communes: readonly string[],
+): Recipient[] {
+  return [...reached, ...wholeBelgium.flatMap((r) => communes.map((communeIns) => ({ ...r, communeIns })))];
+}
+
+const recipientColumns = {
+  profileId: professionalProfiles.id,
+  email: users.email,
+  firstName: users.firstName,
+};
+
+const validNotSuspended = and(eq(professionalProfiles.status, "valide"), notSuspended(professionalProfiles.userId));
+
+/** The professionals whose reach holds one of `communes`, one row per commune: built and not run. */
+export function reachingQuery(communes: string[]) {
   return db
-    .select({
-      profileId: professionalProfiles.id,
-      email: users.email,
-      firstName: users.firstName,
-      communeIns: professionalCommunes.communeIns,
-    })
+    .select({ ...recipientColumns, communeIns: professionalReach.communeIns })
     .from(professionalProfiles)
     .innerJoin(users, eq(users.id, professionalProfiles.userId))
-    .innerJoin(professionalCommunes, eq(professionalCommunes.profileId, professionalProfiles.id))
-    .where(
-      and(
-        eq(professionalProfiles.status, "valide"),
-        notSuspended(professionalProfiles.userId),
-        inArray(professionalCommunes.communeIns, communes),
-      ),
-    );
+    .innerJoin(professionalReach, eq(professionalReach.profileId, professionalProfiles.id))
+    .where(and(validNotSuspended, inArray(professionalReach.communeIns, communes)));
+}
+
+/** The « Toute la Belgique » professionals, who store no reach: built and not run. */
+export function wholeBelgiumQuery() {
+  return db
+    .select(recipientColumns)
+    .from(professionalProfiles)
+    .innerJoin(users, eq(users.id, professionalProfiles.userId))
+    .where(and(validNotSuspended, eq(professionalProfiles.zoneWholeBelgium, true)));
 }
 
 export type NoticeRequest = RequestCard & {

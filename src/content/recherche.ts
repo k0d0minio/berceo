@@ -81,6 +81,10 @@ export const recherche = catalogue({
       zoneEtAutres: "Se déplace à {communes} et {n} autres communes",
       /** @relecture Surya — la zone quand elle compte exactement une commune de plus. */
       zoneEtUneAutre: "Se déplace à {communes} et 1 autre commune",
+      /** @relecture Surya — son rayon autour de ses communes (zone-rayon-lecture), sur une carte et un profil. */
+      rayon: "Se déplace jusqu'à {km} km autour de ses communes",
+      /** @relecture Surya — « Toute la Belgique » (zone-rayon-lecture), sur une carte et un profil. */
+      belgique: "Se déplace dans toute la Belgique",
       /** @relecture Surya — titre court de « Prochaines disponibilités » sur une carte. */
       prochaines: "Prochaines disponibilités",
       /** @relecture Surya — aucune nuit indiquée, sans dire qu'elle est indisponible (D-80). */

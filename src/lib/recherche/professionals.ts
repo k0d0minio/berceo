@@ -1,8 +1,8 @@
 import "server-only";
 
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, exists, inArray, or, sql } from "drizzle-orm";
 
-import { db, professionalCommunes, professionalProfiles, users, type Profession } from "@/db";
+import { db, professionalCommunes, professionalProfiles, professionalReach, users, type Profession } from "@/db";
 import { NO_NOTE, notesOfProfiles, type Note } from "@/lib/avis/ratings";
 import { nextAvailableNights } from "@/lib/disponibilites/nights";
 import { notSuspended } from "@/lib/auth/suspension";
@@ -11,7 +11,7 @@ import { photoId } from "@/lib/reservations/answers";
 import { orderProfessionals } from "./rules";
 
 /**
- * The search's only reads (D-11, D-14): the validated professionals serving a
+ * The search's only reads (D-11, D-14): the validated professionals reaching a
  * set of communes, and one validated professional's teaser by her short id.
  * `teaserColumns` is the whole list of what leaves for a public page (her
  * « Formations complémentaires » among it, onboarding-retour-1), and
@@ -28,6 +28,9 @@ export const teaserColumns = {
   profession: professionalProfiles.profession,
   bio: professionalProfiles.bio,
   formationsComplementaires: professionalProfiles.formationsComplementaires,
+  // Her radius and « Toute la Belgique » (zone-rayon-lecture): they tell nothing private.
+  zoneRadiusKm: professionalProfiles.zoneRadiusKm,
+  zoneWholeBelgium: professionalProfiles.zoneWholeBelgium,
 };
 
 export const cardColumns = { ...teaserColumns, photoId };
@@ -39,7 +42,10 @@ export type Teaser = {
   profession: Profession | null;
   bio: string | null;
   formationsComplementaires: string | null;
-  /** The communes she serves, by REFNIS code. */
+  /** Her radius in km around her communes: 0 is her communes only. */
+  zoneRadiusKm: number;
+  zoneWholeBelgium: boolean;
+  /** The communes she chose, by REFNIS code: never the ones her radius reaches. */
   communes: string[];
   note: Note;
   /** Her soonest indicative night, for the order only (D-123); never shown on a public page. */
@@ -63,16 +69,38 @@ async function communesOf(profileIds: readonly string[]): Promise<Map<string, st
   return map;
 }
 
-/** The query for the validated professionals serving any of these communes (exported for its test). */
+/**
+ * The query for the validated professionals reaching any of these communes
+ * (exported for its test): « Toute la Belgique », or a commune of her reach,
+ * her radius around her communes (zone-rayon-lecture).
+ */
 export function servingQuery(ins: readonly string[]) {
+  // One row per profile: the reach is read in an EXISTS.
   return db
-    .selectDistinct({ id: professionalProfiles.id })
-    .from(professionalCommunes)
-    .innerJoin(professionalProfiles, eq(professionalProfiles.id, professionalCommunes.profileId))
-    .where(and(inArray(professionalCommunes.communeIns, [...ins]), isValid));
+    .select({ id: professionalProfiles.id })
+    .from(professionalProfiles)
+    .where(
+      and(
+        isValid,
+        or(
+          eq(professionalProfiles.zoneWholeBelgium, true),
+          exists(
+            db
+              .select({ ins: professionalReach.communeIns })
+              .from(professionalReach)
+              .where(
+                and(
+                  eq(professionalReach.profileId, professionalProfiles.id),
+                  inArray(professionalReach.communeIns, [...ins]),
+                ),
+              ),
+          ),
+        ),
+      ),
+    );
 }
 
-/** The ids of the validated professionals serving any of these communes, once each. */
+/** The ids of the validated professionals reaching any of these communes, once each. */
 async function servingIds(ins: readonly string[]): Promise<string[]> {
   if (ins.length === 0) return [];
   const rows = await servingQuery(ins);
@@ -119,6 +147,8 @@ function teaserOf(row: Teaser): Teaser {
     profession: row.profession,
     bio: row.bio,
     formationsComplementaires: row.formationsComplementaires,
+    zoneRadiusKm: row.zoneRadiusKm,
+    zoneWholeBelgium: row.zoneWholeBelgium,
     communes: row.communes,
     note: row.note,
     nextNight: row.nextNight,

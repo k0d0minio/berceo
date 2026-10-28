@@ -1,12 +1,11 @@
 import "server-only";
 
-import { and, asc, count, eq, exists, inArray, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, eq, exists, inArray, sql, type AnyColumn, type SQL } from "drizzle-orm";
 
 import {
   careRequestApplications,
   careRequests,
   db,
-  professionalCommunes,
   professionalDocuments,
   professionalProfiles,
   users,
@@ -38,6 +37,19 @@ export const photoId = sql<string | null>`(
   limit 1
 )`;
 
+/**
+ * Whether a professional reaches a commune (zone-rayon-lecture): « Toute la
+ * Belgique », or the commune in `professional_reach`, her own communes
+ * included. `answerRequest` reads it before the answer, and its INSERT holds it
+ * again. Exported for its test.
+ */
+export function reachesCommune(profileId: string | SQL, communeIns: AnyColumn | SQL): SQL<boolean> {
+  return sql<boolean>`(
+    exists (select 1 from professional_profiles zp where zp.id = ${profileId} and zp.zone_whole_belgium)
+    or exists (select 1 from professional_reach pr where pr.profile_id = ${profileId} and pr.commune_ins = ${communeIns})
+  )`;
+}
+
 export type AnswerResult =
   | { ok: true; applicationId: string; answerCount: number }
   | { ok: false; reason: AnswerRefusal | "introuvable" };
@@ -59,11 +71,7 @@ export async function answerRequest(userId: string, requestId: string, now: Date
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
       priorityProfileId: careRequests.priorityProfileId,
-      servesCommune: sql<boolean>`exists (
-        select 1 from ${professionalCommunes}
-        where ${professionalCommunes.profileId} = ${profile.id}
-          and ${professionalCommunes.communeIns} = ${careRequests.communeIns}
-      )`,
+      servesCommune: reachesCommune(profile.id, careRequests.communeIns),
       bookedThatNight: sql<boolean>`exists (
         select 1 from ${bookings}
         where ${bookings.profileId} = ${profile.id} and ${bookings.nightDate} = ${careRequests.nightDate}
@@ -111,10 +119,7 @@ export async function answerRequest(userId: string, requestId: string, now: Date
       and (r.night_date + r.start_time) > (now() at time zone ${TIME_ZONE})
       and (
         r.priority_profile_id = p.id
-        or exists (
-          select 1 from professional_communes pc
-          where pc.profile_id = p.id and pc.commune_ins = r.commune_ins
-        )
+        or ${reachesCommune(sql`p.id`, sql`r.commune_ins`)}
       )
       and not exists (
         select 1 from bookings b

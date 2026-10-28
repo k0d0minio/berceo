@@ -149,6 +149,21 @@ describe("the daily digest", () => {
     expect(email.text.indexOf("3 nuits")).toBeLessThan(email.text.indexOf("nuit du 03/10/2026"));
   });
 
+  // Spec (zone-rayon-lecture): a « Toute la Belgique » profile comes back once per
+  // commune asked (`recipientsOf`), and still gets one e-mail with each request once.
+  it("sends a professional reaching several communes one e-mail, each request once", async () => {
+    claimDigestRequests.mockResolvedValue([request("r1", "21009"), request("r2", "21005"), request("r3", "21009")]);
+    const belgium = { profileId: "p-be", email: "be@example.be", firstName: "Ines" };
+    professionalsServing.mockResolvedValue([
+      { ...belgium, communeIns: "21009" },
+      { ...belgium, communeIns: "21005" },
+    ]);
+
+    expect(await sendRequestDigest(AFTER_SIX, SITE)).toEqual({ requests: 3, professionals: 1, failed: 0 });
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendEmail.mock.calls[0][1].subject).toBe("3 nouvelles demandes de garde dans votre zone");
+  });
+
   it("counts a failed send without throwing", async () => {
     claimDigestRequests.mockResolvedValue([request("r1", "21009")]);
     professionalsServing.mockResolvedValue([julie]);

@@ -28,7 +28,7 @@ const PRIVATE = {
 
 const SIGN_UP = "/inscription-famille?retour=%2Fespace%2Ffamille%2Fprofessionnelles%2F3f0c9a52";
 
-function render(bio: string | null, formations: string | null = null) {
+function render(bio: string | null, formations: string | null = null, reach: string | null = null) {
   const everything = {
     firstName: "Emma",
     profession: "sage_femme" as const,
@@ -38,6 +38,7 @@ function render(bio: string | null, formations: string | null = null) {
       { name: "Ixelles", href: "/garde-de-nuit/ixelles" },
       { name: "Uccle", href: "/garde-de-nuit/uccle" },
     ],
+    reach,
     note: { note: 4.8, gardes: 3 },
     signUpHref: SIGN_UP,
     ...PRIVATE,
@@ -72,6 +73,15 @@ describe("the public professional page (D-14)", () => {
     expect(html).toContain("Formations complémentaires");
     expect(html).toContain(formations);
     expect(render(null)).not.toContain("Formations complémentaires");
+  });
+
+  // Spec (zone-rayon-lecture): her radius in one line under her communes, none at 0 km.
+  it("shows her radius under her chosen communes, and no line at 0 km", () => {
+    const html = render(null, null, "Se déplace jusqu'à 20 km autour de ses communes");
+    expect(html).toContain("20 km autour de ses communes");
+    expect(html.indexOf("Uccle")).toBeLessThan(html.indexOf("20 km"));
+    expect(render(null, null, "Se déplace dans toute la Belgique")).toContain("Se déplace dans toute la Belgique");
+    expect(render(null)).not.toContain("Se déplace");
   });
 
   it("never renders her surname, e-mail, phone, address, rate, photo or INAMI number", () => {
