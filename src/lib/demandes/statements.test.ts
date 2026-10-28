@@ -43,12 +43,16 @@ describe("her list (professionalRequests)", () => {
     expect(q.sql).toMatch(/^select .*"care_requests"\."status", coalesce/);
   });
 
-  it("holds a request in one of her communes, or one sent to her in priority wherever it is", async () => {
+  // Spec (zone-rayon-lecture): her communes are her reach, her radius around them, or all of Belgium.
+  it("holds a request in a commune she reaches, or one sent to her in priority wherever it is", async () => {
     const q = await query();
     expect(q.sql).toMatch(
-      /\("care_requests"\."priority_profile_id" = \$\d+ or "care_requests"\."commune_ins" in \(select "commune_ins" from "professional_communes" where "professional_communes"\."profile_id" = \$\d+\)\)/,
+      /\("care_requests"\."priority_profile_id" = \$\d+ or exists \(select "id" from "professional_profiles" where \("professional_profiles"\."id" = \$\d+ and "professional_profiles"\."zone_whole_belgium" = \$\d+\)\) or "care_requests"\."commune_ins" in \(select "commune_ins" from "professional_reach" where "professional_reach"\."profile_id" = \$\d+\)\)/,
     );
-    expect(bound(q, '"professional_communes"."profile_id"')).toEqual([PROFILE]);
+    expect(bound(q, '"professional_reach"."profile_id"')).toEqual([PROFILE]);
+    expect(bound(q, '"professional_profiles"."id"')).toEqual([PROFILE]);
+    expect(bound(q, '"professional_profiles"."zone_whole_belgium"')).toEqual([true]);
+    expect(q.sql).not.toContain("professional_communes");
     // The filter, and the priority-first order and flag: every one is her.
     expect(bound(q, '"care_requests"."priority_profile_id"')).toEqual([PROFILE, PROFILE, PROFILE]);
   });
@@ -83,7 +87,7 @@ describe("her list (professionalRequests)", () => {
     expect(bound(q, '"care_requests"."id"')).toEqual([REQUEST]);
     expect(bound(q, REQUEST_STATUS)).toEqual(["ouverte"]);
     expect(q.sql).toContain(NIGHT_AHEAD);
-    expect(bound(q, '"professional_communes"."profile_id"')).toEqual([PROFILE]);
+    expect(bound(q, '"professional_reach"."profile_id"')).toEqual([PROFILE]);
     expect(bound(q, ANSWER_STATUS, "<>")).toEqual(["non_retenue"]);
     expect(bound(q, '"bookings"."status"')).toEqual(["confirmee"]);
     expect(bound(await query(), '"care_requests"."id"')).toEqual([]);

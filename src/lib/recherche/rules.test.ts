@@ -10,6 +10,7 @@ import {
   metaZone,
   orderProfessionals,
   professionalMeta,
+  reachLine,
   resolveQuery,
   searchQuery,
   zoneLine,
@@ -103,6 +104,23 @@ describe("the zone", () => {
     expect(zoneLine(["Ixelles"])).toBe("Se déplace à Ixelles");
     expect(zoneLine(["A", "B", "C", "D"])).toBe("Se déplace à A, B, C et 1 autre commune");
     expect(zoneLine(["A", "B", "C", "D", "E"])).toBe("Se déplace à A, B, C et 2 autres communes");
+  });
+});
+
+// Spec (zone-rayon-lecture): her radius in one line on her pages and her cards, none at 0 km.
+describe("the radius line", () => {
+  it("names the kilometres around her communes", () => {
+    expect(reachLine({ zoneRadiusKm: 20, zoneWholeBelgium: false })).toBe(
+      "Se déplace jusqu'à 20 km autour de ses communes",
+    );
+  });
+
+  it("names all of Belgium for « Toute la Belgique »", () => {
+    expect(reachLine({ zoneRadiusKm: 0, zoneWholeBelgium: true })).toBe("Se déplace dans toute la Belgique");
+  });
+
+  it("shows no line at 0 km", () => {
+    expect(reachLine({ zoneRadiusKm: 0, zoneWholeBelgium: false })).toBeNull();
   });
 });
 

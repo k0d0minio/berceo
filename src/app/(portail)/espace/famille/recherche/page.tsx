@@ -125,6 +125,7 @@ export default async function RecherchePage({
                     firstName={card.firstName}
                     profession={card.profession}
                     zone={zoneNames(card.communes, communes)}
+                    reach={card}
                     note={card.note}
                     photoId={card.photoId}
                     nights={card.nights}
@@ -144,6 +145,7 @@ export default async function RecherchePage({
                       firstName={card.firstName}
                       profession={card.profession}
                       zone={zoneNames(card.communes, communes)}
+                      reach={card}
                       note={card.note}
                       className="h-full"
                     />

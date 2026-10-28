@@ -73,6 +73,7 @@ export default function PortalShellPage() {
             firstName={t.recherche.prenom}
             profession="sage_femme"
             zone={SAMPLE_ZONE}
+            reach={{ zoneRadiusKm: 20, zoneWholeBelgium: false }}
             note={{ note: 4.8, gardes: 7 }}
             photoId={null}
             nights={SAMPLE_NIGHTS}
@@ -82,6 +83,7 @@ export default function PortalShellPage() {
             firstName={t.recherche.prenom}
             profession="sage_femme"
             zone={SAMPLE_ZONE.slice(0, 2)}
+            reach={{ zoneRadiusKm: 0, zoneWholeBelgium: true }}
             note={{ note: null, gardes: 0 }}
           />
         </div>

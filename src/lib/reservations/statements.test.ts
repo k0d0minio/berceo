@@ -74,3 +74,32 @@ describe("accepting an answer", () => {
     expect(q.params.slice(1)).toEqual([REQUEST, REQUEST]);
   });
 });
+
+// Spec (zone-rayon-lecture): she answers a request in any commune her radius reaches. The read
+// before the answer and the INSERT hold the same predicate: « Toute la Belgique », or her reach.
+describe("the commune an answer reaches", () => {
+  const PROFILE = "3b8d0f2c-4e5a-4b7c-9d1e-2f3a4b5c6d72";
+
+  it("reads « Toute la Belgique » or her reach, her radius and her own communes, never her chosen communes", async () => {
+    const { PgDialect } = await import("drizzle-orm/pg-core");
+    const { careRequests } = await import("@/db");
+    const { reachesCommune } = await import("./answers");
+    const q = new PgDialect().sqlToQuery(reachesCommune(PROFILE, careRequests.communeIns));
+    const sql = q.sql.replace(/\s+/g, " ").trim();
+    expect(sql).toBe(
+      '( exists (select 1 from professional_profiles zp where zp.id = $1 and zp.zone_whole_belgium) or exists (select 1 from professional_reach pr where pr.profile_id = $2 and pr.commune_ins = "care_requests"."commune_ins") )',
+    );
+    expect(q.params).toEqual([PROFILE, PROFILE]);
+    expect(sql).not.toContain("professional_communes");
+  });
+
+  it("binds nothing inside the INSERT, where the profile and the request are its own rows", async () => {
+    const { PgDialect } = await import("drizzle-orm/pg-core");
+    const { sql: raw } = await import("drizzle-orm");
+    const { reachesCommune } = await import("./answers");
+    const q = new PgDialect().sqlToQuery(reachesCommune(raw`p.id`, raw`r.commune_ins`));
+    expect(q.sql.replace(/\s+/g, " ")).toContain("zp.id = p.id and zp.zone_whole_belgium");
+    expect(q.sql.replace(/\s+/g, " ")).toContain("pr.profile_id = p.id and pr.commune_ins = r.commune_ins");
+    expect(q.params).toEqual([]);
+  });
+});

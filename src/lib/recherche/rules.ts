@@ -12,7 +12,7 @@ import { professionInSentence, professionLabel } from "@/lib/reservations/format
 
 /**
  * The search's rules (D-11, D-123), pure so each one is a test: what a query
- * resolves to, the order of the results, the zone line and the public pages'
+ * resolves to, the order of the results, the zone and radius lines and the public pages'
  * titles. `src/lib/recherche/professionals.ts` reads the database with them.
  */
 
@@ -95,6 +95,16 @@ export function zoneLine(names: readonly string[]): string {
   if (more <= 0) return fill(t.carte.zone, { communes: shown });
   if (more === 1) return fill(t.carte.zoneEtUneAutre, { communes: shown });
   return fill(t.carte.zoneEtAutres, { communes: shown, n: String(more) });
+}
+
+/**
+ * Her radius in one line (zone-rayon-lecture): « Toute la Belgique », or the
+ * kilometres around her communes. Null at 0 km: her communes say it all.
+ */
+export function reachLine(zone: { zoneRadiusKm: number; zoneWholeBelgium: boolean }): string | null {
+  if (zone.zoneWholeBelgium) return t.carte.belgique;
+  if (zone.zoneRadiusKm <= 0) return null;
+  return fill(t.carte.rayon, { km: String(zone.zoneRadiusKm) });
 }
 
 /** The zone a professional's meta names: her first commune by name, « et environs » for more. */

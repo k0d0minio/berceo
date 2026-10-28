@@ -5,7 +5,7 @@ import { cache } from "react";
 import { PublicProfessional } from "@/components/recherche/public-professional";
 import { FAMILY_SIGN_UP_PATH, withReturn } from "@/lib/auth/routing";
 import { teaserByShortId } from "@/lib/recherche/professionals";
-import { professionalMeta, zoneNames } from "@/lib/recherche/rules";
+import { professionalMeta, reachLine, zoneNames } from "@/lib/recherche/rules";
 import { communePath, publicProfessionalPath, shortIdOfSlug } from "@/lib/recherche/slugs";
 import { communeName } from "@/lib/communes";
 import { professionalProfilePath } from "@/lib/reservations/paths";
@@ -54,6 +54,7 @@ export default async function PublicProfessionalPage({ params }: { params: Promi
       bio={teaser.bio}
       formations={teaser.formationsComplementaires}
       zone={zone}
+      reach={reachLine(teaser)}
       note={teaser.note}
       signUpHref={withReturn(FAMILY_SIGN_UP_PATH, professionalProfilePath(teaser.id))}
     />

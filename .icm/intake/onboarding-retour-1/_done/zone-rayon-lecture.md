@@ -28,6 +28,7 @@ line.
 - [ ] With « Toute la Belgique », each of the four readers above matches every commune.
 - [ ] With 0 km, each reader matches exactly what it matched before this stub.
 - [ ] Her public page and the full profile a family reads show « Se déplace jusqu'à 20 km autour de ses communes », or « Se déplace dans toute la Belgique », and no line at 0 km.
+- [ ] The search cards and the commune page cards show the same radius line under her communes.
 - [ ] The communes shown on every profile stay her chosen communes, not the reached ones.
 - [ ] A test holds each reader against a professional with a radius, one with 0 km and one with « Toute la Belgique ».
 

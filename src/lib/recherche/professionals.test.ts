@@ -22,7 +22,7 @@ function names(columns: Record<string, unknown>): string[] {
 const HIDDEN = ["last_name", "email", "phone", "inami_number", "night_rate_eur", "extra_hour_rate_eur", "storage_key", "review_reason"];
 
 describe("what leaves the search (D-14, D-126)", () => {
-  it("a public teaser selects her id, first name, profession, bio and trainings, nothing else", async () => {
+  it("a public teaser selects her id, first name, profession, bio, trainings and radius, nothing else", async () => {
     const { teaserColumns } = await import("./professionals");
     expect(Object.keys(teaserColumns).sort()).toEqual([
       "bio",
@@ -30,6 +30,8 @@ describe("what leaves the search (D-14, D-126)", () => {
       "formationsComplementaires",
       "id",
       "profession",
+      "zoneRadiusKm",
+      "zoneWholeBelgium",
     ]);
     for (const hidden of HIDDEN) expect(names(teaserColumns)).not.toContain(hidden);
   });
@@ -43,6 +45,8 @@ describe("what leaves the search (D-14, D-126)", () => {
       "id",
       "photoId",
       "profession",
+      "zoneRadiusKm",
+      "zoneWholeBelgium",
     ]);
     for (const hidden of HIDDEN) expect(names(cardColumns)).not.toContain(hidden);
   });
@@ -62,6 +66,19 @@ describe("only a validated profile is read (D-75)", () => {
     expect(params).toContain("valide");
     for (const status of others) expect(params).not.toContain(status);
     expect(params).toContain("21009");
+  });
+
+  // Spec (zone-rayon-lecture): the search and the commune pages list her when her radius
+  // reaches the commune. Her reach holds her own communes at 0 km and every commune her radius
+  // reaches above it. « Toute la Belgique » reaches every commune.
+  it("the search by commune reads « Toute la Belgique » or her reach, never her chosen communes", async () => {
+    const { servingQuery } = await import("./professionals");
+    const { sql, params } = servingQuery(["21009", "21005"]).toSQL();
+    expect(sql).toMatch(
+      /\("professional_profiles"\."zone_whole_belgium" = \$\d+ or exists \(select "commune_ins" from "professional_reach" where \("professional_reach"\."profile_id" = "professional_profiles"\."id" and "professional_reach"\."commune_ins" in \(\$\d+, \$\d+\)\)\)\)/,
+    );
+    expect(params).toEqual(expect.arrayContaining([true, "21009", "21005"]));
+    expect(sql).not.toContain("professional_communes");
   });
 
   it("the search by commune and the public page leave a suspended account out (D-134)", async () => {

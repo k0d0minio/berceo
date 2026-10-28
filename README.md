@@ -268,11 +268,19 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   the boîte. Only `src/lib/famille/` names the three columns (`request-address.ts`), and
   `address-guard.test.ts` holds it. A deletion clears them.
 - **The professional's list:** `/espace/professionnelle/demandes` — open requests whose night
-  has not started, in the communes she serves, urgent first then newest; a profile that is not
+  has not started, in the communes she reaches, urgent first then newest; a profile that is not
   `valide` sees a line instead. The card (`src/components/demandes/request-card.tsx`) shows the
   commune, the night (start + 11 h + the extra hours), the children (« Un bébé », « Jumeaux »,
   « Triplés ») and their feeding, never the family: `cardColumns` in
   `src/lib/demandes/requests.ts` is what a professional's query selects, and a test holds it.
+- **The reach (zone-rayon-lecture):** every reader that matches a request to a professional reads
+  her reach, never her chosen communes: her list and her request page (`herListQuery`), her
+  answer (`reachesCommune` in `src/lib/reservations/answers.ts`, read before the answer and held
+  again by its INSERT), the urgent e-mail and the daily digest (`professionalsServing`). Her reach
+  is `professional_reach`: her own communes at 0 km, and every commune her radius reaches above
+  it. « Toute la Belgique » stores no reach and matches every commune by
+  `professional_profiles.zone_whole_belgium`. The e-mails group the rows by professional, so a
+  request reaches her once.
 - **The feeding (demande-enfants-alimentation):** required on a publication and on an edit:
   « Allaitement maternel », « Lait infantile » or « Allaitement mixte ». It is a care instruction,
   not health data (D-20). A request published before the field has a null `feeding` and shows no
@@ -445,7 +453,7 @@ SQL of the statement it governs. The garde's state is `src/lib/gardes/`'s, never
 
 ## The search and the public pages
 
-A family searches the professionals serving her commune; anyone finds a professional's teaser page
+A family searches the professionals reaching her commune; anyone finds a professional's teaser page
 or a commune's page on the open web (recherche-et-fiches-publiques, D-11, D-14, D-123 to D-129).
 `src/lib/recherche/` holds the rules (`rules.ts`: what a query resolves to, the order, the zone and
 the titles; `slugs.ts`: every address; `sitemap.ts`), all pure and tested, and the only reads
@@ -453,7 +461,7 @@ the titles; `slugs.ts`: every address; `sitemap.ts`), all pure and tested, and t
 `src/components/recherche/`.
 
 - **What leaves (D-14, D-126):** `teaserColumns` (id, first name, profession, bio, « Formations
-  complémentaires ») for a public
+  complémentaires », her radius and « Toute la Belgique ») for a public
   page, `cardColumns` (the same plus her photo) for a signed-in card; never her surname, e-mail,
   phone, INAMI number, rate or documents. Only a `valide` profile is read, held in each query's
   SQL; any other status reads as unknown. The note and gardes count come from `src/lib/avis/`,
@@ -465,6 +473,11 @@ the titles; `slugs.ts`: every address; `sitemap.ts`), all pure and tested, and t
   `?commune=` (repeated), so a result list is a URL; anything else shows « Nous ne trouvons pas
   cette commune ». Opened bare, it searches her own commune. No result: the guide's message
   without its neighbouring-zones clause (D-124) and « Publier une demande ».
+- **The reach (zone-rayon-lecture):** the search and the commune pages list a professional when
+  her reach holds the commune, or when she chose « Toute la Belgique » (`servingQuery`). Her
+  cards, her public page and her full profile show her chosen communes, then her radius in one
+  line (`reachLine`): « Se déplace jusqu'à 20 km autour de ses communes », or « Se déplace dans
+  toute la Belgique ». At 0 km there is no line.
 - **The order (D-123):** soonest indicative night first, then those with none; ties by first
   name, then profile id. No sort control, no filter but the zone.
 - **A professional's page (D-125):** `/professionnelles/[prenom]-[id8]`, her first name slugged
@@ -473,7 +486,7 @@ the titles; `slugs.ts`: every address; `sitemap.ts`), all pure and tested, and t
   production), the guide's title and meta, no photo; the call to action is family sign-up with
   the way back to her full profile.
 - **The commune pages (D-127, D-128):** `/garde-de-nuit/[commune]` for all 565 communes, served
-  or not, every one indexable and in the sitemap; the serving professionals' teaser cards, or the
+  or not, every one indexable and in the sitemap; the reaching professionals' teaser cards, or the
   no-result message and the sign-up link. The slugs are unique (a test holds it).
 - **The sitemap:** rendered on request (the build never reads the database); the vitrine, every
   commune page, and each `valide` professional's page, the list cached for an hour.
