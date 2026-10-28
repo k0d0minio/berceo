@@ -2,6 +2,7 @@
 
 import * as React from "react"
 
+import { FieldError } from "@/components/auth/field"
 import { Input } from "@/components/ui/input"
 import {
   localityLabel,
@@ -148,9 +149,7 @@ function CommuneCombobox({
         {help}
       </p>
       {error ? (
-        <p id={errorId} className="px-6 text-legende font-semibold text-encre-taupe">
-          {error}
-        </p>
+        <FieldError id={errorId}>{error}</FieldError>
       ) : null}
     </div>
   )

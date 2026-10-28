@@ -246,6 +246,8 @@ export const professionnelle = catalogue({
       document: "Ajoutez ce justificatif.",
       /** @relecture Surya — les sept cases de l'étape 4 et de la page des nouvelles déclarations. */
       declarations: "Cochez chacune des déclarations et la case de la charte pour continuer.",
+      /** @relecture Surya — sous chaque case de l'étape 4 restée vide. */
+      caseRequise: "Cochez cette case pour continuer.",
       /** @relecture Surya — erreurs d'envoi de fichier. */
       type: "Ce format n'est pas accepté.",
       taille: "Ce fichier est trop lourd.",

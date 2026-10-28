@@ -165,7 +165,7 @@ function ReasonDialog({
           {l.motifAide}
         </p>
         {error ? (
-          <p id={`${id}-erreur`} role="alert" className="px-6 text-legende font-semibold text-encre-taupe">
+          <p id={`${id}-erreur`} role="alert" className="px-6 text-legende font-semibold text-destructive">
             {error}
           </p>
         ) : null}

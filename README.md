@@ -72,6 +72,8 @@ is set in two inks darkened from sage and taupe on their own hue.
   `src/app/contrast.test.ts` holds every text and surface pair to AA and refuses the light
   text classes. Tailwind's default palette is switched off, so no other colour exists.
   `rouge-confirmation` and `vert-confirmation` are used by `confirm-dialog.tsx` alone (D-24).
+  The one exception is form errors: `destructive` points at the same red, so a field that
+  blocks a form shows a red border and a red message (onboarding-retour-1).
   The inks and the darkened red carry `@relecture` for Surya.
 - **Type**: `font-display` (Comodo's slot, Fraunces until Surya delivers Comodo) for H1, H2
   and navigation; Nunito for everything else. The DA's hierarchy is `text-h1`, `text-h2`,
@@ -648,6 +650,12 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   characters at most, in her own words: hundreds of trainings exist. It shows on her public page,
   on the full profile a family reads and on the founders' file page. Step 2 asks for no
   experience: migration 0016 dropped the band and the specialisations list.
+- **A step that blocks (onboarding-retour-1):** when « Continuer » refuses a step, each blocking
+  field shows a red border, or a red outline for a group of radios or a checkbox, and its
+  message in red under it. A line above the buttons counts the blocking fields. The page
+  scrolls to the first one and gives it focus. The pieces are `FieldError`, `BlockingCount` and
+  `useFocusFirstBlocking` in `src/components/auth/field.tsx`. The family's profile form uses
+  them too. The red is `destructive`, which points at the dialogs' darkened red.
 - **The students switch (D-7)** is `etudiantes_admises` in `app_settings`, flipped on
   `/admin/dossiers`. It offers or hides the two student years together.
 - **The declarations and the charter:** step 4 shows six declarations, then « Charte des

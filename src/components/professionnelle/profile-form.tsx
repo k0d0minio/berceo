@@ -4,7 +4,7 @@ import * as React from "react"
 import { useActionState } from "react"
 
 import { saveProfile, type ProfileState } from "@/app/(portail)/espace/professionnelle/actions"
-import { Field, FormMessage } from "@/components/auth/field"
+import { BlockingCount, Field, FieldError, FormMessage, useFocusFirstBlocking } from "@/components/auth/field"
 import { FileSlot } from "@/components/professionnelle/file-slot"
 import { CommunePicker } from "@/components/professionnelle/commune-picker"
 import { Button } from "@/components/ui/button"
@@ -18,7 +18,9 @@ import { BIO_MAX, EXTRA_HOUR_RATE_MIN, FORMATIONS_MAX, RATE_MIN } from "@/lib/pr
  * on her file's page once submitted. Every field keeps what she typed when the
  * server refuses the form. "Enregistrer et reprendre plus tard" saves whatever
  * is valid, even an incomplete step (D-21); "Continuer" needs the step whole.
- * The photo uploads on its own as soon as she picks it.
+ * The photo uploads on its own as soon as she picks it. A refused step marks
+ * each blocking field in red, counts them above the buttons and moves to the
+ * first one (onboarding-retour-1).
  */
 
 export type ProfileValues = {
@@ -31,7 +33,6 @@ export type ProfileValues = {
 }
 
 const legend = "text-corps font-semibold text-encre-taupe"
-const errorText = "px-6 text-legende font-semibold text-encre-taupe"
 
 function ProfileForm({
   saved,
@@ -53,6 +54,9 @@ function ProfileForm({
   const t = words(professionnelle)
   const e = state.errors ?? {}
   const v = state.values
+  const blocking = Object.values(e).filter(Boolean).length
+  const form = React.useRef<HTMLFormElement>(null)
+  useFocusFirstBlocking(form, state, blocking)
   const [bio, setBio] = React.useState(v?.bio ?? saved.bio ?? "")
   const [formations, setFormations] = React.useState(v?.formations ?? saved.formationsComplementaires ?? "")
 
@@ -60,7 +64,7 @@ function ProfileForm({
   const errorOf = (key: keyof typeof e) => (e[key] ? t.erreurs[e[key]!] : undefined)
 
   return (
-    <form action={submit} noValidate className="flex flex-col gap-8">
+    <form ref={form} action={submit} noValidate className="flex flex-col gap-8">
       {state.message ? (
         <FormMessage>
           {state.message === "enregistre" ? t.messages.enregistre : t.erreurs[state.message]}
@@ -76,8 +80,14 @@ function ProfileForm({
         <input type="hidden" name="profession" value={saved.profession} />
       ) : null}
 
+      {/* An outline, not a border: it marks the group without moving it. */}
       <fieldset
-        className="flex flex-col gap-3"
+        data-champ
+        className={
+          e.profession
+            ? "flex flex-col gap-3 rounded-carte outline-1 outline-offset-8 outline-destructive"
+            : "flex flex-col gap-3"
+        }
         disabled={professionLocked}
         aria-describedby={e.profession ? "champ-profession-erreur" : undefined}
       >
@@ -89,15 +99,14 @@ function ProfileForm({
               name="profession"
               value={key}
               defaultChecked={profession === key}
+              aria-invalid={e.profession ? true : undefined}
               className="size-5 shrink-0 accent-sauge"
             />
             {t.professions[key]}
           </label>
         ))}
         {e.profession ? (
-          <p id="champ-profession-erreur" className={errorText}>
-            {errorOf("profession")}
-          </p>
+          <FieldError id="champ-profession-erreur">{errorOf("profession")}</FieldError>
         ) : null}
       </fieldset>
 
@@ -128,9 +137,7 @@ function ProfileForm({
           {fill(t.aides.formationsRestant, { n: String(FORMATIONS_MAX - formations.trim().length) })}
         </p>
         {e.formations ? (
-          <p id="champ-formations-erreur" className={errorText}>
-            {errorOf("formations")}
-          </p>
+          <FieldError id="champ-formations-erreur">{errorOf("formations")}</FieldError>
         ) : null}
       </div>
 
@@ -148,9 +155,7 @@ function ProfileForm({
           {t.aides.zone}
         </p>
         {e.communes ? (
-          <p id="champ-zone-erreur" className={errorText}>
-            {errorOf("communes")}
-          </p>
+          <FieldError id="champ-zone-erreur">{errorOf("communes")}</FieldError>
         ) : null}
       </div>
 
@@ -203,9 +208,7 @@ function ProfileForm({
           {fill(t.aides.bioRestant, { n: String(BIO_MAX - bio.trim().length) })}
         </p>
         {e.bio ? (
-          <p id="champ-bio-erreur" className={errorText}>
-            {errorOf("bio")}
-          </p>
+          <FieldError id="champ-bio-erreur">{errorOf("bio")}</FieldError>
         ) : null}
       </div>
 
@@ -216,6 +219,8 @@ function ProfileForm({
         files={photo ? [photo] : []}
         error={errorOf("photo")}
       />
+
+      <BlockingCount count={blocking} />
 
       <div className="flex flex-wrap gap-4">
         {mode === "onboarding" ? (

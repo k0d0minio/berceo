@@ -1,9 +1,10 @@
 "use client"
 
+import * as React from "react"
 import { useActionState } from "react"
 
 import { saveDocuments, type DocumentsState } from "@/app/(portail)/espace/professionnelle/actions"
-import { Field, FormMessage } from "@/components/auth/field"
+import { BlockingCount, Field, FormMessage, useFocusFirstBlocking } from "@/components/auth/field"
 import { FileSlot } from "@/components/professionnelle/file-slot"
 import { Button } from "@/components/ui/button"
 import { words } from "@/content/locale"
@@ -16,7 +17,8 @@ import { REQUIREMENTS } from "@/lib/professionnelle/rules"
  * profession requires, one to three files each, and her INAMI number where it
  * applies, always optional. The criminal record is not here: it is a declaration at step 4.
  * The files upload on their own; the form carries the INAMI number and the
- * way forward.
+ * way forward. A refused step marks each blocking slot in red, counts them
+ * above the buttons and moves to the first one (onboarding-retour-1).
  */
 
 type Stored = { id: string; fileName: string }
@@ -39,9 +41,12 @@ function DocumentsForm({
   const t = words(professionnelle)
   const e = state.errors ?? {}
   const requirement = REQUIREMENTS[profession]
+  const blocking = Object.values(e).filter(Boolean).length
+  const form = React.useRef<HTMLFormElement>(null)
+  useFocusFirstBlocking(form, state, blocking)
 
   return (
-    <form action={submit} noValidate className="flex flex-col gap-8">
+    <form ref={form} action={submit} noValidate className="flex flex-col gap-8">
       {state.message ? (
         <FormMessage>
           {state.message === "enregistre" ? t.messages.enregistre : t.erreurs[state.message]}
@@ -73,6 +78,8 @@ function DocumentsForm({
           className="max-w-72"
         />
       ) : null}
+
+      <BlockingCount count={blocking} />
 
       <div className="flex flex-wrap gap-4">
         {mode === "onboarding" ? (

@@ -9,6 +9,7 @@ import {
   removeFile,
   requestUpload,
 } from "@/app/(portail)/espace/professionnelle/actions"
+import { FieldError } from "@/components/auth/field"
 import { words } from "@/content/locale"
 import { professionnelle } from "@/content/professionnelle"
 import type { DocumentKind } from "@/db/schema"
@@ -98,7 +99,8 @@ function FileSlot({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    // The input is visually hidden: the form scrolls this block into view when the slot blocks.
+    <div data-champ className="flex flex-col gap-2">
       <label htmlFor={id} className="text-corps font-semibold text-encre-taupe">
         {label}
       </label>
@@ -160,7 +162,7 @@ function FileSlot({
         <label
           htmlFor={id}
           aria-hidden
-          className="inline-flex min-h-12 w-fit cursor-pointer items-center justify-center rounded-capsule border border-solid border-encre-sauge bg-blanc px-7 text-bouton font-semibold text-encre-sauge transition-[background-color,color] duration-200 ease-out peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-encre-sauge peer-disabled:cursor-default peer-disabled:opacity-50 hover:bg-encre-sauge hover:text-blanc"
+          className="inline-flex min-h-12 w-fit cursor-pointer items-center justify-center rounded-capsule border border-solid border-encre-sauge bg-blanc px-7 text-bouton font-semibold text-encre-sauge transition-[background-color,color] duration-200 ease-out peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-encre-sauge peer-disabled:cursor-default peer-disabled:opacity-50 peer-aria-invalid:border-destructive hover:bg-encre-sauge hover:text-blanc"
         >
           {busy
             ? t.justificatifs.envoiEnCours
@@ -174,9 +176,9 @@ function FileSlot({
         {help}
       </p>
       {message ? (
-        <p id={`${id}-erreur`} role="alert" className="px-6 text-legende font-semibold text-encre-taupe">
+        <FieldError id={`${id}-erreur`} role="alert">
           {message}
-        </p>
+        </FieldError>
       ) : null}
     </div>
   )
