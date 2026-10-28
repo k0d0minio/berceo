@@ -58,14 +58,18 @@ describe("the guide's lines, verbatim", () => {
 });
 
 describe("the back-office's lines, verbatim (back-office-admin, D-19)", () => {
-  it("keeps the overview's title and its four blocks", () => {
+  it("keeps the overview's title and its four blocks, and adds the subscriptions' after them", () => {
     expect(a.vueEnsemble.titre).toBe("Vue d'ensemble");
-    expect(Object.values(a.vueEnsemble.blocs)).toEqual([
+    const { abonnements, ...guide } = a.vueEnsemble.blocs;
+    expect(Object.values(guide)).toEqual([
       "Dossiers en attente de validation",
       "Réservations en cours",
       "Signalements à traiter",
       "Paiements récents",
     ]);
+    // Ours (abonnements-back-office), not the guide's.
+    expect(abonnements).toBe("Abonnements actifs");
+    expect(Object.keys(a.vueEnsemble.blocs).at(-1)).toBe("abonnements");
   });
 
   it("keeps the search box and the actions on an account", () => {
