@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "if [ \"$MIGRATE_AT_BUILD\" = 1 ]; then npm run db:migrate && npm run db:verify; fi && next build",
+    "vercel-build": "if [ \"$VERCEL_TARGET_ENV\" = uat ] || [ \"$MIGRATE_AT_BUILD\" = 1 ]; then npm run db:migrate && npm run db:verify; fi && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",

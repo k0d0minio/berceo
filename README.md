@@ -162,10 +162,11 @@ npm run db:studio                      # browse the database
 
 Production is migrated by `promote.yml` on Jamie's dispatch of a release tag, from the
 `DATABASE_URL` repository secret, before the staged build is promoted (`.icm/uat/CONTEXT.md`).
-A Vercel build migrates its database first only when `MIGRATE_AT_BUILD` is `1`: the
-`vercel-build` script then runs `db:migrate` and `db:verify`. uat.berceo.be carries the
-variable, and so does the preview of a pull request that touches `drizzle/`. A plain preview
-never migrates the base (`.icm/database/CONTEXT.md`).
+A Vercel build migrates its database first in two cases only: the build of uat.berceo.be
+(`VERCEL_TARGET_ENV` is `uat`, which Vercel sets), and the preview of a pull request that
+touches `drizzle/` (`preview-db.sh` sets `MIGRATE_AT_BUILD=1` on its branch). The
+`vercel-build` script then runs `db:migrate` and `db:verify`. A plain preview never migrates
+the base. No one sets a variable by hand for this (`.icm/database/CONTEXT.md`).
 `src/db/migrations-journal.test.ts` refuses a journal whose stamps are out of order — the one
 way Drizzle's migrator skips a file silently.
 
