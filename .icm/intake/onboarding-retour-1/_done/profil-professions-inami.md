@@ -2,7 +2,7 @@
 
 - feature-slug: profil-professions-inami
 - epic: onboarding-retour-1
-- sequence: 1 of 7
+- sequence: 1 of 10
 - depends-on: none
 - complexity: medium
 - priority: P1

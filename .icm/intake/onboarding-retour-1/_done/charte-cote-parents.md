@@ -2,7 +2,7 @@
 
 - feature-slug: charte-cote-parents
 - epic: onboarding-retour-1
-- sequence: 5 of 7
+- sequence: 5 of 10
 - depends-on: declarations-charte
 - complexity: low
 - priority: P2

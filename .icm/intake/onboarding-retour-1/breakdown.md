@@ -37,6 +37,9 @@ Questions for Jamie, with a default each:
 5. charte-cote-parents — the parents read the charter from their side — depends-on: declarations-charte
 6. profil-erreurs-en-rouge — the blocking field shows in red with its message — depends-on: none
 7. profil-zone-rayon — a radius in kilometres around the zone: research, then a cut — depends-on: none
+8. communes-centres — the official centre of each commune, from NGI-IGN AdminVector, and the distance between communes — depends-on: profil-zone-rayon
+9. profil-zone-rayon-saisie — the radius field on her profile step, and her reached communes stored on each save — depends-on: communes-centres
+10. zone-rayon-lecture — her list, her answer, the e-mails and the search read the reach. Her pages show the radius — depends-on: profil-zone-rayon-saisie
 
 ## Out of scope
 

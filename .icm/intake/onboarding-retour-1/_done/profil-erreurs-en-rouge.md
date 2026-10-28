@@ -2,7 +2,7 @@
 
 - feature-slug: profil-erreurs-en-rouge
 - epic: onboarding-retour-1
-- sequence: 6 of 7
+- sequence: 6 of 10
 - depends-on: none
 - complexity: low
 - priority: P2
