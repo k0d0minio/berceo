@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "if [ \"$VERCEL_ENV\" != production ]; then npm run db:migrate && npm run db:verify; fi && next build",
+    "vercel-build": "bash .icm/scripts/vercel-build.sh next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
