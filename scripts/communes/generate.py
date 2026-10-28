@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
 Regenerates src/lib/communes/data.ts — every Belgian postal locality with its
-commune and the commune's REFNIS (INS) code. Run by hand when bpost or Statbel
+commune and the commune's REFNIS (INS) code — and src/lib/communes/centres.ts,
+each commune's official centre. Run by hand when bpost, Statbel or NGI-IGN
 publish a new list; the output is committed, nothing runs at build time.
 
-    pip install xlrd==2.0.1 openpyxl==3.1.5
-    python3 scripts/communes/generate.py
+    pip install xlrd==2.0.1 openpyxl==3.1.5 pyshp==2.3.1
+    python3 scripts/communes/generate.py           # data.ts, then centres.ts
+    python3 scripts/communes/generate.py centres   # centres.ts only, from the committed data.ts
 
 Three inputs, joined here:
 
@@ -26,6 +28,11 @@ Names shown to families are French where a French form exists (Ixelles,
 Mouscron, Anvers), otherwise the official name. The other name stays
 searchable. The script fails on any bpost commune it cannot place, so a new
 merger is noticed here, never silently dropped.
+
+The centres come from NGI-IGN AdminVector, layer municipalcenter: one point per
+commune, the official municipal centre (the town hall, or else the main church
+or crossroads), not a centre of gravity. CC BY 4.0. The script fails on a code
+that is in one list and not in the other, for the same reason.
 """
 
 from __future__ import annotations
@@ -34,12 +41,16 @@ import datetime
 import io
 import json
 import re
+import shutil
 import sys
+import tempfile
 import unicodedata
 import urllib.request
+import zipfile
 from pathlib import Path
 
 import openpyxl
+import shapefile
 import xlrd
 
 BPOST_URL = "https://www.bpost.be/sites/default/files/zipcodes/zipcodes_num_fr_2025.xls"
@@ -73,7 +84,22 @@ BPOST_OVERRIDES: dict[tuple[str, str], str] = {
     ("SAINT-NICOLAS", "LIEGE"): "62093",  # not Sint-Niklaas, whose French name it shares
 }
 
+ADMINVECTOR_URL = (
+    "https://ac.ngi.be/remoteclient-open/ngi-standard-open/Vectordata/TerritorialDivisions/"
+    "TerritorialDivisions-AdminVector/fb1e2993-2020-428c-9188-eb5f75e284b9_x-shapefile_4326.zip"
+)
+ADMINVECTOR_RECORD = "fb1e2993-2020-428c-9188-eb5f75e284b9"  # the dataset's record on geo.be
+ADMINVECTOR_LAYER = "municipalcenter_4326"
+
+# AdminVector's REFNIS code → ours, where the two lists differ. AdminVector carries
+# the 2025 merger of Bastogne and Bertogne as 82039; data.ts still carries 82003.
+# Remove the line when triage/communes-bastogne-refnis ships.
+ADMINVECTOR_OVERRIDES: dict[str, str] = {
+    "82039": "82003",
+}
+
 OUT = Path(__file__).resolve().parents[2] / "src" / "lib" / "communes" / "data.ts"
+CENTRES_OUT = OUT.with_name("centres.ts")
 
 
 def fetch(url: str) -> bytes:
@@ -94,7 +120,8 @@ def strip_paren(name: str) -> str:
     return re.sub(r"\s*\(.*?\)", "", name).strip()
 
 
-def main() -> None:
+def write_data() -> set[str]:
+    """Writes data.ts and returns its REFNIS codes."""
     lau_book = openpyxl.load_workbook(io.BytesIO(fetch(LAU_URL)), read_only=True)
     lau = [r for r in list(lau_book["BE"].iter_rows(values_only=True))[1:] if r[2]]
 
@@ -201,6 +228,80 @@ export const LOCALITIES: ReadonlyArray<readonly [string, string, string, string?
         encoding="utf-8",
     )
     print(f"wrote {OUT} — {len(communes_ts)} communes, {len(localities)} localities")
+    return set(communes_ts)
+
+
+def committed_codes() -> set[str]:
+    """The REFNIS codes of the committed data.ts."""
+    block = OUT.read_text(encoding="utf-8").split("export const COMMUNES", 1)[1].split("};", 1)[0]
+    return set(re.findall(r'^  "(\d{5})": \{', block, re.MULTILINE))
+
+
+def write_centres(codes: set[str]) -> None:
+    """Writes centres.ts: one centre per code of data.ts, from AdminVector."""
+    # The zip is 100 MB: to a temporary file, never into the repo.
+    with tempfile.TemporaryFile() as tmp:
+        req = urllib.request.Request(ADMINVECTOR_URL, headers={"User-Agent": "berceo-communes/1.0"})
+        with urllib.request.urlopen(req, timeout=120) as res:
+            shutil.copyfileobj(res, tmp)
+        tmp.seek(0)
+        with zipfile.ZipFile(tmp) as z:
+            layer = {ext: io.BytesIO(z.read(f"{ADMINVECTOR_LAYER}.{ext}")) for ext in ("shp", "shx", "dbf")}
+            prj = z.read(f"{ADMINVECTOR_LAYER}.prj").decode()
+    if "WGS_1984" not in prj:
+        sys.exit(f"AdminVector's {ADMINVECTOR_LAYER} is not in WGS 84: {prj}")
+
+    centres: dict[str, tuple[float, float]] = {}
+    duplicates: set[str] = set()
+    with shapefile.Reader(**layer, encoding="utf-8") as reader:
+        for row in reader.iterShapeRecords():
+            code = ADMINVECTOR_OVERRIDES.get(row.record["niscode"], row.record["niscode"])
+            if code in centres:
+                duplicates.add(code)
+            longitude, latitude = row.shape.points[0]
+            centres[code] = (latitude, longitude)
+
+    problems = [f"twice in AdminVector: {c}" for c in sorted(duplicates)]
+    problems += [f"in AdminVector, not in data.ts: {c}" for c in sorted(set(centres) - codes)]
+    problems += [f"in data.ts, not in AdminVector: {c}" for c in sorted(codes - set(centres))]
+    if problems:
+        sys.exit("the centres and the communes do not match:\n  " + "\n  ".join(problems))
+
+    today = datetime.date.today().isoformat()
+    overrides = ", ".join(f"{a} → {b}" for a, b in ADMINVECTOR_OVERRIDES.items()) or "none"
+    CENTRES_OUT.write_text(
+        f"""/**
+ * GENERATED by scripts/communes/generate.py on {today}. Do not edit by hand.
+ *
+ * Each commune's official centre: REFNIS (INS) code → [latitude, longitude],
+ * WGS 84, five decimals. {len(centres)} communes, the codes of data.ts.
+ * Server-only: the browser bundle never carries it.
+ *
+ * Source: NGI-IGN, AdminVector, layer municipalcenter, downloaded on {today}.
+ * - download: {ADMINVECTOR_URL}
+ * - the geo.be record: {ADMINVECTOR_RECORD}
+ * - licence: Creative Commons Attribution 4.0 (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/
+ * - codes mapped to ours: {overrides}
+ */
+import "server-only";
+
+export const CENTRES: Record<string, readonly [number, number]> = {{
+{chr(10).join(f'  "{c}": [{lat:.5f}, {lon:.5f}],' for c, (lat, lon) in sorted(centres.items()))}
+}};
+""",
+        encoding="utf-8",
+    )
+    print(f"wrote {CENTRES_OUT} — {len(centres)} centres")
+
+
+def main() -> None:
+    args = sys.argv[1:]
+    if args == []:
+        write_centres(write_data())
+    elif args == ["centres"]:
+        write_centres(committed_codes())
+    else:
+        sys.exit("usage: generate.py [centres]")
 
 
 if __name__ == "__main__":
