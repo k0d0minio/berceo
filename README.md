@@ -148,6 +148,9 @@ The platform's data starts here: one Neon Postgres database, read through
   side's read marker, `last_message_at`); `messages` holds the people's text (1 to 2 000
   characters, the browser's id as key) or one of Berceo's two keys (`amorce`, `bonne_garde`, at
   most one each). The migration backfilled a conversation for every earlier answer and booking.
+  Subscriptions (0019): `subscriptions` is one row per Stripe subscription (the plan, the
+  status, the Stripe ids, the renewal date, the grace period's end, the end), at most one live
+  per family, and `users.stripe_customer_id` is the family's Stripe customer (**The subscriptions**).
   Identity itself lives in Neon Auth's `neon_auth` schema, which Neon manages and Drizzle never
   declares.
 - **Client:** `src/db/index.ts` — a lazily-initialized Drizzle client on Neon's serverless HTTP
