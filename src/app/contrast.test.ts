@@ -112,6 +112,7 @@ const pairs: Pair[] = [
   ["muted", "muted-foreground", "muted", "body"],
   ["accent", "accent-foreground", "accent", "body"],
   ["error text", "destructive", "card", "body"],
+  ["error text on white (field messages, the count above the buttons)", "destructive", "blanc", "body"],
   ["dimmed error text", "destructive/90", "card", "body"],
   ["tooltip", "background", "foreground", "body"],
 
@@ -139,6 +140,7 @@ const pairs: Pair[] = [
   ["sauge row fill on the sage band", "encre-sauge", "sauge", "boundary"],
   ["taupe row fill on white", "encre-taupe", "blanc", "boundary"],
   ["field border on white", "input", "blanc", "boundary"],
+  ["field error border on white (onboarding-retour-1)", "destructive", "blanc", "boundary"],
   ["focus ring on white", "ring", "blanc", "boundary"],
   ["focus ring on pearl", "ring", "perle", "boundary"],
   ["focus ring on the sage band", "ring", "sauge", "boundary"],

@@ -36,7 +36,8 @@
 
   /*
    * Confirmation colours (D-24). Referenced by one component only:
-   * src/components/ui/confirm-dialog.tsx. Never a page-wide button.
+   * src/components/ui/confirm-dialog.tsx. Never a page-wide button. The red
+   * also carries form errors, through --destructive below.
    */
   --color-rouge-confirmation: var(--rouge-confirmation);
   --color-vert-confirmation: var(--vert-confirmation);
@@ -145,8 +146,12 @@
   --muted-foreground: var(--encre-taupe);
   --accent: var(--beurre);
   --accent-foreground: var(--encre-taupe);
-  /* The DA has no error colour, and red is the dialogs' alone (D-24). */
-  --destructive: var(--encre-taupe);
+  /*
+   * Form errors: the border and the message of a field that blocks the form.
+   * The founders asked for red (onboarding-retour-1), which bends D-24 for
+   * form errors only. It is the dialogs' darkened red, 5.80:1 on white.
+   */
+  --destructive: var(--rouge-confirmation);
   /* Decoration only: separators and card edges, never a control's boundary. */
   --border: var(--perle);
   /* A field's border must reach 3:1 on white, so it is an ink. */

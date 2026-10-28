@@ -85,7 +85,7 @@ function SignUpForm({
             ))}
           </div>
           {e.formule ? (
-            <p id="champ-formule-erreur" className="px-2 text-legende font-semibold text-encre-taupe">
+            <p id="champ-formule-erreur" className="px-2 text-legende font-semibold text-destructive">
               {fieldError(e.formule)}
             </p>
           ) : null}
@@ -171,7 +171,7 @@ function SignUpForm({
           </span>
         </label>
         {e.consentement ? (
-          <p id="champ-consentement-erreur" className="px-8 text-legende font-semibold text-encre-taupe">
+          <p id="champ-consentement-erreur" className="px-8 text-legende font-semibold text-destructive">
             {fieldError(e.consentement)}
           </p>
         ) : null}

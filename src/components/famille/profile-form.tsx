@@ -4,7 +4,7 @@ import * as React from "react"
 import { useActionState } from "react"
 
 import type { ProfileState } from "@/app/(portail)/espace/famille/profil/actions"
-import { Field, FormMessage } from "@/components/auth/field"
+import { BlockingCount, Field, FieldError, FormMessage, useFocusFirstBlocking } from "@/components/auth/field"
 import { CommuneCombobox } from "@/components/famille/commune-combobox"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,7 +19,8 @@ import { characterCount, type ProfileError } from "@/lib/famille/validation"
  * The family's profile form: her details (the e-mail shown, not editable), her
  * commune and optional address, and an optional line about the family. The
  * same form serves the first completion and every edit. Validation is the
- * server's; a refused form keeps what was typed.
+ * server's; a refused form keeps what was typed, marks each blocking field in
+ * red, counts them above the button and moves to the first one.
  */
 
 export type ProfileDefaults = {
@@ -60,9 +61,12 @@ function ProfileForm({
   const v = state.values
   const [contexte, setContexte] = React.useState(v?.contexte ?? defaults.contexte)
   const locality = v ? parseLocalityValue(v.commune) : defaults.locality
+  const blocking = Object.values(e).filter(Boolean).length
+  const form = React.useRef<HTMLFormElement>(null)
+  useFocusFirstBlocking(form, state, blocking)
 
   return (
-    <form action={submit} noValidate className="flex max-w-2xl flex-col gap-10">
+    <form ref={form} action={submit} noValidate className="flex max-w-2xl flex-col gap-10">
       {state.message ? <FormMessage>{c.erreurs[state.message]}</FormMessage> : null}
       {state.saved ? <FormMessage>{t.enregistre}</FormMessage> : null}
 
@@ -179,14 +183,14 @@ function ProfileForm({
             </span>
           </p>
           {e.contexte ? (
-            <p id="champ-contexte-erreur" className="px-6 text-legende font-semibold text-encre-taupe">
-              {errorText(e.contexte)}
-            </p>
+            <FieldError id="champ-contexte-erreur">{errorText(e.contexte)}</FieldError>
           ) : characterCount(contexte.trim()) > CONTEXT_MAX ? (
-            <p className="px-6 text-legende font-semibold text-encre-taupe">{t.erreurs.contexteLong}</p>
+            <FieldError>{t.erreurs.contexteLong}</FieldError>
           ) : null}
         </div>
       </section>
+
+      <BlockingCount count={blocking} />
 
       <Button type="submit" disabled={pending} className="self-start">
         {pending ? t.enCours : t.bouton}

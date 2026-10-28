@@ -64,7 +64,7 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
 | The four family subscriptions: the plans, the Checkout in subscription mode, the row the webhook keeps true, `hasActiveSubscription` | [`src/lib/abonnements/`](src/lib/abonnements/) (rules, `subscriptions.ts`: the only reads and writes of `subscriptions` and `users.stripe_customer_id`, and the subscriptions' calls to Stripe), the webhook route it shares with the fee; pages in `src/app/(portail)/espace/famille/abonnement/` (and `retour/`); README → The subscriptions |
 | The professional's onboarding and documents | [`src/lib/professionnelle/`](src/lib/professionnelle/) (rules, `uploads.ts`: the only insert of a file, under the profile's lock; `removals.ts`: her removals, object before row), [`src/lib/documents/`](src/lib/documents/) (private bucket, `/api/fichiers/[id]`); pages in `src/app/(portail)/espace/professionnelle/`; README → The professional's onboarding |
 | A schema change | edit the schema, `npm run db:generate -- --name <what>`, commit `drizzle/` |
-| shadcn components | [`src/components/ui/`](src/components/ui/) — retuned to the DA; red and green only in `confirm-dialog.tsx` (D-24) |
+| shadcn components | [`src/components/ui/`](src/components/ui/) — retuned to the DA; red and green only in `confirm-dialog.tsx` (D-24), and red for form errors through `destructive` (`src/components/auth/field.tsx`: `FieldError`, `BlockingCount`, `useFocusFirstBlocking`) |
 | The research behind the engagement | [`.icm/docs/`](.icm/docs/) — `REPORT.md`, `cahier-des-charges.md`, `QUESTIONS.md` |
 
 
@@ -94,7 +94,7 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
   light sage or taupe, held to AA by `src/app/contrast.test.ts` (finition-accueil D-1); Comodo
   (Fraunces until delivered) and Nunito; capsule buttons, 32 px cards. No shadow, no gendered
   pink or blue, no naïve illustration, no gadget animation; red and green only in confirmation
-  dialogs (D-24). There is no dark theme and no toggle.
+  dialogs (D-24), and red for a field that blocks a form (onboarding-retour-1). There is no dark theme and no toggle.
 - Every word follows Surya's guide (D-19). Vouvoiement; no `!`, `…` or `—`; no insurance
   wording (D-8), no Facebook group (D-23), no price but the four subscriptions, 130 € and 3 % (feedback round 1), no blanket
   « diplômées » (D-7); `@relecture` on anything not quoted from the guide.

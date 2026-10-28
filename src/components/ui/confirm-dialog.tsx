@@ -19,7 +19,8 @@ import { cn } from "@/lib/utils"
  *
  * This is the only component that may use the confirmation colours: red for
  * the sensitive answer (cancel, refuse, leave), green for the confirming one.
- * They never appear as page-wide buttons. Each answer says which it is, so a
+ * They never appear as page-wide buttons. The red also marks form errors,
+ * through the `destructive` token (onboarding-retour-1). Each answer says which it is, so a
  * dialog reads the same whichever of the two actually runs the action.
  *
  * Focus is trapped in the dialog, Escape closes it, and focus goes back to the

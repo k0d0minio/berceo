@@ -198,7 +198,7 @@ function DeleteDialog({
           aria-describedby={error ? `${id}-erreur` : undefined}
         />
         {error ? (
-          <p id={`${id}-erreur`} role="alert" className="px-6 text-legende font-semibold text-encre-taupe">
+          <p id={`${id}-erreur`} role="alert" className="px-6 text-legende font-semibold text-destructive">
             {error}
           </p>
         ) : null}
@@ -292,7 +292,7 @@ function ContactDialog({
             aria-describedby={errors.subject ? `${id}-objet-erreur` : undefined}
           />
           {errors.subject ? (
-            <p id={`${id}-objet-erreur`} role="alert" className="px-6 text-legende font-semibold text-encre-taupe">
+            <p id={`${id}-objet-erreur`} role="alert" className="px-6 text-legende font-semibold text-destructive">
               {k.erreurs[errors.subject]}
             </p>
           ) : null}
@@ -315,7 +315,7 @@ function ContactDialog({
             {k.messageAide}
           </p>
           {errors.message ? (
-            <p id={`${id}-message-erreur`} role="alert" className="px-6 text-legende font-semibold text-encre-taupe">
+            <p id={`${id}-message-erreur`} role="alert" className="px-6 text-legende font-semibold text-destructive">
               {k.erreurs[errors.message]}
             </p>
           ) : null}

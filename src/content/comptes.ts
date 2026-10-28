@@ -190,6 +190,14 @@ export const comptes = catalogue({
       generique: "Une erreur est survenue. Réessayez dans quelques instants.",
     },
 
+    /** The line above the buttons when « Continuer » or « Enregistrer » blocks (onboarding-retour-1). */
+    blocage: {
+      /** @relecture Surya — un seul champ bloque l'envoi. */
+      un: "Un champ demande votre attention.",
+      /** @relecture Surya — plusieurs champs bloquent l'envoi. */
+      plusieurs: "{n} champs demandent votre attention.",
+    },
+
     espaces: {
       /** @relecture Surya — salutation en tête de chaque espace. */
       salutation: "Bonjour {prenom}",

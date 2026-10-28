@@ -44,7 +44,7 @@ const selectClasses =
   "flex min-h-12 w-full min-w-0 appearance-none rounded-capsule border border-solid border-input bg-blanc px-6 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge focus-visible:outline-none aria-invalid:border-destructive"
 const legend = "text-corps font-semibold text-encre-taupe"
 const helpText = "px-6 text-legende text-encre-taupe"
-const errorClasses = "px-6 text-legende font-semibold text-encre-taupe"
+const errorClasses = "px-6 text-legende font-semibold text-destructive"
 
 /** The optional reason, with its live count, the way the profile counts its context line. */
 function ReasonField({ defaultValue, error }: { defaultValue: string; error?: string }) {
