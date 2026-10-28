@@ -73,6 +73,12 @@ import { CONTEXT_MAX } from "../lib/famille/limits";
 export const userRoleEnum = pgEnum("user_role", ["parent", "professionnel", "admin"]);
 
 /**
+ * The four family plans of the devis, in its order (abonnements-familles).
+ * Declared before `users`, whose `signup_plan` names one.
+ */
+export const subscriptionPlanEnum = pgEnum("subscription_plan", ["decouverte", "parenthese", "serenite", "premium"]);
+
+/**
  * Every account, whichever side of the marketplace it is on.
  *
  * No default role: an insert says which persona it creates, so a row can never
@@ -112,6 +118,13 @@ export const users = pgTable("users", {
    * and kept for every later one (abonnements-catalogue-stripe).
    */
   stripeCustomerId: text("stripe_customer_id").unique(),
+  /**
+   * The plan a family picked on the sign-up form (abonnements-inscription-famille):
+   * the Checkout her e-mail confirmation opens, and the one her space asks her
+   * to finish. Null for a professional, an admin, and a family who signed up
+   * before the plans were part of sign-up.
+   */
+  signupPlan: subscriptionPlanEnum("signup_plan"),
 
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -851,9 +864,6 @@ export const payments = pgTable(
 // ---------------------------------------------------------------------------
 // Subscriptions
 // ---------------------------------------------------------------------------
-
-/** The four family plans of the devis, in its order (abonnements-familles). */
-export const subscriptionPlanEnum = pgEnum("subscription_plan", ["decouverte", "parenthese", "serenite", "premium"]);
 
 /**
  * A subscription's life, read from Stripe (`src/lib/abonnements/rules.ts`):

@@ -17,6 +17,7 @@ const valid: SignUpInput = {
   motDePasse: "nuit-calme",
   confirmation: "nuit-calme",
   consentement: true,
+  formule: "",
 };
 
 describe("sign-up validation (spec: invalid input is refused on the field concerned)", () => {
@@ -30,8 +31,24 @@ describe("sign-up validation (spec: invalid input is refused on the field concer
         email: "julie.dupont@exemple.be",
         phone: "+32470123456",
         password: "nuit-calme",
+        plan: null,
       },
     });
+  });
+
+  it("requires one of the four plans on a family's form (abonnements-inscription-famille)", () => {
+    for (const formule of ["", "gratuit", "Serenite"]) {
+      const result = validateSignUp({ ...valid, formule }, { needsPlan: true });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.errors).toEqual({ formule: "formule" });
+    }
+    const result = validateSignUp({ ...valid, formule: "premium" }, { needsPlan: true });
+    expect(result.ok && result.values.plan).toBe("premium");
+  });
+
+  it("ignores a plan on a professional's form", () => {
+    const result = validateSignUp({ ...valid, formule: "premium" });
+    expect(result.ok && result.values.plan).toBeNull();
   });
 
   it.each([
@@ -112,6 +129,7 @@ describe("reading the form", () => {
     expect(input.nom).toBe("");
     expect(input.consentement).toBe(true);
     expect(readSignUpForm(new FormData()).consentement).toBe(false);
+    expect(readSignUpForm(new FormData()).formule).toBe("");
   });
 });
 

@@ -13,6 +13,7 @@ import {
   LIVE,
   planOfPrice,
   PLANS,
+  planToFinish,
   PRICE_ENV,
   statusFromStripe,
 } from "./rules";
@@ -155,5 +156,24 @@ describe("hasActiveSubscription", () => {
 describe("a subscription Checkout", () => {
   it("lasts at least Stripe's 30 minutes", () => {
     expect(checkoutExpiry(now).getTime() - now.getTime()).toBeGreaterThanOrEqual(30 * 60_000);
+  });
+});
+
+/*
+ * Spec (abonnements-inscription-famille): a family who left the Checkout of
+ * the plan she picked at sign-up sees one call to finish it; once a Checkout
+ * of hers completed, the call is gone for good.
+ */
+describe("the plan a family's home asks her to finish", () => {
+  it("is the plan picked at sign-up while no Checkout completed", () => {
+    expect(planToFinish("serenite", false)).toBe("serenite");
+  });
+
+  it("is none once a Checkout completed, whatever the subscription became", () => {
+    expect(planToFinish("serenite", true)).toBeNull();
+  });
+
+  it("is none for a family who signed up before the plans were part of sign-up", () => {
+    expect(planToFinish(null, false)).toBeNull();
   });
 });

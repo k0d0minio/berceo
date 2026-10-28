@@ -1,8 +1,12 @@
+import type { SubscriptionPlan } from "@/db/schema";
+import { isPlan } from "@/lib/abonnements/rules";
+
 /**
  * The sign-up and password forms' rules, as pure functions so the tests can
  * hold them to the spec: every field required, a well-formed e-mail, a Belgian
  * or international phone stored as E.164, a password of 8 to 128 characters
  * with no composition rule, a matching confirmation, and the consent ticked.
+ * A family's sign-up also picks one of the four plans (abonnements-inscription-famille).
  *
  * Errors are catalogue keys (`comptes.erreurs`), never sentences, so the words
  * stay in `src/content/`.
@@ -15,7 +19,8 @@ export type FieldError =
   | "motDePasseCourt"
   | "motDePasseLong"
   | "confirmation"
-  | "consentement";
+  | "consentement"
+  | "formule";
 
 export type SignUpField =
   | "prenom"
@@ -24,7 +29,8 @@ export type SignUpField =
   | "telephone"
   | "motDePasse"
   | "confirmation"
-  | "consentement";
+  | "consentement"
+  | "formule";
 
 export type SignUpInput = {
   prenom: string;
@@ -34,6 +40,8 @@ export type SignUpInput = {
   motDePasse: string;
   confirmation: string;
   consentement: boolean;
+  /** The plan's radio value; empty when none is picked. Only a family's form has it. */
+  formule: string;
 };
 
 export type SignUpValues = {
@@ -42,6 +50,8 @@ export type SignUpValues = {
   email: string;
   phone: string;
   password: string;
+  /** The plan picked: always one for a family, null for a professional. */
+  plan: SubscriptionPlan | null;
 };
 
 export type FieldErrors<F extends string> = Partial<Record<F, FieldError>>;
@@ -116,8 +126,13 @@ export function passwordErrors(
   return errors;
 }
 
+/**
+ * `needsPlan`: the family's form, where a plan is required. The professional's
+ * form has none, and a plan sent to it is ignored.
+ */
 export function validateSignUp(
   input: SignUpInput,
+  { needsPlan }: { needsPlan: boolean } = { needsPlan: false },
 ): Validated<SignUpValues, SignUpField> {
   const errors: FieldErrors<SignUpField> = {};
 
@@ -138,13 +153,16 @@ export function validateSignUp(
 
   if (!input.consentement) errors.consentement = "consentement";
 
+  const plan = needsPlan && isPlan(input.formule) ? input.formule : null;
+  if (needsPlan && plan === null) errors.formule = "formule";
+
   if (Object.keys(errors).length > 0 || phone === null) {
     return { ok: false, errors };
   }
 
   return {
     ok: true,
-    values: { firstName, lastName, email, phone, password: input.motDePasse },
+    values: { firstName, lastName, email, phone, password: input.motDePasse, plan },
   };
 }
 
@@ -162,6 +180,7 @@ export function readSignUpForm(form: FormData): SignUpInput {
     motDePasse: text("motDePasse"),
     confirmation: text("confirmation"),
     consentement: form.get("consentement") === "on",
+    formule: text("formule"),
   };
 }
 

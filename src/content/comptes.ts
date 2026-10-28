@@ -169,6 +169,8 @@ export const comptes = catalogue({
       /** @relecture Surya — case de consentement non cochée. */
       consentement:
         "Pour créer votre compte, acceptez les conditions générales et la politique de confidentialité.",
+      /** @relecture Surya — aucune formule choisie à l'inscription famille. */
+      formule: "Choisissez une formule pour créer votre compte.",
       identifiants:
         "L'adresse e-mail ou le mot de passe est incorrect. Vérifiez vos informations et réessayez.",
       /** @relecture Surya — connexion avec une adresse pas encore confirmée. */

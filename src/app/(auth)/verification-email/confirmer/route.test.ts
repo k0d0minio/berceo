@@ -9,6 +9,10 @@ import { GET } from "./route";
  * browser; without the cookie, or with a way back we do not accept, she lands
  * in her space; a professional always lands in hers. The cookie is cleared.
  *
+ * Spec (abonnements-inscription-famille): a family who picked a plan at
+ * sign-up lands on its Checkout, and the way back stays for her return from
+ * Stripe.
+ *
  * Spec (comptes-welcome-email-no-retry): the welcome is scheduled after the
  * redirect, never awaited (D-166); a failed `users` read still hands over
  * Neon's session cookies and lands on sign-in, never a 500.
@@ -17,7 +21,7 @@ import { GET } from "./route";
 const { handlerGet, row, scheduleWelcomeIfDue } = vi.hoisted(() => ({
   handlerGet: vi.fn(),
   row: {
-    current: null as null | { id: string; role: "parent" | "professionnel" },
+    current: null as null | { id: string; role: "parent" | "professionnel"; signupPlan?: "serenite" },
     fails: false,
   },
   scheduleWelcomeIfDue: vi.fn(),
@@ -107,6 +111,21 @@ describe("the e-mail confirmation's way back (D-129)", () => {
   it("keeps the session cookie Neon Auth answered with", async () => {
     const response = await call(PROFILE);
     expect(response.headers.getSetCookie().some((c) => c.includes("session_token"))).toBe(true);
+  });
+});
+
+describe("a family who picked a plan at sign-up (abonnements-inscription-famille)", () => {
+  it("goes to the Checkout of her plan", async () => {
+    row.current = { id: "u1", role: "parent", signupPlan: "serenite" };
+    expect(target(await call())).toBe("/espace/famille/abonnement/commencer");
+  });
+
+  it("keeps the way back for her return from Stripe", async () => {
+    row.current = { id: "u1", role: "parent", signupPlan: "serenite" };
+    const response = await call(PROFILE);
+    expect(landing(response)).toBe("/espace/famille/abonnement/commencer");
+    expect(response.headers.getSetCookie().some((c) => c.startsWith("berceo_retour="))).toBe(false);
+    expect(hasSession(response)).toBe(true);
   });
 });
 

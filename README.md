@@ -514,6 +514,16 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   `impayee`, or while its first payment is pending. An earlier open Checkout is expired first.
   The Checkout lasts 30 minutes and takes Bancontact, cards, Apple Pay and Google Pay. Stripe
   takes the renewals of a Bancontact subscription by SEPA Direct Debit.
+- **At sign-up (abonnements-inscription-famille):** `/inscription-famille` opens on the four
+  plans. The form is refused without one. The plan goes on `users.signup_plan`, in the batch
+  that writes the row and its two consent rows. The account exists before the payment. An
+  unpaid account is a normal account with no subscription. The e-mail confirmation sends a
+  family with a plan to `/espace/famille/abonnement/commencer`, which opens the Checkout of
+  that plan (only a redirect leads there, never a link a prefetch would open). The way back
+  of D-129 stays in its cookie through the Checkout. The return page sends a paid family
+  there. Until a Checkout of hers completes, her home shows one call, « Finaliser mon
+  abonnement », for the plan she picked (`planToFinish`). The sign-in does not force the
+  Checkout. A family who signed up before this has no plan and sees « Voir les formules ».
 - **Stripe's word:** `syncSubscription` reads the subscription from Stripe and copies its
   status, plan, renewal date and end onto the row, so a late or repeated event writes the same
   row. Two paths call it: the webhook and the return page
@@ -535,7 +545,8 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   4. Add these events to the webhook endpoint of **The service fee**:
      `customer.subscription.created`, `customer.subscription.updated`,
      `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`.
-- **Words:** `src/content/abonnements.ts`, under `espace`, `retour` and `accueil`.
+- **Words:** `src/content/abonnements.ts`, under `espace`, `retour`, `inscription` and
+  `accueil`.
 
 ## The conversation
 
