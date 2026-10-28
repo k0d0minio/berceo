@@ -10,6 +10,7 @@ import {
   professionalDeclarations,
   professionalDocuments,
   professionalProfiles,
+  professionalReach,
   type DocumentKind,
   type User,
 } from "@/db";
@@ -17,6 +18,7 @@ import { currentUser } from "@/lib/auth/current-user";
 import { isKnownCommune } from "@/lib/communes";
 import { deleteObject, inspectUpload, newStorageKey, presignUpload } from "@/lib/documents/storage";
 import { loadFile, type ProfessionalFile } from "@/lib/professionnelle/file";
+import { reachOf } from "@/lib/professionnelle/reach";
 import { removeFiles, type RemovableFile, type RemovalReport } from "@/lib/professionnelle/removals";
 import { recordUpload } from "@/lib/professionnelle/uploads";
 import {
@@ -111,6 +113,7 @@ export type ProfileState = {
     profession: string;
     formations: string;
     communes: string[];
+    rayon: string;
     tarif: string;
     tarifHeure: string;
     bio: string;
@@ -132,6 +135,7 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
     profession: String(form.get("profession") ?? ""),
     formations: String(form.get("formations") ?? ""),
     communes: form.getAll("communes").map(String),
+    rayon: String(form.get("rayon") ?? ""),
     tarif: String(form.get("tarif") ?? ""),
     tarifHeure: String(form.get("tarifHeure") ?? ""),
     bio: String(form.get("bio") ?? ""),
@@ -165,6 +169,11 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
     if (Object.keys(all).length > 0) return { errors: all, values: input };
   }
 
+  // Her communes, her radius and her reach save as one unit: an error on either keeps all three.
+  const zoneSaves = !errors.communes && !errors.rayon;
+  // No radius in the form keeps the stored one. A change of radius reopens no review.
+  const zone = values.zone ?? { radiusKm: profile.zoneRadiusKm, wholeBelgium: profile.zoneWholeBelgium };
+
   // Every valid answer is kept; a field with an error keeps what it had.
   const next = {
     profession: errors.profession ? profile.profession : values.profession,
@@ -174,20 +183,28 @@ export async function saveProfile(_previous: ProfileState, form: FormData): Prom
     nightRateEur: errors.tarif ? profile.nightRateEur : values.nightRateEur,
     extraHourRateEur: errors.tarifHeure ? profile.extraHourRateEur : values.extraHourRateEur,
     bio: errors.bio ? profile.bio : values.bio,
+    ...(zoneSaves ? { zoneRadiusKm: zone.radiusKm, zoneWholeBelgium: zone.wholeBelgium } : {}),
     updatedAt: new Date(),
   };
 
-  // The profile and its communes move together: Neon runs a batch as one transaction.
+  // The profile, its communes and its reach move together: Neon runs a batch as one transaction.
   const writes: BatchItem<"pg">[] = [
     db.update(professionalProfiles).set(next).where(eq(professionalProfiles.id, profile.id)),
   ];
-  if (!errors.communes) {
+  if (zoneSaves) {
     writes.push(db.delete(professionalCommunes).where(eq(professionalCommunes.profileId, profile.id)));
     if (values.communes.length > 0) {
       writes.push(
         db
           .insert(professionalCommunes)
           .values(values.communes.map((communeIns) => ({ profileId: profile.id, communeIns }))),
+      );
+    }
+    const reach = reachOf(values.communes, zone);
+    writes.push(db.delete(professionalReach).where(eq(professionalReach.profileId, profile.id)));
+    if (reach.length > 0) {
+      writes.push(
+        db.insert(professionalReach).values(reach.map((communeIns) => ({ profileId: profile.id, communeIns }))),
       );
     }
   }

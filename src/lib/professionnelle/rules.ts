@@ -115,6 +115,16 @@ export const BIO_MAX = 500;
 export const FORMATIONS_MAX = 300;
 export const COMMUNES_MIN = 1;
 export const COMMUNES_MAX = 50;
+/**
+ * The radius around her communes (profil-zone-rayon-saisie): 0 is her communes
+ * only. The database checks the same values.
+ */
+export const ZONE_RADII_KM = [0, 10, 20, 30, 40, 50] as const;
+/** The form's value for « Toute la Belgique ». */
+export const WHOLE_BELGIUM = "belgique";
+/** The seven choices of the radius field, in the order the form shows them. */
+export const ZONE_CHOICES = ["0", "10", "20", "30", "40", "50", WHOLE_BELGIUM] as const;
+export type ZoneChoice = (typeof ZONE_CHOICES)[number];
 export const FILES_PER_DOCUMENT_MAX = 3;
 
 export const MB = 1024 * 1024;
@@ -146,6 +156,7 @@ export type FieldError =
   | "tarifHeure"
   | "bioLongue"
   | "formationsLongues"
+  | "rayon"
   | "photo"
   | "inami"
   | "document"
@@ -155,6 +166,7 @@ export type ProfileField =
   | "profession"
   | "formations"
   | "communes"
+  | "rayon"
   | "tarif"
   | "tarifHeure"
   | "bio"
@@ -190,11 +202,30 @@ export function normalizeInami(raw: string): string | null {
   return /^\d{11}$/.test(digits) ? digits : null;
 }
 
+/** Her radius as stored: `wholeBelgium` holds `radiusKm` at 0. */
+export type Zone = { radiusKm: number; wholeBelgium: boolean };
+
+/** One of the seven choices, or null for anything else. */
+export function parseZoneChoice(raw: string): Zone | null {
+  const choice = raw.trim();
+  if (choice === WHOLE_BELGIUM) return { radiusKm: 0, wholeBelgium: true };
+  const km = (ZONE_RADII_KM as readonly number[]).find((r) => String(r) === choice);
+  return km === undefined ? null : { radiusKm: km, wholeBelgium: false };
+}
+
+/** The choice a stored radius shows as: a value the database refuses reads as her communes only. */
+export function zoneChoice(zone: Zone): ZoneChoice {
+  if (zone.wholeBelgium) return WHOLE_BELGIUM;
+  return ZONE_CHOICES.find((c) => c === String(zone.radiusKm)) ?? "0";
+}
+
 /** The step-2 answers as they are kept, each one optional until the step is complete. */
 export type ProfileDraft = {
   profession: Profession | null;
   formationsComplementaires: string | null;
   communes: string[];
+  /** Null when the form sent no radius: the stored one stays. */
+  zone: Zone | null;
   nightRateEur: number | null;
   extraHourRateEur: number | null;
   bio: string | null;
@@ -204,6 +235,7 @@ export type ProfileInput = {
   profession: string;
   formations: string;
   communes: string[];
+  rayon: string;
   tarif: string;
   tarifHeure: string;
   bio: string;
@@ -231,6 +263,7 @@ export function checkProfile(
     profession: null,
     formationsComplementaires: null,
     communes: [],
+    zone: null,
     nightRateEur: null,
     extraHourRateEur: null,
     bio: null,
@@ -258,6 +291,13 @@ export function checkProfile(
   if (!communes.every(context.isKnownCommune)) errors.communes = "commune";
   else if (communes.length > COMMUNES_MAX) errors.communes = "communesMax";
   else values.communes = communes;
+
+  // The radius always has a value in the form: anything but the seven choices is forged.
+  if (input.rayon.trim()) {
+    const zone = parseZoneChoice(input.rayon);
+    if (zone) values.zone = zone;
+    else errors.rayon = "rayon";
+  }
 
   if (input.tarif.trim()) {
     const rate = parseRate(input.tarif);

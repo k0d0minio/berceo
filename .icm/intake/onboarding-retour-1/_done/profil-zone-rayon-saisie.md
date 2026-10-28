@@ -60,3 +60,14 @@ reaches. Nothing reads the reached communes yet.
   - the seven choices above.
 - The radius changes no review (decision 9). Do not reopen her file.
 - README → The professional's onboarding, « Her zone »: the radius, the column, the table.
+
+### Decisions (Jamie, 2026-10-28, the defaults of pull request #108)
+
+1. The radius shows as seven radio buttons, like the profession field.
+2. « Toute la Belgique » stores 0 in `zone_radius_km`. A database check holds the radius at 0
+   while the flag is set.
+3. The communes, the radius and the reach save as one unit. An error on the communes or on the
+   radius keeps all three as they were.
+4. The account deletion resets the radius to 0 and the flag to false.
+5. The founders' account page (`/admin/utilisateurs/[id]`) shows the radius too.
+6. Bastogne: accepted as it is. `centres.ts` already maps AdminVector's `82039` to our `82003`.

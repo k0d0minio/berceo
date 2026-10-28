@@ -101,6 +101,7 @@ async function loadFileOf(profile: ProfessionalProfile): Promise<ProfessionalFil
         profession: profile.profession,
         formationsComplementaires: profile.formationsComplementaires,
         communes: codes,
+        zone: { radiusKm: profile.zoneRadiusKm, wholeBelgium: profile.zoneWholeBelgium },
         nightRateEur: profile.nightRateEur,
         extraHourRateEur: profile.extraHourRateEur,
         bio: profile.bio,

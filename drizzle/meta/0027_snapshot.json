@@ -1,5 +1,5 @@
 {
-  "id": "b52383be-405b-4b8b-b63b-ea8ef8829bc9",
+  "id": "c173888f-c623-43ce-a065-833dd2b3c52e",
   "prevId": "cc1579fd-5989-4d91-ae2c-715eba450cfa",
   "version": "7",
   "dialect": "postgresql",
@@ -2060,6 +2060,20 @@
           "primaryKey": false,
           "notNull": false
         },
+        "zone_radius_km": {
+          "name": "zone_radius_km",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "zone_whole_belgium": {
+          "name": "zone_whole_belgium",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "bio": {
           "name": "bio",
           "type": "text",
@@ -2152,8 +2166,79 @@
         "professional_profiles_inami_format": {
           "name": "professional_profiles_inami_format",
           "value": "\"professional_profiles\".\"inami_number\" IS NULL OR \"professional_profiles\".\"inami_number\" ~ '^[0-9]{11}$'"
+        },
+        "professional_profiles_zone_radius": {
+          "name": "professional_profiles_zone_radius",
+          "value": "\"professional_profiles\".\"zone_radius_km\" IN (0, 10, 20, 30, 40, 50)"
+        },
+        "professional_profiles_zone_whole_belgium": {
+          "name": "professional_profiles_zone_whole_belgium",
+          "value": "NOT \"professional_profiles\".\"zone_whole_belgium\" OR \"professional_profiles\".\"zone_radius_km\" = 0"
         }
       },
+      "isRLSEnabled": false
+    },
+    "public.professional_reach": {
+      "name": "professional_reach",
+      "schema": "",
+      "columns": {
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "commune_ins": {
+          "name": "commune_ins",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "professional_reach_commune_ins_idx": {
+          "name": "professional_reach_commune_ins_idx",
+          "columns": [
+            {
+              "expression": "commune_ins",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "professional_reach_profile_id_professional_profiles_id_fk": {
+          "name": "professional_reach_profile_id_professional_profiles_id_fk",
+          "tableFrom": "professional_reach",
+          "tableTo": "professional_profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "professional_reach_profile_id_commune_ins_pk": {
+          "name": "professional_reach_profile_id_commune_ins_pk",
+          "columns": [
+            "profile_id",
+            "commune_ins"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.rating_invitations": {

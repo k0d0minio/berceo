@@ -62,6 +62,8 @@ export const admin = catalogue({
         profession: "Profession",
         formations: "Formations complémentaires",
         zone: "Zone d'intervention",
+        /** @relecture Surya — le rayon autour de ses communes (profil-zone-rayon-saisie). */
+        rayon: "Rayon",
         tarif: "Tarif de nuit",
         /** @relecture Surya — profil-tarifs. */
         tarifHeure: "Heure supplémentaire",
@@ -499,6 +501,8 @@ export const admin = catalogue({
         dossier: "Dossier",
         profession: "Profession",
         communes: "Communes desservies",
+        /** @relecture Surya — le rayon autour de ses communes (profil-zone-rayon-saisie). */
+        rayon: "Rayon",
         tarif: "Tarif de nuit",
         note: "Note",
         /** @relecture Surya — la ligne d'abonnement d'une famille (abonnements-back-office). */
