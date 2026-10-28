@@ -12,7 +12,7 @@ import { comptes } from "@/content/comptes"
 import { demandes } from "@/content/demandes"
 import { fill, words } from "@/content/locale"
 import { formatDate, formatTime } from "@/lib/demandes/format"
-import { AGE_UNITS, CHILDREN, START_TIMES } from "@/lib/demandes/rules"
+import { AGE_UNITS, CHILDREN, FEEDINGS, START_TIMES } from "@/lib/demandes/rules"
 import type { RequestError, RequestField, RequestInput } from "@/lib/demandes/validation"
 import { PROFILE_PATH } from "@/lib/famille/paths"
 import { cn } from "@/lib/utils"
@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils"
 /*
  * The request form (the guide, "Les annonces"): the date in a month calendar
  * a phone can read, the start time with the 11-hour note, the number of
- * children, the baby's age, the commune from her profile (read-only, D-63)
+ * children, their age, how they are fed, the commune from her profile (read-only, D-63)
  * with the address note, and the mandatory checkbox (D-20). Three modes: a
  * normal request, an urgent one (tonight or tomorrow night, D-60), and an
  * edit, which never shows the checkbox again nor changes the commune or the
@@ -223,6 +223,33 @@ function RequestForm({
         {e.age ? (
           <p id="champ-age-erreur" className={errorClasses}>
             {errorOf("age")}
+          </p>
+        ) : null}
+      </fieldset>
+
+      <fieldset
+        className="flex flex-col gap-3"
+        aria-describedby={e.alimentation ? "champ-alimentation-erreur" : undefined}
+      >
+        <legend className={cn(legend, "mb-3")}>{t.formulaire.champs.alimentation}</legend>
+        <div key={`alimentation-${v?.alimentation ?? ""}`} className="flex flex-wrap gap-6 px-2">
+          {FEEDINGS.map((key) => (
+            <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-encre-taupe">
+              <input
+                type="radio"
+                name="alimentation"
+                value={key}
+                defaultChecked={v?.alimentation === key}
+                required
+                className="size-5 shrink-0 accent-sauge"
+              />
+              {t.formulaire.alimentation[key]}
+            </label>
+          ))}
+        </div>
+        {e.alimentation ? (
+          <p id="champ-alimentation-erreur" className={errorClasses}>
+            {errorOf("alimentation")}
           </p>
         ) : null}
       </fieldset>

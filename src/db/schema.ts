@@ -13,7 +13,8 @@
  * the founders' switches, and `admin_journal` every admin action, immutable.
  *
  * A care request (demande-de-garde) is a family's night: its date, start time,
- * children and commune, never its address or anything about health (D-20).
+ * children, their feeding and commune, never its address or anything about
+ * health (D-20): the feeding is a care instruction for the night.
  * A professional answers it (`care_request_applications`) and the family books
  * one answer (`bookings`, candidature-et-reservation); the address still stays
  * in `family_profiles`, read live for her booking only (D-77).
@@ -377,8 +378,15 @@ export const careRequestStatusEnum = pgEnum("care_request_status", [
   "attribuee",
 ]);
 
-/** The guide's two options: « Un bébé », « Jumeaux ». */
-export const careRequestChildrenEnum = pgEnum("care_request_children", ["un_bebe", "jumeaux"]);
+/** The guide's two options, « Un bébé », « Jumeaux », and the founders' « Triplés » (demande-retour-1). */
+export const careRequestChildrenEnum = pgEnum("care_request_children", ["un_bebe", "jumeaux", "triples"]);
+
+/** How the children are fed (demande-retour-1): a care instruction for the night, not health data. */
+export const feedingEnum = pgEnum("feeding", [
+  "allaitement_maternel",
+  "lait_infantile",
+  "allaitement_mixte",
+]);
 
 export const babyAgeUnitEnum = pgEnum("baby_age_unit", ["semaines", "mois"]);
 
@@ -406,6 +414,8 @@ export const careRequests = pgTable(
     children: careRequestChildrenEnum("children").notNull(),
     babyAgeValue: smallint("baby_age_value").notNull(),
     babyAgeUnit: babyAgeUnitEnum("baby_age_unit").notNull(),
+    /** Asked from demande-retour-1 on; null on a request published before. */
+    feeding: feedingEnum("feeding"),
     communeIns: text("commune_ins").notNull(),
     postcode: text("postcode").notNull(),
     locality: text("locality").notNull(),
@@ -932,6 +942,7 @@ export type CareRequest = typeof careRequests.$inferSelect;
 export type CareRequestStatus = (typeof careRequestStatusEnum.enumValues)[number];
 export type CareRequestChildren = (typeof careRequestChildrenEnum.enumValues)[number];
 export type BabyAgeUnit = (typeof babyAgeUnitEnum.enumValues)[number];
+export type Feeding = (typeof feedingEnum.enumValues)[number];
 export type CareRequestApplication = typeof careRequestApplications.$inferSelect;
 export type ApplicationStatus = (typeof applicationStatusEnum.enumValues)[number];
 export type Booking = typeof bookings.$inferSelect;

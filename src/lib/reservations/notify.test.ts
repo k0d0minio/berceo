@@ -33,6 +33,7 @@ const card: RequestCard = {
   children: "un_bebe",
   babyAgeValue: 3,
   babyAgeUnit: "mois",
+  feeding: "allaitement_maternel",
   communeIns: "21009",
   postcode: "1050",
   locality: "Ixelles",

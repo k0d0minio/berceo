@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { cardTitle, childrenLine, formatDate, formatTime, nightLine, placeLine } from "./format";
+import { cardTitle, childrenLine, feedingLine, formatDate, formatTime, nightLine, placeLine } from "./format";
 
 /**
  * Spec (demande-de-garde): the request card reads like the DA's example
  * (« Garde de nuit à Bruxelles », « 30/09/2026 de 20h00 à 7h00 », « Un bébé de
  * trois mois »), the end of the night 11 hours after its start.
+ * Spec (demande-enfants-alimentation): « Triplés » reads like the two others,
+ * and the card names the feeding in the founders' words.
  */
 
 describe("the night", () => {
@@ -25,12 +27,23 @@ describe("the children line", () => {
     expect(childrenLine("un_bebe", 11, "mois")).toBe("Un bébé de onze mois");
     expect(childrenLine("un_bebe", 21, "mois")).toBe("Un bébé de vingt et un mois");
     expect(childrenLine("jumeaux", 24, "mois")).toBe("Jumeaux de vingt-quatre mois");
+    expect(childrenLine("triples", 3, "mois")).toBe("Triplés de trois mois");
+    expect(childrenLine("triples", 8, "semaines")).toBe("Triplés de huit semaines");
   });
 
   it("elides before « un » and « une », and says « moins d'une semaine » at 0", () => {
     expect(childrenLine("un_bebe", 1, "mois")).toBe("Un bébé d'un mois");
     expect(childrenLine("jumeaux", 1, "semaines")).toBe("Jumeaux d'une semaine");
     expect(childrenLine("un_bebe", 0, "semaines")).toBe("Un bébé de moins d'une semaine");
+    expect(childrenLine("triples", 1, "mois")).toBe("Triplés d'un mois");
+  });
+});
+
+describe("the feeding line", () => {
+  it("names each of the three feedings", () => {
+    expect(feedingLine("allaitement_maternel")).toBe("Allaitement maternel");
+    expect(feedingLine("lait_infantile")).toBe("Lait infantile");
+    expect(feedingLine("allaitement_mixte")).toBe("Allaitement mixte");
   });
 });
 

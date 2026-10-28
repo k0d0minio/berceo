@@ -4,7 +4,7 @@ import Link from "next/link"
 import { demandes } from "@/content/demandes"
 import { fill, words } from "@/content/locale"
 import { reservations } from "@/content/reservations"
-import { cardTitle, childrenLine, nightLine, placeLine } from "@/lib/demandes/format"
+import { cardTitle, childrenLine, feedingLine, nightLine, placeLine } from "@/lib/demandes/format"
 import type { RequestCard as Request } from "@/lib/demandes/requests"
 import type { DisplayStatus } from "@/lib/demandes/rules"
 import { rateLine } from "@/lib/reservations/format"
@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 
 /*
  * The DA's request card (Cartes et blocs de contenu): « Garde de nuit à
- * <Commune> », the locality, the night, the children, 32 px corners, flat
+ * <Commune> », the locality, the night, the children and their feeding, 32 px corners, flat
  * pearl, no shadow. An urgent request carries a butter-yellow mark, never red
  * (D-24). The family's card adds its status, its answers and a link; a
  * professional's card shows when it was published, a request sent to her in
@@ -88,6 +88,8 @@ function RequestCard({
       <p className="text-corps text-encre-taupe">
         {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
       </p>
+      {/* A request published before the field has no feeding. */}
+      {request.feeding ? <p className="text-corps text-encre-taupe">{feedingLine(request.feeding)}</p> : null}
       {rate ? <p className="text-corps font-semibold text-encre-sauge">{rateLine(rate)}</p> : null}
       {showPublished ? (
         <p className="text-legende text-encre-taupe">{fill(t.carte.publiee, { date: published })}</p>
