@@ -175,7 +175,8 @@ export async function decide(input: DecisionInput, admin: User, siteUrl: string)
           and reviewed_at is not distinct from ${expected.reviewedAt}::timestamptz
           and ${notSuspended(professionalProfiles.userId)}
           and (${decision}::text <> 'valider'
-            or profession is distinct from 'etudiante_sage_femme'
+            or profession is null
+            or profession not in ('etudiante_sage_femme_3e', 'etudiante_sage_femme_4e')
             or exists (select 1 from ${appSettings} where key = ${STUDENTS_ADMITTED} and value = 'true'::jsonb))
         returning user_id
       )`,

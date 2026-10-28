@@ -122,7 +122,7 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
           <span className="whitespace-pre-line">{profile.bio ?? unset}</span>
         </Row>
         {profile.profession && REQUIREMENTS[profile.profession].inami ? (
-          <Row label={a.dossier.champs.inami}>{profile.inamiNumber ?? unset}</Row>
+          <Row label={a.dossier.champs.inami}>{profile.inamiNumber ?? a.dossier.inamiNonRenseigne}</Row>
         ) : null}
       </dl>
       {photo ? (

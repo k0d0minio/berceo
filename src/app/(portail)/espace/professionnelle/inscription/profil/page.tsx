@@ -5,7 +5,7 @@ import { StepsHeader } from "@/components/professionnelle/steps-header";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { words } from "@/content/locale";
 import { professionnelle } from "@/content/professionnelle";
-import { PROFESSIONS, STUDENT } from "@/lib/professionnelle/rules";
+import { PROFESSIONS, isStudent } from "@/lib/professionnelle/rules";
 import { studentsAdmitted } from "@/lib/settings";
 
 import { openStep } from "../step";
@@ -26,9 +26,9 @@ export default async function ProfilStepPage() {
   const { profile } = file;
   const photo = file.documents.find((d) => d.kind === "photo");
 
-  // The student option is offered while the switch is on, or to a file that already carries it (D-7).
+  // The two student years are offered while the switch is on, or to a file that already carries one (D-7).
   const professions = PROFESSIONS.filter(
-    (p) => p !== STUDENT || admitted || profile.profession === STUDENT,
+    (p) => !isStudent(p) || admitted || isStudent(profile.profession),
   );
 
   return (

@@ -8,7 +8,7 @@
  * Errors and labels are catalogue keys (`admin`), never sentences.
  */
 import type { AdminAction, Profession, ProfileStatus } from "@/db/schema";
-import { STUDENT } from "@/lib/professionnelle/rules";
+import { isStudent } from "@/lib/professionnelle/rules";
 
 // ---------------------------------------------------------------------------
 // The queue
@@ -34,7 +34,7 @@ export type ReviewFile = {
  * stays `en_attente`, no state is added (D-52), and it cannot be validated.
  */
 export function isHeldStudent(file: Pick<ReviewFile, "status" | "profession">, studentsAdmitted: boolean): boolean {
-  return file.status === "en_attente" && file.profession === STUDENT && !studentsAdmitted;
+  return file.status === "en_attente" && isStudent(file.profession) && !studentsAdmitted;
 }
 
 /** The queue's Statut column (`admin.file.statuts`). */
@@ -96,7 +96,7 @@ export function refuseDecision(
   studentsAdmitted: boolean,
 ): DecisionRefusal | null {
   if (!isReviewable(file.status)) return "traite";
-  if (decision === "valider" && file.profession === STUDENT && !studentsAdmitted) return "etudiantes";
+  if (decision === "valider" && isStudent(file.profession) && !studentsAdmitted) return "etudiantes";
   return null;
 }
 

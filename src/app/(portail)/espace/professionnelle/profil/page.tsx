@@ -11,7 +11,7 @@ import { professionnelle } from "@/content/professionnelle";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { loadFile } from "@/lib/professionnelle/file";
-import { PROFESSIONS, STUDENT, firstIncompleteStep, isEditable } from "@/lib/professionnelle/rules";
+import { PROFESSIONS, isStudent, firstIncompleteStep, isEditable } from "@/lib/professionnelle/rules";
 import { studentsAdmitted } from "@/lib/settings";
 
 import { ONBOARDING } from "../inscription/step";
@@ -50,7 +50,7 @@ export default async function DossierPage() {
 
   const admitted = await studentsAdmitted();
   const professions = PROFESSIONS.filter(
-    (p) => p !== STUDENT || admitted || profile.profession === STUDENT,
+    (p) => !isStudent(p) || admitted || isStudent(profile.profession),
   );
   const locked = profile.status === "valide";
   const photo = file.documents.find((d) => d.kind === "photo");

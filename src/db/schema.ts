@@ -197,12 +197,17 @@ export const profileStatusEnum = pgEnum("profile_status", [
   "refuse",
 ]);
 
-/** The guide's four professions (D-7: students are gated by `app_settings`). */
+/**
+ * The three professions and the two student years (D-7: students are gated by
+ * `app_settings`). 0015 renamed `etudiante_sage_femme` to the third year, so
+ * the files that carried it moved there (profil-professions-inami).
+ */
 export const professionEnum = pgEnum("profession", [
   "sage_femme",
   "infirmiere_neonatologie",
   "puericultrice",
-  "etudiante_sage_femme",
+  "etudiante_sage_femme_3e",
+  "etudiante_sage_femme_4e",
 ]);
 
 export const experienceEnum = pgEnum("experience", [

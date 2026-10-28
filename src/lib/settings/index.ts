@@ -8,8 +8,8 @@ import { journalInsert, type Person } from "@/lib/admin/journal";
 /**
  * The founders' switches, stored in `app_settings`. No row means off.
  *
- * `etudiantes_admises` (D-7): whether "étudiante sage-femme (3e ou 4e année)"
- * is offered at step 2. Off until the founders' insurer confirms a solution.
+ * `etudiantes_admises` (D-7): whether the two student years ("étudiante
+ * sage-femme, 3e année" and "4e année") are offered at step 2. Off until the founders' insurer confirms a solution.
  */
 export const STUDENTS_ADMITTED = "etudiantes_admises";
 

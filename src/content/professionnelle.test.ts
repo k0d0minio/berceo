@@ -74,7 +74,12 @@ describe("the catalogue covers every key the rules use", () => {
     expect(Object.keys(t.declarations.textes).sort()).toEqual([...DECLARATIONS].sort());
   });
 
-  it("offers the student option by name (D-7)", () => {
-    expect(t.professions.etudiante_sage_femme).toBe("Étudiante sage-femme (3e ou 4e année)");
+  it("names each student year (D-7, onboarding-retour-1)", () => {
+    expect(t.professions.etudiante_sage_femme_3e).toBe("Étudiante sage-femme, 3e année");
+    expect(t.professions.etudiante_sage_femme_4e).toBe("Étudiante sage-femme, 4e année");
+  });
+
+  it("marks the INAMI field as optional", () => {
+    expect(t.champs.inami).toBe("Mon numéro INAMI (facultatif)");
   });
 });

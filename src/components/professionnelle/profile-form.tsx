@@ -42,7 +42,7 @@ function ProfileForm({
 }: {
   saved: ProfileValues
   photo: { id: string; fileName: string } | null
-  /** The professions she may pick: the student option only while the switch allows it. */
+  /** The professions she may pick: the two student years only while the switch allows them. */
   professions: readonly Profession[]
   /** The onboarding's two buttons, or her file's single "Enregistrer". */
   mode: "onboarding" | "dossier"

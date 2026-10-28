@@ -23,7 +23,8 @@ import {
  */
 
 const waiting: ReviewFile = { status: "en_attente", profession: "sage_femme", reviewReason: null };
-const student: ReviewFile = { ...waiting, profession: "etudiante_sage_femme" };
+const student: ReviewFile = { ...waiting, profession: "etudiante_sage_femme_3e" };
+const fourthYear: ReviewFile = { ...waiting, profession: "etudiante_sage_femme_4e" };
 
 describe("the queue", () => {
   it("lists waiting files and files asked for a complément, nothing else", () => {
@@ -54,10 +55,10 @@ describe("the queue", () => {
 });
 
 describe("the students switch (D-7, D-52)", () => {
-  it("holds a waiting student file while the switch is off", () => {
-    expect(isHeldStudent(student, false)).toBe(true);
-    expect(queueStatus(student, false)).toBe("etudiantes");
-    expect(refuseDecision("valider", student, false)).toBe("etudiantes");
+  it.each([student, fourthYear])("holds a waiting $profession file while the switch is off", (file) => {
+    expect(isHeldStudent(file, false)).toBe(true);
+    expect(queueStatus(file, false)).toBe("etudiantes");
+    expect(refuseDecision("valider", file, false)).toBe("etudiantes");
   });
 
   it("still lets the founders ask for a complément or refuse it", () => {
