@@ -16,7 +16,8 @@ import {
   type Profession,
 } from "@/db";
 import { cardColumns, isUniqueViolation, nightAhead, UUID, type RequestCard } from "@/lib/demandes/requests";
-import { bookingAddress, familyHasAddress, type BookingAddress } from "@/lib/famille/profile";
+import { bookingAddress, type BookingAddress } from "@/lib/famille/profile";
+import { requestHasAddress } from "@/lib/famille/request-address";
 import { notSuspended, suspended } from "@/lib/auth/suspension";
 import { bonneGardeStatement } from "@/lib/messagerie/conversations";
 
@@ -78,7 +79,7 @@ export async function acceptCheck(
     {
       request: facts,
       answer: { status: facts.answerStatus, profileStatus: facts.suspended ? "suspendu" : facts.profileStatus },
-      hasAddress: await familyHasAddress(userId),
+      hasAddress: await requestHasAddress(userId, requestId),
     },
     now,
   );
