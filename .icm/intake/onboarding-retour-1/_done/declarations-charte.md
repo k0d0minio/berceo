@@ -2,7 +2,7 @@
 
 - feature-slug: declarations-charte
 - epic: onboarding-retour-1
-- sequence: 4 of 7
+- sequence: 4 of 10
 - depends-on: none
 - complexity: medium
 - priority: P1

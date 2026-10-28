@@ -11,10 +11,11 @@ the order of the epics (`CONTEXT.md`, The order of the epics).
 
 ## Order
 
-Set by Jamie on 2026-10-27.
+Set by Jamie on 2026-10-28.
 
-1. abonnements-familles
-2. onboarding-retour-1
+1. triage
+2. abonnements-familles
+3. onboarding-retour-1
 
 ## The backlog on 2026-10-23
 

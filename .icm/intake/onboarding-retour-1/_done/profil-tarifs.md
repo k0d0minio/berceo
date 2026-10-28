@@ -2,7 +2,7 @@
 
 - feature-slug: profil-tarifs
 - epic: onboarding-retour-1
-- sequence: 3 of 7
+- sequence: 3 of 10
 - depends-on: none
 - complexity: medium
 - priority: P1
