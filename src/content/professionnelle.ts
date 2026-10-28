@@ -35,10 +35,10 @@ export const professionnelle = catalogue({
 
     champs: {
       profession: "Ma profession",
-      specialisations: "Mes spécialisations",
+      /** Le mot des fondatrices (retour 1, onboarding-retour-1). */
+      formations: "Formations complémentaires",
       zone: "Ma zone d'intervention",
       tarif: "Mon tarif de nuit",
-      experience: "Mon expérience",
       bio: "Quelques mots sur moi",
       /** @relecture Surya — le guide ne nomme pas le champ de la photo. */
       photo: "Ma photo",
@@ -47,8 +47,10 @@ export const professionnelle = catalogue({
     },
 
     aides: {
-      /** @relecture Surya — les spécialisations sont facultatives. */
-      specialisations: "Facultatif. Cochez celles qui vous correspondent.",
+      /** @relecture Surya — les formations sont facultatives, en texte libre. */
+      formations: "Facultatif. Citez les formations que vous avez suivies, avec vos mots.",
+      /** @relecture Surya — compteur sous le champ. */
+      formationsRestant: "{n} caractères restants",
       /** @relecture Surya — la recherche de communes (D-11). */
       zone: "Tapez le nom d'une commune ou son code postal, puis choisissez-la dans la liste.",
       /** @relecture Surya — la fourchette de D-4, sans tarif suggéré. */
@@ -78,24 +80,6 @@ export const professionnelle = catalogue({
       puericultrice: "Puéricultrice",
       etudiante_sage_femme_3e: "Étudiante sage-femme, 3e année",
       etudiante_sage_femme_4e: "Étudiante sage-femme, 4e année",
-    },
-
-    /** @relecture Surya — liste provisoire, à corriger avec les fondatrices. */
-    specialisations: {
-      allaitement: "Allaitement",
-      prematurite: "Prématurité",
-      jumeaux: "Jumeaux",
-      reanimation_neonatale: "Réanimation néonatale",
-      sommeil_nourrisson: "Sommeil du nourrisson",
-      soutien_post_partum: "Soutien post-partum",
-    },
-
-    /** @relecture Surya — les quatre tranches d'expérience. */
-    experiences: {
-      moins_d_un_an: "Moins d'un an",
-      un_a_trois_ans: "Un à trois ans",
-      trois_a_cinq_ans: "Trois à cinq ans",
-      plus_de_cinq_ans: "Plus de cinq ans",
     },
 
     justificatifs: {
@@ -221,9 +205,8 @@ export const professionnelle = catalogue({
       communesMax: "Choisissez cinquante communes au plus.",
       commune: "Choisissez les communes dans la liste proposée.",
       tarif: "Indiquez un montant entier entre 100 et 300 €.",
-      experience: "Choisissez une tranche d'expérience.",
       bioLongue: "Votre présentation dépasse 500 caractères.",
-      specialisation: "Choisissez vos spécialisations dans la liste.",
+      formationsLongues: "Vos formations dépassent 300 caractères.",
       photo: "Ajoutez une photo de vous.",
       /** @relecture Surya — le numéro est facultatif, l'erreur ne vient que d'un numéro mal saisi. */
       inami: "Le numéro INAMI compte onze chiffres.",

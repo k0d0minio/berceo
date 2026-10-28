@@ -15,6 +15,12 @@ export const common = catalogue({
     /** The vitrine's pages, from the guide's URL map. Built by the vitrine stub. */
     pages: {
       commentCaMarche: { label: "Comment ça marche", href: "/comment-ca-marche" },
+      /** The professional's side of « Comment ça marche » (feedback round 1). */
+      commentCaMarcheProfessionnelles: {
+        /** @relecture Surya — nom de la page des professionnelles. */
+        label: "Comment ça marche pour les professionnelles",
+        href: "/comment-ca-marche/professionnelles",
+      },
       tarifs: { label: "Tarifs", href: "/tarifs" },
       quiSommesNous: { label: "Qui sommes-nous", href: "/qui-sommes-nous" },
       faq: { label: "FAQ", href: "/faq" },

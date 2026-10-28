@@ -52,6 +52,7 @@ export default async function PublicProfessionalPage({ params }: { params: Promi
       firstName={teaser.firstName}
       profession={teaser.profession}
       bio={teaser.bio}
+      formations={teaser.formationsComplementaires}
       zone={zone}
       note={teaser.note}
       signUpHref={withReturn(FAMILY_SIGN_UP_PATH, professionalProfilePath(teaser.id))}

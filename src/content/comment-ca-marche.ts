@@ -2,31 +2,45 @@ import { catalogue } from "./locale";
 
 /**
  * `/comment-ca-marche`, written to Surya's guide, "Page Comment ça marche":
- * three steps per journey, one title and one or two sentences each, then the
- * "Ce que garantit Berceo" block.
+ * one page per side since feedback round 1, three steps each, one title and
+ * one or two sentences per step, then the "Ce que garantit Berceo" block.
+ * The family's page sits at `/comment-ca-marche`, the professional's at
+ * `/comment-ca-marche/professionnelles`, and a switch links the two.
  *
  * Verbatim from the guide: the family's three step titles, the professional's
- * first and third, and the block's title. Everything else is ours and tagged.
+ * first and third, and the block's title. From the founders: the family's
+ * introduction and the switch's labels. Everything else is ours and tagged.
  */
 export const commentCaMarche = catalogue({
   fr: {
-    meta: {
-      /** @relecture Surya — le titre du guide dépasse 60 caractères ; réécrit autour du mot-clé principal de la page. */
-      title: "Comment trouver une garde de nuit bébé en Belgique | Berceo",
-      /** @relecture Surya — meta du guide réécrite sans « assurées » (D-8). */
-      description:
-        "Publiez votre demande, choisissez une professionnelle de santé vérifiée, réservez en ligne. Berceo vous met en relation pour une garde de nuit à domicile.",
+    /** The two sides, named as the founders wrote them (feedback round 1). */
+    switch: {
+      /** @relecture Surya — libellé d'accessibilité du sélecteur. */
+      label: "Votre profil",
+      parents: "Je suis parent",
+      /** @relecture Surya — écriture inclusive du guide. */
+      professionnelles: "Je suis professionnel/le",
     },
 
-    /** @relecture Surya — H1 et introduction. */
-    title: "Comment trouver une garde de nuit pour votre bébé",
-    /** @relecture Surya — idem. */
-    intro:
-      "Berceo met en relation les familles et les professionnelles de santé pour des gardes de nuit à domicile. Trois étapes de chaque côté, et rien de plus.",
-
     familles: {
+      meta: {
+        /** @relecture Surya — le titre du guide dépasse 60 caractères ; réécrit autour du mot-clé principal de la page. */
+        title: "Comment trouver une garde de nuit bébé en Belgique | Berceo",
+        /** @relecture Surya — meta du guide réécrite sans « assurées » (D-8). */
+        description:
+          "Publiez votre demande, choisissez une professionnelle de santé vérifiée, réservez en ligne. Berceo vous met en relation pour une garde de nuit à domicile.",
+      },
+      /** @relecture Surya — H1. */
+      title: "Comment trouver une garde de nuit pour votre bébé",
+      /**
+       * The founders' sentence (feedback round 1), word for word. The
+       * parenthesis keeps « diplômées » true when students are admitted (D-7).
+       * @relecture Surya — écriture inclusive du guide.
+       */
+      intro:
+        "La première plateforme belge à mettre en relation des familles avec des professionnel/les de santé diplômées (et en fin de formation), pour des nuits de repos à domicile, avec autant de compétence que de douceur.",
       /** @relecture Surya — titre de section. */
-      title: "Pour les familles",
+      stepsTitle: "Pour les familles",
       /** @relecture Surya — descriptions des étapes. */
       steps: [
         {
@@ -45,8 +59,20 @@ export const commentCaMarche = catalogue({
     },
 
     professionnelles: {
+      meta: {
+        /** @relecture Surya — titre de la page des professionnelles. */
+        title: "Proposer des gardes de nuit à domicile en Belgique | Berceo",
+        /** @relecture Surya — meta de la page des professionnelles. */
+        description:
+          "Créez votre profil, faites vérifier votre dossier et choisissez vos gardes. Berceo vous transmet les demandes de garde de nuit des familles de vos communes.",
+      },
+      /** @relecture Surya — H1. */
+      title: "Comment proposer vos gardes de nuit avec Berceo",
+      /** @relecture Surya — introduction. */
+      intro:
+        "Recevez les demandes de garde de nuit des familles de vos communes et choisissez les nuits qui vous conviennent.",
       /** @relecture Surya — titre de section. */
-      title: "Pour les professionnelles",
+      stepsTitle: "Pour les professionnelles",
       /**
        * @relecture Surya — descriptions des étapes ; « Faites vérifier votre dossier » remplace « Validez votre diplôme » pour rester vrai si les étudiantes sont admises (D-7).
        */

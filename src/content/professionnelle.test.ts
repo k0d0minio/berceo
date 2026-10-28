@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DECLARATIONS, EXPERIENCES, PROFESSIONS, SPECIALISATIONS } from "@/lib/professionnelle/rules";
+import { DECLARATIONS, PROFESSIONS } from "@/lib/professionnelle/rules";
 
 import { admin } from "./admin";
 import { professionnelle } from "./professionnelle";
@@ -49,11 +49,17 @@ describe("the guide's lines, verbatim", () => {
 
   it("keeps the profile's field labels", () => {
     expect(t.champs.profession).toBe("Ma profession");
-    expect(t.champs.specialisations).toBe("Mes spécialisations");
     expect(t.champs.zone).toBe("Ma zone d'intervention");
     expect(t.champs.tarif).toBe("Mon tarif de nuit");
-    expect(t.champs.experience).toBe("Mon expérience");
     expect(t.champs.bio).toBe("Quelques mots sur moi");
+  });
+
+  it("names the trainings with the founders' word, and asks for no experience (onboarding-retour-1)", () => {
+    expect(t.champs.formations).toBe("Formations complémentaires");
+    expect(t.champs).not.toHaveProperty("specialisations");
+    expect(t.champs).not.toHaveProperty("experience");
+    expect(t).not.toHaveProperty("experiences");
+    expect(t).not.toHaveProperty("specialisations");
   });
 
   it("keeps the message after submission and its 24-working-hour promise", () => {
@@ -66,11 +72,9 @@ describe("the guide's lines, verbatim", () => {
 describe("the catalogue covers every key the rules use", () => {
   const t = professionnelle.fr;
 
-  it("names every profession, spécialisation, experience and declaration", () => {
+  it("names every profession and declaration", () => {
     expect(Object.keys(t.professions).sort()).toEqual([...PROFESSIONS].sort());
     expect(Object.keys(t.justificatifs.documents).sort()).toEqual([...PROFESSIONS].sort());
-    expect(Object.keys(t.specialisations).sort()).toEqual([...SPECIALISATIONS].sort());
-    expect(Object.keys(t.experiences).sort()).toEqual([...EXPERIENCES].sort());
     expect(Object.keys(t.declarations.textes).sort()).toEqual([...DECLARATIONS].sort());
   });
 

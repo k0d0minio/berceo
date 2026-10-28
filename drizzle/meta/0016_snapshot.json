@@ -1,5 +1,5 @@
 {
-  "id": "b7a3a862-6ae1-4e92-80ac-53c3fca62ba5",
+  "id": "1b9e27b6-c910-456e-b87d-54f13b315cee",
   "prevId": "a092e567-500c-4f48-8841-c47806e44142",
   "version": "7",
   "dialect": "postgresql",
@@ -703,13 +703,6 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
-        },
-        "feeding": {
-          "name": "feeding",
-          "type": "feeding",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
         },
         "commune_ins": {
           "name": "commune_ins",
@@ -1962,17 +1955,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "specialisations": {
-          "name": "specialisations",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::text[]"
-        },
-        "experience": {
-          "name": "experience",
-          "type": "experience",
-          "typeSchema": "public",
+        "formations_complementaires": {
+          "name": "formations_complementaires",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -2062,6 +2047,10 @@
         "professional_profiles_bio_length": {
           "name": "professional_profiles_bio_length",
           "value": "\"professional_profiles\".\"bio\" IS NULL OR char_length(\"professional_profiles\".\"bio\") <= 500"
+        },
+        "professional_profiles_formations_length": {
+          "name": "professional_profiles_formations_length",
+          "value": "\"professional_profiles\".\"formations_complementaires\" IS NULL OR char_length(\"professional_profiles\".\"formations_complementaires\") <= 300"
         },
         "professional_profiles_inami_format": {
           "name": "professional_profiles_inami_format",
@@ -2574,8 +2563,7 @@
       "schema": "public",
       "values": [
         "un_bebe",
-        "jumeaux",
-        "triples"
+        "jumeaux"
       ]
     },
     "public.care_request_status": {
@@ -2613,25 +2601,6 @@
         "diplome",
         "attestation_inscription",
         "photo"
-      ]
-    },
-    "public.experience": {
-      "name": "experience",
-      "schema": "public",
-      "values": [
-        "moins_d_un_an",
-        "un_a_trois_ans",
-        "trois_a_cinq_ans",
-        "plus_de_cinq_ans"
-      ]
-    },
-    "public.feeding": {
-      "name": "feeding",
-      "schema": "public",
-      "values": [
-        "allaitement_maternel",
-        "lait_infantile",
-        "allaitement_mixte"
       ]
     },
     "public.message_author": {

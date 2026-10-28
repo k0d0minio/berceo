@@ -22,15 +22,28 @@ function names(columns: Record<string, unknown>): string[] {
 const HIDDEN = ["last_name", "email", "phone", "inami_number", "night_rate_eur", "storage_key", "review_reason"];
 
 describe("what leaves the search (D-14, D-126)", () => {
-  it("a public teaser selects her id, first name, profession and bio, nothing else", async () => {
+  it("a public teaser selects her id, first name, profession, bio and trainings, nothing else", async () => {
     const { teaserColumns } = await import("./professionals");
-    expect(Object.keys(teaserColumns).sort()).toEqual(["bio", "firstName", "id", "profession"]);
+    expect(Object.keys(teaserColumns).sort()).toEqual([
+      "bio",
+      "firstName",
+      "formationsComplementaires",
+      "id",
+      "profession",
+    ]);
     for (const hidden of HIDDEN) expect(names(teaserColumns)).not.toContain(hidden);
   });
 
   it("a signed-in card adds her photo and nothing else", async () => {
     const { cardColumns } = await import("./professionals");
-    expect(Object.keys(cardColumns).sort()).toEqual(["bio", "firstName", "id", "photoId", "profession"]);
+    expect(Object.keys(cardColumns).sort()).toEqual([
+      "bio",
+      "firstName",
+      "formationsComplementaires",
+      "id",
+      "photoId",
+      "profession",
+    ]);
     for (const hidden of HIDDEN) expect(names(cardColumns)).not.toContain(hidden);
   });
 });

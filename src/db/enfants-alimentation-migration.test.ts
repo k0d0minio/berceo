@@ -10,11 +10,11 @@ import { describe, expect, it } from "vitest";
  * since Postgres refuses a new enum value in the transaction that adds it.
  */
 const sql = readFileSync(
-  fileURLToPath(new URL("../../drizzle/0016_enfants_alimentation.sql", import.meta.url)),
+  fileURLToPath(new URL("../../drizzle/0017_enfants_alimentation.sql", import.meta.url)),
   "utf8",
 );
 
-describe("migration 0016_enfants_alimentation", () => {
+describe("migration 0017_enfants_alimentation", () => {
   it("adds triplets to the children", () => {
     expect(sql).toContain(`ALTER TYPE "public"."care_request_children" ADD VALUE 'triples'`);
   });
