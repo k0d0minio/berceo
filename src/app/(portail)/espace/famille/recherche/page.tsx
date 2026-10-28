@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
 import { NoResult } from "@/components/recherche/no-result";
-import { ProfessionalCard } from "@/components/recherche/professional-card";
+import { ProfessionalCard, TeaserCard } from "@/components/recherche/professional-card";
 import { SearchForm } from "@/components/recherche/search-form";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { fill, words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
+import { familyMayNow } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { communeName, findLocality, parseLocalityValue, type Locality } from "@/lib/communes";
@@ -16,7 +18,7 @@ import { NEW_REQUEST_PATH } from "@/lib/demandes/paths";
 import { familyCommune } from "@/lib/famille/profile";
 import { cardsServing } from "@/lib/recherche/professionals";
 import { communesOfParams, resolveQuery, searchQuery, zoneNames } from "@/lib/recherche/rules";
-import { SEARCH_PATH } from "@/lib/recherche/slugs";
+import { publicProfessionalPath, SEARCH_PATH } from "@/lib/recherche/slugs";
 import { professionalProfilePath } from "@/lib/reservations/paths";
 
 const t = words(recherche);
@@ -39,7 +41,9 @@ function first(value: string | string[] | undefined): string | undefined {
  * (D-124). The field posts `q`; a query that names communes is answered by a
  * redirect to `?commune=` (repeated for a postcode that covers several), so a
  * result list is a URL a family can reload. Opened bare, the page searches
- * her own commune when her profile has one.
+ * her own commune when her profile has one. Without a subscription the page
+ * stays open with the public teaser cards, each linking to the professional's
+ * public page, under the invitation line (abonnements-acces).
  */
 export default async function RecherchePage({
   searchParams,
@@ -80,7 +84,11 @@ export default async function RecherchePage({
     }
   }
 
-  const cards = communes.length > 0 ? await cardsServing(communes, new Date()) : [];
+  const now = new Date();
+  const [cards, full] = await Promise.all([
+    communes.length > 0 ? cardsServing(communes, now) : Promise.resolve([]),
+    familyMayNow(user.id, "profil", now),
+  ]);
   const names = communes.map((ins) => communeName(ins) ?? ins).join(", ");
 
   return (
@@ -108,7 +116,7 @@ export default async function RecherchePage({
                 <Link href={NEW_REQUEST_PATH}>{t.aucune.publier}</Link>
               </Button>
             </NoResult>
-          ) : (
+          ) : full ? (
             <ul className="grid gap-6 md:grid-cols-2">
               {cards.map((card) => (
                 <li key={card.id} className="min-w-0">
@@ -125,6 +133,24 @@ export default async function RecherchePage({
                 </li>
               ))}
             </ul>
+          ) : (
+            <>
+              <SubscriptionRequired />
+              <ul className="grid gap-6 md:grid-cols-2">
+                {cards.map((card) => (
+                  <li key={card.id} className="min-w-0">
+                    <TeaserCard
+                      href={publicProfessionalPath(card.firstName, card.id)}
+                      firstName={card.firstName}
+                      profession={card.profession}
+                      zone={zoneNames(card.communes, communes)}
+                      note={card.note}
+                      className="h-full"
+                    />
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </section>
       ) : null}

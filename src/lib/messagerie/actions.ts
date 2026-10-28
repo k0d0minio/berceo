@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 
+import { isSubscribed } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { logWriteError, UUID } from "@/lib/demandes/requests";
 import { siteOrigin } from "@/lib/site-origin";
@@ -19,13 +20,14 @@ import { normalizeBody, type Side } from "./rules";
  * holds the party and the closing rule in its write. The message's id comes
  * from the form, so a retried or double-clicked send inserts once and sends
  * one e-mail (D-90); the e-mail leaves after the response, only for a message
- * this call inserted.
+ * this call inserted. A family without a subscription writes only in the
+ * booked answer's conversation (abonnements-acces).
  */
 
 export type SendState = {
   /** The id of the last message this form sent: the composer clears itself on it. */
   sent?: string;
-  error?: "vide" | "tropLong" | "fermee" | "generique";
+  error?: "vide" | "tropLong" | "fermee" | "abonnement" | "generique";
 };
 
 export async function sendMessageAction(
@@ -47,13 +49,15 @@ export async function sendMessageAction(
 
   let result: Awaited<ReturnType<typeof sendMessage>>;
   try {
-    result = await sendMessage(user.id, s, id, messageId, body.body, new Date());
+    const now = new Date();
+    const subscribed = s === "famille" ? await isSubscribed(user.id, now) : false;
+    result = await sendMessage(user.id, s, id, messageId, body.body, now, subscribed);
   } catch (error) {
     logWriteError("message not sent", { userId: user.id, conversationId: id }, error);
     return { error: "generique" };
   }
 
-  if (!result.ok) return { error: result.reason === "fermee" ? "fermee" : "generique" };
+  if (!result.ok) return { error: result.reason === "introuvable" ? "generique" : result.reason };
 
   if (result.inserted) {
     const origin = await siteOrigin();

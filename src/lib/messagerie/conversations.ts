@@ -17,6 +17,7 @@ import {
   type Profession,
   type ProfileStatus,
 } from "@/db";
+import { familyMay } from "@/lib/abonnements/rules";
 import { suspended } from "@/lib/auth/suspension";
 import { UUID } from "@/lib/demandes/requests";
 import { nightEnd } from "@/lib/demandes/night-end";
@@ -328,7 +329,7 @@ export async function conversationOfBooking(userId: string, side: Side, bookingI
 
 export type SendResult =
   | { ok: true; inserted: boolean }
-  | { ok: false; reason: "introuvable" | "fermee" };
+  | { ok: false; reason: "introuvable" | "fermee" | "abonnement" };
 
 /**
  * One of the two people writes (E-01). The facts are read first for a precise
@@ -337,7 +338,10 @@ export type SendResult =
  * professional is `valide` unless her answer is the booked one (D-156). The message
  * takes the id the browser gave it, so a retried or double-clicked send
  * inserts once and reports `inserted: false`, and the caller sends no second
- * e-mail. The sender's own marker moves with her message.
+ * e-mail. The sender's own marker moves with her message. A family without a
+ * subscription writes only in the booked answer's conversation
+ * (abonnements-acces): `familySubscribed` is read by the caller, unused for a
+ * professional.
  */
 export async function sendMessage(
   userId: string,
@@ -346,6 +350,7 @@ export async function sendMessage(
   messageId: string,
   body: string,
   now: Date,
+  familySubscribed: boolean,
 ): Promise<SendResult> {
   if (!UUID.test(conversationId) || !UUID.test(messageId)) return { ok: false, reason: "introuvable" };
 
@@ -365,8 +370,12 @@ export async function sendMessage(
     .where(and(eq(conversations.id, conversationId), partyOf(side, userId)))
     .limit(1);
   if (!facts) return { ok: false, reason: "introuvable" };
-  if (!isConversationOpen({ ...facts, booked: facts.answerStatus === "retenue" }, now)) {
+  const booked = facts.answerStatus === "retenue";
+  if (!isConversationOpen({ ...facts, booked }, now)) {
     return { ok: false, reason: "fermee" };
+  }
+  if (side === "famille" && !familyMay("ecrire", { subscribed: familySubscribed, booked })) {
+    return { ok: false, reason: "abonnement" };
   }
 
   const at = now.toISOString();

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
 import { NoteDisplay } from "@/components/avis/stars";
 import { FormMessage } from "@/components/auth/field";
 import { CancelRequest } from "@/components/demandes/cancel-request";
@@ -19,6 +20,8 @@ import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { paiement } from "@/content/paiement";
 import { reservations } from "@/content/reservations";
+import { familyMay } from "@/lib/abonnements/rules";
+import { isSubscribed } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { FAMILY_REQUESTS_PATH, familyRequestPath } from "@/lib/demandes/paths";
@@ -95,7 +98,10 @@ function message(notice: Notice): string | null {
  * and « Republier ma demande » once an answer waits (D-70). Without an address
  * in her profile she is sent to complete it before booking (D-77). A booked
  * request reads « Attribuée » and links to its booking. Another family's id,
- * like an unknown one, is not found.
+ * like an unknown one, is not found. Without a subscription she reads the
+ * answers and their conversations, and can cancel: the invitation line takes
+ * the place of « Accepter et réserver », « Modifier ma demande » and
+ * « Republier ma demande » (abonnements-acces).
  */
 export default async function DemandePage({
   params,
@@ -114,12 +120,17 @@ export default async function DemandePage({
   const notice = message(query);
   const open = isChangeable(request, now);
   const facts = { ...request, priorityProfileId: null };
-  const [answers, hasAddress, booking] = await Promise.all([
+  const [answers, hasAddress, booking, subscribed] = await Promise.all([
     open ? familyAnswers(user.id, request.id) : Promise.resolve([]),
     open ? requestHasAddress(user.id, request.id) : Promise.resolve(false),
     // A booked request, and one whose garde was cancelled since (D-110), link to the garde.
     request.status !== "ouverte" ? bookingOfRequest(user.id, request.id) : Promise.resolve(null),
+    isSubscribed(user.id, now),
   ]);
+  const mayBook = familyMay("reserver", { subscribed });
+  const editable = isEditable(request, answers.length, now);
+  // Republishing needs a waiting answer, so the answers' invitation line stands for it too.
+  const republishable = canRepublish(facts, answers.length, now);
   const night = recapNight(request.nightDate, request.startTime, request.extraHours);
   const conversationIds = await conversationsOfAnswers(user.id, answers.map((answer) => answer.applicationId));
 
@@ -161,7 +172,8 @@ export default async function DemandePage({
             <p className="max-w-2xl text-corps text-encre-taupe">{r.famille.aucuneReponse}</p>
           ) : (
             <>
-              {!hasAddress ? (
+              {!mayBook ? <SubscriptionRequired /> : null}
+              {mayBook && !hasAddress ? (
                 <div className="flex max-w-2xl flex-col gap-3">
                   <p className="text-corps text-encre-taupe">{r.famille.adresseRequise}</p>
                   <Button asChild variant="raye" className="w-fit">
@@ -203,7 +215,7 @@ export default async function DemandePage({
                             {fill(m.liens.ecrire, { prenom: answer.firstName })}
                           </Link>
                         ) : null}
-                        {hasAddress ? (
+                        {mayBook && hasAddress ? (
                           <AcceptAnswer
                             recap={{
                               ...night,
@@ -230,13 +242,14 @@ export default async function DemandePage({
 
       {open && answers.length > 0 ? <p className="max-w-2xl text-corps text-encre-taupe">{r.famille.verrou}</p> : null}
 
+      {editable && !familyMay("modifier", { subscribed }) ? <SubscriptionRequired /> : null}
       <div className="flex flex-wrap gap-3">
-        {isEditable(request, answers.length, now) ? (
+        {editable && familyMay("modifier", { subscribed }) ? (
           <Button asChild>
             <Link href={`${familyRequestPath(request.id)}/modifier`}>{t.boutons.modifier}</Link>
           </Button>
         ) : null}
-        {canRepublish(facts, answers.length, now) ? (
+        {republishable && familyMay("publier", { subscribed }) ? (
           <RepublishRequest onRepublish={republishRequestAction.bind(null, request.id)} />
         ) : null}
         {open ? <CancelRequest onCancel={cancelRequestAction.bind(null, request.id)} /> : null}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
 import { FormMessage } from "@/components/auth/field";
 import { RequestCard } from "@/components/demandes/request-card";
 import { SpaceShell } from "@/components/shell/space-shell";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
+import { familyMayNow } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { NEW_REQUEST_PATH, NEW_URGENT_REQUEST_PATH } from "@/lib/demandes/paths";
@@ -35,7 +37,8 @@ export const dynamic = "force-dynamic";
  * message, then either one of her open requests never sent to anyone, or a new
  * request, normal or urgent, published for this professional. Nobody else waits:
  * the request stays on every serving professional's list. Without a commune in
- * her profile she is sent to complete it first, as the form does.
+ * her profile she is sent to complete it first, as the form does. Without a
+ * subscription the invitation line takes the page's place (abonnements-acces).
  */
 export default async function PrioritePage({
   params,
@@ -49,6 +52,13 @@ export default async function PrioritePage({
   const user = await requireAccess(withQuery(priorityPath(id), notice));
   const profile = await publicProfile(id);
   if (!profile) notFound();
+  if (!(await familyMayNow(user.id, "priorite", new Date()))) {
+    return (
+      <SpaceShell user={user} title={r.meta.priorite}>
+        <SubscriptionRequired />
+      </SpaceShell>
+    );
+  }
   if (!(await familyCommune(user.id))) redirect(`${PROFILE_PATH}?completer=1`);
 
   const candidates = await priorityCandidates(user.id, profile.id);

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
 import { FormMessage } from "@/components/auth/field";
 import { criteriaLabels } from "@/components/avis/criteria";
 import { GivenRating } from "@/components/avis/stars";
@@ -15,6 +16,8 @@ import { gardes } from "@/content/gardes";
 import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
+import { familyMay } from "@/lib/abonnements/rules";
+import { isSubscribed } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { familyRatingPath } from "@/lib/avis/paths";
@@ -82,6 +85,11 @@ export const dynamic = "force-dynamic";
  *
  * The rating (avis-etoiles): « Laisser un avis » while she may rate it, then
  * the stars she gave, never the professional's rating of her (D-117).
+ *
+ * Without a subscription (abonnements-acces) the garde stays whole: the
+ * phone, cancelling, the absence, the conversation and the rating. Only
+ * « Republier ma demande » publishes, and the invitation line takes its
+ * place. The profile and the priority links lead to pages that show the line.
  */
 export default async function ReservationPage({
   params,
@@ -118,11 +126,13 @@ export default async function ReservationPage({
   const facts = { ...request, status: booking.garde.status };
   const state = gardeState(facts, now);
   const republishable = canRepublish(facts, now);
-  const [fee, liveRequest, given] = await Promise.all([
+  const [fee, liveRequest, given, subscribed] = await Promise.all([
     booking.garde.status === "annulee" ? gardeFee(booking.id) : Promise.resolve(null),
     republishable ? liveRequestOn(user.id, request.nightDate) : Promise.resolve(null),
     ratingsGiven("famille", [booking.id]),
+    isSubscribed(user.id, now),
   ]);
+  const mayRepublish = familyMay("publier", { subscribed });
   const myRating = given.get(booking.id) ?? null;
   const cancelled = cancelledLine(booking.garde, "famille", professional.firstName);
   const feeLine = feeText(booking.garde, fee?.status ?? null);
@@ -170,6 +180,7 @@ export default async function ReservationPage({
           className="max-w-2xl rounded-carte bg-perle px-6 py-8 md:px-10"
         />
       ) : null}
+      {republishable && !liveRequest && !mayRepublish ? <SubscriptionRequired /> : null}
       <div className="flex flex-wrap gap-3">
         {canRate(facts, myRating !== null, now) ? (
           <Button asChild>
@@ -181,9 +192,9 @@ export default async function ReservationPage({
             <Button asChild>
               <Link href={familyRequestPath(liveRequest)}>{g.republication.dejaOuverte}</Link>
             </Button>
-          ) : (
+          ) : mayRepublish ? (
             <RepublishGarde onRepublish={republishGardeAction.bind(null, booking.id)} />
-          )
+          ) : null
         ) : null}
         {conversationId ? (
           <Button asChild>

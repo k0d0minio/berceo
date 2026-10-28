@@ -545,6 +545,23 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
 - **The one rule:** `hasActiveSubscription(row, now)` in `src/lib/abonnements/rules.ts`: an
   `active` row, or an `impayee` row before its grace period's end. `isSubscribed(userId, now)`
   reads it for a family. Every later stub of the epic reads this rule.
+- **What it opens (abonnements-acces):** `familyMay(action, { subscribed, booked })` in
+  `rules.ts` is the one gate. `subscribed` is `hasActiveSubscription`, so the grace period
+  opens everything and a pending first payment opens nothing. The six actions: `publier`
+  (publish and republish), `modifier`, `reserver` (« Accepter et réserver », before the fee's
+  Checkout), `priorite`, `profil` (the full profile) and `ecrire`. `booked` opens `ecrire` in
+  the booked answer's conversation, which closes when the night is over.
+  `familyMayNow(userId, action, now)` reads it for a page or an action.
+  - Each page shows the invitation line (`SubscriptionRequired`,
+    `src/components/abonnements/`) in place of a closed action. A page that is itself the
+    action (the new request, the edit, the full profile, the priority request) shows only
+    the line.
+  - Each server action reads the gate again before its write and goes back to its page.
+    `sendMessage` holds the gate for the family side with the facts it reads.
+  - Without a subscription the search stays open with the public teaser cards, which link to
+    the public pages. Her requests stay published, and she can cancel them. Her confirmed
+    gardes stay whole: the phone, cancelling, the absence, the conversation and the rating.
+  - The professionals' side reads none of it.
 - **Invoices:** Stripe sends each invoice and receipt by e-mail. The platform lists none.
 - **Configuration, per Stripe account (test on UAT, live on Production):**
   1. Make four products, each with one recurring price in euros: monthly, every 3 months,
@@ -555,8 +572,8 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   4. Add these events to the webhook endpoint of **The service fee**:
      `customer.subscription.created`, `customer.subscription.updated`,
      `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`.
-- **Words:** `src/content/abonnements.ts`, under `espace`, `retour`, `inscription` and
-  `accueil`.
+- **Words:** `src/content/abonnements.ts`, under `espace`, `retour`, `inscription`,
+  `accueil` and `requis` (the invitation line).
 
 ## The conversation
 

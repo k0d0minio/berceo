@@ -13,12 +13,14 @@ import { stripe } from "@/lib/paiements/stripe";
 import { SUBSCRIPTION_PATH, SUBSCRIPTION_RETURN_PATH } from "./paths";
 import {
   checkoutExpiry,
+  familyMay,
   graceEndsAt,
   hasActiveSubscription,
   LIVE,
   planOfPrice,
   PRICE_ENV,
   statusFromStripe,
+  type FamilyAction,
 } from "./rules";
 
 /**
@@ -88,6 +90,16 @@ export async function hasCompletedCheckout(userId: string): Promise<boolean> {
 /** Whether the family is subscribed now: `hasActiveSubscription` on her live row. */
 export async function isSubscribed(userId: string, now: Date): Promise<boolean> {
   return hasActiveSubscription(await liveSubscription(userId), now);
+}
+
+/**
+ * Whether the family may do `action` now (abonnements-acces): `familyMay` on
+ * her live row. A page reads it to show the invitation line in place of the
+ * action, and the action reads it again before its write, since a
+ * subscription can end between the page and the click.
+ */
+export async function familyMayNow(userId: string, action: FamilyAction, now: Date): Promise<boolean> {
+  return familyMay(action, { subscribed: await isSubscribed(userId, now) });
 }
 
 /** Whose Checkout this is, for the return page: another family's reads as not found. */

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import { SubscriptionRequired } from "@/components/abonnements/subscription-required"
 import { Composer } from "@/components/messagerie/composer"
 import { Thread } from "@/components/messagerie/thread"
 import { Button } from "@/components/ui/button"
@@ -20,7 +21,9 @@ import { familyBookingPath, professionalBookingPath } from "@/lib/reservations/p
  * the night, a way back to the request or the booking, the messages, and the
  * field while the conversation accepts messages (D-89), the closed line once
  * it does not. Opening it moves the viewer's read marker, after the messages
- * are read, so the count in the header drops on this very page.
+ * are read, so the count in the header drops on this very page. `locked`: a
+ * family without a subscription reads an open conversation she may not write
+ * in, and the invitation line takes the field's place (abonnements-acces).
  */
 
 const t = words(messagerie)
@@ -45,7 +48,7 @@ async function loadConversation(userId: string, side: Side, id: string): Promise
   return thread
 }
 
-function ConversationView({ side, thread }: { side: Side; thread: ThreadData }) {
+function ConversationView({ side, thread, locked = false }: { side: Side; thread: ThreadData; locked?: boolean }) {
   const back = backLink(side, thread)
   const open = isConversationOpen(thread, new Date())
 
@@ -75,7 +78,9 @@ function ConversationView({ side, thread }: { side: Side; thread: ThreadData }) 
         booked={thread.booked}
       />
       <div className="max-w-3xl">
-        {open ? (
+        {open && locked ? (
+          <SubscriptionRequired className="rounded-carte bg-perle px-6 py-4" />
+        ) : open ? (
           <Composer action={sendMessageAction.bind(null, side, thread.id)} />
         ) : (
           <p className="rounded-carte bg-perle px-6 py-4 text-corps text-encre-taupe">{t.conversation.fermee}</p>

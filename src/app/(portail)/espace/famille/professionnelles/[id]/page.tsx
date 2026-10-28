@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
 import { NoteDisplay } from "@/components/avis/stars";
 import { ProchainesDisponibilites } from "@/components/disponibilites/prochaines-disponibilites";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
@@ -10,6 +11,7 @@ import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
+import { familyMayNow } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { communeName } from "@/lib/communes";
@@ -45,7 +47,9 @@ export const dynamic = "force-dynamic";
  * disponibilités » (D-69, D-80). Never her surname, e-mail,
  * phone, INAMI number or documents. « Lui envoyer ma demande en priorité »
  * always (D-71); « Accepter et réserver » when opened from one of the family's
- * open requests on which her answer waits (`?demande=`).
+ * open requests on which her answer waits (`?demande=`). Without a
+ * subscription the invitation line takes the profile's place, from any link
+ * (abonnements-acces).
  */
 export default async function ProfilProfessionnellePage({
   params,
@@ -60,9 +64,17 @@ export default async function ProfilProfessionnellePage({
   const profile = await publicProfile(id);
   if (!profile) notFound();
 
+  const now = new Date();
+  if (!(await familyMayNow(user.id, "profil", now))) {
+    return (
+      <SpaceShell user={user} title={r.meta.profil}>
+        <SubscriptionRequired />
+      </SpaceShell>
+    );
+  }
+
   // Opened from one of her requests: the accept button, when this professional's answer waits on it.
   const { demande } = query;
-  const now = new Date();
   const request = demande ? await ownRequest(user.id, demande) : null;
   const answer =
     request && isChangeable(request, now) ? await waitingAnswerOf(user.id, request.id, profile.id) : null;

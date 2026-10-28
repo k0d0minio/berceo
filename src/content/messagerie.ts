@@ -111,6 +111,8 @@ export const messagerie = catalogue({
       tropLong: "Votre message dépasse 2 000 caractères. Raccourcissez-le avant de l'envoyer.",
       /** @relecture Surya — la conversation s'est fermée entre-temps. */
       fermee: "Cette conversation est fermée. Votre message n'a pas été envoyé.",
+      /** @relecture Surya — sans abonnement, hors de la garde réservée (abonnements-acces). */
+      abonnement: "Votre message n'a pas été envoyé. Écrire est réservé aux familles abonnées.",
       /** @relecture Surya — tout autre échec. */
       generique: "Votre message n'a pas pu être envoyé. Réessayez dans un instant.",
     },

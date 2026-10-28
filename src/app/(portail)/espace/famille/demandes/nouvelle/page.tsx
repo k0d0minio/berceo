@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
 import { RequestForm } from "@/components/demandes/request-form";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
+import { familyMayNow } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { localityValue } from "@/lib/communes";
@@ -35,7 +37,8 @@ export const dynamic = "force-dynamic";
  * for this request (demande-adresse-de-la-nuit).
  * With `?pour=<profile id>` (from « Lui envoyer ma demande en priorité ») the
  * request goes to that validated professional in priority (D-71); an unknown
- * or unvalidated profile is ignored.
+ * or unvalidated profile is ignored. Without a subscription the invitation
+ * line takes the form's place (abonnements-acces).
  */
 export default async function NouvelleDemandePage({
   searchParams,
@@ -44,10 +47,18 @@ export default async function NouvelleDemandePage({
 }) {
   const query = await searchParams;
   const user = await requireAccess(withQuery(NEW_REQUEST_PATH, query));
+  const urgent = query.urgente === "1";
+  if (!(await familyMayNow(user.id, "publier", new Date()))) {
+    return (
+      <SpaceShell user={user} title={urgent ? t.formulaire.titreUrgent : t.formulaire.titre}>
+        <SubscriptionRequired />
+      </SpaceShell>
+    );
+  }
+
   const profile = await ownFamilyProfile(user.id);
   if (!profile) redirect(`${PROFILE_PATH}?completer=1`);
 
-  const urgent = query.urgente === "1";
   const priority = query.pour ? await publicProfile(query.pour) : null;
 
   return (

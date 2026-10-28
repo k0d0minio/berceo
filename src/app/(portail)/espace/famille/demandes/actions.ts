@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { after } from "next/server";
 
+import { familyMayNow } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { siteOrigin } from "@/lib/site-origin";
 import { SPACES } from "@/lib/auth/routing";
@@ -42,6 +43,10 @@ import {
  * words up. Ids bound on a page are lookup keys only, checked again here (a
  * bound argument can be rewritten by the caller). The e-mails a write owes go
  * after the response (`after()`), so a failed send never undoes the write.
+ * Publishing, editing, booking and the priority request read the
+ * subscription's gate again before the write (abonnements-acces): a refusal
+ * goes back to the page, which shows the invitation line in the action's
+ * place. Cancelling never closes.
  */
 
 export type RequestState = {
@@ -60,6 +65,7 @@ export async function publishRequestAction(
   // night, the normal one only later nights, so the flag cannot widen either.
   const urgent = form.get("urgente") === "1";
   const now = new Date();
+  if (!(await familyMayNow(user.id, "publier", now))) redirect(NEW_REQUEST_PATH);
 
   const input = readRequestForm(form);
   const checked = validateRequest(input, { urgent, now, publishing: true });
@@ -118,6 +124,7 @@ export async function updateRequestAction(
   if (!existing) notFound();
 
   const now = new Date();
+  if (!(await familyMayNow(user.id, "modifier", now))) redirect(familyRequestPath(existing.id));
   const input = readRequestForm(form);
   // An answer waiting on it locks it (D-76).
   const pending = (await pendingCounts(user.id)).get(existing.id) ?? 0;
@@ -185,6 +192,7 @@ export async function acceptAnswerAction(requestId: string, applicationId: strin
   const user = await requireAccess(FAMILY_REQUESTS_PATH);
   const id = String(requestId);
   if (!UUID.test(id)) notFound();
+  if (!(await familyMayNow(user.id, "reserver", new Date()))) redirect(familyRequestPath(id));
 
   let result: StartResult;
   try {
@@ -218,6 +226,7 @@ export async function republishRequestAction(requestId: string): Promise<void> {
   const user = await requireAccess(FAMILY_REQUESTS_PATH);
   const id = String(requestId);
   if (!UUID.test(id)) notFound();
+  if (!(await familyMayNow(user.id, "publier", new Date()))) redirect(familyRequestPath(id));
 
   let result: RepublishResult;
   try {
@@ -246,6 +255,7 @@ export async function sendInPriorityAction(profileId: string, requestId: string)
   const profile = String(profileId);
   const id = String(requestId);
   if (!UUID.test(profile) || !UUID.test(id)) notFound();
+  if (!(await familyMayNow(user.id, "priorite", new Date()))) redirect(priorityPath(profile));
 
   let result: Awaited<ReturnType<typeof setPriority>>;
   try {

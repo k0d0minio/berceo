@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
+import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
 import { RequestForm } from "@/components/demandes/request-form";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { demandes } from "@/content/demandes";
 import { words } from "@/content/locale";
+import { familyMayNow } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { placeLine } from "@/lib/demandes/format";
 import { familyRequestPath } from "@/lib/demandes/paths";
@@ -31,6 +33,8 @@ export const dynamic = "force-dynamic";
  * and boîte, the profile's for a request published before it had its own, and
  * the optional reason (demande-motif-facultatif). The
  * commune and the urgency stay as published. An answer waiting on it locks it (D-76).
+ * Without a subscription the invitation line takes the form's place
+ * (abonnements-acces).
  */
 export default async function ModifierDemandePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -39,6 +43,13 @@ export default async function ModifierDemandePage({ params }: { params: Promise<
   if (!request) notFound();
 
   const now = new Date();
+  if (!(await familyMayNow(user.id, "modifier", now))) {
+    return (
+      <SpaceShell user={user} title={t.formulaire.titreModification}>
+        <SubscriptionRequired />
+      </SpaceShell>
+    );
+  }
   const pending = (await pendingCounts(user.id)).get(request.id) ?? 0;
   if (!isEditable(request, pending, now)) redirect(`${familyRequestPath(request.id)}?erreur=nonModifiable`);
   const address = await ownRequestAddress(user.id, request.id);
