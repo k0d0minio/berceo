@@ -10,7 +10,9 @@ import { catalogue } from "./locale";
  *
  * `espace`, `retour` and `accueil` are the family's page « Votre abonnement »,
  * the notices after Stripe's page and the block on her home
- * (abonnements-catalogue-stripe). Every `@relecture` entry is ours, written
+ * (abonnements-catalogue-stripe). `inscription` is the plans' block of the
+ * family sign-up, and `accueil.finaliser*` the call on her home when she left
+ * the Checkout unpaid (abonnements-inscription-famille). Every `@relecture` entry is ours, written
  * in the guide's rules, and waits for Surya. `{name}` slots are filled with
  * `fill()` from ./locale.
  *
@@ -63,6 +65,18 @@ export const abonnements = catalogue({
       erreur: "La page de paiement n'a pas pu s'ouvrir. Réessayez dans un instant.",
     },
 
+    /** Le choix de la formule, en tête de l'inscription famille. */
+    inscription: {
+      /** @relecture Surya — le titre du choix. */
+      legende: "Choisissez votre formule",
+      /** @relecture Surya — ce que donne une formule, repris de la page Tarifs. */
+      donne:
+        "Chaque formule vous donne accès aux profils complets des professionnelles et à leur contact. Vous publiez autant de demandes que nécessaire.",
+      /** @relecture Surya — quand le paiement arrive. */
+      suite:
+        "Vous réglez votre abonnement sur la page sécurisée de Stripe, après la confirmation de votre adresse e-mail. Il se renouvelle automatiquement à la fin de chaque période.",
+    },
+
     /** Le bloc de l'accueil de l'espace famille. */
     accueil: {
       /** @relecture Surya — le titre du bloc. */
@@ -73,6 +87,12 @@ export const abonnements = catalogue({
       voir: "Voir les formules",
       /** @relecture Surya — le lien vers la page de l'abonnement. */
       gerer: "Voir mon abonnement",
+      /** @relecture Surya — la formule choisie à l'inscription, pas encore réglée. */
+      finaliserTexte: "Vous avez choisi la formule {plan}. Il reste à régler votre abonnement.",
+      /** @relecture Surya — le bouton qui rouvre la page de paiement. */
+      finaliser: "Finaliser mon abonnement",
+      /** @relecture Surya — le lien vers les quatre formules. */
+      autreFormule: "Choisir une autre formule",
     },
   },
 });

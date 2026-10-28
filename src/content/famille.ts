@@ -93,6 +93,12 @@ export const famille = catalogue({
         /** @relecture Surya — lien vers le profil. */
         lien: "Compléter mon profil",
       },
+      /**
+       * The charter every professional accepts (charte-cote-parents). The
+       * founders' wording.
+       * @relecture Surya — bouton vers la charte des professionnelles.
+       */
+      charte: "Lire la charte des professionnelles",
     },
   },
 });

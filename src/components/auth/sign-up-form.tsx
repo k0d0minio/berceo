@@ -17,14 +17,25 @@ import { words } from "@/content/locale"
  * required consent checkbox linking the two legal pages, "Créer mon compte".
  * Validation is the server's; a refused form keeps what was typed, minus the
  * passwords.
+ *
+ * The family's form opens on the four plans (abonnements-inscription-famille):
+ * one radio card each, required, and one line on what a plan gives. The
+ * professional's form has no `plans` and shows none.
  */
+
+/** One plan's card: its value for the form, and the words the page looked up. */
+type PlanChoice = { value: string; name: string; duree: string; prix: string }
+
 function SignUpForm({
   action,
   signInHref = "/connexion",
+  plans,
 }: {
   action: (state: SignUpState, form: FormData) => Promise<SignUpState>
   /** The sign-in link, carrying the way back when the page has one (D-129). */
   signInHref?: string
+  /** The plans to pick from, with their legend and the lines under them. Only the family's form. */
+  plans?: { choices: readonly PlanChoice[]; legende: string; lignes: readonly string[] }
 }) {
   const [state, submit, pending] = useActionState(action, {})
   const t = words(comptes)
@@ -35,6 +46,51 @@ function SignUpForm({
   return (
     <form action={submit} noValidate className="flex flex-col gap-6">
       {state.message ? <FormMessage>{formMessage(state.message)}</FormMessage> : null}
+
+      {plans ? (
+        <fieldset
+          className="flex flex-col gap-3"
+          aria-describedby={["champ-formule-aide", e.formule ? "champ-formule-erreur" : ""].filter(Boolean).join(" ")}
+        >
+          <legend className="mb-3 font-display text-h3 text-encre-sauge">{plans.legende}</legend>
+          {/* The key re-applies the checked plan after a refused form (React resets it). */}
+          <div key={`formule-${v?.formule ?? ""}`} className="grid gap-4 md:grid-cols-2">
+            {plans.choices.map((plan) => (
+              <label
+                key={plan.value}
+                className="flex cursor-pointer items-start gap-3 rounded-carte border-2 border-perle bg-perle px-6 py-5 has-[:checked]:border-sauge"
+              >
+                <input
+                  type="radio"
+                  name="formule"
+                  value={plan.value}
+                  defaultChecked={v?.formule === plan.value}
+                  required
+                  aria-invalid={e.formule ? true : undefined}
+                  className="mt-1.5 size-5 shrink-0 accent-sauge"
+                />
+                <span className="flex flex-col gap-1">
+                  <span className="font-display text-h3 text-encre-sauge">{plan.name}</span>
+                  <span className="text-corps text-encre-taupe">{plan.duree}</span>
+                  <span className="text-corps font-semibold text-encre-taupe">{plan.prix}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <div id="champ-formule-aide" className="flex flex-col gap-2">
+            {plans.lignes.map((ligne) => (
+              <p key={ligne} className="text-corps text-encre-taupe">
+                {ligne}
+              </p>
+            ))}
+          </div>
+          {e.formule ? (
+            <p id="champ-formule-erreur" className="px-2 text-legende font-semibold text-encre-taupe">
+              {fieldError(e.formule)}
+            </p>
+          ) : null}
+        </fieldset>
+      ) : null}
 
       <div className="grid gap-6 md:grid-cols-2">
         <Field

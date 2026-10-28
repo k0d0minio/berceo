@@ -92,6 +92,19 @@ export function hasActiveSubscription(
 }
 
 /**
+ * The plan a family's home asks her to finish (abonnements-inscription-famille):
+ * the one she picked at sign-up, while no Checkout of hers ever completed.
+ * Leaving the Checkout unpaid completes none. A completed Checkout, paid,
+ * pending or ended since, asks for nothing more.
+ */
+export function planToFinish(
+  signupPlan: SubscriptionPlan | null,
+  completedCheckout: boolean,
+): SubscriptionPlan | null {
+  return completedCheckout ? null : signupPlan;
+}
+
+/**
  * A subscription Checkout lasts 30 minutes, Stripe's minimum, like the fee's
  * (D-92), with a minute of margin for Stripe's clock.
  */

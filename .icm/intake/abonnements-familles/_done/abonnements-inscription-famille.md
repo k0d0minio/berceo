@@ -26,7 +26,7 @@ the bottom of the parents' « Comment ça marche » page and the one on `/tarifs
 - [ ] After the account and the e-mail confirmation, the family lands on the Checkout for her plan, and her space shows the plan when she returns.
 - [ ] A family who abandons the Checkout sees, in her space, one call to finish her subscription.
 - [ ] The buttons on the parents' « Comment ça marche » page and on `/tarifs` open the sign-up.
-- [ ] The consent ledger keeps recording the CGU and the privacy policy, with the plan chosen.
+- [ ] The consent ledger keeps recording the CGU and the privacy policy, and the account keeps the plan chosen.
 
 ## Out of scope
 

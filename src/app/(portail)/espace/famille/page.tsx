@@ -5,6 +5,7 @@ import { OwnNote } from "@/components/avis/stars";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { abonnements } from "@/content/abonnements";
+import { common } from "@/content/common";
 import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
 import { famille } from "@/content/famille";
@@ -12,7 +13,8 @@ import { fill, words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
 import { planWords, renewalDate } from "@/lib/abonnements/format";
 import { SUBSCRIPTION_PATH } from "@/lib/abonnements/paths";
-import { liveSubscription } from "@/lib/abonnements/subscriptions";
+import { planToFinish } from "@/lib/abonnements/rules";
+import { hasCompletedCheckout, liveSubscription } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
@@ -23,10 +25,13 @@ import { familyCommune } from "@/lib/famille/profile";
 import { SEARCH_PATH } from "@/lib/recherche/slugs";
 import { siteOrigin } from "@/lib/site-origin";
 
+import { startSubscriptionAction } from "./abonnement/actions";
+
 const t = words(comptes);
 const f = words(famille).accueil;
 const d = words(demandes);
 const a = words(abonnements);
+const c = words(common);
 
 export const metadata: Metadata = {
   title: t.meta.espace,
@@ -40,18 +45,23 @@ export const dynamic = "force-dynamic";
  * profile. The two ways to publish (D-60) and her requests are one tap away.
  * Her own note and gardes count close the page (avis-etoiles, D-121). « Votre
  * abonnement » shows her plan and its renewal date, or leads to the four plans
- * (abonnements-catalogue-stripe). A welcome
+ * (abonnements-catalogue-stripe). A family who left the Checkout of the plan
+ * she picked at sign-up gets one call to finish it instead
+ * (abonnements-inscription-famille). An outlined button opens the charter the
+ * professionals accept (charte-cote-parents). A welcome
  * e-mail that failed to send is tried again after the page (D-165).
  */
 export default async function EspaceFamillePage() {
   const user = await requireAccess(SPACES.parent);
   scheduleWelcomeIfDue(user, await siteOrigin());
-  const [commune, note, live] = await Promise.all([
+  const [commune, note, live, completed] = await Promise.all([
     familyCommune(user.id),
     noteOfUser(user.id),
     liveSubscription(user.id),
+    hasCompletedCheckout(user.id),
   ]);
   const running = live && (live.status === "active" || live.status === "impayee") ? live : null;
+  const toFinish = planToFinish(user.signupPlan, completed);
 
   return (
     <SpaceShell user={user}>
@@ -79,6 +89,21 @@ export default async function EspaceFamillePage() {
               className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
             >
               {a.accueil.gerer}
+            </Link>
+          </>
+        ) : toFinish ? (
+          <>
+            <p className="text-corps text-encre-taupe">
+              {fill(a.accueil.finaliserTexte, { plan: planWords(toFinish).name })}
+            </p>
+            <form action={startSubscriptionAction.bind(null, toFinish)}>
+              <Button type="submit">{a.accueil.finaliser}</Button>
+            </form>
+            <Link
+              href={SUBSCRIPTION_PATH}
+              className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+            >
+              {a.accueil.autreFormule}
             </Link>
           </>
         ) : (
@@ -111,6 +136,9 @@ export default async function EspaceFamillePage() {
       >
         {d.famille.titre}
       </Link>
+      <Button asChild variant="blanc" className="self-start">
+        <Link href={c.pages.charte.href}>{f.charte}</Link>
+      </Button>
       <OwnNote note={note} />
     </SpaceShell>
   );

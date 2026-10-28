@@ -43,7 +43,7 @@ export type SignUpState = {
   errors?: FieldErrors<SignUpField>;
   message?: FormMessage;
   /** What was typed, minus the passwords, so a refused form keeps it. */
-  values?: { prenom: string; nom: string; email: string; telephone: string };
+  values?: { prenom: string; nom: string; email: string; telephone: string; formule: string };
 };
 
 export async function signUp(
@@ -66,11 +66,13 @@ export async function signUp(
     nom: input.nom,
     email: input.email,
     telephone: input.telephone,
+    formule: input.formule,
   };
-  const checked = validateSignUp(input);
+  // A family picks one of the four plans before her account (abonnements-inscription-famille).
+  const checked = validateSignUp(input, { needsPlan: role === "parent" });
   if (!checked.ok) return { errors: checked.errors, values };
 
-  const { firstName, lastName, email, phone, password } = checked.values;
+  const { firstName, lastName, email, phone, password, plan } = checked.values;
   const createIdentity = () =>
     getAuth().signUp.email({
       email,
@@ -114,11 +116,11 @@ export async function signUp(
     return { message: "generique", values };
   }
 
-  // The row id is ours, so the users row and its two consent rows go in one batch.
+  // The row id is ours, so the users row, with the plan picked, and its two consent rows go in one batch.
   const id = crypto.randomUUID();
   try {
     await db.batch([
-      db.insert(users).values({ id, authUserId, email, firstName, lastName, phone, role }),
+      db.insert(users).values({ id, authUserId, email, firstName, lastName, phone, role, signupPlan: plan }),
       db.insert(userConsents).values(consentRows(id)),
     ]);
   } catch (writeError) {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { returnToStore, verifiedLanding } from "./retour";
+import { paidLanding, returnToStore, verifiedLanding } from "./retour";
 import { FAMILY_SIGN_UP_PATH, SIGN_IN_PATH, withReturn } from "./routing";
 
 /**
@@ -49,5 +49,22 @@ describe("where a verified user lands", () => {
 
   it("a professional: always her space", () => {
     expect(verifiedLanding("professionnel", PROFILE)).toBe("/espace/professionnelle");
+  });
+
+  it("a family who picked a plan: its Checkout first, way back or not (abonnements-inscription-famille)", () => {
+    expect(verifiedLanding("parent", PROFILE, "serenite")).toBe("/espace/famille/abonnement/commencer");
+    expect(verifiedLanding("parent", undefined, "decouverte")).toBe("/espace/famille/abonnement/commencer");
+  });
+});
+
+describe("where a family lands once she paid (abonnements-inscription-famille)", () => {
+  it("her way back, when it still holds", () => {
+    expect(paidLanding(PROFILE)).toBe(PROFILE);
+  });
+
+  it("nowhere special without one, or with one outside her space", () => {
+    expect(paidLanding(undefined)).toBeNull();
+    for (const bad of BAD) expect(paidLanding(bad)).toBeNull();
+    expect(paidLanding("/espace/professionnelle/gardes")).toBe("/espace/famille");
   });
 });
