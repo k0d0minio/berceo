@@ -71,6 +71,8 @@ export type AdminRequestRow = {
   family: string;
   familySuspended: boolean;
   answers: number;
+  /** The family's optional reason (demande-motif-facultatif), shown under the row. */
+  reason: string | null;
 };
 
 /** One page of requests, the latest night first. */
@@ -96,6 +98,7 @@ export async function readRequests(
         familyLast: familyUser.lastName,
         familySuspendedAt: familyUser.suspendedAt,
         answers,
+        reason: careRequests.reason,
       })
       .from(careRequests)
       .innerJoin(familyUser, eq(familyUser.id, careRequests.familyUserId))

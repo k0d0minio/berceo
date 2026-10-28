@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 
 import type { RequestState } from "@/app/(portail)/espace/famille/demandes/actions"
 import { Field, FormMessage } from "@/components/auth/field"
@@ -14,8 +14,9 @@ import { famille } from "@/content/famille"
 import { fill, words } from "@/content/locale"
 import { parseLocalityValue } from "@/lib/communes"
 import { formatDate, formatTime } from "@/lib/demandes/format"
-import { AGE_UNITS, CHILDREN, FEEDINGS, MAX_EXTRA_HOURS, START_TIMES } from "@/lib/demandes/rules"
+import { AGE_UNITS, CHILDREN, FEEDINGS, MAX_EXTRA_HOURS, REASON_MAX, START_TIMES } from "@/lib/demandes/rules"
 import type { RequestError, RequestField, RequestInput } from "@/lib/demandes/validation"
+import { characterCount } from "@/lib/famille/validation"
 import { cn } from "@/lib/utils"
 
 /*
@@ -23,7 +24,8 @@ import { cn } from "@/lib/utils"
  * a phone can read, the start time, the extra hours with the 11-hour note,
  * the number of children, their age, how they are fed, the night's commune
  * and address with the address note, prefilled from her profile and hers to
- * change (demande-adresse-de-la-nuit), and the mandatory checkbox (D-20).
+ * change (demande-adresse-de-la-nuit), the optional reason with the founders'
+ * help line and notice (demande-motif-facultatif), and the mandatory checkbox (D-20).
  * Three modes: a normal request, an urgent one (tonight or tomorrow night,
  * D-60), and an edit, which never shows the checkbox again nor changes the
  * commune or the urgency: the rue, the numéro and the boîte change. Published from a professional's profile, it carries her id and says
@@ -43,6 +45,45 @@ const selectClasses =
 const legend = "text-corps font-semibold text-encre-taupe"
 const helpText = "px-6 text-legende text-encre-taupe"
 const errorClasses = "px-6 text-legende font-semibold text-encre-taupe"
+
+/** The optional reason, with its live count, the way the profile counts its context line. */
+function ReasonField({ defaultValue, error }: { defaultValue: string; error?: string }) {
+  const [reason, setReason] = useState(defaultValue)
+  const count = characterCount(reason.trim())
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor="champ-motif" className={legend}>
+        {t.formulaire.champs.motif}
+      </label>
+      <p id="champ-motif-aide" className={helpText}>
+        {t.formulaire.aides.motif}
+      </p>
+      <textarea
+        id="champ-motif"
+        name="motif"
+        rows={4}
+        value={reason}
+        onChange={(event) => setReason(event.target.value)}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={["champ-motif-aide", "champ-motif-avertissement", error ? "champ-motif-erreur" : ""]
+          .filter(Boolean)
+          .join(" ")}
+        className="w-full min-w-0 rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge focus-visible:outline-none aria-invalid:border-destructive"
+      />
+      <p id="champ-motif-avertissement" className={helpText}>
+        {t.formulaire.aides.motifAvertissement}{" "}
+        <span aria-live="polite">{fill(t.formulaire.aides.compteur, { n: String(count) })}</span>
+      </p>
+      {error ? (
+        <p id="champ-motif-erreur" className={errorClasses}>
+          {error}
+        </p>
+      ) : count > REASON_MAX ? (
+        <p className={errorClasses}>{t.erreurs.motifLong}</p>
+      ) : null}
+    </div>
+  )
+}
 
 function RequestForm({
   action,
@@ -354,6 +395,13 @@ function RequestForm({
         </div>
         <p className={helpText}>{t.formulaire.aides.commune}</p>
       </fieldset>
+
+      <ReasonField
+        // A refused form remounts the field with what was typed.
+        key={`motif-${v?.motif ?? ""}`}
+        defaultValue={v?.motif ?? ""}
+        error={errorOf("motif")}
+      />
 
       {mode === "modification" ? null : (
         <div className="flex flex-col gap-2">

@@ -30,7 +30,10 @@ import type { RequestValues } from "./validation";
  * What a professional reads is `cardColumns`: the night (its extra hours too), the children,
  * their feeding, the commune. Never the family's id, name, e-mail, phone or address (D-15); the
  * tests hold the list of columns. The night's address is written here through
- * `requestAddressValues` and read only by `src/lib/famille/`. Answers and bookings are
+ * `requestAddressValues` and read only by `src/lib/famille/`. The family's optional reason
+ * (demande-motif-facultatif) is no card column either: her own request, the professional's
+ * request page (`professionalRequest`) and the founders' list read it, never a card, the
+ * digest or an e-mail. Answers and bookings are
  * `src/lib/reservations/`'s; the request's own side of them (the list with her
  * answer, the priority professional, cancelling with its declined answers) is
  * here.
@@ -53,8 +56,8 @@ export const cardColumns = {
   createdAt: careRequests.createdAt,
 };
 
-/** The family's own view adds the status. */
-const familyColumns = { ...cardColumns, status: careRequests.status };
+/** The family's own view adds the status. The e-mails read these too: never the reason. */
+export const familyColumns = { ...cardColumns, status: careRequests.status };
 
 export type RequestCard = {
   id: string;
@@ -74,6 +77,9 @@ export type RequestCard = {
 };
 
 export type FamilyRequest = RequestCard & { status: RequestStatus };
+
+/** One of her requests, with her optional reason (demande-motif-facultatif). */
+export type OwnRequest = FamilyRequest & { reason: string | null };
 
 /** The night has not started yet, in Brussels (`date + time` is a local timestamp). */
 export const nightAhead = sql`(${careRequests.nightDate} + ${careRequests.startTime}) > (now() AT TIME ZONE ${TIME_ZONE})`;
@@ -119,8 +125,8 @@ export type PublishPlace = {
  * and address, prefilled from her profile (demande-adresse-de-la-nuit). Without
  * a profile there is nothing to publish. Published from a professional's
  * profile, it carries her as its priority professional (D-71); the caller has
- * checked she is validated. A republished garde copies its request's feeding
- * and address, null when that request predates the field.
+ * checked she is validated. A republished garde copies its request's feeding,
+ * address and reason, null when that request predates the field.
  */
 export async function publishRequest(
   userId: string,
@@ -171,10 +177,10 @@ export async function familyRequests(userId: string, now: Date): Promise<FamilyR
 }
 
 /** One of her requests, or null: an unknown id and another family's id read the same. */
-export async function ownRequest(userId: string, id: string): Promise<FamilyRequest | null> {
+export async function ownRequest(userId: string, id: string): Promise<OwnRequest | null> {
   if (!UUID.test(id)) return null;
   const [row] = await db
-    .select(familyColumns)
+    .select({ ...familyColumns, reason: careRequests.reason })
     .from(careRequests)
     .where(and(eq(careRequests.id, id), eq(careRequests.familyUserId, userId)))
     .limit(1);
@@ -195,7 +201,7 @@ export type ChangeResult = "ok" | "nonModifiable" | "doublon";
 
 /**
  * Saves an edit: the night, the start, the children, the age, the feeding,
- * the night's address. Never the commune or the urgency, and never while a validated professional's answer
+ * the reason, the night's address. Never the commune or the urgency, and never while a validated professional's answer
  * waits on it (D-76, D-85): the lock is held in the UPDATE itself, so an answer
  * given while the form was open still wins.
  */
@@ -550,8 +556,39 @@ export async function professionalRequests(userId: string): Promise<Professional
   };
 }
 
-/** `professionalRequests`' query for her profile, built and not run. */
-export function herListQuery(profileId: string) {
+/**
+ * One request of her list, with the family's optional reason
+ * (demande-motif-facultatif): the request page is the one place she reads it.
+ * Null when her profile is not validated or the request is not on her list:
+ * the same visibility as the list, so an id she cannot see reads as not found.
+ */
+export async function professionalRequest(
+  userId: string,
+  id: string,
+): Promise<{
+  nightRateEur: number | null;
+  extraHourRateEur: number | null;
+  request: ProfessionalRequest & { reason: string | null };
+} | null> {
+  if (!UUID.test(id)) return null;
+  const profile = await professionalProfileOf(userId);
+  if (!profile || profile.status !== "valide") return null;
+
+  const [request] = await herListQuery(profile.id, id);
+  if (!request) return null;
+  const [notes, [row]] = await Promise.all([
+    familyNotesOfRequests([request.id]),
+    db.select({ reason: careRequests.reason }).from(careRequests).where(eq(careRequests.id, request.id)).limit(1),
+  ]);
+  return {
+    nightRateEur: profile.nightRateEur,
+    extraHourRateEur: profile.extraHourRateEur,
+    request: { ...request, family: notes.get(request.id) ?? NO_NOTE, reason: row?.reason ?? null },
+  };
+}
+
+/** `professionalRequests`' query for her profile, built and not run; `requestId` narrows it to one. */
+export function herListQuery(profileId: string, requestId?: string) {
   const priority = sql<boolean>`coalesce(${careRequests.priorityProfileId} = ${profileId}, false)`;
   return db
     .select({ ...cardColumns, status: careRequests.status, priority, answer: careRequestApplications.status })
@@ -565,6 +602,7 @@ export function herListQuery(profileId: string) {
     )
     .where(
       and(
+        requestId === undefined ? undefined : eq(careRequests.id, requestId),
         eq(careRequests.status, "ouverte"),
         nightAhead,
         or(

@@ -146,7 +146,7 @@ export type RepublishResult =
 /**
  * « Republier ma demande » on one of her cancelled gardes (D-107): a new
  * request for the same night, start, extra hours, children, age, feeding,
- * commune and address, published like any other (`publishRequest`), urgent when the night
+ * reason, commune and address, published like any other (`publishRequest`), urgent when the night
  * is tonight or tomorrow (D-60), sent to nobody in priority. Refused once the
  * night has started; a live request of hers that night (open, or booked again)
  * is returned instead, so she never holds two for one night.
@@ -167,6 +167,7 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
       babyAgeValue: careRequests.babyAgeValue,
       babyAgeUnit: careRequests.babyAgeUnit,
       feeding: careRequests.feeding,
+      reason: careRequests.reason,
     })
     .from(bookings)
     .innerJoin(careRequests, eq(careRequests.id, bookings.requestId))
@@ -185,6 +186,7 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
     babyAgeValue: row.babyAgeValue,
     babyAgeUnit: row.babyAgeUnit,
     feeding: row.feeding,
+    reason: row.reason,
   };
   const urgent = values.nightDate <= addDays(brusselsNow(now).date, URGENT_LAST_DAY);
   const place = {

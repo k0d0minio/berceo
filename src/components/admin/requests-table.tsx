@@ -1,3 +1,4 @@
+import { Fragment } from "react"
 import Link from "next/link"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -12,7 +13,9 @@ import { displayStatus } from "@/lib/demandes/rules"
 /*
  * Every care request (back-office-admin): the night, the commune, the family
  * (opening her account), the urgent flag, how many answered, and the state the
- * spaces show. On a phone the table scrolls inside its card.
+ * spaces show. A request with the family's optional reason gets « Motif de la
+ * famille » under its row, folded (demande-motif-facultatif). On a phone the
+ * table scrolls inside its card.
  */
 function RequestsTable({ rows, now }: { rows: AdminRequestRow[]; now: Date }) {
   const t = words(admin).demandes
@@ -33,21 +36,33 @@ function RequestsTable({ rows, now }: { rows: AdminRequestRow[]; now: Date }) {
         </TableHeader>
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell>
-                {fill(t.nuit, { date: formatDate(row.nightDate), heure: formatTime(row.startTime) })}
-                {row.urgent ? <span className="block text-legende font-semibold">{t.urgente}</span> : null}
-              </TableCell>
-              <TableCell>{placeLine(row.postcode, row.locality)}</TableCell>
-              <TableCell>
-                <Link href={adminUserPath(row.familyUserId)} className="text-encre-sauge underline underline-offset-4">
-                  {row.family}
-                </Link>
-                {row.familySuspended ? <span className="block text-legende font-semibold">{r.suspendu}</span> : null}
-              </TableCell>
-              <TableCell>{row.answers}</TableCell>
-              <TableCell>{statuts[displayStatus(row, now)]}</TableCell>
-            </TableRow>
+            <Fragment key={row.id}>
+              <TableRow className={row.reason ? "border-b-0" : undefined}>
+                <TableCell>
+                  {fill(t.nuit, { date: formatDate(row.nightDate), heure: formatTime(row.startTime) })}
+                  {row.urgent ? <span className="block text-legende font-semibold">{t.urgente}</span> : null}
+                </TableCell>
+                <TableCell>{placeLine(row.postcode, row.locality)}</TableCell>
+                <TableCell>
+                  <Link href={adminUserPath(row.familyUserId)} className="text-encre-sauge underline underline-offset-4">
+                    {row.family}
+                  </Link>
+                  {row.familySuspended ? <span className="block text-legende font-semibold">{r.suspendu}</span> : null}
+                </TableCell>
+                <TableCell>{row.answers}</TableCell>
+                <TableCell>{statuts[displayStatus(row, now)]}</TableCell>
+              </TableRow>
+              {row.reason ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="pt-0">
+                    <details>
+                      <summary className="cursor-pointer text-legende font-semibold text-encre-sauge">{t.motif}</summary>
+                      <p className="max-w-2xl pt-2 whitespace-pre-line break-words">{row.reason}</p>
+                    </details>
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </Fragment>
           ))}
         </TableBody>
       </Table>

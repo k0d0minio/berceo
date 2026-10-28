@@ -454,6 +454,12 @@ export const careRequests = pgTable(
     nightStreet: text("night_street"),
     nightHouseNumber: text("night_house_number"),
     nightBox: text("night_box"),
+    /**
+     * The family's optional answer to « Pourquoi souhaitez-vous être accompagné(e) la nuit ? »
+     * (demande-motif-facultatif, D-20 superseded for this one field), 300 characters at most.
+     * Never a card column: only the professional's request page and the founders' list read it.
+     */
+    reason: text("reason"),
     /** When the family ticked « Mon enfant n'a pas de condition médicale particulière… ». */
     noMedicalConditionAt: timestamp("no_medical_condition_at", { withTimezone: true }).notNull(),
     /** Set when a daily digest carried it (normal requests only); null until then. */
@@ -500,6 +506,7 @@ export const careRequests = pgTable(
       sql`${table.startTime} BETWEEN '18:00' AND '23:00' AND date_part('minute', ${table.startTime}) IN (0, 30) AND date_part('second', ${table.startTime}) = 0`,
     ),
     check("care_requests_extra_hours_range", sql`${table.extraHours} BETWEEN 0 AND 6`),
+    check("care_requests_reason_length", sql`char_length(${table.reason}) <= 300`),
     check(
       "care_requests_baby_age_range",
       sql`(${table.babyAgeUnit} = 'semaines' AND ${table.babyAgeValue} BETWEEN 0 AND 12) OR (${table.babyAgeUnit} = 'mois' AND ${table.babyAgeValue} BETWEEN 1 AND 24)`,
