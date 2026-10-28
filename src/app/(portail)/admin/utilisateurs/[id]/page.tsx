@@ -18,6 +18,7 @@ import { ADMIN_BOOKINGS_PATH, ADMIN_REQUESTS_PATH, adminFilePath, adminUserPath 
 import { deleteRefusal, UUID } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { formatDate, formatTime } from "@/lib/demandes/format";
+import { zoneChoice } from "@/lib/professionnelle/rules";
 
 const a = words(admin);
 const p = words(professionnelle);
@@ -120,6 +121,14 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
               </Row>
               <Row label={t.champs.communes}>
                 {view.professional.communes.length > 0 ? view.professional.communes.join(", ") : t.aucune}
+              </Row>
+              <Row label={t.champs.rayon}>
+                {p.rayons[
+                  zoneChoice({
+                    radiusKm: view.professional.zoneRadiusKm,
+                    wholeBelgium: view.professional.zoneWholeBelgium,
+                  })
+                ]}
               </Row>
               <Row label={t.champs.tarif}>
                 {view.professional.nightRateEur === null

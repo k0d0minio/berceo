@@ -11,7 +11,15 @@ import { Button } from "@/components/ui/button"
 import { fill, words } from "@/content/locale"
 import { professionnelle } from "@/content/professionnelle"
 import type { Profession } from "@/db/schema"
-import { BIO_MAX, EXTRA_HOUR_RATE_MIN, FORMATIONS_MAX, RATE_MIN } from "@/lib/professionnelle/rules"
+import {
+  BIO_MAX,
+  EXTRA_HOUR_RATE_MIN,
+  FORMATIONS_MAX,
+  RATE_MIN,
+  ZONE_CHOICES,
+  zoneChoice,
+  type Zone,
+} from "@/lib/professionnelle/rules"
 
 /*
  * Step 2, "Complétez votre profil", with the guide's labels, and the same form
@@ -27,6 +35,7 @@ export type ProfileValues = {
   profession: Profession | null
   formationsComplementaires: string | null
   communes: string[]
+  zone: Zone | null
   nightRateEur: number | null
   extraHourRateEur: number | null
   bio: string | null
@@ -61,6 +70,8 @@ function ProfileForm({
   const [formations, setFormations] = React.useState(v?.formations ?? saved.formationsComplementaires ?? "")
 
   const profession = v?.profession ?? saved.profession ?? ""
+  // A profile starts at her communes only (profil-zone-rayon-saisie).
+  const rayon = v?.rayon || zoneChoice(saved.zone ?? { radiusKm: 0, wholeBelgium: false })
   const errorOf = (key: keyof typeof e) => (e[key] ? t.erreurs[e[key]!] : undefined)
 
   return (
@@ -158,6 +169,35 @@ function ProfileForm({
           <FieldError id="champ-zone-erreur">{errorOf("communes")}</FieldError>
         ) : null}
       </div>
+
+      {/* The radius around her communes: seven choices, measured on the server. */}
+      <fieldset
+        data-champ
+        className={
+          e.rayon
+            ? "flex flex-col gap-3 rounded-carte outline-1 outline-offset-8 outline-destructive"
+            : "flex flex-col gap-3"
+        }
+        aria-describedby={["champ-rayon-aide", e.rayon ? "champ-rayon-erreur" : ""].filter(Boolean).join(" ")}
+      >
+        <legend className={legend}>{t.champs.rayon}</legend>
+        {ZONE_CHOICES.map((choice) => (
+          <label key={choice} className="flex items-center gap-3 text-corps text-encre-taupe">
+            <input
+              type="radio"
+              name="rayon"
+              value={choice}
+              defaultChecked={rayon === choice}
+              className="size-5 shrink-0 accent-sauge"
+            />
+            {t.rayons[choice]}
+          </label>
+        ))}
+        <p id="champ-rayon-aide" className="text-legende text-encre-taupe">
+          {t.aides.rayon}
+        </p>
+        {e.rayon ? <FieldError id="champ-rayon-erreur">{errorOf("rayon")}</FieldError> : null}
+      </fieldset>
 
       <Field
         name="tarif"

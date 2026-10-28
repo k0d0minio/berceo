@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DECLARATIONS, DECLARATIONS_VERSION, PROFESSIONS } from "@/lib/professionnelle/rules";
+import { DECLARATIONS, DECLARATIONS_VERSION, PROFESSIONS, ZONE_CHOICES } from "@/lib/professionnelle/rules";
 import { declarationText } from "@/lib/professionnelle/wording";
 
 import { admin } from "./admin";
@@ -88,6 +88,14 @@ describe("the catalogue covers every key the rules use", () => {
 
   it("marks the INAMI field as optional", () => {
     expect(t.champs.inami).toBe("Mon numéro INAMI (facultatif)");
+  });
+
+  it("names the seven radius choices, from her communes only to the whole country (profil-zone-rayon-saisie)", () => {
+    expect(Object.keys(t.rayons).sort()).toEqual([...ZONE_CHOICES].sort());
+    expect(t.rayons["0"]).toBe("Uniquement mes communes");
+    expect(t.rayons["50"]).toBe("50 km");
+    expect(t.rayons.belgique).toBe("Toute la Belgique");
+    expect(t.aides.rayon).toBe("La distance se mesure à vol d'oiseau, du centre de chaque commune.");
   });
 });
 

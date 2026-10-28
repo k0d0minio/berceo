@@ -38,6 +38,8 @@ export const professionnelle = catalogue({
       /** Le mot des fondatrices (retour 1, onboarding-retour-1). */
       formations: "Formations complémentaires",
       zone: "Ma zone d'intervention",
+      /** @relecture Surya — le rayon autour de ses communes (profil-zone-rayon-saisie). */
+      rayon: "Jusqu'où vous déplacez-vous autour de vos communes ?",
       tarif: "Mon tarif de nuit",
       /** Le mot du ticket (retour 1, profil-tarifs). */
       tarifHeure: "Mon tarif par heure supplémentaire",
@@ -55,6 +57,8 @@ export const professionnelle = catalogue({
       formationsRestant: "{n} caractères restants",
       /** @relecture Surya — la recherche de communes (D-11). */
       zone: "Tapez le nom d'une commune ou son code postal, puis choisissez-la dans la liste.",
+      /** @relecture Surya — la distance à vol d'oiseau, entre les centres des communes (profil-zone-rayon-saisie). */
+      rayon: "La distance se mesure à vol d'oiseau, du centre de chaque commune.",
       /** @relecture Surya — un plancher sans plafond, sans tarif suggéré (profil-tarifs). */
       tarif: "Un montant entier à partir de 130 € pour une nuit de 11 heures.",
       /** @relecture Surya — le tarif de chaque heure au-delà de la nuit (profil-tarifs). */
@@ -84,6 +88,17 @@ export const professionnelle = catalogue({
       puericultrice: "Puéricultrice",
       etudiante_sage_femme_3e: "Étudiante sage-femme, 3e année",
       etudiante_sage_femme_4e: "Étudiante sage-femme, 4e année",
+    },
+
+    /** @relecture Surya — les sept choix du rayon, dans l'ordre du formulaire (profil-zone-rayon-saisie). */
+    rayons: {
+      "0": "Uniquement mes communes",
+      "10": "10 km",
+      "20": "20 km",
+      "30": "30 km",
+      "40": "40 km",
+      "50": "50 km",
+      belgique: "Toute la Belgique",
     },
 
     justificatifs: {
@@ -240,6 +255,8 @@ export const professionnelle = catalogue({
       tarifHeure: "Indiquez un montant entier à partir de 1 €.",
       bioLongue: "Votre présentation dépasse 500 caractères.",
       formationsLongues: "Vos formations dépassent 300 caractères.",
+      /** @relecture Surya — un rayon hors des sept choix (profil-zone-rayon-saisie). */
+      rayon: "Choisissez une distance dans la liste.",
       photo: "Ajoutez une photo de vous.",
       /** @relecture Surya — le numéro est facultatif, l'erreur ne vient que d'un numéro mal saisi. */
       inami: "Le numéro INAMI compte onze chiffres.",

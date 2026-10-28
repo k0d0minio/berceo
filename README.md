@@ -126,7 +126,9 @@ The platform's data starts here: one Neon Postgres database, read through
   professional: status, profession, « Formations complémentaires » held to 300 characters by a
   `CHECK`, night rate from 130 € with no ceiling and the extra hour's rate from 1 € by `CHECK`s
   (0018, profil-tarifs), bio, INAMI number, `submitted_at`; 0016
-  replaced the specialisations list and dropped the experience band), `professional_communes` (REFNIS codes),
+  replaced the specialisations list and dropped the experience band; `zone_radius_km` and
+  `zone_whole_belgium` from 0027), `professional_communes` (REFNIS codes), `professional_reach`
+  (the communes her radius reaches, 0027),
   `professional_documents` (her files in the private bucket) and `professional_declarations`
   (append-only, with the wording version). `app_settings` holds the founders' switches.
   The founders' review (0004): `review_reason` and `reviewed_at` on `professional_profiles`, and
@@ -719,6 +721,17 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
 - **Her zone (D-11)** is one to fifty communes from the shared commune list (below), stored as
   REFNIS codes in `professional_communes.commune_ins`, the key `family_profiles` carries too.
   `searchCommunes` in `src/lib/communes/` groups the list's localities by commune for the picker.
+- **Her radius (profil-zone-rayon-saisie)** sits under her communes on step 2 and on her file's
+  page: « Uniquement mes communes », 10, 20, 30, 40 or 50 km, or « Toute la Belgique », as seven
+  radio buttons. `professional_profiles.zone_radius_km` stores it, held by a `CHECK` to those
+  values. `zone_whole_belgium` stores « Toute la Belgique », with the radius held at 0 by a
+  second `CHECK`. A new profile starts at 0 km, and migration 0027 gave every existing profile
+  0 km. Each save of her zone also writes `professional_reach`: every commune whose centre is
+  within her radius of the centre of one of hers, her own included, computed on the server by
+  `reachOf` (`src/lib/professionnelle/reach.ts`, over `communesWithin`). « Toute la Belgique »
+  writes no row. The communes, the radius and the reach save in one batch, and an error on
+  either field keeps all three as they were. The radius reopens no review. The founders' file
+  page and account page show it. Nothing reads the reach yet: `zone-rayon-lecture` does.
 - **The professions:** sage-femme, infirmière en néonatologie and puéricultrice upload their
   diploma. The two student years, « Étudiante sage-femme, 3e année » and « 4e année », come last
   and upload the attendance certificate. Migration 0015 renamed the old single student value to
@@ -818,8 +831,8 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
 - **Reactivating (D-135)** lifts it; nothing withdrawn is restored.
 - **Deleting (D-136, D-137):** only a suspended account with no garde ahead, confirmed by typing
   her last name. One batch anonymises the row (« Compte supprimé », `supprime-<id>@invalid`, no
-  phone), deletes her family profile, clears her profile's personal fields, her communes and
-  nights, deletes her Neon Auth identity (`neon_auth."user"`, whose sessions and accounts
+  phone), deletes her family profile, clears her profile's personal fields, her radius, her
+  communes, her reach and her nights, deletes her Neon Auth identity (`neon_auth."user"`, whose sessions and accounts
   cascade) and journals it; then her files leave the bucket, leftovers finished by the purge.
   Requests, bookings, payments, conversations and ratings stay under « Compte supprimé ».
 - **Contacting (D-138):** a subject and a message sent from `EMAIL_FROM` with Reply-To the

@@ -19,7 +19,7 @@ import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { communeName } from "@/lib/communes";
 import { loadFileById } from "@/lib/professionnelle/file";
-import { REQUIREMENTS } from "@/lib/professionnelle/rules";
+import { REQUIREMENTS, zoneChoice } from "@/lib/professionnelle/rules";
 import { declarationText } from "@/lib/professionnelle/wording";
 import { studentsAdmitted } from "@/lib/settings";
 
@@ -110,6 +110,9 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         </Row>
         <Row label={a.dossier.champs.zone}>
           {file.communes.length > 0 ? file.communes.map((ins) => communeName(ins) ?? ins).join(", ") : none}
+        </Row>
+        <Row label={a.dossier.champs.rayon}>
+          {p.rayons[zoneChoice({ radiusKm: profile.zoneRadiusKm, wholeBelgium: profile.zoneWholeBelgium })]}
         </Row>
         <Row label={a.dossier.champs.tarif}>
           {profile.nightRateEur !== null ? fill(a.dossier.tarif, { montant: String(profile.nightRateEur) }) : unset}
