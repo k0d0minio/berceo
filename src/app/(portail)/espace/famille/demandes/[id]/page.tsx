@@ -7,6 +7,7 @@ import { FormMessage } from "@/components/auth/field";
 import { CancelRequest } from "@/components/demandes/cancel-request";
 import { GardeStateMark } from "@/components/gardes/garde-state";
 import { RequestCard } from "@/components/demandes/request-card";
+import { RequestReason } from "@/components/demandes/request-reason";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { RepublishRequest } from "@/components/reservations/republish-request";
@@ -87,7 +88,7 @@ function message(notice: Notice): string | null {
 }
 
 /*
- * One of her requests: the card, then, while it is open and its night has not
+ * One of her requests: the card and her optional reason (demande-motif-facultatif), then, while it is open and its night has not
  * started, « Les professionnelles qui ont répondu à votre demande » (the
  * guide) with « Voir le profil complet » and « Accepter et réserver » for each,
  * « Modifier ma demande » while no answer waits (D-76), « Annuler ma demande »,
@@ -140,6 +141,7 @@ export default async function DemandePage({
       <div className="max-w-2xl">
         <RequestCard request={request} status={displayStatus(request, now)} />
       </div>
+      {request.reason ? <RequestReason title={t.formulaire.champs.motif} reason={request.reason} /> : null}
 
       {booking ? (
         <div className="flex flex-wrap items-center gap-3">

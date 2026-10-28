@@ -28,7 +28,8 @@ export const dynamic = "force-dynamic";
  * Editing an open request: the night (within its own kind's window, as of
  * today), the start time, the children, the age, the feeding, which a
  * request published before the field gets here, and the night's rue, numéro
- * and boîte, the profile's for a request published before it had its own. The
+ * and boîte, the profile's for a request published before it had its own, and
+ * the optional reason (demande-motif-facultatif). The
  * commune and the urgency stay as published. An answer waiting on it locks it (D-76).
  */
 export default async function ModifierDemandePage({ params }: { params: Promise<{ id: string }> }) {
@@ -61,6 +62,7 @@ export default async function ModifierDemandePage({ params }: { params: Promise<
           rue: address?.street ?? "",
           numero: address?.houseNumber ?? "",
           boite: address?.box ?? "",
+          motif: request.reason ?? "",
         }}
       />
     </SpaceShell>

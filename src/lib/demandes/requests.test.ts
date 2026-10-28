@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { cardColumns } from "./requests";
+import { cardColumns, familyColumns } from "./requests";
 
 /**
  * Spec (demande-de-garde, D-15): a professional's list shows no family name,
@@ -28,5 +28,17 @@ describe("the columns a professional reads", () => {
       ].sort(),
     );
     expect(columns).not.toContain("family_user_id");
+  });
+});
+
+/**
+ * Spec (demande-motif-facultatif): the family's optional reason is in no card, no
+ * digest and no e-mail. The digest returns `cardColumns`, and the e-mails read
+ * `familyColumns` (`requestForNotice`), so neither may carry it.
+ */
+describe("the family's optional reason", () => {
+  it("is in no card column and in none the e-mails read", () => {
+    expect(Object.values(cardColumns).map((column) => column.name)).not.toContain("reason");
+    expect(Object.values(familyColumns).map((column) => column.name)).not.toContain("reason");
   });
 });

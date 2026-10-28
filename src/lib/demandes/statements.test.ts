@@ -75,6 +75,25 @@ describe("her list (professionalRequests)", () => {
       /order by coalesce\("care_requests"\."priority_profile_id" = \$\d+, false\) desc, "care_requests"\."urgent" desc, "care_requests"\."created_at" desc$/,
     );
   });
+  // Spec (demande-motif-facultatif): the request's page reads one request through the same
+  // query, so it shows only what her list shows. The list never selects the reason.
+  it("narrows to one request for its page, with every rule of the list", async () => {
+    const { herListQuery } = await import("./requests");
+    const q = herListQuery(PROFILE, REQUEST).toSQL();
+    expect(bound(q, '"care_requests"."id"')).toEqual([REQUEST]);
+    expect(bound(q, REQUEST_STATUS)).toEqual(["ouverte"]);
+    expect(q.sql).toContain(NIGHT_AHEAD);
+    expect(bound(q, '"professional_communes"."profile_id"')).toEqual([PROFILE]);
+    expect(bound(q, ANSWER_STATUS, "<>")).toEqual(["non_retenue"]);
+    expect(bound(q, '"bookings"."status"')).toEqual(["confirmee"]);
+    expect(bound(await query(), '"care_requests"."id"')).toEqual([]);
+  });
+
+  it("never selects the family's reason", async () => {
+    const { herListQuery } = await import("./requests");
+    expect((await query()).sql).not.toContain('"reason"');
+    expect(herListQuery(PROFILE, REQUEST).toSQL().sql).not.toContain('"reason"');
+  });
 });
 
 /** Her own open request ahead, never sent in priority, that this professional could still answer. */

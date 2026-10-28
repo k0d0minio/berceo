@@ -1,31 +1,21 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import { NoteDisplay } from "@/components/avis/stars";
 import { FormMessage } from "@/components/auth/field";
 import { RequestCard } from "@/components/demandes/request-card";
 import { SpaceShell } from "@/components/shell/space-shell";
-import { Button } from "@/components/ui/button";
-import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
-import { avis } from "@/content/avis";
 import { words } from "@/content/locale";
-import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
-import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
+import { PROFESSIONAL_REQUESTS_PATH, professionalRequestPath } from "@/lib/demandes/paths";
 import { professionalRequests } from "@/lib/demandes/requests";
 import { conversationsOfRequests } from "@/lib/messagerie/conversations";
-import { conversationPath } from "@/lib/messagerie/paths";
-import { canWithdraw } from "@/lib/reservations/rules";
 
-import { answerRequestAction, withdrawAnswerAction } from "./actions";
+import { AnswerFooter, answerNotice, type AnswerNotice } from "./answer-footer";
 
 const t = words(demandes);
 const r = words(reservations).professionnelle;
-const c = words(comptes);
-const m = words(messagerie);
 
 export const metadata: Metadata = {
   title: t.meta.professionnelle,
@@ -34,35 +24,26 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-type Notice = { repondu?: string; retiree?: string; erreur?: string };
-
-function message(notice: Notice): string | null {
-  if (notice.repondu === "1") return r.confirmation;
-  if (notice.retiree === "1") return r.retiree;
-  const error = notice.erreur;
-  if (error && Object.hasOwn(r.erreurs, error)) return r.erreurs[error as keyof typeof r.erreurs];
-  if (error) return c.erreurs.generique;
-  return null;
-}
-
 /*
  * Her list (D-10, D-11): the open requests in the communes she serves, and
  * those sent to her « en priorité » wherever they are (D-71), priority first,
- * then urgent, then newest. Each card carries her rate (the DA's price line)
- * and « Je suis disponible pour cette garde », or, once she answered, « Vous
- * avez répondu » and « Retirer ma disponibilité ». Declined requests and
- * nights she is booked for are gone (D-73). Nothing about the family (D-15).
+ * then urgent, then newest. Each card carries her rate (the DA's price line),
+ * « Voir la demande » to the request's page, which alone shows the family's
+ * optional reason (demande-motif-facultatif), and « Je suis disponible pour
+ * cette garde », or, once she answered, « Vous avez répondu » and « Retirer ma
+ * disponibilité ». Declined requests and nights she is booked for are gone
+ * (D-73). Nothing about the family (D-15).
  */
 export default async function DemandesProfessionnellePage({
   searchParams,
 }: {
-  searchParams: Promise<Notice>;
+  searchParams: Promise<AnswerNotice>;
 }) {
   const query = await searchParams;
   const user = await requireAccess(withQuery(PROFESSIONAL_REQUESTS_PATH, query));
   const view = await professionalRequests(user.id);
   const now = new Date();
-  const notice = message(query);
+  const notice = answerNotice(query);
   const conversationIds = view.validated
     ? await conversationsOfRequests(user.id, view.requests.map((request) => request.id))
     : new Map<string, string>();
@@ -79,48 +60,27 @@ export default async function DemandesProfessionnellePage({
             <p className="max-w-2xl text-corps text-encre-taupe">{t.professionnelle.vide}</p>
           ) : (
             <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
-              {view.requests.map((request) => {
-                const answered = request.answer === "en_attente";
-                return (
-                  <li key={request.id} id={`demande-${request.id}`} className="scroll-mt-24">
-                    <RequestCard
-                      request={request}
-                      showPublished
-                      priority={request.priority}
-                      rate={view.nightRateEur}
-                      extraHourRate={view.extraHourRateEur}
-                      note={answered ? r.repondu : undefined}
-                      footer={
-                        <>
-                          <NoteDisplay note={request.family} label={words(avis).note.famille} className="w-full" />
-                          {answered ? (
-                            <>
-                              {conversationIds.has(request.id) ? (
-                                <Button asChild>
-                                  <Link href={conversationPath("professionnelle", conversationIds.get(request.id)!)} prefetch={false}>
-                                    {m.liens.voir}
-                                  </Link>
-                                </Button>
-                              ) : null}
-                              {canWithdraw(request.answer, request, now) ? (
-                                <form action={withdrawAnswerAction.bind(null, request.id)}>
-                                  <Button type="submit" variant="raye">
-                                    {r.retirer}
-                                  </Button>
-                                </form>
-                              ) : null}
-                            </>
-                          ) : (
-                            <form action={answerRequestAction.bind(null, request.id)}>
-                              <Button type="submit">{r.disponible}</Button>
-                            </form>
-                          )}
-                        </>
-                      }
-                    />
-                  </li>
-                );
-              })}
+              {view.requests.map((request) => (
+                <li key={request.id} id={`demande-${request.id}`} className="scroll-mt-24">
+                  <RequestCard
+                    request={request}
+                    href={professionalRequestPath(request.id)}
+                    showPublished
+                    priority={request.priority}
+                    rate={view.nightRateEur}
+                    extraHourRate={view.extraHourRateEur}
+                    note={request.answer === "en_attente" ? r.repondu : undefined}
+                    footer={
+                      <AnswerFooter
+                        request={request}
+                        conversationId={conversationIds.get(request.id)}
+                        from="liste"
+                        now={now}
+                      />
+                    }
+                  />
+                </li>
+              ))}
             </ul>
           )}
         </>

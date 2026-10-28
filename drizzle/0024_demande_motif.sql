@@ -1,0 +1,2 @@
+ALTER TABLE "care_requests" ADD COLUMN "reason" text;--> statement-breakpoint
+ALTER TABLE "care_requests" ADD CONSTRAINT "care_requests_reason_length" CHECK (char_length("care_requests"."reason") <= 300);

@@ -262,6 +262,14 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   « Allaitement maternel », « Lait infantile » or « Allaitement mixte ». It is a care instruction,
   not health data (D-20). A request published before the field has a null `feeding` and shows no
   feeding line. The e-mails do not carry it.
+- **The optional reason (demande-motif-facultatif, D-20 superseded for this one field):**
+  « Pourquoi souhaitez-vous être accompagné(e) la nuit ? » at the end of the form, 300 characters
+  at most, with the founders' help line and their notice against medical or sensitive data.
+  `care_requests.reason` stores it, null when empty. The family edits it like the other fields.
+  A professional reads it on `/espace/professionnelle/demandes/[id]` only, which « Voir la
+  demande » opens from each card and which shows only a request of her list (`herListQuery`).
+  The founders read it under the row on `/admin/demandes`. No card, digest or e-mail carries it.
+  `reason-isolation.test.ts` holds the readers, and a republished garde copies it.
 - **The extra hours:** « Heures supplémentaires », 0 to 6 whole hours, default 0, under « Heure
   de début ». `care_requests.extra_hours` stores them. The night ends at start + 11 h + the extra
   hours. `endTime` and `hasNightEnded` in `rules.ts` compute it, `nightEnd` in `night-end.ts`

@@ -10,6 +10,11 @@ export const NEW_URGENT_REQUEST_PATH = `${NEW_REQUEST_PATH}?urgente=1`;
 /** The open requests in a professional's communes. */
 export const PROFESSIONAL_REQUESTS_PATH = `${SPACES.professionnel}/demandes`;
 
+/** One request of her list, with the family's optional reason (demande-motif-facultatif). */
+export function professionalRequestPath(id: string): string {
+  return `${PROFESSIONAL_REQUESTS_PATH}/${id}`;
+}
+
 export function familyRequestPath(id: string): string {
   return `${FAMILY_REQUESTS_PATH}/${id}`;
 }

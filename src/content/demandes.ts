@@ -6,7 +6,9 @@ import { catalogue } from "./locale";
  * guide verbatim ("Les annonces", "Les e-mails"); every `@relecture` entry is
  * ours, written in the guide's rules (vouvoiement, no exclamation mark, no em
  * dash, no ellipsis) and waiting for Surya. No price (D-3, D-4), no insurance
- * wording (D-8), nothing that asks about health beyond the checkbox (D-20).
+ * wording (D-8), nothing that asks about health beyond the checkbox (D-20). The
+ * one free text, the optional reason, is the founders' and carries their notice
+ * against medical data (demande-motif-facultatif).
  * `{name}` slots are filled with `fill()` from ./locale.
  */
 export const demandes = catalogue({
@@ -20,6 +22,8 @@ export const demandes = catalogue({
       detail: "Votre demande",
       /** @relecture Surya — onglet de la liste de la professionnelle. */
       professionnelle: "Demandes dans votre zone",
+      /** @relecture Surya — onglet d'une demande, côté professionnelle. */
+      demandeProfessionnelle: "Une demande dans votre zone",
     },
 
     boutons: {
@@ -71,6 +75,8 @@ export const demandes = catalogue({
         ageValeur: "Âge",
         /** @relecture Surya — nom du choix semaines ou mois, pour les lecteurs d'écran. */
         ageUnite: "En semaines ou en mois",
+        /** @relecture Surya — texte des fondatrices (demande-motif-facultatif). */
+        motif: "Pourquoi souhaitez-vous être accompagné(e) la nuit ?",
       },
 
       aides: {
@@ -92,6 +98,14 @@ export const demandes = catalogue({
         /** @relecture Surya — ce qui ne se modifie pas après la publication. */
         nonModifiable:
           "La commune et l'urgence d'une demande ne se modifient pas. Pour les changer, annulez la demande et publiez-en une nouvelle.",
+        /** @relecture Surya — texte des fondatrices (demande-motif-facultatif). */
+        motif:
+          "Vous pouvez nous expliquer en quelques mots ce qui vous amène à faire appel à une garde de nuit : besoin de repos, besoin de relais, nuits particulièrement difficiles, reprise du travail, arrivée de plusieurs bébés, etc.",
+        /** @relecture Surya — texte des fondatrices (demande-motif-facultatif). */
+        motifAvertissement:
+          "Cette question est facultative. Merci de ne pas communiquer d'informations médicales ou de données sensibles.",
+        /** @relecture Surya — compteur de caractères, comme celui du profil. */
+        compteur: "{n} caractères sur 300",
       },
 
       enfants: {
@@ -146,6 +160,8 @@ export const demandes = catalogue({
       /** @relecture Surya — alimentation absente, nomme les trois réponses. */
       alimentation:
         "Indiquez s'il s'agit d'allaitement maternel, de lait infantile ou d'allaitement mixte.",
+      /** @relecture Surya — motif trop long, comme le texte du profil. */
+      motifLong: "Ce texte ne peut pas dépasser 300 caractères.",
       /** @relecture Surya — case non cochée (D-20). */
       confirmation: "Cochez cette case pour publier votre demande.",
       /** @relecture Surya — une seule demande ouverte ou réservée par nuit (D-65, D-156, D-157). */
@@ -286,6 +302,10 @@ export const demandes = catalogue({
       /** @relecture Surya — profil pas encore validé. */
       nonValide: "Les demandes de votre zone seront visibles dès que votre profil sera validé.",
       lien: "Voir les demandes disponibles",
+      /** @relecture Surya — retour de la page d'une demande à la liste. */
+      retour: "Retour aux demandes",
+      /** @relecture Surya — titre de la réponse facultative de la famille sur la page de la demande. */
+      motif: "Le mot de la famille",
     },
   },
 });

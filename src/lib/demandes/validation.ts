@@ -1,5 +1,5 @@
 import type { Locality } from "@/lib/communes";
-import { checkAddress, checkCommune, type Address } from "@/lib/famille/validation";
+import { characterCount, checkAddress, checkCommune, type Address } from "@/lib/famille/validation";
 
 import {
   hasNightStarted,
@@ -10,6 +10,7 @@ import {
   isExtraHours,
   isFeeding,
   isStartTime,
+  REASON_MAX,
   type AgeUnit,
   type Children,
   type Feeding,
@@ -23,7 +24,8 @@ import {
  * rue with its numéro, by the profile's rules. The commune is read on a
  * publication only: an edit keeps the stored one. Whether the request is
  * urgent comes from the caller, which knows which form was posted, or from the
- * stored request when it is edited.
+ * stored request when it is edited. The reason is optional, on a publication
+ * and on an edit (demande-motif-facultatif): empty, it is stored as null.
  */
 
 export type RequestInput = {
@@ -40,6 +42,8 @@ export type RequestInput = {
   rue: string;
   numero: string;
   boite: string;
+  /** The optional « Pourquoi souhaitez-vous être accompagné(e) la nuit ? ». */
+  motif: string;
   /** Present only on the publish form: an edit keeps the stored tick. */
   confirmation: boolean;
 };
@@ -52,6 +56,8 @@ export type RequestValues = {
   babyAgeValue: number;
   babyAgeUnit: AgeUnit;
   feeding: Feeding;
+  /** Null when she left the question empty. */
+  reason: string | null;
 };
 
 /** Where the night takes place. The locality is null on an edit: the stored one stands. */
@@ -68,6 +74,7 @@ export type RequestField =
   | "rue"
   | "numero"
   | "boite"
+  | "motif"
   | "confirmation";
 export type RequestError =
   | "requis"
@@ -82,6 +89,7 @@ export type RequestError =
   | "enfants"
   | "age"
   | "alimentation"
+  | "motifLong"
   | "confirmation"
   | "doublon";
 export type RequestErrors = Partial<Record<RequestField, RequestError>>;
@@ -108,6 +116,8 @@ export function readRequestForm(form: FormData): RequestInput {
     rue: text(form, "rue"),
     numero: text(form, "numero"),
     boite: text(form, "boite"),
+    // A textarea posts its line breaks as CRLF: one character each, as the form's count shows them.
+    motif: text(form, "motif").replace(/\r\n?/g, "\n"),
     confirmation: form.get("confirmation") === "oui",
   };
 }
@@ -162,6 +172,8 @@ export function validateRequest(
   const { address, errors: addressErrors } = checkAddress(input, true);
   Object.assign(errors, addressErrors);
 
+  if (characterCount(input.motif) > REASON_MAX) errors.motif = "motifLong";
+
   if (publishing && !input.confirmation) errors.confirmation = "confirmation";
 
   if (Object.keys(errors).length > 0 || address === null) return { ok: false, errors };
@@ -176,6 +188,7 @@ export function validateRequest(
       babyAgeValue: age,
       babyAgeUnit: input.ageUnite as AgeUnit,
       feeding: input.alimentation as Feeding,
+      reason: input.motif === "" ? null : input.motif,
     },
     place: { locality, address },
   };

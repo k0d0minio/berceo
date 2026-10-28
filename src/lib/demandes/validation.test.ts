@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { validateRequest, type RequestInput } from "./validation";
+import { readRequestForm, validateRequest, type RequestInput } from "./validation";
 
 /**
  * Spec (demande-de-garde): the checkbox is required to publish (D-20); a
@@ -13,6 +13,8 @@ import { validateRequest, type RequestInput } from "./validation";
  * Spec (demande-adresse-de-la-nuit): the night's commune and its rue with its
  * numéro are required to publish, by the profile's rules; an edit changes the
  * rue, the numéro and the boîte, never the commune.
+ * Spec (demande-motif-facultatif): the reason is optional, 300 characters at
+ * most, on a publication and on an edit. An empty one is stored as null.
  */
 
 // 25 September 2026, 12:00 in Brussels.
@@ -32,6 +34,7 @@ const valid: RequestInput = {
   rue: "Rue du Bailli",
   numero: "12",
   boite: "",
+  motif: "",
   confirmation: true,
 };
 
@@ -51,6 +54,7 @@ describe("publishing a normal request", () => {
         babyAgeValue: 3,
         babyAgeUnit: "mois",
         feeding: "allaitement_maternel",
+        reason: null,
       },
       place: {
         locality: IXELLES,
@@ -90,6 +94,7 @@ describe("publishing a normal request", () => {
         rue: "",
         numero: "",
         boite: "",
+        motif: "",
         confirmation: true,
       },
       publishNormal,
@@ -272,5 +277,39 @@ describe("editing a request", () => {
       { urgent: false, now: NOON, publishing: false },
     );
     expect(checked.ok).toBe(true);
+  });
+});
+
+describe("the optional reason", () => {
+  const reasonOf = (motif: string, options = publishNormal) => {
+    const checked = validateRequest({ ...valid, motif }, options);
+    return checked.ok ? { reason: checked.values.reason } : checked.errors;
+  };
+  const edit = { urgent: false, now: NOON, publishing: false };
+
+  it("stores an empty answer as null", () => {
+    expect(reasonOf("")).toEqual({ reason: null });
+    expect(reasonOf("", edit)).toEqual({ reason: null });
+  });
+
+  it("stores the answer as written", () => {
+    expect(reasonOf("Besoin de repos.\nReprise du travail.")).toEqual({
+      reason: "Besoin de repos.\nReprise du travail.",
+    });
+  });
+
+  it("reads a textarea's CRLF line breaks as one character each", () => {
+    const form = new FormData();
+    form.set("motif", "  Besoin de repos.\r\nReprise du travail.  ");
+    expect(readRequestForm(form).motif).toBe("Besoin de repos.\nReprise du travail.");
+  });
+
+  it("accepts 300 characters and refuses 301, counted as Postgres counts them", () => {
+    expect(reasonOf("a".repeat(300))).toEqual({ reason: "a".repeat(300) });
+    expect(reasonOf("é".repeat(300))).toEqual({ reason: "é".repeat(300) });
+    // One emoji is two UTF-16 units and one character.
+    expect(reasonOf("👶".repeat(300))).toEqual({ reason: "👶".repeat(300) });
+    expect(reasonOf("a".repeat(301))).toEqual({ motif: "motifLong" });
+    expect(reasonOf("a".repeat(301), edit)).toEqual({ motif: "motifLong" });
   });
 });

@@ -578,6 +578,8 @@ export const admin = catalogue({
       toutesLesDemandes: "Voir toutes les demandes",
       /** @relecture Surya — liste vide. */
       vide: "Aucune demande.",
+      /** @relecture Surya — la réponse facultative de la famille, dépliée sous la ligne (demande-motif-facultatif). */
+      motif: "Motif de la famille",
     },
 
     /** Toutes les réservations. */

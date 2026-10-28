@@ -52,6 +52,13 @@ export type Children = (typeof CHILDREN)[number];
 export const FEEDINGS = ["allaitement_maternel", "lait_infantile", "allaitement_mixte"] as const;
 export type Feeding = (typeof FEEDINGS)[number];
 
+/**
+ * The longest answer to the optional « Pourquoi souhaitez-vous être
+ * accompagné(e) la nuit ? » (demande-motif-facultatif), like the profile's
+ * context line. The schema's check holds the same number.
+ */
+export const REASON_MAX = 300;
+
 /** The daily digest leaves at 18:00 in Brussels, or at the first call after (D-61). */
 export const DIGEST_HOUR = 18;
 
