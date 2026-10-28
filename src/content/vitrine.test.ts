@@ -78,6 +78,13 @@ describe("the vitrine's catalogue", () => {
     });
   }
 
+  it("drops the intro the founders struck out (feedback round 1)", () => {
+    const offenders = prose.filter(([, text]) =>
+      /Trois étapes de chaque côté/i.test(text),
+    );
+    expect(offenders).toEqual([]);
+  });
+
   it("names no amount in euros but 100 € and 300 € (D-4)", () => {
     const amounts = prose.flatMap(([path, text]) =>
       [...text.matchAll(/(\d[\d  .,]*)\s*€/g)].map(
@@ -104,7 +111,8 @@ describe("the vitrine's catalogue", () => {
 describe("the vitrine's titles and meta descriptions", () => {
   const metas = [
     surfaces.accueil.meta,
-    surfaces.commentCaMarche.meta,
+    surfaces.commentCaMarche.familles.meta,
+    surfaces.commentCaMarche.professionnelles.meta,
     surfaces.tarifs.meta,
     surfaces.faq.meta,
     surfaces.quiSommesNous.meta,
