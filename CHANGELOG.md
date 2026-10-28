@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/k0d0minio/berceo/compare/v1.1.0...v1.2.0) (2026-10-28)
+
+
+### Features
+
+* **onboarding:** free-text complementary trainings, no experience band ([#82](https://github.com/k0d0minio/berceo/issues/82)) ([9cb7157](https://github.com/k0d0minio/berceo/commit/9cb71574dda17d8609512f42723ed9be4a9b9343))
+* **vitrine:** one « Comment ça marche » page per side, with a switch ([#83](https://github.com/k0d0minio/berceo/issues/83)) ([41141c9](https://github.com/k0d0minio/berceo/commit/41141c97ef697b87320974a7040256cc3f81bac1))
+
 ## [1.1.0](https://github.com/k0d0minio/berceo/compare/v1.0.0...v1.1.0) (2026-10-28)
 
 
