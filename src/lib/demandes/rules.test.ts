@@ -8,19 +8,21 @@ import {
   dateWindow,
   displayStatus,
   endTime,
+  hasNightEnded,
   hasNightStarted,
   isAgeInRange,
   isChangeable,
   isDateInWindow,
   isEditable,
   isDigestTime,
+  isExtraHours,
   isStartTime,
 } from "./rules";
 
 /**
  * Spec (demande-de-garde, D-60, D-61, D-64, D-65): the two date windows in
  * Brussels time, the start-time slots, the age ranges, the end of the night
- * (start + 11 h) and the digest's 18:00 gate in summer and winter time.
+ * (start + 11 h + the extra hours, demande-heures-supplementaires) and the digest's 18:00 gate in summer and winter time.
  * Written from the acceptance criteria, not from the implementation.
  */
 
@@ -94,11 +96,37 @@ describe("start times", () => {
 });
 
 describe("the end of the night", () => {
-  it("is 11 hours after the start, the next morning", () => {
-    expect(endTime("20:00")).toBe("07:00");
-    expect(endTime("18:00")).toBe("05:00");
-    expect(endTime("18:30")).toBe("05:30");
-    expect(endTime("23:00:00")).toBe("10:00");
+  it("is 11 hours after the start with 0 extra hours, the next morning", () => {
+    expect(endTime("20:00", 0)).toBe("07:00");
+    expect(endTime("18:00", 0)).toBe("05:00");
+    expect(endTime("18:30", 0)).toBe("05:30");
+    expect(endTime("23:00:00", 0)).toBe("10:00");
+  });
+
+  it("moves by the extra hours: 19:00 with 2 extra hours ends at 08:00", () => {
+    expect(endTime("19:00", 2)).toBe("08:00");
+    expect(endTime("19:00:00", 2)).toBe("08:00");
+    // The latest night: 23:00 with 6 extra hours ends the next day at 16:00.
+    expect(endTime("23:00", 6)).toBe("16:00");
+  });
+
+  it("has passed at the end in Brussels, with 0 and with 2 extra hours", () => {
+    // 19:00 on 30 September, CEST: 0 extra hours end at 06:00 (04:00Z), 2 at 08:00 (06:00Z).
+    expect(hasNightEnded("2026-09-30", "19:00", 0, new Date("2026-10-01T03:59:00Z"))).toBe(false);
+    expect(hasNightEnded("2026-09-30", "19:00", 0, new Date("2026-10-01T04:00:00Z"))).toBe(true);
+    expect(hasNightEnded("2026-09-30", "19:00", 2, new Date("2026-10-01T04:00:00Z"))).toBe(false);
+    expect(hasNightEnded("2026-09-30", "19:00", 2, new Date("2026-10-01T05:59:00Z"))).toBe(false);
+    expect(hasNightEnded("2026-09-30", "19:00", 2, new Date("2026-10-01T06:00:00Z"))).toBe(true);
+    // The latest night ends on the next day at 16:00 (14:00Z), not on the day after.
+    expect(hasNightEnded("2026-09-30", "23:00", 6, new Date("2026-10-01T13:59:00Z"))).toBe(false);
+    expect(hasNightEnded("2026-09-30", "23:00", 6, new Date("2026-10-01T14:00:00Z"))).toBe(true);
+  });
+});
+
+describe("the extra hours", () => {
+  it("are whole hours from 0 to 6", () => {
+    for (const accepted of [0, 1, 2, 6]) expect(isExtraHours(accepted)).toBe(true);
+    for (const refused of [-1, 7, 1.5, Number.NaN]) expect(isExtraHours(refused)).toBe(false);
   });
 });
 

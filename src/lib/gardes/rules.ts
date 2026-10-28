@@ -18,7 +18,7 @@ import { addDays, brusselsNow, endTime, hasNightEnded, hasNightStarted, toHourMi
 /** What each side sees (D-17): the stored `confirmee` split by the clock, or `annulee`. */
 export type GardeState = "a_venir" | "en_cours" | "terminee" | "annulee";
 
-export type GardeFacts = { status: BookingStatus; nightDate: string; startTime: string };
+export type GardeFacts = { status: BookingStatus; nightDate: string; startTime: string; extraHours: number };
 
 /** An absence can be reported until 24 hours after the night ends (D-106). */
 export const ABSENCE_HOURS_AFTER_END = 24;
@@ -37,15 +37,15 @@ function nowStamp(now: Date): string {
 }
 
 /** The last moment an absence can be reported: the night's end plus 24 hours. */
-export function absenceDeadline(nightDate: string, startTime: string): string {
-  return stamp(addDays(nightDate, 2), endTime(startTime));
+export function absenceDeadline(nightDate: string, startTime: string, extraHours: number): string {
+  return stamp(addDays(nightDate, 2), endTime(startTime, extraHours));
 }
 
 /** The garde's state at `now`, never stored (D-109). */
 export function gardeState(garde: GardeFacts, now: Date): GardeState {
   if (garde.status === "annulee") return "annulee";
   if (!hasNightStarted(garde.nightDate, garde.startTime, now)) return "a_venir";
-  return hasNightEnded(garde.nightDate, garde.startTime, now) ? "terminee" : "en_cours";
+  return hasNightEnded(garde.nightDate, garde.startTime, garde.extraHours, now) ? "terminee" : "en_cours";
 }
 
 /** Either side cancels a confirmed garde until its start hour (D-105). */
@@ -57,7 +57,7 @@ export function canCancel(garde: GardeFacts, now: Date): boolean {
 export function canReportAbsence(garde: GardeFacts, now: Date): boolean {
   if (garde.status !== "confirmee") return false;
   if (!hasNightStarted(garde.nightDate, garde.startTime, now)) return false;
-  return nowStamp(now) < absenceDeadline(garde.nightDate, garde.startTime);
+  return nowStamp(now) < absenceDeadline(garde.nightDate, garde.startTime, garde.extraHours);
 }
 
 /** After any cancelled garde whose night has not started, the family may publish it again (D-107). */
@@ -67,7 +67,7 @@ export function canRepublish(garde: GardeFacts, now: Date): boolean {
 
 /** The professional reads the family's address on a confirmed garde until the night ends (D-110). */
 export function isAddressVisible(garde: GardeFacts, now: Date): boolean {
-  return garde.status === "confirmee" && !hasNightEnded(garde.nightDate, garde.startTime, now);
+  return garde.status === "confirmee" && !hasNightEnded(garde.nightDate, garde.startTime, garde.extraHours, now);
 }
 
 /** Whether the reminder may leave now: 10:00 to 10:59 in Brussels. */

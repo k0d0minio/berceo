@@ -21,8 +21,8 @@ export function listNight(nightDate: string): string {
 }
 
 /** « Garde du 30/09/2026, de 20h00 à 7h00 », on the conversation page. */
-export function conversationNight(nightDate: string, startTime: string): string {
-  const night = recapNight(nightDate, startTime);
+export function conversationNight(nightDate: string, startTime: string, extraHours: number): string {
+  const night = recapNight(nightDate, startTime, extraHours);
   return fill(t.conversation.garde, { date: night.date, heures: night.heures });
 }
 

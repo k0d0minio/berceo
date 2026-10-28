@@ -39,10 +39,11 @@ describe("the guide's lines, verbatim", () => {
     expect(t.formulaire.champs).toMatchObject({
       date: "Date de la garde",
       heure: "Heure de début",
+      heuresSupplementaires: "Heures supplémentaires",
       enfants: "Nombre d'enfants",
       commune: "Votre commune",
     });
-    expect(t.formulaire.aides.heure).toBe("La garde de nuit standard est de 11 heures.");
+    expect(t.formulaire.aides.heuresSupplementaires).toBe("La garde de nuit standard est de 11 heures.");
     expect(t.formulaire.aides.commune).toBe(
       "L'adresse exacte sera communiquée uniquement après confirmation de la réservation.",
     );

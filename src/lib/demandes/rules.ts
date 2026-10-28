@@ -18,6 +18,12 @@ export const TIME_ZONE = "Europe/Brussels";
 /** A standard night is 11 hours (the guide, "Les annonces"). */
 export const NIGHT_HOURS = 11;
 
+/**
+ * The family adds 0 to 6 whole extra hours to the night (feedback round 1).
+ * The latest night ends the next day at 16:00: 23:00 + 11 + 6.
+ */
+export const MAX_EXTRA_HOURS = 6;
+
 /** A normal request: from the day after tomorrow up to 8 weeks ahead (D-60). */
 export const NORMAL_FIRST_DAY = 2;
 export const NORMAL_LAST_DAY = 56;
@@ -120,18 +126,22 @@ export function hasNightStarted(date: string, startTime: string, now: Date): boo
   return `${date}T${toHourMinute(startTime)}` <= `${here.date}T${here.time}`;
 }
 
-/** The end of a night that starts at `startTime`: 11 hours later, the next morning. */
-export function endTime(startTime: string): string {
+/**
+ * The end of a night that starts at `startTime`: 11 hours plus the extra hours
+ * later, the next day. The one place the night's end is computed: the SQL
+ * twin is `nightEnd` in `./night-end.ts`.
+ */
+export function endTime(startTime: string, extraHours: number): string {
   const [h, m] = toHourMinute(startTime).split(":").map(Number);
-  const minutes = (h * 60 + m + NIGHT_HOURS * 60) % (24 * 60);
+  const minutes = (h * 60 + m + nightHours(extraHours) * 60) % (24 * 60);
   return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
 }
 
-/** Whether the night of `date` starting at `startTime` (11 hours) has ended in Brussels at `now`. */
-export function hasNightEnded(date: string, startTime: string, now: Date): boolean {
-  // Every night starts between 18:00 and 23:00, so it ends the next morning.
+/** Whether the night of `date` starting at `startTime`, with its extra hours, has ended in Brussels at `now`. */
+export function hasNightEnded(date: string, startTime: string, extraHours: number, now: Date): boolean {
+  // Every night starts between 18:00 and 23:00 and lasts 11 to 17 hours, so it ends the next day.
   const here = brusselsNow(now);
-  return `${addDays(date, 1)}T${endTime(startTime)}` <= `${here.date}T${here.time}`;
+  return `${addDays(date, 1)}T${endTime(startTime, extraHours)}` <= `${here.date}T${here.time}`;
 }
 
 /** The two sides of a night, as `booking_side`, `rating_side` and `messages.author` name them. */
@@ -140,6 +150,16 @@ export type Side = "famille" | "professionnelle";
 /** The other side: the one told of a cancellation, reported absent, or rated. */
 export function otherSide(side: Side): Side {
   return side === "famille" ? "professionnelle" : "famille";
+}
+
+/** Whole extra hours, 0 to 6. */
+export function isExtraHours(value: number): boolean {
+  return Number.isInteger(value) && value >= 0 && value <= MAX_EXTRA_HOURS;
+}
+
+/** The night's length: 11 hours plus the extra hours. */
+export function nightHours(extraHours: number): number {
+  return NIGHT_HOURS + extraHours;
 }
 
 export function isAgeUnit(value: string): value is AgeUnit {

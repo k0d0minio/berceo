@@ -5,7 +5,8 @@ import { and, eq, sql } from "drizzle-orm";
 import { bookings, careRequests, db, familyProfiles, professionalProfiles, users } from "@/db";
 import { deletedAtExactly } from "@/lib/auth/suspension";
 import { findLocality, type Locality } from "@/lib/communes";
-import { NIGHT_HOURS, TIME_ZONE } from "@/lib/demandes/rules";
+import { nightEnd } from "@/lib/demandes/night-end";
+import { TIME_ZONE } from "@/lib/demandes/rules";
 import { hasAddress } from "@/lib/reservations/rules";
 
 import type { ProfileValues } from "./validation";
@@ -124,7 +125,7 @@ export async function bookingAddress(
         eq(bookings.id, bookingId),
         eq(professionalProfiles.userId, professionalUserId),
         eq(bookings.status, "confirmee"),
-        sql`(${careRequests.nightDate} + ${careRequests.startTime} + make_interval(hours => ${NIGHT_HOURS}::int)) > (now() AT TIME ZONE ${TIME_ZONE})`,
+        sql`${nightEnd(careRequests)} > (now() AT TIME ZONE ${TIME_ZONE})`,
       ),
     )
     .limit(1);

@@ -36,12 +36,31 @@ export function professionInSentence(profession: Profession | null): string {
   return label.charAt(0).toLocaleLowerCase("fr-BE") + label.slice(1);
 }
 
-/** The récapitulatif's three lines about the night: its date, its hours, its duration. */
-export function recapNight(nightDate: string, startTime: string): { date: string; heures: string; duree: string } {
+/**
+ * The récapitulatif's three lines about the night: its date, its hours, its
+ * duration. The duration names the extra hours apart from the 11-hour night,
+ * because the professional prices them apart (« 11 heures et 2 heures
+ * supplémentaires »).
+ */
+export function recapNight(
+  nightDate: string,
+  startTime: string,
+  extraHours: number,
+): { date: string; heures: string; duree: string } {
+  const n = String(NIGHT_HOURS);
+  const duree =
+    extraHours === 0
+      ? fill(t.recapitulatif.duree, { n })
+      : extraHours === 1
+        ? fill(t.recapitulatif.dureeUneSupplementaire, { n })
+        : fill(t.recapitulatif.dureeSupplementaires, { n, extra: String(extraHours) });
   return {
     date: formatDate(nightDate),
-    heures: fill(t.recapitulatif.heures, { debut: formatTime(startTime), fin: formatTime(endTime(startTime)) }),
-    duree: fill(t.recapitulatif.duree, { n: String(NIGHT_HOURS) }),
+    heures: fill(t.recapitulatif.heures, {
+      debut: formatTime(startTime),
+      fin: formatTime(endTime(startTime, extraHours)),
+    }),
+    duree,
   };
 }
 

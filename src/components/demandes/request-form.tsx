@@ -14,19 +14,19 @@ import { famille } from "@/content/famille"
 import { fill, words } from "@/content/locale"
 import { parseLocalityValue } from "@/lib/communes"
 import { formatDate, formatTime } from "@/lib/demandes/format"
-import { AGE_UNITS, CHILDREN, FEEDINGS, START_TIMES } from "@/lib/demandes/rules"
+import { AGE_UNITS, CHILDREN, FEEDINGS, MAX_EXTRA_HOURS, START_TIMES } from "@/lib/demandes/rules"
 import type { RequestError, RequestField, RequestInput } from "@/lib/demandes/validation"
 import { cn } from "@/lib/utils"
 
 /*
  * The request form (the guide, "Les annonces"): the date in a month calendar
- * a phone can read, the start time with the 11-hour note, the number of
- * children, their age, how they are fed, the night's commune and address
- * with the address note, prefilled from her profile and hers to change
- * (demande-adresse-de-la-nuit), and the mandatory checkbox (D-20). Three
- * modes: a normal request, an urgent one (tonight or tomorrow night, D-60),
- * and an edit, which never shows the checkbox again nor changes the commune or
- * the urgency: the rue, the numéro and the boîte change. Published from a professional's profile, it carries her id and says
+ * a phone can read, the start time, the extra hours with the 11-hour note,
+ * the number of children, their age, how they are fed, the night's commune
+ * and address with the address note, prefilled from her profile and hers to
+ * change (demande-adresse-de-la-nuit), and the mandatory checkbox (D-20).
+ * Three modes: a normal request, an urgent one (tonight or tomorrow night,
+ * D-60), and an edit, which never shows the checkbox again nor changes the
+ * commune or the urgency: the rue, the numéro and the boîte change. Published from a professional's profile, it carries her id and says
  * the request goes to her in priority. Validation is the server's; a refused
  * form keeps what was typed.
  */
@@ -145,9 +145,7 @@ function RequestForm({
           defaultValue={v?.heure ?? ""}
           required
           aria-invalid={e.heure ? true : undefined}
-          aria-describedby={["champ-heure-aide", e.heure ? "champ-heure-erreur" : ""]
-            .filter(Boolean)
-            .join(" ")}
+          aria-describedby={e.heure ? "champ-heure-erreur" : undefined}
           className={selectClasses}
         >
           <option value="" disabled>
@@ -159,12 +157,42 @@ function RequestForm({
             </option>
           ))}
         </select>
-        <p id="champ-heure-aide" className={helpText}>
-          {t.formulaire.aides.heure}
-        </p>
         {e.heure ? (
           <p id="champ-heure-erreur" className={errorClasses}>
             {errorOf("heure")}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="champ-heures-supplementaires" className={legend}>
+          {t.formulaire.champs.heuresSupplementaires}
+        </label>
+        <Input
+          key={`heures-supplementaires-${v?.heuresSupplementaires ?? ""}`}
+          id="champ-heures-supplementaires"
+          name="heuresSupplementaires"
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={MAX_EXTRA_HOURS}
+          step={1}
+          defaultValue={v?.heuresSupplementaires || "0"}
+          aria-invalid={e.heuresSupplementaires ? true : undefined}
+          aria-describedby={[
+            "champ-heures-supplementaires-aide",
+            e.heuresSupplementaires ? "champ-heures-supplementaires-erreur" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          className="max-w-32"
+        />
+        <p id="champ-heures-supplementaires-aide" className={helpText}>
+          {t.formulaire.aides.heuresSupplementaires}
+        </p>
+        {e.heuresSupplementaires ? (
+          <p id="champ-heures-supplementaires-erreur" className={errorClasses}>
+            {errorOf("heuresSupplementaires")}
           </p>
         ) : null}
       </div>

@@ -57,6 +57,8 @@ export const demandes = catalogue({
       champs: {
         date: "Date de la garde",
         heure: "Heure de début",
+        /** Le libellé des fondatrices (retour 1, demande-heures-supplementaires). */
+        heuresSupplementaires: "Heures supplémentaires",
         enfants: "Nombre d'enfants",
         /** @relecture Surya — le libellé des fondatrices, retour 1 (2026-10-23). */
         age: "Âge du/des enfants",
@@ -72,7 +74,7 @@ export const demandes = catalogue({
       },
 
       aides: {
-        heure: "La garde de nuit standard est de 11 heures.",
+        heuresSupplementaires: "La garde de nuit standard est de 11 heures.",
         commune:
           "L'adresse exacte sera communiquée uniquement après confirmation de la réservation.",
         /** @relecture Surya — la fenêtre d'une demande normale (D-60). */
@@ -135,6 +137,8 @@ export const demandes = catalogue({
       heurePassee: "Cette heure est déjà passée. Choisissez une heure plus tardive ou demain soir.",
       /** @relecture Surya — heure hors de la liste. */
       heure: "Choisissez une heure dans la liste.",
+      /** @relecture Surya — heures supplémentaires hors des bornes ou non entières. */
+      heuresSupplementaires: "Indiquez un nombre d'heures entier entre 0 et 6.",
       /** @relecture Surya — ni bébé, ni jumeaux, ni triplés. */
       enfants: "Indiquez s'il s'agit d'un bébé, de jumeaux ou de triplés.",
       /** @relecture Surya — âge hors des bornes (D-64). */

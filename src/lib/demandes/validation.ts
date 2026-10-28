@@ -7,6 +7,7 @@ import {
   isAgeUnit,
   isChildren,
   isDateInWindow,
+  isExtraHours,
   isFeeding,
   isStartTime,
   type AgeUnit,
@@ -28,6 +29,8 @@ import {
 export type RequestInput = {
   date: string;
   heure: string;
+  /** Whole extra hours beyond the 11-hour night. Empty reads as 0. */
+  heuresSupplementaires: string;
   enfants: string;
   ageValeur: string;
   ageUnite: string;
@@ -44,6 +47,7 @@ export type RequestInput = {
 export type RequestValues = {
   nightDate: string;
   startTime: string;
+  extraHours: number;
   children: Children;
   babyAgeValue: number;
   babyAgeUnit: AgeUnit;
@@ -56,6 +60,7 @@ export type RequestPlace = { locality: Locality | null; address: Address };
 export type RequestField =
   | "date"
   | "heure"
+  | "heuresSupplementaires"
   | "enfants"
   | "age"
   | "alimentation"
@@ -73,6 +78,7 @@ export type RequestError =
   | "date"
   | "heurePassee"
   | "heure"
+  | "heuresSupplementaires"
   | "enfants"
   | "age"
   | "alimentation"
@@ -93,6 +99,7 @@ export function readRequestForm(form: FormData): RequestInput {
   return {
     date: text(form, "date"),
     heure: text(form, "heure"),
+    heuresSupplementaires: text(form, "heuresSupplementaires"),
     enfants: text(form, "enfants"),
     ageValeur: text(form, "ageValeur"),
     ageUnite: text(form, "ageUnite"),
@@ -131,6 +138,11 @@ export function validateRequest(
   else if (!isStartTime(input.heure)) errors.heure = "heure";
   else if (!errors.date && hasNightStarted(input.date, input.heure, now)) errors.heure = "heurePassee";
 
+  // Whole hours only: « 1.5 », « 1,5 », « -1 » and « 7 » are refused.
+  const extra = input.heuresSupplementaires;
+  const extraHours = extra === "" ? 0 : /^\d$/.test(extra) ? Number(extra) : NaN;
+  if (!isExtraHours(extraHours)) errors.heuresSupplementaires = "heuresSupplementaires";
+
   if (!input.enfants) errors.enfants = "requis";
   else if (!isChildren(input.enfants)) errors.enfants = "enfants";
 
@@ -159,6 +171,7 @@ export function validateRequest(
     values: {
       nightDate: input.date,
       startTime: input.heure,
+      extraHours,
       children: input.enfants as Children,
       babyAgeValue: age,
       babyAgeUnit: input.ageUnite as AgeUnit,

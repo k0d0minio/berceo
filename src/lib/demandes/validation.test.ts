@@ -6,7 +6,8 @@ import { validateRequest, type RequestInput } from "./validation";
  * Spec (demande-de-garde): the checkbox is required to publish (D-20); a
  * normal request is for the day after tomorrow up to day 56, an urgent one for
  * tonight or tomorrow night and never a start already past (D-60); the start
- * time, the children and the age are checked against their lists (D-64, D-65).
+ * time, the children and the age are checked against their lists (D-64, D-65);
+ * the extra hours are whole hours from 0 to 6 (demande-heures-supplementaires).
  * Spec (demande-enfants-alimentation): « Triplés » is a third choice, and one
  * of the three feedings is required to publish and to edit.
  * Spec (demande-adresse-de-la-nuit): the night's commune and its rue with its
@@ -22,6 +23,7 @@ const EVENING = new Date("2026-09-25T19:10:00Z");
 const valid: RequestInput = {
   date: "2026-09-30",
   heure: "20:00",
+  heuresSupplementaires: "0",
   enfants: "un_bebe",
   ageValeur: "3",
   ageUnite: "mois",
@@ -44,6 +46,7 @@ describe("publishing a normal request", () => {
       values: {
         nightDate: "2026-09-30",
         startTime: "20:00",
+        extraHours: 0,
         children: "un_bebe",
         babyAgeValue: 3,
         babyAgeUnit: "mois",
@@ -78,6 +81,7 @@ describe("publishing a normal request", () => {
       {
         date: "",
         heure: "",
+        heuresSupplementaires: "",
         enfants: "",
         ageValeur: "",
         ageUnite: "",
@@ -121,6 +125,27 @@ describe("publishing a normal request", () => {
     expect(refused({ ageValeur: "3", ageUnite: "ans" })).toEqual({ age: "age" });
     expect(refused({ ageValeur: "0", ageUnite: "semaines" })).toEqual({});
     expect(refused({ ageValeur: "24", ageUnite: "mois" })).toEqual({});
+  });
+
+  it("stores 0 to 6 extra hours, and reads an empty field as 0", () => {
+    const extra = (heuresSupplementaires: string) => {
+      const checked = validateRequest({ ...valid, heuresSupplementaires }, publishNormal);
+      return checked.ok ? checked.values.extraHours : undefined;
+    };
+    expect(extra("0")).toBe(0);
+    expect(extra("2")).toBe(2);
+    expect(extra("6")).toBe(6);
+    expect(extra("")).toBe(0);
+  });
+
+  it("refuses extra hours outside 0 to 6, or a half hour, at the field", () => {
+    const refused = (heuresSupplementaires: string) => {
+      const checked = validateRequest({ ...valid, heuresSupplementaires }, publishNormal);
+      return checked.ok ? {} : checked.errors;
+    };
+    for (const value of ["7", "-1", "1.5", "1,5", "10", "deux"]) {
+      expect(refused(value)).toEqual({ heuresSupplementaires: "heuresSupplementaires" });
+    }
   });
 });
 
