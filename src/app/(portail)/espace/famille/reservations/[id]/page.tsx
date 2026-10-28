@@ -22,7 +22,7 @@ import { ratingsGiven } from "@/lib/avis/ratings";
 import { canRate } from "@/lib/avis/rules";
 import { conversationOfBooking } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
-import { cardTitle, formatDate } from "@/lib/demandes/format";
+import { cardTitle, childrenLine, feedingLine, formatDate } from "@/lib/demandes/format";
 import { brusselsNow } from "@/lib/demandes/rules";
 import { familyRequestPath } from "@/lib/demandes/paths";
 import { liveRequestOn } from "@/lib/demandes/requests";
@@ -67,7 +67,8 @@ export const dynamic = "force-dynamic";
 
 /*
  * « Récapitulatif de votre garde » (the guide, « La réservation », without its
- * insurance line, D-8): the date, the hours, the duration, the professional's
+ * insurance line, D-8): the date, the hours, the duration, the children and
+ * their feeding (demande-enfants-alimentation), the professional's
  * first name and profession, the booked rate, the line saying the family pays
  * her directly (D-1), and her phone (D-72), never her surname. From here the
  * family opens her profile or sends her a new request in priority. Another
@@ -103,6 +104,9 @@ export default async function ReservationPage({
     [l.date, night.date],
     [l.heure, night.heures],
     [l.duree, night.duree],
+    [l.enfants, childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)],
+    // A request published before the field has no feeding.
+    ...(request.feeding ? [[l.alimentation, feedingLine(request.feeding)] as [string, string]] : []),
     [l.professionnelle, professional.firstName],
     [l.profession, professionLabel(professional.profession)],
     [l.tarif, rateLine(booking.nightRateEur)],

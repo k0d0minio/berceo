@@ -9,11 +9,11 @@ import { describe, expect, it } from "vitest";
  * carry, so their floor stays 100 € and only their ceiling goes.
  */
 const sql = readFileSync(
-  fileURLToPath(new URL("../../drizzle/0017_profil_tarifs.sql", import.meta.url)),
+  fileURLToPath(new URL("../../drizzle/0018_profil_tarifs.sql", import.meta.url)),
   "utf8",
 );
 
-describe("migration 0017_profil_tarifs", () => {
+describe("migration 0018_profil_tarifs", () => {
   it("drops every 100 to 300 € range", () => {
     for (const name of [
       "professional_profiles_night_rate_range",

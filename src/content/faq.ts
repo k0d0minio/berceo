@@ -85,7 +85,7 @@ export const faq = catalogue({
           {
             question: "Combien coûte une garde de nuit ?",
             answer:
-              "Chaque professionnelle fixe son tarif de nuit, à partir de 130 €. Des frais de service de 3 % sont prélevés à la confirmation de la réservation. Il n'y a pas d'abonnement.",
+              "Vous choisissez un abonnement de 1 à 12 mois. Chaque professionnelle fixe son tarif de nuit, à partir de 130 €. Des frais de service de 3 % sont prélevés à la confirmation de la réservation.",
             link: { label: "Consulter les tarifs", page: "tarifs" },
           },
           {

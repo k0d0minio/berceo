@@ -104,9 +104,9 @@ vouvoiement, no exclamation mark, no em dash, no ellipsis, the validated lexicon
   `@relecture Surya — <why>` tag (on an object, it covers every entry inside it).
   `grep -rn @relecture src/content` is the list to send Surya.
 - **The rules are tested**: `src/content/vitrine.test.ts` fails on `!`, `…`, `—`, insurance
-  wording (D-8), Facebook (D-23), a subscription tier, an amount in euros other than 100 and
-  300, "abonnement" except to say there is none, and a title or description out of the
-  guide's lengths (50–60, 140–160) or used twice.
+  wording (D-8), Facebook (D-23), an amount in euros other than the four subscription prices
+  and 130, a percentage other than 3, "sans abonnement" or "aucun abonnement", and a title or
+  description out of the guide's lengths (50–60, 140–160) or used twice.
 - **Adding a language**: add its code to `locales` in `locale.ts`, then add the same key to
   every `catalogue({ … })`. The type is derived from French, so a surface that misses the new
   locale, or a key inside it, fails the typecheck.
@@ -122,7 +122,7 @@ The platform's data starts here: one Neon Postgres database, read through
   accepted, with the moment. A professional's file (0002): `professional_profiles` (one per
   professional: status, profession, « Formations complémentaires » held to 300 characters by a
   `CHECK`, night rate from 130 € with no ceiling and the extra hour's rate from 1 € by `CHECK`s
-  (0017, profil-tarifs), bio, INAMI number, `submitted_at`; 0016
+  (0018, profil-tarifs), bio, INAMI number, `submitted_at`; 0016
   replaced the specialisations list and dropped the experience band), `professional_communes` (REFNIS codes),
   `professional_documents` (her files in the private bucket) and `professional_declarations`
   (append-only, with the wording version). `app_settings` holds the founders' switches.
@@ -141,7 +141,7 @@ The platform's data starts here: one Neon Postgres database, read through
   `republished_at` / `republish_count`; `care_request_applications` is one answer per
   professional and request (`application_status`: `en_attente`, `retenue`, `non_retenue`,
   `retiree`), with the rates she answered at; `bookings` is one per request and one per
-  professional and night, with those rates, and no address. 0017 dropped their 300 € ceiling
+  professional and night, with those rates, and no address. 0018 dropped their 300 € ceiling
   and kept 100 € as their floor, so an answer given before the 130 € floor keeps its rate.
   Conversations (0008): `conversations` is one per answer (the family, the professional, each
   side's read marker, `last_message_at`); `messages` holds the people's text (1 to 2 000
@@ -244,10 +244,16 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
 - **The professional's list:** `/espace/professionnelle/demandes` — open requests whose night
   has not started, in the communes she serves, urgent first then newest; a profile that is not
   `valide` sees a line instead. The card (`src/components/demandes/request-card.tsx`) shows the
-  commune, the night (start + 11 h) and the children, never the family: `cardColumns` in
+  commune, the night (start + 11 h), the children (« Un bébé », « Jumeaux », « Triplés ») and
+  their feeding, never the family: `cardColumns` in
   `src/lib/demandes/requests.ts` is what a professional's query selects, and a test holds it.
+- **The feeding (demande-enfants-alimentation):** required on a publication and on an edit:
+  « Allaitement maternel », « Lait infantile » or « Allaitement mixte ». It is a care instruction,
+  not health data (D-20). A request published before the field has a null `feeding` and shows no
+  feeding line. The e-mails do not carry it.
 - **The rules:** `src/lib/demandes/rules.ts` (pure: date windows, start times 18:00 to 23:00 by
-  half hour, age 0–12 semaines or 1–24 mois, a night started, the digest's 18:00 gate),
+  half hour, age 0–12 semaines or 1–24 mois, the three feedings, a night started, the digest's
+  18:00 gate),
   `validation.ts` (the form), `format.ts` (« Un bébé de trois mois », « 30/09/2026 de 20h00 à
   7h00 »). Words in `src/content/demandes.ts`; e-mails in `src/content/emails.ts`.
 - **E-mails (D-61):** an urgent request e-mails every validated professional serving its commune
@@ -654,9 +660,11 @@ never touches the money for the night (D-1).
   is used only under text that names health professionals; everywhere else it is "Trouver une
   professionnelle" (D-25).
 - **Reassurance is the manual verification**, never insurance (D-8).
-- **Prices**: the professional's night rate from 130 € (profil-tarifs), and her rate for each
-  extra hour, paid to her directly, and
-  the 3 % service fee with its refund rule. No subscription in V1 (D-3).
+- **Prices**: the four family subscriptions of the devis (Découverte, 1 mois, 24,90 € ·
+  Parenthèse, 3 mois, 59,90 € · Sérénité, 6 mois, 94,90 € · Premium, 12 mois, 159,90 €) in
+  `src/content/abonnements.ts`, the professional's night rate from 130 € with no ceiling and her
+  rate for each extra hour (profil-tarifs), paid to her directly, and the 3 % service fee with its refund rule. The founders' feedback round 1
+  supersedes D-3 and D-4.
 - **The founders' story**: `/qui-sommes-nous` carries their first-person text (D-23), verbatim
   but for the guide's punctuation. It is indexed and in the sitemap.
 - **Placeholders**: the two legal pages wait for the founders' texts. Both are `noindex` and

@@ -2,12 +2,12 @@ import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
 import { communeName } from "@/lib/communes";
 
-import { endTime, toHourMinute, type AgeUnit, type Children } from "./rules";
+import { endTime, toHourMinute, type AgeUnit, type Children, type Feeding } from "./rules";
 
 /**
  * How a request reads, on the card, in the family's list and in the e-mails:
  * « Garde de nuit à Ixelles », « 30/09/2026 de 20h00 à 7h00 », « Un bébé de
- * trois mois ». Pure, so the tests hold the wording.
+ * trois mois », « Allaitement maternel ». Pure, so the tests hold the wording.
  */
 
 const t = words(demandes).carte;
@@ -44,12 +44,17 @@ export function ageText(value: number, unit: AgeUnit): string {
   return fill(t.age.mois, { n: t.nombres[value] ?? String(value) });
 }
 
-/** « Un bébé de trois mois », « Jumeaux de six semaines », « Un bébé d'un mois ». */
+/** « Un bébé de trois mois », « Jumeaux de six semaines », « Triplés d'un mois ». */
 export function childrenLine(children: Children, value: number, unit: AgeUnit): string {
   const age = ageText(value, unit);
   // « de » elides before « un » and « une », never before « onze » or « huit ».
   const template = /^une?\b/.test(age) ? t.enfantsAgeElide : t.enfantsAge;
   return fill(template, { enfants: t.enfants[children], age });
+}
+
+/** « Allaitement maternel », « Lait infantile », « Allaitement mixte ». */
+export function feedingLine(feeding: Feeding): string {
+  return t.alimentation[feeding];
 }
 
 /** « Garde de nuit à Ixelles »: the commune's name, or the locality for a code the list lost. */
