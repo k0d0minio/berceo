@@ -36,7 +36,7 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
 | The task | Go to |
 |---|---|
 | Change any word on the site | [`src/content/`](src/content/) — one file per surface, keyed by locale; README → The content catalogue |
-| The vitrine's pages | [`src/app/(public)/`](src/app/(public)/) — `/`, `/comment-ca-marche`, `/tarifs`, `/faq`, and the placeholders `/qui-sommes-nous`, `/conditions-generales`, `/confidentialite` (noindex until their texts arrive); blocks in [`src/components/vitrine/`](src/components/vitrine/) |
+| The vitrine's pages | [`src/app/(public)/`](src/app/(public)/) — `/`, `/comment-ca-marche`, `/tarifs`, `/faq`, `/qui-sommes-nous` (the founders' story), and the placeholders `/conditions-generales`, `/confidentialite` (noindex until their texts arrive); blocks in [`src/components/vitrine/`](src/components/vitrine/) |
 | Page titles, descriptions, OG tags | each page's `meta` in its catalogue file, built by [`src/app/(public)/page-metadata.ts`](src/app/(public)/page-metadata.ts); `vitrine.test.ts` holds them to 50–60 and 140–160 characters |
 | Sitemap, robots, the production URL | [`src/app/sitemap.ts`](src/app/sitemap.ts), [`src/app/robots.ts`](src/app/robots.ts), [`src/app/site.ts`](src/app/site.ts) |
 | Photographs, the OG card | [`public/photos/`](public/photos/) (WebP, alt texts in `src/content/photos.ts`), [`public/og.png`](public/og.png) |

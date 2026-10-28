@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button"
 
 /*
  * A page that exists before its text does: the H1, one sentence saying the
- * text is coming, and an optional soft call to action. Used by the founders'
- * story and the two legal pages until their texts arrive.
+ * text is coming, and an optional soft call to action. Used by the two legal
+ * pages until their texts arrive.
  */
 function PlaceholderPage({
   title,

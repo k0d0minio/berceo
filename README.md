@@ -30,7 +30,7 @@ The contract: `.icm/uat/CONTEXT.md`.
 | Path | Purpose |
 | --- | --- |
 | [src/content/](src/content/) | Every word the site shows, one file per surface. See **The content catalogue** below. |
-| [src/app/(public)/](src/app/(public)/) | The vitrine, under the public header and footer: `/`, `/comment-ca-marche`, `/tarifs`, `/faq`, the placeholders `/qui-sommes-nous`, `/conditions-generales`, `/confidentialite`, and `/design-system`. `page-metadata.ts` builds each page's title, description, canonical and OG tags. |
+| [src/app/(public)/](src/app/(public)/) | The vitrine, under the public header and footer: `/`, `/comment-ca-marche`, `/tarifs`, `/faq`, the founders' story `/qui-sommes-nous`, the placeholders `/conditions-generales`, `/confidentialite`, and `/design-system`. `page-metadata.ts` builds each page's title, description, canonical and OG tags. |
 | [src/components/vitrine/](src/components/vitrine/) | The vitrine's blocks: section band, page header, photo, steps, reason cards, the two-door CTA pair, the placeholder page. Words come in as props. |
 | [src/app/sitemap.ts](src/app/sitemap.ts), [robots.ts](src/app/robots.ts), [site.ts](src/app/site.ts) | The four indexable pages on `https://www.berceo.be`; crawling allowed on production only (`VERCEL_ENV`). |
 | [src/app/(portail)/](src/app/(portail)/) | The signed-in spaces (`/espace/famille`, `/espace/professionnelle` and its onboarding, `/admin`) and `/design-system/portail`. |
@@ -635,9 +635,10 @@ never touches the money for the night (D-1).
 - **Reassurance is the manual verification**, never insurance (D-8).
 - **Prices**: the professional's night rate between 100 € and 300 €, paid to her directly, and
   the 3 % service fee with its refund rule. No subscription in V1 (D-3).
-- **Placeholders**: `/qui-sommes-nous` waits for the founders' first-person story (D-23), the
-  two legal pages for the founders' texts. All three are `noindex` and out of the sitemap;
-  lifting that is part of the change that brings the text.
+- **The founders' story**: `/qui-sommes-nous` carries their first-person text (D-23), verbatim
+  but for the guide's punctuation. It is indexed and in the sitemap.
+- **Placeholders**: the two legal pages wait for the founders' texts. Both are `noindex` and
+  out of the sitemap; lifting that is part of the change that brings the text.
 - **No contact is shown.** Berceo has no published address yet, and inventing one would
   be worse than showing none.
 - **Indexed on production only.** See AGENTS.md if that needs reversing.
