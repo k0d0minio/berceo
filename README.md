@@ -602,9 +602,10 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
      - Payment methods: customers can update them.
      - Invoice history: on.
      - Cancellations: on, at the end of the billing period, no proration.
-     - Subscriptions: customers can switch plans, among the four products' prices. Proration:
-       none. Schedule downgrades at the end of the period, for both conditions (a lower price,
-       a shorter interval). Stripe applies an upgrade at once: the portal cannot defer it.
+     - Subscriptions: customers can switch plans, among the four products' prices. Schedule
+       downgrades at the end of the period, for both conditions (a lower price, a shorter
+       interval). Stripe applies an upgrade at once: the portal cannot defer it. Proration:
+       prorate charges and credits, so an upgrade credits the unused part of the old period.
      - The return link needs no setting: the code sends `/espace/famille/abonnement/portail`.
 - **Testing a failed renewal:** `STRIPE_TEST_CLOCKS=1` (Preview and `uat`, never Production)
   gives each new Stripe customer its own test clock, named `abonnement-<user id>`. A live key
