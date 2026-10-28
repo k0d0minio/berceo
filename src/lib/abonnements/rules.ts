@@ -5,7 +5,9 @@ import type { SubscriptionPlan, SubscriptionStatus } from "@/db/schema";
  * (abonnements-catalogue-stripe): the four plans and the variables naming
  * their Stripe prices, how Stripe's status reads here, the grace period after
  * a failed renewal, `hasActiveSubscription`, which every later stub of the
- * epic reads, and `familyMay`, what it opens (abonnements-acces). Pure, so
+ * epic reads, and `familyMay`, what it opens (abonnements-acces); the
+ * cancellation date, the page's state and the test clocks
+ * (abonnements-espace-echec-paiement). Pure, so
  * the tests hold them to the spec; `./subscriptions.ts`
  * holds the live-row rule again in its SQL.
  */
@@ -77,6 +79,49 @@ export function graceEndsAt(
   if (next !== "impayee") return null;
   if (current.status === "impayee" && current.graceEndsAt) return current.graceEndsAt;
   return new Date(now.getTime() + GRACE_DAYS * 24 * 60 * 60_000);
+}
+
+/**
+ * When a cancellation ends the subscription (abonnements-espace-echec-paiement):
+ * Stripe's `cancel_at`, or the period's end when the portal cancels at the
+ * period's end (`cancel_at_period_end`). Null while it renews, and on a row
+ * that no longer runs.
+ */
+export function cancelsAt(
+  stripeSubscription: { cancelAt: number | null; cancelAtPeriodEnd: boolean },
+  periodEnd: Date | null,
+  status: SubscriptionStatus,
+): Date | null {
+  if (status !== "active" && status !== "impayee") return null;
+  if (stripeSubscription.cancelAt !== null) return new Date(stripeSubscription.cancelAt * 1000);
+  return stripeSubscription.cancelAtPeriodEnd ? periodEnd : null;
+}
+
+/**
+ * What « Votre abonnement » says of a running row
+ * (abonnements-espace-echec-paiement): `active` renews, `resiliee` ends at
+ * `cancelsAt`, `grace` is a failed renewal inside its 7 days, `suspendue` is
+ * one past them, when the gate is closed. Null for a row that does not run.
+ */
+export type SubscriptionState = "active" | "resiliee" | "grace" | "suspendue";
+
+export function subscriptionState(
+  row: { status: SubscriptionStatus; graceEndsAt: Date | null; cancelsAt: Date | null },
+  now: Date,
+): SubscriptionState | null {
+  if (row.status === "impayee") return hasActiveSubscription(row, now) ? "grace" : "suspendue";
+  if (row.status !== "active") return null;
+  return row.cancelsAt ? "resiliee" : "active";
+}
+
+/**
+ * Whether a new Stripe customer gets its own test clock, so a tester can
+ * advance time to a renewal in Stripe's dashboard. Only with a test key and
+ * `STRIPE_TEST_CLOCKS=1`, which Preview and UAT carry and Production never.
+ */
+export function testClocksEnabled(env: Readonly<Record<string, string | undefined>>): boolean {
+  const key = env.STRIPE_SECRET_KEY ?? "";
+  return env.STRIPE_TEST_CLOCKS === "1" && (key.startsWith("sk_test_") || key.startsWith("rk_test_"));
 }
 
 /**

@@ -118,6 +118,18 @@ export const emails = catalogue({
       cta: "Voir ma demande",
     },
 
+    /** @relecture Surya — le renouvellement de l'abonnement a échoué, 7 jours de grâce (abonnements-espace-echec-paiement). */
+    abonnementImpaye: {
+      objet: "Le renouvellement de votre abonnement n'a pas abouti",
+      corps:
+        "Le paiement du renouvellement de votre formule {formule} n'a pas abouti. Stripe tentera à nouveau le paiement dans les prochains jours.",
+      delai:
+        "Votre abonnement reste actif jusqu'au {date}. Sans paiement d'ici là, la publication de demandes et l'accès aux profils complets seront suspendus. Vos gardes confirmées sont maintenues.",
+      regler: "Régler maintenant",
+      voir: "Voir mon abonnement",
+      carte: "Vous pouvez aussi changer de moyen de paiement depuis la page « Votre abonnement » de votre espace.",
+    },
+
     /** Confirmation de réservation (professionnelle), le guide ; « Bonne nuit ! » perd son point d'exclamation (D-78). */
     reservationProfessionnelle: {
       objet: "Garde confirmée : {date} chez {prenomFamille}",

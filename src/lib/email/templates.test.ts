@@ -9,6 +9,7 @@ import {
   escapeHtml,
   gardeCancelledByFamilyEmail,
   gardeCancelledByProfessionalEmail,
+  gracePeriodEmail,
   newAnswerEmail,
   newMessageEmail,
   notRetainedEmail,
@@ -128,6 +129,17 @@ const all: [string, RenderedEmail][] = [
   [
     "rating (professional)",
     ratingProfessionalEmail({ siteUrl: SITE, prenom: "Julie", prenomFamille: "Sophie", date: "30/09/2026", url: `${SITE}/g/avis` }),
+  ],
+  [
+    "subscription unpaid",
+    gracePeriodEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      formule: "Parenthèse",
+      date: "17/11/2026",
+      invoiceUrl: "https://invoice.stripe.com/i/acct_1/test_1",
+      url: `${SITE}/espace/famille/abonnement`,
+    }),
   ],
 ];
 
@@ -484,5 +496,38 @@ describe("the founders' message (back-office-admin, D-138)", () => {
   it("says an answer reaches the team, and signs as the team", () => {
     expect(email.text).toContain("Pour nous répondre, répondez simplement à cet e-mail.");
     expect(email.text).toContain("L'équipe Berceo");
+  });
+});
+
+describe("the failed renewal (abonnements-espace-echec-paiement)", () => {
+  const input = {
+    siteUrl: SITE,
+    prenom: "Julie",
+    formule: "Parenthèse",
+    date: "17/11/2026",
+    url: `${SITE}/espace/famille/abonnement`,
+  };
+  const invoice = "https://invoice.stripe.com/i/acct_1/test_1";
+
+  it("names the plan, the grace period's last day and what stops after it", () => {
+    const email = gracePeriodEmail({ ...input, invoiceUrl: invoice });
+    expect(email.subject).toBe("Le renouvellement de votre abonnement n'a pas abouti");
+    expect(email.text).toContain("Le paiement du renouvellement de votre formule Parenthèse n'a pas abouti.");
+    expect(email.text).toContain("Votre abonnement reste actif jusqu'au 17/11/2026.");
+    expect(email.text).toContain("la publication de demandes et l'accès aux profils complets seront suspendus");
+    expect(email.text).toContain("Vos gardes confirmées sont maintenues.");
+  });
+
+  it("leads to Stripe's page for the unpaid invoice, and names « Votre abonnement » for the card", () => {
+    const email = gracePeriodEmail({ ...input, invoiceUrl: invoice });
+    expect(email.text).toContain(`Régler maintenant : ${invoice}`);
+    expect(email.html).toContain(`href="${invoice}"`);
+    expect(email.text).toContain("« Votre abonnement »");
+  });
+
+  it("leads to « Votre abonnement » when Stripe gave no invoice page", () => {
+    const email = gracePeriodEmail({ ...input, invoiceUrl: null });
+    expect(email.text).toContain(`Voir mon abonnement : ${SITE}/espace/famille/abonnement`);
+    expect(email.text).not.toContain("Régler maintenant");
   });
 });

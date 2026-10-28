@@ -1,11 +1,13 @@
 "use server";
 
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { redirectToCheckout } from "@/lib/abonnements/checkout";
 import { SUBSCRIPTION_PATH } from "@/lib/abonnements/paths";
 import { isPlan } from "@/lib/abonnements/rules";
+import { openPortal } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
+import { siteOrigin } from "@/lib/site-origin";
 
 /*
  * « Choisir » a plan (abonnements-catalogue-stripe), and « Finaliser mon
@@ -20,4 +22,15 @@ export async function startSubscriptionAction(plan: string): Promise<void> {
   const chosen = String(plan);
   if (!isPlan(chosen)) notFound();
   await redirectToCheckout(user, chosen);
+}
+
+/*
+ * « Gérer mon abonnement » (abonnements-espace-echec-paiement): a session of
+ * Stripe's customer portal for the session user's customer, never one the
+ * form names. A refusal goes back to the page with its notice.
+ */
+export async function openPortalAction(): Promise<void> {
+  const user = await requireAccess(SUBSCRIPTION_PATH);
+  const url = await openPortal(user, await siteOrigin());
+  redirect(url ?? `${SUBSCRIPTION_PATH}?retour=portail`);
 }

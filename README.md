@@ -548,13 +548,25 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   abonnement », for the plan she picked (`planToFinish`). The sign-in does not force the
   Checkout. A family who signed up before this has no plan and sees « Voir les formules ».
 - **Stripe's word:** `syncSubscription` reads the subscription from Stripe and copies its
-  status, plan, renewal date and end onto the row, so a late or repeated event writes the same
-  row. Two paths call it: the webhook and the return page
-  `/espace/famille/abonnement/retour` (so previews, which Stripe cannot reach, still
-  subscribe). Stripe's `active` reads `active`, `incomplete` reads `en_attente`, `past_due` and
+  status, plan, renewal date, cancellation date (`cancels_at`) and end onto the row, so a late
+  or repeated event writes the same row. Three paths call it: the webhook, the return page
+  `/espace/famille/abonnement/retour` and the portal's return `/espace/famille/abonnement/portail`
+  (so previews, which Stripe cannot reach, still subscribe and still show a change). Stripe's `active` reads `active`, `incomplete` reads `en_attente`, `past_due` and
   `unpaid` read `impayee`, anything else reads `terminee`.
 - **The grace period:** 7 days from the first failed renewal, on `grace_ends_at`. Stripe's
   later retries never extend it. A paid renewal clears it.
+- **Managing it (abonnements-espace-echec-paiement):** a running subscription on
+  `/espace/famille/abonnement` shows the plan, its price, the renewal date (or « prend fin le »
+  once cancelled) and the status: actif, résiliation programmée, paiement en attente (the grace
+  period) or suspendu (after it), from `subscriptionState`. « Gérer mon abonnement » opens
+  Stripe's customer portal (`openPortal`) for the family's customer: the card, the plan, the
+  cancellation and the invoices. The family's home shows the end date and the warning line too.
+- **The failed renewal:** the call of `syncSubscription` that moves the row into `impayee`
+  claims the move with a conditional update and sends the one e-mail after the response
+  (`notifyGracePeriod`, `src/lib/abonnements/notify.ts`), so Stripe's retries send no second
+  one. The e-mail and the page's warning link to Stripe's page for the open invoice
+  (« Régler maintenant »). After the 7 days the gate closes. A paid invoice syncs the row to
+  `active` and opens it again. Confirmed gardes stand throughout.
 - **The one rule:** `hasActiveSubscription(row, now)` in `src/lib/abonnements/rules.ts`: an
   `active` row, or an `impayee` row before its grace period's end. `isSubscribed(userId, now)`
   reads it for a family. Every later stub of the epic reads this rule.
@@ -580,13 +592,30 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   1. Make four products, each with one recurring price in euros: monthly, every 3 months,
      every 6 months, yearly. Put each price id in its Vercel variable.
   2. Enable Bancontact and SEPA Direct Debit.
-  3. Settings, Billing, Subscriptions and emails: after the last failed retry, cancel the
-     subscription. Turn on the e-mails of invoices and receipts.
+  3. Settings, Billing, Subscriptions and emails: keep Smart Retries on. After the last failed
+     retry, cancel the subscription. Turn on the e-mails of invoices and receipts. Turn off
+     Stripe's e-mails about failed payments: Berceo sends the one e-mail.
   4. Add these events to the webhook endpoint of **The service fee**:
      `customer.subscription.created`, `customer.subscription.updated`,
      `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`.
+  5. Settings, Billing, Customer portal (abonnements-espace-echec-paiement):
+     - Payment methods: customers can update them.
+     - Invoice history: on.
+     - Cancellations: on, at the end of the billing period, no proration.
+     - Subscriptions: customers can switch plans, among the four products' prices. Schedule
+       downgrades at the end of the period, for both conditions (a lower price, a shorter
+       interval). Stripe applies an upgrade at once: the portal cannot defer it. Proration:
+       prorate charges and credits, so an upgrade credits the unused part of the old period.
+     - The return link needs no setting: the code sends `/espace/famille/abonnement/portail`.
+- **Testing a failed renewal:** `STRIPE_TEST_CLOCKS=1` (Preview and `uat`, never Production)
+  gives each new Stripe customer its own test clock, named `abonnement-<user id>`. A live key
+  ignores it. In Stripe's dashboard (test mode), Billing, Test clocks: change the customer's
+  card to `4000 0000 0000 0341`, then advance the clock past the renewal date. Stripe's clock
+  moves Stripe only: the grace period counts in real time, so its end is tested by waiting or
+  by moving `grace_ends_at` into the past in the UAT database.
 - **Words:** `src/content/abonnements.ts`, under `espace`, `retour`, `inscription`,
-  `accueil` and `requis` (the invitation line).
+  `accueil` and `requis` (the invitation line); the failed renewal's e-mail in
+  `src/content/emails.ts`, `abonnementImpaye`.
 
 ## The conversation
 

@@ -14,7 +14,10 @@ import { catalogue } from "./locale";
  * family sign-up, and `accueil.finaliser*` the call on her home when she left
  * the Checkout unpaid (abonnements-inscription-famille). `requis` is the line
  * that takes the place of an action a family without a subscription cannot
- * do (abonnements-acces). Every `@relecture` entry is ours, written
+ * do (abonnements-acces). `espace.statut`, `espace.alerte`, `espace.gerer*`,
+ * `retour.portail` and `accueil.alerte` are the plan's status, the warning
+ * after a failed renewal and Stripe's portal
+ * (abonnements-espace-echec-paiement). Every `@relecture` entry is ours, written
  * in the guide's rules, and waits for Surya. `{name}` slots are filled with
  * `fill()` from ./locale.
  *
@@ -49,6 +52,37 @@ export const abonnements = catalogue({
       renouvellement: "Prochain renouvellement le {date}",
       /** @relecture Surya — le premier paiement est en cours. */
       enAttente: "Votre premier paiement est en cours de traitement.",
+      /** @relecture Surya — le prix de la formule en cours (« 59,90 € pour 3 mois »). */
+      prix: "{prix} pour {duree}",
+      /** @relecture Surya — la fin d'un abonnement résilié. */
+      finLe: "Votre abonnement prend fin le {date}",
+      /** Le statut de la formule en cours (abonnements-espace-echec-paiement). */
+      statut: {
+        /** @relecture Surya — l'abonnement se renouvelle. */
+        active: "Statut : actif",
+        /** @relecture Surya — résilié, il court jusqu'à la fin de la période. */
+        resiliee: "Statut : résiliation programmée",
+        /** @relecture Surya — le renouvellement a échoué, pendant les 7 jours de grâce. */
+        grace: "Statut : paiement en attente",
+        /** @relecture Surya — après les 7 jours de grâce. */
+        suspendue: "Statut : suspendu",
+      },
+      /** @relecture Surya — le bouton vers le portail de Stripe. */
+      gerer: "Gérer mon abonnement",
+      /** @relecture Surya — ce que permet le portail de Stripe. */
+      gererAide:
+        "Sur la page sécurisée de Stripe, vous changez de moyen de paiement ou de formule, vous résiliez votre abonnement et vous téléchargez vos factures.",
+      /** L'avertissement après un renouvellement qui a échoué (abonnements-espace-echec-paiement). */
+      alerte: {
+        /** @relecture Surya — pendant les 7 jours de grâce. */
+        grace:
+          "Le renouvellement de votre abonnement n'a pas abouti. Votre abonnement reste actif jusqu'au {date}. Réglez-le d'ici là pour garder l'accès aux profils complets et à la publication de demandes.",
+        /** @relecture Surya — après les 7 jours de grâce. */
+        suspendue:
+          "Le renouvellement de votre abonnement n'a pas abouti. La publication de demandes et l'accès aux profils complets sont suspendus jusqu'au paiement. Vos gardes confirmées sont maintenues.",
+        /** @relecture Surya — le bouton vers la page de Stripe de la facture impayée. */
+        regler: "Régler maintenant",
+      },
     },
 
     /** Au retour de la page de Stripe, ou après un refus. */
@@ -65,6 +99,8 @@ export const abonnements = catalogue({
       dejaAbonnee: "Vous avez déjà un abonnement en cours.",
       /** @relecture Surya — la page de paiement n'a pas pu s'ouvrir. */
       erreur: "La page de paiement n'a pas pu s'ouvrir. Réessayez dans un instant.",
+      /** @relecture Surya — le portail de Stripe n'a pas pu s'ouvrir. */
+      portail: "La page de gestion de votre abonnement n'a pas pu s'ouvrir. Réessayez dans un instant.",
     },
 
     /** Le choix de la formule, en tête de l'inscription famille. */
@@ -95,6 +131,8 @@ export const abonnements = catalogue({
       finaliser: "Finaliser mon abonnement",
       /** @relecture Surya — le lien vers les quatre formules. */
       autreFormule: "Choisir une autre formule",
+      /** @relecture Surya — un renouvellement a échoué (abonnements-espace-echec-paiement). */
+      alerte: "Le renouvellement de votre abonnement n'a pas abouti.",
     },
 
     /** La ligne à la place d'une action réservée aux familles abonnées. */

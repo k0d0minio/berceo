@@ -344,6 +344,33 @@ export function refundFamilyEmail(input: {
   };
 }
 
+/**
+ * A renewal of her subscription failed (abonnements-espace-echec-paiement):
+ * the grace period's last day, and Stripe's page for the unpaid invoice. When
+ * Stripe gave no such page, the button leads to « Votre abonnement ».
+ */
+export function gracePeriodEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  /** « Parenthèse ». */
+  formule: string;
+  date: string;
+  invoiceUrl: string | null;
+  url: string;
+}): RenderedEmail {
+  const r = t.abonnementImpaye;
+  return {
+    subject: r.objet,
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.corps, { formule: input.formule }), fill(r.delai, { date: input.date })],
+      cta: input.invoiceUrl ? { label: r.regler, href: input.invoiceUrl } : { label: r.voir, href: input.url },
+      note: input.invoiceUrl ? r.carte : undefined,
+    }),
+  };
+}
+
 /** Her garde is confirmed; the family's address waits on her booking page (D-72). */
 export function bookingProfessionalEmail(input: {
   siteUrl: string;
