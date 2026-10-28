@@ -4,11 +4,15 @@ import Link from "next/link";
 import { OwnNote } from "@/components/avis/stars";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
+import { abonnements } from "@/content/abonnements";
 import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
 import { famille } from "@/content/famille";
-import { words } from "@/content/locale";
+import { fill, words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
+import { planWords, renewalDate } from "@/lib/abonnements/format";
+import { SUBSCRIPTION_PATH } from "@/lib/abonnements/paths";
+import { liveSubscription } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
@@ -22,6 +26,7 @@ import { siteOrigin } from "@/lib/site-origin";
 const t = words(comptes);
 const f = words(famille).accueil;
 const d = words(demandes);
+const a = words(abonnements);
 
 export const metadata: Metadata = {
   title: t.meta.espace,
@@ -33,13 +38,20 @@ export const dynamic = "force-dynamic";
 /*
  * The parent's space. Until her commune is saved it asks her to complete her
  * profile. The two ways to publish (D-60) and her requests are one tap away.
- * Her own note and gardes count close the page (avis-etoiles, D-121). A welcome
+ * Her own note and gardes count close the page (avis-etoiles, D-121). « Votre
+ * abonnement » shows her plan and its renewal date, or leads to the four plans
+ * (abonnements-catalogue-stripe). A welcome
  * e-mail that failed to send is tried again after the page (D-165).
  */
 export default async function EspaceFamillePage() {
   const user = await requireAccess(SPACES.parent);
   scheduleWelcomeIfDue(user, await siteOrigin());
-  const [commune, note] = await Promise.all([familyCommune(user.id), noteOfUser(user.id)]);
+  const [commune, note, live] = await Promise.all([
+    familyCommune(user.id),
+    noteOfUser(user.id),
+    liveSubscription(user.id),
+  ]);
+  const running = live && (live.status === "active" || live.status === "impayee") ? live : null;
 
   return (
     <SpaceShell user={user}>
@@ -52,6 +64,32 @@ export default async function EspaceFamillePage() {
           </Button>
         </section>
       )}
+      <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+        <h2 className="font-display text-h3 text-encre-sauge">{a.accueil.titre}</h2>
+        {running ? (
+          <>
+            <p className="text-corps text-encre-taupe">{fill(a.espace.formule, { plan: planWords(running.plan).name })}</p>
+            {running.currentPeriodEnd ? (
+              <p className="text-corps text-encre-taupe">
+                {fill(a.espace.renouvellement, { date: renewalDate(running.currentPeriodEnd) })}
+              </p>
+            ) : null}
+            <Link
+              href={SUBSCRIPTION_PATH}
+              className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+            >
+              {a.accueil.gerer}
+            </Link>
+          </>
+        ) : (
+          <>
+            <p className="text-corps text-encre-taupe">{a.accueil.choisir}</p>
+            <Button asChild>
+              <Link href={SUBSCRIPTION_PATH}>{a.accueil.voir}</Link>
+            </Button>
+          </>
+        )}
+      </section>
       <p className="max-w-2xl text-intro text-encre-taupe">{d.famille.accueil}</p>
       <div className="flex flex-wrap gap-3">
         <Button asChild>

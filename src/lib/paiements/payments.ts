@@ -47,7 +47,8 @@ import { stripe } from "./stripe";
 /**
  * The service fee (frais-de-service): the only reads and writes of `payments`
  * (bar the booking link `acceptAnswer` writes in its own transaction) and the
- * only calls to Stripe. « Accepter et réserver » opens a Checkout
+ * fee's calls to Stripe (the subscriptions make theirs in
+ * `src/lib/abonnements/`). « Accepter et réserver » opens a Checkout
  * (`startCheckout`); a paid Checkout books through `confirmPayment`, called
  * by the webhook and by the return page, whichever comes first (D-102); a
  * refund is always `refundFee` (D-94). Each rule of ./rules.ts is held again

@@ -29,6 +29,10 @@
  * The service fee (frais-de-service) is one `payments` row per Stripe
  * Checkout opened, linked to the booking its payment made (D-102, D-93).
  *
+ * A family's subscription (abonnements-familles) is one `subscriptions` row
+ * per Stripe subscription, at most one live per family; her Stripe customer
+ * is on `users`.
+ *
  * After a garde each side rates the other with stars (avis-etoiles, D-18):
  * `ratings`, four whole scores and no text, and `rating_invitations`, the
  * e-mail that asked for them, once per garde and side.
@@ -103,6 +107,11 @@ export const users = pgTable("users", {
   suspendedBy: uuid("suspended_by"),
   /** Set by « Supprimer le compte »: the row is anonymised and stays suspended (D-136, D-137). */
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  /**
+   * The family's Stripe customer, made at her first subscription Checkout
+   * and kept for every later one (abonnements-catalogue-stripe).
+   */
+  stripeCustomerId: text("stripe_customer_id").unique(),
 
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -840,6 +849,61 @@ export const payments = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// Subscriptions
+// ---------------------------------------------------------------------------
+
+/** The four family plans of the devis, in its order (abonnements-familles). */
+export const subscriptionPlanEnum = pgEnum("subscription_plan", ["decouverte", "parenthese", "serenite", "premium"]);
+
+/**
+ * A subscription's life, read from Stripe (`src/lib/abonnements/rules.ts`):
+ * `en_attente` while its Checkout is open or its first payment pending;
+ * `active` once paid; `impayee` after a failed renewal, with its grace period;
+ * `terminee` once cancelled, ended, or never paid.
+ */
+export const subscriptionStatusEnum = pgEnum("subscription_status", ["en_attente", "active", "impayee", "terminee"]);
+
+/**
+ * One row per Stripe subscription a family started, from the Checkout that
+ * opened it. A money record like `payments`: the family's link is set null,
+ * never cascaded, and an ended row is kept. At most one live row (`en_attente`,
+ * `active`, `impayee`) per family. `src/lib/abonnements/` alone reads and
+ * writes it.
+ */
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    plan: subscriptionPlanEnum("plan").notNull(),
+    status: subscriptionStatusEnum("status").notNull().default("en_attente"),
+    stripeCustomerId: text("stripe_customer_id").notNull(),
+    /** Null until Stripe creates the subscription at the Checkout's payment. */
+    stripeSubscriptionId: text("stripe_subscription_id").unique(),
+    /** The Checkout this row was opened by; a new Checkout while `en_attente` replaces it. */
+    stripeCheckoutSessionId: text("stripe_checkout_session_id").notNull().unique(),
+    /** The end of the period paid: the renewal date. */
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    /** 7 days after the first failed renewal; set while `impayee` only. */
+    graceEndsAt: timestamp("grace_ends_at", { withTimezone: true }),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("subscriptions_one_live_per_family")
+      .on(table.userId)
+      .where(sql`${table.status} IN ('en_attente', 'active', 'impayee')`),
+    check("subscriptions_grace", sql`(${table.status} = 'impayee') = (${table.graceEndsAt} IS NOT NULL)`),
+    check(
+      "subscriptions_period",
+      sql`${table.status} NOT IN ('active', 'impayee') OR ${table.currentPeriodEnd} IS NOT NULL`,
+    ),
+    check("subscriptions_ended", sql`(${table.status} = 'terminee') = (${table.endedAt} IS NOT NULL)`),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Ratings
 // ---------------------------------------------------------------------------
 
@@ -994,5 +1058,8 @@ export type BerceoMessage = (typeof berceoMessageEnum.enumValues)[number];
 export type Payment = typeof payments.$inferSelect;
 export type PaymentStatus = (typeof paymentStatusEnum.enumValues)[number];
 export type RefundReason = (typeof refundReasonEnum.enumValues)[number];
+export type Subscription = typeof subscriptions.$inferSelect;
+export type SubscriptionPlan = (typeof subscriptionPlanEnum.enumValues)[number];
+export type SubscriptionStatus = (typeof subscriptionStatusEnum.enumValues)[number];
 export type Rating = typeof ratings.$inferSelect;
 export type RatingSide = (typeof ratingSideEnum.enumValues)[number];
