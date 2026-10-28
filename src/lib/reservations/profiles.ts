@@ -7,7 +7,6 @@ import {
   professionalCommunes,
   professionalProfiles,
   users,
-  type Experience,
   type Profession,
 } from "@/db";
 import { notSuspended } from "@/lib/auth/suspension";
@@ -27,8 +26,7 @@ export const profileColumns = {
   id: professionalProfiles.id,
   firstName: users.firstName,
   profession: professionalProfiles.profession,
-  specialisations: professionalProfiles.specialisations,
-  experience: professionalProfiles.experience,
+  formationsComplementaires: professionalProfiles.formationsComplementaires,
   bio: professionalProfiles.bio,
   nightRateEur: professionalProfiles.nightRateEur,
   photoId,
@@ -38,8 +36,7 @@ export type PublicProfile = {
   id: string;
   firstName: string;
   profession: Profession | null;
-  specialisations: string[];
-  experience: Experience | null;
+  formationsComplementaires: string | null;
   bio: string | null;
   nightRateEur: number | null;
   photoId: string | null;

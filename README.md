@@ -120,8 +120,9 @@ The platform's data starts here: one Neon Postgres database, read through
   and last name, E.164 phone, role: `parent` | `professionnel` | `admin`, `welcome_sent_at`) and
   `user_consents`, an append-only ledger of the CGU and privacy-policy versions each account
   accepted, with the moment. A professional's file (0002): `professional_profiles` (one per
-  professional: status, profession, spécialisations, experience, night rate held to 100–300 € by
-  a `CHECK`, bio, INAMI number, `submitted_at`), `professional_communes` (REFNIS codes),
+  professional: status, profession, « Formations complémentaires » held to 300 characters by a
+  `CHECK`, night rate held to 100–300 € by a `CHECK`, bio, INAMI number, `submitted_at`; 0016
+  replaced the specialisations list and dropped the experience band), `professional_communes` (REFNIS codes),
   `professional_documents` (her files in the private bucket) and `professional_declarations`
   (append-only, with the wording version). `app_settings` holds the founders' switches.
   The founders' review (0004): `review_reason` and `reviewed_at` on `professional_profiles`, and
@@ -385,7 +386,8 @@ the titles; `slugs.ts`: every address; `sitemap.ts`), all pure and tested, and t
 (`professionals.ts`, server-only). Words live in `src/content/recherche.ts`; the blocks in
 `src/components/recherche/`.
 
-- **What leaves (D-14, D-126):** `teaserColumns` (id, first name, profession, bio) for a public
+- **What leaves (D-14, D-126):** `teaserColumns` (id, first name, profession, bio, « Formations
+  complémentaires ») for a public
   page, `cardColumns` (the same plus her photo) for a signed-in card; never her surname, e-mail,
   phone, INAMI number, rate or documents. Only a `valide` profile is read, held in each query's
   SQL; any other status reads as unknown. The note and gardes count come from `src/lib/avis/`,
@@ -549,6 +551,10 @@ never touches the money for the night (D-1).
   the third year. The INAMI field shows for midwives and nurses and is optional: an empty field
   never blocks step 3, a filled one needs eleven digits, and the founders' page reads
   « INAMI non renseigné » when it is empty.
+- **Her trainings:** « Formations complémentaires » is one optional free-text field of 300
+  characters at most, in her own words: hundreds of trainings exist. It shows on her public page,
+  on the full profile a family reads and on the founders' file page. Step 2 asks for no
+  experience: migration 0016 dropped the band and the specialisations list.
 - **The students switch (D-7)** is `etudiantes_admises` in `app_settings`, flipped on
   `/admin/dossiers`. It offers or hides the two student years together.
 

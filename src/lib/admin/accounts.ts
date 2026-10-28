@@ -460,8 +460,7 @@ export async function deleteAccount(
         .set({
           bio: null,
           inamiNumber: null,
-          specialisations: [],
-          experience: null,
+          formationsComplementaires: null,
           reviewReason: null,
           updatedAt: now,
         })

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   DECLARATIONS,
   DECLARATIONS_VERSION,
+  FORMATIONS_MAX,
   PROFESSIONS,
   REQUIREMENTS,
   STUDENTS,
@@ -43,10 +44,9 @@ const context = {
 
 const blank: ProfileInput = {
   profession: "",
-  specialisations: [],
+  formations: "",
   communes: [],
   tarif: "",
-  experience: "",
   bio: "",
 };
 
@@ -54,10 +54,9 @@ const complete: FileState = {
   status: "brouillon",
   draft: {
     profession: "sage_femme",
-    specialisations: [],
+    formationsComplementaires: null,
     communes: ["21009"],
     nightRateEur: 150,
-    experience: "un_a_trois_ans",
     bio: "Sage-femme en maternité depuis trois ans.",
   },
   inamiNumber: "12345678901",
@@ -91,19 +90,18 @@ describe("the night rate (D-4)", () => {
 });
 
 describe("step 2", () => {
-  it("refuses to continue without a profession, a commune, a rate, an experience, a bio and a photo", () => {
+  it("refuses to continue without a profession, a commune, a rate, a bio and a photo", () => {
     const { values } = checkProfile(blank, context);
     expect(missingProfile(values, false)).toEqual({
       profession: "requis",
       communes: "communesMin",
       tarif: "requis",
-      experience: "requis",
       bio: "requis",
       photo: "photo",
     });
   });
 
-  it("lets spécialisations stay empty", () => {
+  it("lets the trainings stay empty, and asks for no experience (onboarding-retour-1)", () => {
     expect(missingProfile(complete.draft, true)).toEqual({});
   });
 
@@ -135,10 +133,18 @@ describe("step 2", () => {
     expect(checkProfile({ ...blank, communes: many.slice(0, 50) }, all).errors.communes).toBeUndefined();
   });
 
-  it("refuses a spécialisation that is not on the list", () => {
-    expect(checkProfile({ ...blank, specialisations: ["magie"] }, context).errors.specialisations).toBe(
-      "specialisation",
+  it("keeps the trainings as she wrote them, trimmed, up to 300 characters (onboarding-retour-1)", () => {
+    const words = "Consultante en lactation IBCLC, portage, massage bébé";
+    expect(checkProfile({ ...blank, formations: `  ${words}  ` }, context).values.formationsComplementaires).toBe(
+      words,
     );
+    const full = checkProfile({ ...blank, formations: "a".repeat(FORMATIONS_MAX) }, context);
+    expect(full.errors.formations).toBeUndefined();
+    expect(full.values.formationsComplementaires).toHaveLength(300);
+    const long = checkProfile({ ...blank, formations: "a".repeat(FORMATIONS_MAX + 1) }, context);
+    expect(long.errors.formations).toBe("formationsLongues");
+    expect(long.values.formationsComplementaires).toBeNull();
+    expect(checkProfile({ ...blank, formations: "   " }, context).values.formationsComplementaires).toBeNull();
   });
 });
 
@@ -319,7 +325,7 @@ describe("step 4 and the states", () => {
   it("sends a validated file back to review on a new profession or any document change", () => {
     expect(changeNeedsReview("valide", "profession")).toBe(true);
     expect(changeNeedsReview("valide", "documents")).toBe(true);
-    // Rate, zone, spécialisations, experience, bio and photo apply at once.
+    // Trainings, rate, zone, bio and photo apply at once.
     expect(changeNeedsReview("valide", "details")).toBe(false);
     // Reopened, she resubmits through step 4, which appends five new declarations.
     expect(reopenedStatus("valide")).toBe("brouillon");

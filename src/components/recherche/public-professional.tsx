@@ -11,7 +11,8 @@ import { professionLabel } from "@/lib/reservations/format"
 /*
  * A professional's public teaser page (D-14): exactly her first name, her
  * profession, « Profil vérifié par Berceo », her communes (each linking to its
- * page), her note and gardes count, and « Quelques mots sur moi ». No photo
+ * page), her note and gardes count, her « Formations complémentaires »
+ * (onboarding-retour-1) and « Quelques mots sur moi ». No photo
  * (D-126), no surname, phone, e-mail, address, rate or availability: this
  * component takes those fields one by one, so nothing else can reach the HTML
  * or the page's payload. The call to action is a free family account whose
@@ -24,6 +25,7 @@ function PublicProfessional({
   firstName,
   profession,
   bio,
+  formations,
   zone,
   note,
   signUpHref,
@@ -31,6 +33,7 @@ function PublicProfessional({
   firstName: string
   profession: Profession | null
   bio: string | null
+  formations: string | null
   zone: readonly { name: string; href: string | null }[]
   note: Note
   signUpHref: string
@@ -62,6 +65,12 @@ function PublicProfessional({
                   </span>
                 ))}
               </dd>
+            </div>
+          ) : null}
+          {formations ? (
+            <div className="flex flex-col gap-1">
+              <dt className="text-legende font-semibold text-encre-taupe">{t.fiche.formations}</dt>
+              <dd className="text-corps break-words whitespace-pre-line text-encre-taupe">{formations}</dd>
             </div>
           ) : null}
           {bio ? (

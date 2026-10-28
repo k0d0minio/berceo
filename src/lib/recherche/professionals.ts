@@ -13,7 +13,8 @@ import { orderProfessionals } from "./rules";
 /**
  * The search's only reads (D-11, D-14): the validated professionals serving a
  * set of communes, and one validated professional's teaser by her short id.
- * `teaserColumns` is the whole list of what leaves for a public page, and
+ * `teaserColumns` is the whole list of what leaves for a public page (her
+ * « Formations complémentaires » among it, onboarding-retour-1), and
  * `cardColumns` adds her photo for a signed-in family: never her surname,
  * e-mail, phone, INAMI number, rate, documents or declarations (the tests hold
  * both lists). Only a `valide` profile of an account that is not suspended
@@ -26,6 +27,7 @@ export const teaserColumns = {
   firstName: users.firstName,
   profession: professionalProfiles.profession,
   bio: professionalProfiles.bio,
+  formationsComplementaires: professionalProfiles.formationsComplementaires,
 };
 
 export const cardColumns = { ...teaserColumns, photoId };
@@ -36,6 +38,7 @@ export type Teaser = {
   firstName: string;
   profession: Profession | null;
   bio: string | null;
+  formationsComplementaires: string | null;
   /** The communes she serves, by REFNIS code. */
   communes: string[];
   note: Note;
@@ -115,6 +118,7 @@ function teaserOf(row: Teaser): Teaser {
     firstName: row.firstName,
     profession: row.profession,
     bio: row.bio,
+    formationsComplementaires: row.formationsComplementaires,
     communes: row.communes,
     note: row.note,
     nextNight: row.nextNight,

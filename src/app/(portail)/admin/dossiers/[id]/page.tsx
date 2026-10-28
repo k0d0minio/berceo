@@ -104,19 +104,14 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         <Row label={a.dossier.champs.profession}>
           {profile.profession ? p.professions[profile.profession] : unset}
         </Row>
-        <Row label={a.dossier.champs.specialisations}>
-          {file.state.draft.specialisations.length > 0
-            ? file.state.draft.specialisations.map((s) => p.specialisations[s]).join(", ")
-            : none}
+        <Row label={a.dossier.champs.formations}>
+          <span className="break-words whitespace-pre-line">{profile.formationsComplementaires ?? none}</span>
         </Row>
         <Row label={a.dossier.champs.zone}>
           {file.communes.length > 0 ? file.communes.map((ins) => communeName(ins) ?? ins).join(", ") : none}
         </Row>
         <Row label={a.dossier.champs.tarif}>
           {profile.nightRateEur !== null ? fill(a.dossier.tarif, { montant: String(profile.nightRateEur) }) : unset}
-        </Row>
-        <Row label={a.dossier.champs.experience}>
-          {profile.experience ? p.experiences[profile.experience] : unset}
         </Row>
         <Row label={a.dossier.champs.bio}>
           <span className="whitespace-pre-line">{profile.bio ?? unset}</span>

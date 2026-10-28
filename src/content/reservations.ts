@@ -142,10 +142,8 @@ export const reservations = catalogue({
       verifie: "Profil vérifié par Berceo",
       /** @relecture Surya — ses communes. */
       zone: "Communes où elle intervient",
-      /** @relecture Surya — ses spécialisations. */
-      specialisations: "Spécialisations",
-      /** @relecture Surya — son expérience. */
-      experience: "Expérience",
+      /** Le mot des fondatrices (retour 1, onboarding-retour-1). */
+      formations: "Formations complémentaires",
       /** @relecture Surya — sa présentation. */
       bio: "Présentation",
       /** Guide — l'envoi en priorité. */

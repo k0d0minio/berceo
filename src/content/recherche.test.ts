@@ -54,6 +54,10 @@ describe("the guide's lines, verbatim", () => {
     expect(t.carte.verifie).toBe("Profil vérifié par Berceo");
   });
 
+  it("names her trainings with the founders' word (onboarding-retour-1)", () => {
+    expect(t.fiche.formations).toBe("Formations complémentaires");
+  });
+
   it("keeps the guide's empty-zone opening and drops its clause on neighbouring zones (D-124)", () => {
     expect(t.aucune.texte.startsWith("Aucune professionnelle n'est disponible dans cette zone pour le moment.")).toBe(true);
     expect(t.aucune.texte).not.toContain("zones voisines");

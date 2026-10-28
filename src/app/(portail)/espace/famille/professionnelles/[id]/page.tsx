@@ -9,7 +9,6 @@ import { ProfessionalPhoto } from "@/components/reservations/professional-photo"
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { words } from "@/content/locale";
-import { professionnelle } from "@/content/professionnelle";
 import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
@@ -20,7 +19,6 @@ import { isChangeable } from "@/lib/demandes/rules";
 import { nextAvailableNights } from "@/lib/disponibilites/nights";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyHasAddress } from "@/lib/famille/profile";
-import { isSpecialisation } from "@/lib/professionnelle/rules";
 import { waitingAnswerOf } from "@/lib/reservations/answers";
 import { feeLine } from "@/lib/paiements/format";
 import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
@@ -30,7 +28,6 @@ import { publicProfile } from "@/lib/reservations/profiles";
 import { acceptAnswerAction } from "../../demandes/actions";
 
 const r = words(reservations);
-const p = words(professionnelle);
 
 export const metadata: Metadata = {
   title: r.meta.profil,
@@ -44,7 +41,7 @@ export const dynamic = "force-dynamic";
  * signed-in family, any validated profile; any other status, like an unknown
  * id, is not found. The DA's profile card (photo, first name, profession,
  * « Profil vérifié par Berceo », her communes) and the rest of her file:
- * spécialisations, experience, presentation, rate, and « Prochaines
+ * « Formations complémentaires », presentation, rate, and « Prochaines
  * disponibilités » (D-69, D-80). Never her surname, e-mail,
  * phone, INAMI number or documents. « Lui envoyer ma demande en priorité »
  * always (D-71); « Accepter et réserver » when opened from one of the family's
@@ -74,7 +71,6 @@ export default async function ProfilProfessionnellePage({
     nextAvailableNights(profile.id, now),
   ]);
 
-  const specialisations = profile.specialisations.filter(isSpecialisation).map((s) => p.specialisations[s]);
   const communes = profile.communes.map((ins) => communeName(ins) ?? ins).sort((a, b) => a.localeCompare(b, "fr"));
 
   return (
@@ -97,16 +93,12 @@ export default async function ProfilProfessionnellePage({
             <dt className="text-legende font-semibold text-encre-taupe">{r.profil.zone}</dt>
             <dd className="text-corps text-encre-taupe">{communes.join(", ")}</dd>
           </div>
-          {specialisations.length > 0 ? (
+          {profile.formationsComplementaires ? (
             <div className="flex flex-col gap-1">
-              <dt className="text-legende font-semibold text-encre-taupe">{r.profil.specialisations}</dt>
-              <dd className="text-corps text-encre-taupe">{specialisations.join(", ")}</dd>
-            </div>
-          ) : null}
-          {profile.experience ? (
-            <div className="flex flex-col gap-1">
-              <dt className="text-legende font-semibold text-encre-taupe">{r.profil.experience}</dt>
-              <dd className="text-corps text-encre-taupe">{p.experiences[profile.experience]}</dd>
+              <dt className="text-legende font-semibold text-encre-taupe">{r.profil.formations}</dt>
+              <dd className="text-corps break-words whitespace-pre-line text-encre-taupe">
+                {profile.formationsComplementaires}
+              </dd>
             </div>
           ) : null}
           {profile.bio ? (
