@@ -7,7 +7,8 @@ import type { SubscriptionPlan, SubscriptionStatus } from "@/db/schema";
  * a failed renewal, `hasActiveSubscription`, which every later stub of the
  * epic reads, and `familyMay`, what it opens (abonnements-acces); the
  * cancellation date, the page's state and the test clocks
- * (abonnements-espace-echec-paiement). Pure, so
+ * (abonnements-espace-echec-paiement); the founders' list's state, its
+ * filter and its link to Stripe (abonnements-back-office). Pure, so
  * the tests hold them to the spec; `./subscriptions.ts`
  * holds the live-row rule again in its SQL.
  */
@@ -178,4 +179,39 @@ export function planToFinish(
  */
 export function checkoutExpiry(now: Date): Date {
   return new Date(now.getTime() + 31 * 60_000);
+}
+
+/**
+ * A subscription's state on the founders' list (abonnements-back-office):
+ * `subscriptionState` for a running row, and the two states it says nothing
+ * of, a first payment still pending and an ended row.
+ */
+export type AdminSubscriptionState = SubscriptionState | "en_attente" | "terminee";
+
+export function adminSubscriptionState(
+  row: { status: SubscriptionStatus; graceEndsAt: Date | null; cancelsAt: Date | null },
+  now: Date,
+): AdminSubscriptionState {
+  if (row.status === "en_attente" || row.status === "terminee") return row.status;
+  return subscriptionState(row, now) ?? "terminee";
+}
+
+/** The founders' list keeps the subscriptions `hasActiveSubscription` counts with `?statut=actifs` (D-133). */
+export const ACTIVE_FILTER = "actifs";
+
+export function isActiveFilter(value: string | null | undefined): boolean {
+  return value === ACTIVE_FILTER;
+}
+
+/**
+ * The subscription's page in Stripe's dashboard, in test mode with a test key
+ * (UAT and the previews), so the founders' link opens the account that holds it.
+ */
+export function stripeSubscriptionUrl(
+  stripeSubscriptionId: string,
+  env: Readonly<Record<string, string | undefined>>,
+): string {
+  const key = env.STRIPE_SECRET_KEY ?? "";
+  const test = key.startsWith("sk_test_") || key.startsWith("rk_test_");
+  return `https://dashboard.stripe.com/${test ? "test/" : ""}subscriptions/${encodeURIComponent(stripeSubscriptionId)}`;
 }

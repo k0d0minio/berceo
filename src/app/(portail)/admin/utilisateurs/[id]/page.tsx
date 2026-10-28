@@ -10,6 +10,8 @@ import { listHref } from "@/components/admin/list-controls";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { professionnelle } from "@/content/professionnelle";
+import { planWords } from "@/lib/abonnements/format";
+import { familySubscriptionLine } from "@/lib/abonnements/subscriptions";
 import { accountView } from "@/lib/admin/accounts";
 import { fullName } from "@/lib/admin/journal";
 import { ADMIN_BOOKINGS_PATH, ADMIN_REQUESTS_PATH, adminFilePath, adminUserPath } from "@/lib/admin/paths";
@@ -51,7 +53,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 /*
  * « Voir le profil » (the guide, « Le backoffice »; back-office-admin): who the
  * account is and since when, a family's commune but never her address (D-15),
- * a professional's file, communes, rate and note, what she did on Berceo with
+ * a family's subscription line (abonnements-back-office), a professional's
+ * file, communes, rate and note, what she did on Berceo with
  * links to the lists filtered on her, her gardes still standing, the actions,
  * and every journal entry about her. An admin account shows no action. A 404
  * to anyone but an admin (D-33), and for an id that names no account.
@@ -62,6 +65,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
   if (!UUID.test(id)) notFound();
   const view = await accountView(id);
   if (!view) notFound();
+  const subscription = view.user.role === "parent" ? await familySubscriptionLine(id, new Date()) : null;
 
   const t = a.compte;
   const u = a.utilisateurs;
@@ -93,6 +97,16 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
           <Row label={t.champs.etat}>{state}</Row>
           {account.role === "parent" ? (
             <Row label={t.champs.commune}>{view.commune ?? t.nonRenseigne}</Row>
+          ) : null}
+          {account.role === "parent" ? (
+            <>
+              <Row label={t.champs.abonnement}>
+                {subscription ? planWords(subscription.plan).name : t.sansAbonnement}
+              </Row>
+              {subscription ? (
+                <Row label={t.champs.etatAbonnement}>{a.abonnements.etats[subscription.state]}</Row>
+              ) : null}
+            </>
           ) : null}
           {view.professional ? (
             <>

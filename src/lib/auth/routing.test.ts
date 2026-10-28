@@ -148,6 +148,7 @@ describe("each role lands on its own space (spec)", () => {
       "/admin/reservations",
       "/admin/signalements",
       "/admin/paiements",
+      "/admin/abonnements",
       "/admin/absences",
     ]) {
       expect(accessFor("admin", path)).toEqual({ kind: "allow" });

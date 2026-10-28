@@ -2,7 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
+import { and, count, desc, eq, gt, inArray, isNotNull, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import { after } from "next/server";
 import type Stripe from "stripe";
 
@@ -15,6 +15,7 @@ import { siteOrigin } from "@/lib/site-origin";
 import { notifyGracePeriod } from "./notify";
 import { SUBSCRIPTION_PATH, SUBSCRIPTION_PORTAL_RETURN_PATH, SUBSCRIPTION_RETURN_PATH } from "./paths";
 import {
+  adminSubscriptionState,
   cancelsAt,
   checkoutExpiry,
   familyMay,
@@ -24,7 +25,9 @@ import {
   planOfPrice,
   PRICE_ENV,
   statusFromStripe,
+  stripeSubscriptionUrl,
   testClocksEnabled,
+  type AdminSubscriptionState,
   type FamilyAction,
 } from "./rules";
 
@@ -40,6 +43,8 @@ import {
  * nothing of it. The family manages a running subscription in Stripe's
  * customer portal (`openPortal`), and the row's move into `impayee` sends
  * her the one e-mail of the grace period (abonnements-espace-echec-paiement).
+ * The founders read every subscription, the count of active ones and a
+ * family's own line (abonnements-back-office).
  */
 
 function logError(what: string, context: Record<string, unknown>, error?: unknown): void {
@@ -494,4 +499,116 @@ export async function markCheckoutExpired(sessionId: string, now: Date): Promise
 export async function syncFromInvoice(invoice: Stripe.Invoice, now: Date): Promise<void> {
   const subscriptionId = idOf(invoice.parent?.subscription_details?.subscription);
   if (subscriptionId) await syncSubscription(subscriptionId, now);
+}
+
+// ---------------------------------------------------------------------------
+// The founders' list (abonnements-back-office)
+// ---------------------------------------------------------------------------
+
+/** The page size of the founders' list, the journal's (`LIST_PAGE_SIZE` in `src/lib/admin/rules.ts`). */
+export const ADMIN_SUBSCRIPTIONS_PAGE_SIZE = 50;
+
+/**
+ * The rows the founders' list holds: every subscription Stripe created, so a
+ * Checkout left unpaid is no subscription. With `active`, only those
+ * `hasActiveSubscription` counts, in SQL: `active`, or `impayee` before the
+ * grace period's end. The overview's count and the list's filter both read
+ * this one condition (D-133).
+ */
+export function subscriptionListCondition(active: boolean, now: Date): SQL | undefined {
+  return and(
+    isNotNull(subscriptions.stripeSubscriptionId),
+    active
+      ? or(
+          eq(subscriptions.status, "active"),
+          and(eq(subscriptions.status, "impayee"), gt(subscriptions.graceEndsAt, now)),
+        )
+      : undefined,
+  );
+}
+
+/** « Vue d'ensemble »'s « Abonnements actifs ». */
+export async function activeSubscriptionCount(now: Date): Promise<number> {
+  const [row] = await db.select({ n: count() }).from(subscriptions).where(subscriptionListCondition(true, now));
+  return row?.n ?? 0;
+}
+
+export type AdminSubscription = {
+  id: string;
+  /** Null once the account is gone. */
+  familyUserId: string | null;
+  family: string | null;
+  plan: SubscriptionPlan;
+  state: AdminSubscriptionState;
+  createdAt: Date;
+  currentPeriodEnd: Date | null;
+  graceEndsAt: Date | null;
+  cancelsAt: Date | null;
+  endedAt: Date | null;
+  stripeUrl: string | null;
+};
+
+/** One page of subscriptions, the newest first. */
+export async function readSubscriptions(
+  page: number,
+  active: boolean,
+  now: Date,
+): Promise<{ rows: AdminSubscription[]; pages: number }> {
+  const where = subscriptionListCondition(active, now);
+  const [rows, [total]] = await Promise.all([
+    db
+      .select({
+        id: subscriptions.id,
+        familyUserId: subscriptions.userId,
+        familyFirstName: users.firstName,
+        familyLastName: users.lastName,
+        plan: subscriptions.plan,
+        status: subscriptions.status,
+        createdAt: subscriptions.createdAt,
+        currentPeriodEnd: subscriptions.currentPeriodEnd,
+        graceEndsAt: subscriptions.graceEndsAt,
+        cancelsAt: subscriptions.cancelsAt,
+        endedAt: subscriptions.endedAt,
+        stripeSubscriptionId: subscriptions.stripeSubscriptionId,
+      })
+      .from(subscriptions)
+      .leftJoin(users, eq(users.id, subscriptions.userId))
+      .where(where)
+      .orderBy(desc(subscriptions.createdAt), desc(subscriptions.id))
+      .limit(ADMIN_SUBSCRIPTIONS_PAGE_SIZE)
+      .offset((page - 1) * ADMIN_SUBSCRIPTIONS_PAGE_SIZE),
+    db.select({ n: count() }).from(subscriptions).where(where),
+  ]);
+  return {
+    rows: rows.map(({ familyFirstName, familyLastName, status, stripeSubscriptionId, ...row }) => ({
+      ...row,
+      family: familyFirstName === null ? null : `${familyFirstName} ${familyLastName ?? ""}`.trim(),
+      state: adminSubscriptionState({ status, graceEndsAt: row.graceEndsAt, cancelsAt: row.cancelsAt }, now),
+      stripeUrl: stripeSubscriptionId ? stripeSubscriptionUrl(stripeSubscriptionId, process.env) : null,
+    })),
+    pages: Math.max(1, Math.ceil(total.n / ADMIN_SUBSCRIPTIONS_PAGE_SIZE)),
+  };
+}
+
+/**
+ * A family's line on her account page: her live subscription, else her
+ * latest ended one; only a subscription Stripe created. Null when she never
+ * had one.
+ */
+export async function familySubscriptionLine(
+  userId: string,
+  now: Date,
+): Promise<{ plan: SubscriptionPlan; state: AdminSubscriptionState } | null> {
+  const [row] = await db
+    .select({
+      plan: subscriptions.plan,
+      status: subscriptions.status,
+      graceEndsAt: subscriptions.graceEndsAt,
+      cancelsAt: subscriptions.cancelsAt,
+    })
+    .from(subscriptions)
+    .where(and(eq(subscriptions.userId, userId), isNotNull(subscriptions.stripeSubscriptionId)))
+    .orderBy(sql`${subscriptions.status} = 'terminee'`, desc(subscriptions.createdAt))
+    .limit(1);
+  return row ? { plan: row.plan, state: adminSubscriptionState(row, now) } : null;
 }

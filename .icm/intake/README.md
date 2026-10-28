@@ -14,8 +14,7 @@ the order of the epics (`CONTEXT.md`, The order of the epics).
 Set by Jamie on 2026-10-28.
 
 1. triage
-2. abonnements-familles
-3. onboarding-retour-1
+2. onboarding-retour-1
 
 ## The backlog on 2026-10-23
 
