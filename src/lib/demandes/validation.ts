@@ -9,8 +9,11 @@ import {
   isDateInWindow,
   isExtraHours,
   isFeeding,
+  isIsoDate,
   isStartTime,
+  MAX_SERIES_NIGHTS,
   REASON_MAX,
+  seriesWindow,
   type AgeUnit,
   type Children,
   type Feeding,
@@ -26,10 +29,18 @@ import {
  * urgent comes from the caller, which knows which form was posted, or from the
  * stored request when it is edited. The reason is optional, on a publication
  * and on an edit (demande-motif-facultatif): empty, it is stored as null.
+ * A normal publication is « Nuit ponctuelle » or « Nuits régulières »
+ * (demande-nuits-regulieres): regular nights replace the date with the nights
+ * ticked in the calendar, each in `seriesWindow`, 31 at most. An urgent
+ * publication and an edit are always one night.
  */
 
 export type RequestInput = {
+  /** « ponctuelle » or « reguliere »: present only on the normal publish form. */
+  nature?: string;
   date: string;
+  /** The regular nights, `YYYY-MM-DD` joined by commas: present only on the normal publish form. */
+  nuits?: string;
   heure: string;
   /** Whole extra hours beyond the 11-hour night. Empty reads as 0. */
   heuresSupplementaires: string;
@@ -65,6 +76,7 @@ export type RequestPlace = { locality: Locality | null; address: Address };
 
 export type RequestField =
   | "date"
+  | "nuits"
   | "heure"
   | "heuresSupplementaires"
   | "enfants"
@@ -83,6 +95,8 @@ export type RequestError =
   | "boiteSeule"
   | "long"
   | "date"
+  | "nuits"
+  | "nuitsTrop"
   | "heurePassee"
   | "heure"
   | "heuresSupplementaires"
@@ -95,7 +109,8 @@ export type RequestError =
 export type RequestErrors = Partial<Record<RequestField, RequestError>>;
 
 export type Checked =
-  | { ok: true; values: RequestValues; place: RequestPlace }
+  /** `nights` only on regular nights: every night, in order. `values.nightDate` is the first. */
+  | { ok: true; values: RequestValues; place: RequestPlace; nights?: string[] }
   | { ok: false; errors: RequestErrors };
 
 function text(form: FormData, name: string): string {
@@ -105,7 +120,9 @@ function text(form: FormData, name: string): string {
 
 export function readRequestForm(form: FormData): RequestInput {
   return {
+    nature: text(form, "nature"),
     date: text(form, "date"),
+    nuits: text(form, "nuits"),
     heure: text(form, "heure"),
     heuresSupplementaires: text(form, "heuresSupplementaires"),
     enfants: text(form, "enfants"),
@@ -140,13 +157,29 @@ export function validateRequest(
   }: { urgent: boolean; now: Date; publishing: boolean; storedDate?: string },
 ): Checked {
   const errors: RequestErrors = {};
+  // Regular nights exist on a normal publication only: the urgent form and the edit never post the field.
+  const regular = publishing && !urgent && input.nature === "reguliere";
 
-  if (!input.date) errors.date = "requis";
+  let nights: string[] = [];
+  if (regular) {
+    nights = (input.nuits ?? "").split(",").map((night) => night.trim()).filter(Boolean).sort();
+    const { min, max } = seriesWindow(now);
+    if (nights.length === 0) errors.nuits = "requis";
+    else if (nights.length > MAX_SERIES_NIGHTS) errors.nuits = "nuitsTrop";
+    else if (
+      new Set(nights).size !== nights.length ||
+      nights.some((night) => !isIsoDate(night) || night < min || night > max)
+    ) {
+      errors.nuits = "nuits";
+    }
+  } else if (!input.date) errors.date = "requis";
   else if (input.date !== storedDate && !isDateInWindow(urgent, input.date, now)) errors.date = "date";
 
+  // A series starts the day after tomorrow at the earliest: its start is never past.
+  const firstNight = regular ? nights[0] : input.date;
   if (!input.heure) errors.heure = "requis";
   else if (!isStartTime(input.heure)) errors.heure = "heure";
-  else if (!errors.date && hasNightStarted(input.date, input.heure, now)) errors.heure = "heurePassee";
+  else if (!regular && !errors.date && hasNightStarted(firstNight, input.heure, now)) errors.heure = "heurePassee";
 
   // Whole hours only: « 1.5 », « 1,5 », « -1 » and « 7 » are refused.
   const extra = input.heuresSupplementaires;
@@ -181,7 +214,7 @@ export function validateRequest(
   return {
     ok: true,
     values: {
-      nightDate: input.date,
+      nightDate: firstNight,
       startTime: input.heure,
       extraHours,
       children: input.enfants as Children,
@@ -191,5 +224,6 @@ export function validateRequest(
       reason: input.motif === "" ? null : input.motif,
     },
     place: { locality, address },
+    ...(regular ? { nights } : {}),
   };
 }

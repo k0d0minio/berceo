@@ -151,3 +151,37 @@ describe("cancelling a request (D-76)", () => {
     expect(q.params.filter((p) => p === "non_retenue")).toHaveLength(1);
   });
 });
+
+/**
+ * Spec (demande-nuits-regulieres): « Annuler toutes les nuits » cancels her
+ * open nights ahead in the series, and declines the answers that waited on the
+ * nights it cancelled, in one transaction. A booked night is never named.
+ */
+describe("cancelling regular nights", () => {
+  const SERIES = "4c9e1a3d-5f6b-4c8d-0e2f-3a4b5c6d7e83";
+
+  it("cancels her open nights ahead in the series, and no booked one", async () => {
+    const { cancelSeriesStatement } = await import("./requests");
+    const q = cancelSeriesStatement(FAMILY, SERIES, NOW).toSQL();
+    expect(q.sql).toMatch(/^update "care_requests" set "status" = \$1, "cancelled_at" = \$2, "updated_at" = \$3 where/);
+    expect(q.params.slice(0, 3)).toEqual(["annulee", NOW.toISOString(), NOW.toISOString()]);
+    expect(bound(q, '"care_requests"."series_id"')).toEqual([SERIES]);
+    expect(bound(q, '"care_requests"."family_user_id"')).toEqual([FAMILY]);
+    expect(bound(q, REQUEST_STATUS)).toEqual(["ouverte"]);
+    expect(q.sql).toContain(NIGHT_AHEAD);
+    expect(q.params).not.toContain("attribuee");
+  });
+
+  it("declines only the answers waiting on the nights it cancelled at that moment", async () => {
+    const { cancelSeriesDeclinesAnswers } = await import("./requests");
+    const q = cancelSeriesDeclinesAnswers(FAMILY, SERIES, NOW).toSQL();
+    expect(q.sql).toMatch(/^update "care_request_applications" set "status" = \$1, "updated_at" = \$2 where/);
+    expect(q.params.slice(0, 2)).toEqual(["non_retenue", NOW.toISOString()]);
+    expect(bound(q, ANSWER_STATUS)).toEqual(["en_attente"]);
+    expect(bound(q, '"care_requests"."series_id"')).toEqual([SERIES]);
+    expect(bound(q, '"care_requests"."family_user_id"')).toEqual([FAMILY]);
+    expect(bound(q, REQUEST_STATUS)).toEqual(["annulee"]);
+    expect(bound(q, '"care_requests"."cancelled_at"')).toEqual([NOW.toISOString()]);
+    for (const kept of ["retiree", "retenue"]) expect(q.params).not.toContain(kept);
+  });
+});

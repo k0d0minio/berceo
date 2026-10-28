@@ -1,5 +1,7 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import { and, desc, eq, exists, inArray, isNull, ne, notExists, or, sql } from "drizzle-orm";
 
 import {
@@ -78,6 +80,12 @@ export type RequestCard = {
 
 export type FamilyRequest = RequestCard & { status: RequestStatus };
 
+/** One of her requests in « Mes demandes », with the series it belongs to (demande-nuits-regulieres). */
+export type ListedRequest = FamilyRequest & { seriesId: string | null };
+
+/** A request the digest carries, with its series: a series is one line (demande-nuits-regulieres). */
+export type DigestRequest = RequestCard & { seriesId: string | null };
+
 /** One of her requests, with her optional reason (demande-motif-facultatif). */
 export type OwnRequest = FamilyRequest & { reason: string | null };
 
@@ -141,20 +149,7 @@ export async function publishRequest(
   try {
     const [row] = await db
       .insert(careRequests)
-      .values({
-        familyUserId: userId,
-        urgent,
-        ...values,
-        communeIns: place.locality.ins,
-        postcode: place.locality.postcode,
-        locality: place.locality.locality,
-        ...requestAddressValues(place.address),
-        noMedicalConditionAt: now,
-        priorityProfileId,
-        prioritySentAt: priorityProfileId ? now : null,
-        createdAt: now,
-        updatedAt: now,
-      })
+      .values(requestRow(userId, values, place, urgent, now, priorityProfileId))
       .returning({ id: careRequests.id });
     return { ok: true, id: row.id };
   } catch (error) {
@@ -163,14 +158,106 @@ export async function publishRequest(
   }
 }
 
-/** Her requests: the ones she can still change first, by night, then the others, latest night first. */
-export async function familyRequests(userId: string, now: Date): Promise<FamilyRequest[]> {
+/** The row a publication inserts: the form's values, its place, the tick's moment and the priority. */
+function requestRow(
+  userId: string,
+  values: Omit<RequestValues, "feeding"> & { feeding: Feeding | null },
+  place: PublishPlace,
+  urgent: boolean,
+  now: Date,
+  priorityProfileId: string | null,
+) {
+  return {
+    familyUserId: userId,
+    urgent,
+    ...values,
+    communeIns: place.locality.ins,
+    postcode: place.locality.postcode,
+    locality: place.locality.locality,
+    ...requestAddressValues(place.address),
+    noMedicalConditionAt: now,
+    priorityProfileId,
+    prioritySentAt: priorityProfileId ? now : null,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export type SeriesResult =
+  | { ok: true; seriesId: string; ids: string[] }
+  | { ok: false; reason: "commune" }
+  /** The nights she already holds an open or booked request for (D-65, D-156). */
+  | { ok: false; reason: "doublon"; nights: string[] };
+
+/**
+ * Publishes « Nuits régulières » (demande-nuits-regulieres): one normal request
+ * per night, every one with the same details and one new series id, in one
+ * INSERT, so the nights are published together or not at all. A night she
+ * already holds refuses the whole series and is named: the unique index still
+ * decides when a request for it was written meanwhile. Published from a
+ * professional's profile, every night goes to her in priority (D-71).
+ */
+export async function publishSeries(
+  userId: string,
+  values: RequestValues,
+  nights: string[],
+  place: PublishPlace,
+  now: Date,
+  priorityProfileId: string | null = null,
+): Promise<SeriesResult> {
+  if (!(await familyCommune(userId))) return { ok: false, reason: "commune" };
+
+  const held = await liveNightsAmong(userId, nights);
+  if (held.length > 0) return { ok: false, reason: "doublon", nights: held };
+
+  const seriesId = randomUUID();
+  try {
+    const rows = await db
+      .insert(careRequests)
+      .values(
+        nights.map((nightDate) => ({
+          ...requestRow(userId, { ...values, nightDate }, place, false, now, priorityProfileId),
+          seriesId,
+        })),
+      )
+      .returning({ id: careRequests.id, nightDate: careRequests.nightDate });
+    const ids = rows.sort((a, b) => a.nightDate.localeCompare(b.nightDate)).map((row) => row.id);
+    return { ok: true, seriesId, ids };
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      return { ok: false, reason: "doublon", nights: await liveNightsAmong(userId, nights) };
+    }
+    throw error;
+  }
+}
+
+/** The nights among `nights` she already holds an open or booked request for, in order. */
+async function liveNightsAmong(userId: string, nights: string[]): Promise<string[]> {
   const rows = await db
-    .select(familyColumns)
+    .select({ nightDate: careRequests.nightDate })
+    .from(careRequests)
+    .where(
+      and(
+        eq(careRequests.familyUserId, userId),
+        inArray(careRequests.nightDate, nights),
+        inArray(careRequests.status, ["ouverte", "attribuee"]),
+      ),
+    );
+  return rows.map((row) => row.nightDate).sort();
+}
+
+/**
+ * Her requests: the ones she can still change first, by night, then the
+ * others, latest night first. Each carries its series id, so « Mes demandes »
+ * groups regular nights (demande-nuits-regulieres).
+ */
+export async function familyRequests(userId: string, now: Date): Promise<ListedRequest[]> {
+  const rows = await db
+    .select({ ...familyColumns, seriesId: careRequests.seriesId })
     .from(careRequests)
     .where(eq(careRequests.familyUserId, userId));
 
-  const key = (r: FamilyRequest) => `${r.nightDate}T${r.startTime}`;
+  const key = (r: ListedRequest) => `${r.nightDate}T${r.startTime}`;
   const open = rows.filter((r) => isChangeable(r, now)).sort((a, b) => key(a).localeCompare(key(b)));
   const closed = rows.filter((r) => !isChangeable(r, now)).sort((a, b) => key(b).localeCompare(key(a)));
   return [...open, ...closed];
@@ -266,6 +353,73 @@ export async function cancelRequest(
     result: cancelled.length > 0 ? "ok" : "nonModifiable",
     declined: cancelled.length > 0 ? declined.map((a) => a.id) : [],
   };
+}
+
+/**
+ * « Annuler toutes les nuits » (demande-nuits-regulieres): every open night of
+ * her series whose night has not started is cancelled, and the answers that
+ * waited on them are declined in the same transaction; their ids come back so
+ * each professional is told (D-76). A booked night does not change: its garde
+ * keeps its own cancellation and its fee rule (D-110).
+ */
+export async function cancelSeries(
+  userId: string,
+  seriesId: string,
+  now: Date,
+): Promise<{ cancelled: number; declined: string[] }> {
+  if (!UUID.test(seriesId)) return { cancelled: 0, declined: [] };
+  const [cancelled, declined] = await db.batch([
+    cancelSeriesStatement(userId, seriesId, now),
+    cancelSeriesDeclinesAnswers(userId, seriesId, now),
+  ]);
+  return { cancelled: cancelled.length, declined: declined.map((a) => a.id) };
+}
+
+/** `cancelSeries`'s first statement: her open nights ahead in the series become `annulee` at `now`. */
+export function cancelSeriesStatement(userId: string, seriesId: string, now: Date) {
+  return db
+    .update(careRequests)
+    .set({ status: "annulee", cancelledAt: now, updatedAt: now })
+    .where(
+      and(
+        eq(careRequests.seriesId, seriesId),
+        eq(careRequests.familyUserId, userId),
+        eq(careRequests.status, "ouverte"),
+        nightAhead,
+      ),
+    )
+    .returning({ id: careRequests.id });
+}
+
+/**
+ * `cancelSeries`'s second statement: the answers still waiting on the nights
+ * the first statement cancelled at `now` become `non_retenue`. A night
+ * cancelled earlier, and its answers, are left as they are.
+ */
+export function cancelSeriesDeclinesAnswers(userId: string, seriesId: string, now: Date) {
+  return db
+    .update(careRequestApplications)
+    .set({ status: "non_retenue", updatedAt: now })
+    .where(
+      and(
+        eq(careRequestApplications.status, "en_attente"),
+        inArray(
+          careRequestApplications.requestId,
+          db
+            .select({ id: careRequests.id })
+            .from(careRequests)
+            .where(
+              and(
+                eq(careRequests.seriesId, seriesId),
+                eq(careRequests.familyUserId, userId),
+                eq(careRequests.status, "annulee"),
+                eq(careRequests.cancelledAt, now),
+              ),
+            ),
+        ),
+      ),
+    )
+    .returning({ id: careRequestApplications.id });
 }
 
 /**
@@ -717,7 +871,7 @@ export async function digestSentOn(day: string): Promise<boolean> {
  * its digest (D-70), open and ahead: marks it and returns it. One UPDATE, so
  * two calls racing never claim the same request twice.
  */
-export async function claimDigestRequests(now: Date): Promise<RequestCard[]> {
+export async function claimDigestRequests(now: Date): Promise<DigestRequest[]> {
   return db
     .update(careRequests)
     .set({ digestSentAt: now })
@@ -729,5 +883,5 @@ export async function claimDigestRequests(now: Date): Promise<RequestCard[]> {
         nightAhead,
       ),
     )
-    .returning(cardColumns);
+    .returning({ ...cardColumns, seriesId: careRequests.seriesId });
 }

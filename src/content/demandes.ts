@@ -59,7 +59,11 @@ export const demandes = catalogue({
       titreModification: "Modifier votre demande",
 
       champs: {
+        /** @relecture Surya — le choix des fondatrices, retour 1 (demande-nuits-regulieres). */
+        nature: "Type de demande",
         date: "Date de la garde",
+        /** @relecture Surya — le calendrier des nuits régulières (demande-nuits-regulieres). */
+        nuits: "Dates des gardes",
         heure: "Heure de début",
         /** Le libellé des fondatrices (retour 1, demande-heures-supplementaires). */
         heuresSupplementaires: "Heures supplémentaires",
@@ -87,6 +91,9 @@ export const demandes = catalogue({
         date: "Une date entre le {min} et le {max}. Pour ce soir ou demain soir, publiez une demande urgente.",
         /** @relecture Surya — la fenêtre d'une demande urgente (D-60). */
         dateUrgente: "Ce soir ou demain soir.",
+        /** @relecture Surya — les nuits régulières : la fenêtre, le maximum, une demande par nuit. */
+        nuits:
+          "Cochez chaque nuit souhaitée, entre le {min} et le {max}, {n} nuits au maximum. Chaque nuit devient une demande et les professionnelles répondent nuit par nuit.",
         /** @relecture Surya — l'âge en semaines puis en mois (D-64). */
         age: "En semaines jusqu'à 12 semaines, puis en mois jusqu'à 24 mois.",
         /** @relecture Surya — l'adresse reprise du profil, modifiable pour cette demande (demande-adresse-de-la-nuit). */
@@ -106,6 +113,14 @@ export const demandes = catalogue({
           "Cette question est facultative. Merci de ne pas communiquer d'informations médicales ou de données sensibles.",
         /** @relecture Surya — compteur de caractères, comme celui du profil. */
         compteur: "{n} caractères sur 300",
+      },
+
+      /** Les deux choix des fondatrices, retour 1 (demande-nuits-regulieres). */
+      natures: {
+        /** @relecture Surya — la majuscule et le singulier d'un choix du formulaire. */
+        ponctuelle: "Nuit ponctuelle",
+        /** @relecture Surya — la majuscule d'un choix du formulaire. */
+        reguliere: "Nuits régulières",
       },
 
       enfants: {
@@ -137,6 +152,10 @@ export const demandes = catalogue({
         precedent: "Mois précédent",
         /** @relecture Surya — bouton du calendrier de la date, pour les lecteurs d'écran. */
         suivant: "Mois suivant",
+        /** @relecture Surya — compte des nuits régulières cochées, une seule. */
+        uneNuitChoisie: "1 nuit choisie",
+        /** @relecture Surya — compte des nuits régulières cochées. */
+        nuitsChoisies: "{n} nuits choisies",
       },
 
       /** La case à cocher obligatoire du guide (D-20). */
@@ -147,6 +166,12 @@ export const demandes = catalogue({
     erreurs: {
       /** @relecture Surya — date hors de la fenêtre (D-60). */
       date: "Choisissez une date entre le {min} et le {max}.",
+      /** @relecture Surya — une nuit régulière hors de la fenêtre. */
+      nuits: "Choisissez des nuits entre le {min} et le {max}.",
+      /** @relecture Surya — trop de nuits régulières. */
+      nuitsTrop: "Choisissez 31 nuits au maximum.",
+      /** @relecture Surya — des nuits régulières déjà demandées (D-65, D-156). */
+      doublonNuits: "Vous avez déjà une demande pour ces nuits : {dates}. Retirez-les de votre choix.",
       /** @relecture Surya — heure déjà passée pour une garde ce soir. */
       heurePassee: "Cette heure est déjà passée. Choisissez une heure plus tardive ou demain soir.",
       /** @relecture Surya — heure hors de la liste. */
@@ -180,6 +205,11 @@ export const demandes = catalogue({
       modifiee: "Vos modifications sont enregistrées.",
       /** @relecture Surya — après une annulation. */
       annulee: "Votre demande est annulée.",
+      /** @relecture Surya — après la publication de nuits régulières. */
+      publiees:
+        "Vos {n} demandes sont publiées, une par nuit. Les professionnelles de votre zone peuvent les consulter dès maintenant.",
+      /** @relecture Surya — après l'annulation des nuits ouvertes d'une série. */
+      annulees: "Les nuits encore ouvertes de votre demande sont annulées.",
     },
 
     statuts: {
@@ -198,6 +228,8 @@ export const demandes = catalogue({
       titre: "Garde de nuit à {commune}",
       /** @relecture Surya — la nuit, d'après l'exemple de la DA « 30/09/2026 de 20h00 à 7h00 ». */
       nuit: "{date} de {debut} à {fin}",
+      /** @relecture Surya — les heures de nuits régulières, dites une fois pour toutes. */
+      horaire: "de {debut} à {fin}",
       /** @relecture Surya — marque d'une demande urgente. */
       urgente: "Urgente",
       /** @relecture Surya — date de publication. */
@@ -275,6 +307,34 @@ export const demandes = catalogue({
       vide: "Vous n'avez pas encore publié de demande.",
       /** @relecture Surya — accueil de l'espace famille, au-dessus des deux boutons. */
       accueil: "Publiez une demande pour une nuit à venir, ou une demande urgente pour ce soir ou demain soir.",
+    },
+
+    /** Les nuits régulières dans « Mes demandes » (demande-nuits-regulieres). */
+    serie: {
+      /** @relecture Surya — marque de la carte. */
+      marque: "Nuits régulières",
+      /** @relecture Surya — nombre de nuits de la série. */
+      nombre: "{n} nuits",
+      /** @relecture Surya — une seule nuit dans la série. */
+      uneNuit: "1 nuit",
+      /** @relecture Surya — titre de la liste des nuits, pour les lecteurs d'écran. */
+      nuits: "Les nuits de cette demande",
+      /** @relecture Surya — lien vers une nuit. */
+      voir: "Voir la nuit",
+    },
+
+    annulationSerie: {
+      /** @relecture Surya — bouton qui ouvre la confirmation. */
+      bouton: "Annuler toutes les nuits",
+      /** @relecture Surya — titre de la confirmation. */
+      titre: "Annuler toutes les nuits de cette demande",
+      /** @relecture Surya — conséquence : les nuits ouvertes seulement, une garde confirmée reste. */
+      description:
+        "Les nuits encore ouvertes sont annulées et les professionnelles ne les verront plus. Une garde déjà confirmée ne change pas : vous pouvez l'annuler depuis sa réservation.",
+      /** @relecture Surya — réponse qui annule (rouge, D-24). */
+      oui: "Oui, annuler toutes les nuits",
+      /** @relecture Surya — réponse qui garde la demande (vert, D-24). */
+      non: "Non, les garder",
     },
 
     annulation: {

@@ -137,7 +137,8 @@ The platform's data starts here: one Neon Postgres database, read through
   from her profile, the urgent flag, when the no-medical-condition box was ticked, and
   `digest_sent_at`; at most one open request per family and night (widened to open or booked
   in 0014, D-156). The night's address (0019): `night_street`, `night_house_number` and
-  `night_box`, null on a request published before them.
+  `night_box`, null on a request published before them. Regular nights (0025): `series_id`,
+  shared by the nights published together, null on a one-off night.
   Answers and bookings (0007): `care_request_status` gains `attribuee`; `care_requests` gains
   its priority professional (`priority_profile_id`, `priority_sent_at`, set once) and
   `republished_at` / `republish_count`; `care_request_applications` is one answer per
@@ -270,6 +271,18 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   demande » opens from each card and which shows only a request of her list (`herListQuery`).
   The founders read it under the row on `/admin/demandes`. No card, digest or e-mail carries it.
   `reason-isolation.test.ts` holds the readers, and a republished garde copies it.
+- **Regular nights (demande-nuits-regulieres, D-65 kept per night):** the normal form asks
+  « Nuit ponctuelle » or « Nuits régulières ». Regular nights replace the date with a calendar
+  where the family ticks each night, from the day after tomorrow to the last day of next month
+  (`seriesWindow`), 31 nights at most. `publishSeries` inserts one normal request per night in
+  one statement, with the same details and one new `series_id`. A night she already holds refuses
+  the whole series, and the form names it. Each night is a request of its own: a professional
+  answers night by night, and the edit page changes one night. « Mes demandes » shows a series as
+  one card with each night's state (`groupForList` in `series.ts`). « Annuler toutes les nuits »
+  (`cancelSeries`) cancels the open nights ahead and declines their waiting answers. A booked
+  night keeps its garde. The digest shows the nights of a series that read the same as one line
+  (`groupForDigest`). Sent from a professional's profile, every night goes to her in priority,
+  in one e-mail (`notifySeriesPriority`, D-71). An urgent request is always one night.
 - **The extra hours:** « Heures supplémentaires », 0 to 6 whole hours, default 0, under « Heure
   de début ». `care_requests.extra_hours` stores them. The night ends at start + 11 h + the extra
   hours. `endTime` and `hasNightEnded` in `rules.ts` compute it, `nightEnd` in `night-end.ts`

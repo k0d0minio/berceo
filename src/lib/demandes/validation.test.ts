@@ -313,3 +313,81 @@ describe("the optional reason", () => {
     expect(reasonOf("a".repeat(301), edit)).toEqual({ motif: "motifLong" });
   });
 });
+
+/**
+ * Spec (demande-nuits-regulieres): « Nuits régulières » replaces the date with
+ * the nights ticked in the calendar, from the day after tomorrow to the last
+ * day of next month, 31 at most. The other fields apply to every night. The
+ * urgent form and an edit are always one night.
+ */
+describe("regular nights", () => {
+  // 25 September 2026: the window runs from 27 September to 31 October.
+  const regular = (nuits: string, input: Partial<RequestInput> = {}) =>
+    validateRequest({ ...valid, date: "", nature: "reguliere", nuits, ...input }, publishNormal);
+  const nightsError = (nuits: string) => {
+    const checked = regular(nuits);
+    return checked.ok ? undefined : checked.errors.nuits;
+  };
+
+  it("returns every night in order, the first as the night of the values", () => {
+    const checked = regular("2026-10-09,2026-10-02,2026-10-05");
+    expect(checked.ok && checked.nights).toEqual(["2026-10-02", "2026-10-05", "2026-10-09"]);
+    expect(checked.ok && checked.values.nightDate).toBe("2026-10-02");
+    expect(checked.ok && checked.values.startTime).toBe("20:00");
+  });
+
+  it("asks for one night at least, and needs no date", () => {
+    expect(regular("")).toEqual({ ok: false, errors: { nuits: "requis" } });
+  });
+
+  it("accepts the day after tomorrow and the last day of next month, nothing outside", () => {
+    expect(nightsError("2026-09-27,2026-10-31")).toBeUndefined();
+    expect(nightsError("2026-09-26")).toBe("nuits");
+    expect(nightsError("2026-10-02,2026-11-01")).toBe("nuits");
+    expect(nightsError("2026-10-32")).toBe("nuits");
+    expect(nightsError("demain")).toBe("nuits");
+  });
+
+  it("refuses a night twice and more than 31 nights", () => {
+    expect(nightsError("2026-10-02,2026-10-02")).toBe("nuits");
+    const days = (count: number) =>
+      Array.from({ length: count }, (_, i) => `2026-10-${String(i + 1).padStart(2, "0")}`).join(",");
+    expect(nightsError(days(31))).toBeUndefined();
+    expect(nightsError(`${days(31)},2026-09-30`)).toBe("nuitsTrop");
+  });
+
+  it("checks the other fields as for one night", () => {
+    expect(regular("2026-10-02", { heure: "", confirmation: false })).toEqual({
+      ok: false,
+      errors: { heure: "requis", confirmation: "confirmation" },
+    });
+  });
+
+  it("is one night on the urgent form and on an edit, whatever is posted", () => {
+    const urgent = validateRequest(
+      { ...valid, date: "2026-09-25", nature: "reguliere", nuits: "2026-10-02,2026-10-05" },
+      { urgent: true, now: NOON, publishing: true },
+    );
+    expect(urgent.ok && urgent.nights).toBeUndefined();
+    expect(urgent.ok && urgent.values.nightDate).toBe("2026-09-25");
+    const edit = validateRequest(
+      { ...valid, nature: "reguliere", nuits: "2026-10-02,2026-10-05" },
+      { urgent: false, now: NOON, publishing: false, storedDate: "2026-09-30" },
+    );
+    expect(edit.ok && edit.nights).toBeUndefined();
+    expect(edit.ok && edit.values.nightDate).toBe("2026-09-30");
+  });
+
+  it("leaves a one-off night as it was", () => {
+    const checked = validateRequest({ ...valid, nature: "ponctuelle", nuits: "2026-10-02" }, publishNormal);
+    expect(checked.ok && checked.values.nightDate).toBe("2026-09-30");
+    expect(checked.ok && checked.nights).toBeUndefined();
+  });
+
+  it("reads the kind and the nights from the form", () => {
+    const form = new FormData();
+    form.set("nature", "reguliere");
+    form.set("nuits", "2026-10-02,2026-10-05");
+    expect(readRequestForm(form)).toMatchObject({ nature: "reguliere", nuits: "2026-10-02,2026-10-05" });
+  });
+});

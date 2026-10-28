@@ -10,7 +10,7 @@ import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { localityValue } from "@/lib/communes";
 import { NEW_REQUEST_PATH } from "@/lib/demandes/paths";
-import { dateWindow } from "@/lib/demandes/rules";
+import { dateWindow, seriesWindow } from "@/lib/demandes/rules";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { ownFamilyProfile } from "@/lib/famille/profile";
 import { publicProfile } from "@/lib/reservations/profiles";
@@ -32,7 +32,9 @@ export const dynamic = "force-dynamic";
  * demande urgente » for tonight or tomorrow night (D-60). Without a profile
  * there is nothing to publish: she is sent to complete it first. The night's
  * commune and address are prefilled from her profile, and she can change them
- * for this request (demande-adresse-de-la-nuit).
+ * for this request (demande-adresse-de-la-nuit). The normal form also offers
+ * « Nuits régulières », ticked in a calendar up to the end of next month
+ * (demande-nuits-regulieres); the urgent one is always one night.
  * With `?pour=<profile id>` (from « Lui envoyer ma demande en priorité ») the
  * request goes to that validated professional in priority (D-71); an unknown
  * or unvalidated profile is ignored.
@@ -49,6 +51,7 @@ export default async function NouvelleDemandePage({
 
   const urgent = query.urgente === "1";
   const priority = query.pour ? await publicProfile(query.pour) : null;
+  const now = new Date();
 
   return (
     <SpaceShell user={user} title={urgent ? t.formulaire.titreUrgent : t.formulaire.titre}>
@@ -58,7 +61,8 @@ export default async function NouvelleDemandePage({
       <RequestForm
         action={publishRequestAction}
         mode={urgent ? "urgente" : "normale"}
-        dates={dateWindow(urgent, new Date())}
+        dates={dateWindow(urgent, now)}
+        seriesDates={urgent ? undefined : seriesWindow(now)}
         defaults={{
           commune: profile.locality ? localityValue(profile.locality) : "",
           rue: profile.street ?? "",

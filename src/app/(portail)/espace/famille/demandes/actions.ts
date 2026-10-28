@@ -12,19 +12,23 @@ import { notifyUrgentRequest } from "@/lib/demandes/notify";
 import { FAMILY_REQUESTS_PATH, NEW_REQUEST_PATH, familyRequestPath } from "@/lib/demandes/paths";
 import {
   cancelRequest,
+  cancelSeries,
   logWriteError,
   ownRequest,
   publishRequest,
+  publishSeries,
   setPriority,
   updateRequest,
   UUID,
+  type PublishPlace,
   type PublishResult,
+  type SeriesResult,
 } from "@/lib/demandes/requests";
 import { isEditable } from "@/lib/demandes/rules";
 import { pendingCounts, republishRequest, type RepublishResult } from "@/lib/reservations/answers";
 import { PAYMENT_RETURN_PATH } from "@/lib/paiements/paths";
 import { startCheckout, type StartResult } from "@/lib/paiements/payments";
-import { notifyDeclined, notifyPriority } from "@/lib/reservations/notify";
+import { notifyDeclined, notifyPriority, notifySeriesPriority } from "@/lib/reservations/notify";
 import { priorityPath } from "@/lib/reservations/paths";
 import { publicProfile } from "@/lib/reservations/profiles";
 import {
@@ -32,6 +36,7 @@ import {
   validateRequest,
   type RequestErrors,
   type RequestInput,
+  type RequestValues,
 } from "@/lib/demandes/validation";
 
 /*
@@ -47,6 +52,8 @@ import {
 export type RequestState = {
   errors?: RequestErrors;
   message?: "generique" | "nonModifiable";
+  /** Regular nights she already holds a request for (D-65): the form names them. */
+  conflits?: string[];
   /** What was typed, so a refused form keeps it. */
   values?: RequestInput;
 };
@@ -73,6 +80,11 @@ export async function publishRequestAction(
   // A publication always reads the commune: the check refused the form without one.
   const { locality, address } = checked.place;
   if (!locality) return { errors: { commune: "requis" }, values: input };
+
+  if (checked.nights) {
+    const place = { locality, address };
+    return publishSeriesOf(user.id, checked.values, checked.nights, place, now, priority?.id ?? null, input);
+  }
 
   let result: PublishResult;
   try {
@@ -106,6 +118,44 @@ export async function publishRequestAction(
 
   revalidatePath(SPACES.parent, "layout");
   redirect(`${familyRequestPath(result.id)}?publiee=${urgent ? "urgente" : "1"}`);
+}
+
+/**
+ * « Nuits régulières » (demande-nuits-regulieres): every night at once, or
+ * none. A night she already holds is named on the form. Sent from a
+ * professional's profile, the series goes to her in one e-mail (D-71). Back
+ * on « Mes demandes », where the series reads as one card.
+ */
+async function publishSeriesOf(
+  userId: string,
+  values: RequestValues,
+  nights: string[],
+  place: PublishPlace,
+  now: Date,
+  priorityId: string | null,
+  input: RequestInput,
+): Promise<RequestState> {
+  let result: SeriesResult;
+  try {
+    result = await publishSeries(userId, values, nights, place, now, priorityId);
+  } catch (error) {
+    logWriteError("series not published", { userId, nights: nights.length }, error);
+    return { message: "generique", values: input };
+  }
+
+  if (!result.ok) {
+    if (result.reason === "commune") redirect(`${PROFILE_PATH}?completer=1`);
+    return { errors: { nuits: "doublon" }, conflits: result.nights, values: input };
+  }
+
+  if (priorityId) {
+    const origin = await siteOrigin();
+    const ids = result.ids;
+    after(() => notifySeriesPriority(ids, origin));
+  }
+
+  revalidatePath(SPACES.parent, "layout");
+  redirect(`${FAMILY_REQUESTS_PATH}?publiees=${result.ids.length}`);
 }
 
 export async function updateRequestAction(
@@ -171,6 +221,37 @@ export async function cancelRequestAction(id: string): Promise<void> {
   revalidatePath(SPACES.parent, "layout");
   redirect(
     `${familyRequestPath(existing.id)}?${result.result === "ok" ? "annulee=1" : "erreur=nonModifiable"}`,
+  );
+}
+
+/**
+ * « Annuler toutes les nuits » (demande-nuits-regulieres): her open nights of
+ * the series are cancelled, and the answers that waited on them are declined
+ * and told (D-76). A booked night keeps its garde. The id is only a lookup key:
+ * the write is scoped to her own rows.
+ */
+export async function cancelSeriesAction(seriesId: string): Promise<void> {
+  const user = await requireAccess(FAMILY_REQUESTS_PATH);
+  const id = String(seriesId);
+  if (!UUID.test(id)) notFound();
+
+  let result: Awaited<ReturnType<typeof cancelSeries>>;
+  try {
+    result = await cancelSeries(user.id, id, new Date());
+  } catch (error) {
+    logWriteError("series not cancelled", { userId: user.id, seriesId: id }, error);
+    redirect(`${FAMILY_REQUESTS_PATH}?erreur=generique`);
+  }
+
+  if (result.declined.length > 0) {
+    const origin = await siteOrigin();
+    const declined = result.declined;
+    after(() => notifyDeclined(declined, origin));
+  }
+
+  revalidatePath(SPACES.parent, "layout");
+  redirect(
+    `${FAMILY_REQUESTS_PATH}?${result.cancelled > 0 ? `annulees=${result.cancelled}` : "erreur=nonModifiable"}`,
   );
 }
 

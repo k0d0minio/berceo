@@ -493,12 +493,19 @@ export const careRequests = pgTable(
      */
     republishedAt: timestamp("republished_at", { withTimezone: true }),
     republishCount: smallint("republish_count").notNull().default(0),
+    /**
+     * The nights the family published together as « Nuits régulières »
+     * (demande-nuits-regulieres): one request per night, one shared id. Null on
+     * a one-off night. Each night keeps its own status, answers and booking.
+     */
+    seriesId: uuid("series_id"),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index("care_requests_priority_profile_id_idx").on(table.priorityProfileId),
+    index("care_requests_series_id_idx").on(table.seriesId),
     index("care_requests_commune_status_night_idx").on(
       table.communeIns,
       table.status,

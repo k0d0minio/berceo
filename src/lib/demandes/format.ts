@@ -33,6 +33,11 @@ export function nightLine(nightDate: string, startTime: string, extraHours: numb
   });
 }
 
+/** « de 20h00 à 7h00 »: the hours of regular nights, said once for all of them (demande-nuits-regulieres). */
+export function hoursLine(startTime: string, extraHours: number): string {
+  return fill(t.horaire, { debut: formatTime(startTime), fin: formatTime(endTime(startTime, extraHours)) });
+}
+
 /** « trois mois », « une semaine », « moins d'une semaine ». */
 export function ageText(value: number, unit: AgeUnit): string {
   if (unit === "semaines") {
