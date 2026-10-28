@@ -114,6 +114,11 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         <Row label={a.dossier.champs.tarif}>
           {profile.nightRateEur !== null ? fill(a.dossier.tarif, { montant: String(profile.nightRateEur) }) : unset}
         </Row>
+        <Row label={a.dossier.champs.tarifHeure}>
+          {profile.extraHourRateEur !== null
+            ? fill(a.dossier.tarifHeure, { montant: String(profile.extraHourRateEur) })
+            : unset}
+        </Row>
         <Row label={a.dossier.champs.bio}>
           <span className="whitespace-pre-line">{profile.bio ?? unset}</span>
         </Row>

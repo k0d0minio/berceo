@@ -5,7 +5,7 @@ import { profileColumns } from "./profiles";
 /**
  * Spec (candidature-et-reservation, D-75): a family reads a validated
  * professional's photo, first name, profession, « Formations complémentaires »
- * (onboarding-retour-1), bio and rate, never her surname, e-mail, phone, INAMI
+ * (onboarding-retour-1), bio, night rate and extra hour's rate (profil-tarifs), never her surname, e-mail, phone, INAMI
  * number or documents.
  * The list of columns the full profile selects is the whole of what leaves.
  */
@@ -18,7 +18,7 @@ function names(columns: Record<string, unknown>): string[] {
 describe("the full profile a family reads", () => {
   it("selects her first name and her profile, nothing that reaches her outside Berceo", () => {
     expect(Object.keys(profileColumns).sort()).toEqual(
-      ["bio", "firstName", "formationsComplementaires", "id", "nightRateEur", "photoId", "profession"].sort(),
+      ["bio", "firstName", "formationsComplementaires", "extraHourRateEur", "id", "nightRateEur", "photoId", "profession"].sort(),
     );
     const columns = names(profileColumns);
     for (const hidden of [

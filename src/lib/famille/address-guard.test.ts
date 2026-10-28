@@ -3,14 +3,15 @@ import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { bookingAddressColumns, communeColumns } from "./profile";
+import { bookingAddressColumns, communeColumns, nightAddressColumns } from "./profile";
 
 /**
  * Spec (D-15): the family's address never reaches a professional or a
  * visitor. It lives in `family_profiles`, and only `src/lib/famille/` may read
  * that table; the schema declares it. Any other file under `src/` that names
  * the table fails here, so a new reader has to be added to this module, where
- * review sees it.
+ * review sees it. Spec (demande-adresse-de-la-nuit): the night's address on a
+ * request is held the same way, by the names of its columns.
  */
 const src = fileURLToPath(new URL("../../", import.meta.url));
 const allowed = [`lib${sep}famille${sep}`, `db${sep}schema.ts`];
@@ -22,6 +23,8 @@ function files(dir: string): string[] {
     return /\.(ts|tsx)$/.test(name) ? [path] : [];
   });
 }
+
+const NIGHT_ADDRESS = /nightStreet|nightHouseNumber|nightBox|night_street|night_house_number|night_box/;
 
 describe("the family's address", () => {
   it("is read only inside src/lib/famille/", () => {
@@ -46,5 +49,20 @@ describe("the family's address", () => {
   it("leaves through the booking reader as the address and its place, nothing more", () => {
     const columns = Object.values(bookingAddressColumns).map((column) => column.name);
     expect(columns.sort()).toEqual(["box", "house_number", "locality", "postcode", "street"]);
+  });
+});
+
+describe("the night's address on a request", () => {
+  it("is named only inside src/lib/famille/", () => {
+    const readers = files(src)
+      .map((path) => relative(src, path))
+      .filter((path) => !allowed.some((prefix) => path.startsWith(prefix)))
+      .filter((path) => NIGHT_ADDRESS.test(readFileSync(join(src, path), "utf8")));
+    expect(readers).toEqual([]);
+  });
+
+  it("leaves through the booking reader as the address and its place, nothing more", () => {
+    const columns = Object.values(nightAddressColumns).map((column) => column.name);
+    expect(columns.sort()).toEqual(["locality", "night_box", "night_house_number", "night_street", "postcode"]);
   });
 });

@@ -18,10 +18,10 @@ import { ownRequest } from "@/lib/demandes/requests";
 import { isChangeable } from "@/lib/demandes/rules";
 import { nextAvailableNights } from "@/lib/disponibilites/nights";
 import { PROFILE_PATH } from "@/lib/famille/paths";
-import { familyHasAddress } from "@/lib/famille/profile";
+import { requestHasAddress } from "@/lib/famille/request-address";
 import { waitingAnswerOf } from "@/lib/reservations/answers";
 import { feeLine } from "@/lib/paiements/format";
-import { professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import { priorityPath, professionalProfilePath } from "@/lib/reservations/paths";
 import { publicProfile } from "@/lib/reservations/profiles";
 
@@ -67,7 +67,7 @@ export default async function ProfilProfessionnellePage({
   const answer =
     request && isChangeable(request, now) ? await waitingAnswerOf(user.id, request.id, profile.id) : null;
   const [hasAddress, nights] = await Promise.all([
-    answer ? familyHasAddress(user.id) : Promise.resolve(false),
+    answer && request ? requestHasAddress(user.id, request.id) : Promise.resolve(false),
     nextAvailableNights(profile.id, now),
   ]);
 
@@ -87,6 +87,9 @@ export default async function ProfilProfessionnellePage({
         <NoteDisplay note={profile.note} />
         {profile.nightRateEur ? (
           <p className="text-corps font-semibold text-encre-sauge">{rateLine(profile.nightRateEur)}</p>
+        ) : null}
+        {profile.extraHourRateEur ? (
+          <p className="text-corps font-semibold text-encre-sauge">{extraHourLine(profile.extraHourRateEur)}</p>
         ) : null}
         <dl className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
@@ -131,6 +134,7 @@ export default async function ProfilProfessionnellePage({
               prenom: profile.firstName,
               profession: professionLabel(profile.profession),
               tarif: rateLine(answer.nightRateEur),
+              tarifHeure: answer.extraHourRateEur ? extraHourLine(answer.extraHourRateEur) : undefined,
               frais: feeLine(answer.nightRateEur),
             }}
             onAccept={acceptAnswerAction.bind(null, request.id, answer.applicationId)}

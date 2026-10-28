@@ -31,6 +31,8 @@ export const reservations = catalogue({
 
     /** La ligne de prix de la carte, d'après la DA (« 150€ pour la garde de nuit »), l'euro après le nombre. */
     tarif: "{montant} € pour la garde de nuit",
+    /** @relecture Surya — son tarif par heure au-delà des 11 heures de la nuit (profil-tarifs). */
+    tarifHeure: "{montant} € par heure supplémentaire",
 
     professionnelle: {
       /** Guide — le bouton pour postuler. */
@@ -125,6 +127,8 @@ export const reservations = catalogue({
         professionnelle: "Professionnelle",
         profession: "Profession",
         tarif: "Tarif de la garde",
+        /** @relecture Surya — profil-tarifs. */
+        tarifHeure: "Heure supplémentaire",
         telephone: "Téléphone",
         /** @relecture Surya — les enfants de la demande, retour 1 des fondatrices. */
         enfants: "Enfants",

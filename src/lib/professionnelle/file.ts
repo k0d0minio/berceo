@@ -102,6 +102,7 @@ async function loadFileOf(profile: ProfessionalProfile): Promise<ProfessionalFil
         formationsComplementaires: profile.formationsComplementaires,
         communes: codes,
         nightRateEur: profile.nightRateEur,
+        extraHourRateEur: profile.extraHourRateEur,
         bio: profile.bio,
       },
       inamiNumber: profile.inamiNumber,

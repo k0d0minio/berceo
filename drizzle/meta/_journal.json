@@ -131,8 +131,22 @@
     {
       "idx": 18,
       "version": "7",
-      "when": 1793202957501,
-      "tag": "0018_declarations_charte",
+      "when": 1793202479186,
+      "tag": "0018_profil_tarifs",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793203198807,
+      "tag": "0019_demande_adresse",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793203754449,
+      "tag": "0020_declarations_charte",
       "breakpoints": true
     }
   ]

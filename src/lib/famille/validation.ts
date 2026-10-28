@@ -78,6 +78,49 @@ export function characterCount(value: string): number {
 
 const orNull = (value: string) => (value === "" ? null : value);
 
+export type AddressField = "commune" | "rue" | "numero" | "boite";
+export type AddressError = "requis" | "commune" | "adresseIncomplete" | "boiteSeule" | "long";
+export type AddressErrors = Partial<Record<AddressField, AddressError>>;
+
+/** A street and its number, with the boîte when there is one. */
+export type Address = { street: string; houseNumber: string; box: string | null };
+
+/** A commune that is an entry of the official list, posted as « 1050|Ixelles ». */
+export function checkCommune(value: string): { locality: Locality | null; error?: AddressError } {
+  const locality = parseLocalityValue(value.trim());
+  if (value.trim() === "") return { locality, error: "requis" };
+  if (locality === null) return { locality, error: "commune" };
+  return { locality };
+}
+
+/**
+ * The rue, the numéro and the boîte, by the profile's rules: the rue and the
+ * numéro together, the boîte only with them, each within its length. With
+ * `required` (a request's night, demande-adresse-de-la-nuit) an empty address
+ * is refused too. The address is null when it is empty or refused.
+ */
+export function checkAddress(
+  input: { rue: string; numero: string; boite: string },
+  required: boolean,
+): { address: Address | null; errors: AddressErrors } {
+  const errors: AddressErrors = {};
+  const street = input.rue.trim();
+  const houseNumber = input.numero.trim();
+  const box = input.boite.trim();
+  if (street.length > STREET_MAX) errors.rue = "long";
+  if (houseNumber.length > NUMBER_MAX) errors.numero = "long";
+  if (box.length > BOX_MAX) errors.boite = "long";
+  if (required && street === "" && houseNumber === "") {
+    errors.rue = "requis";
+    errors.numero = "requis";
+  }
+  if (street !== "" && houseNumber === "") errors.numero ??= "adresseIncomplete";
+  if (houseNumber !== "" && street === "") errors.rue ??= "adresseIncomplete";
+  if (box !== "" && street === "" && houseNumber === "") errors.boite ??= "boiteSeule";
+  const refused = Object.keys(errors).length > 0;
+  return { address: refused || street === "" ? null : { street, houseNumber, box: orNull(box) }, errors };
+}
+
 export function validateProfile(input: ProfileInput): ValidatedProfile {
   const errors: ProfileErrors = {};
 
@@ -90,19 +133,11 @@ export function validateProfile(input: ProfileInput): ValidatedProfile {
   if (input.telephone.trim() === "") errors.telephone = "requis";
   else if (phone === null) errors.telephone = "telephone";
 
-  const locality = parseLocalityValue(input.commune.trim());
-  if (input.commune.trim() === "") errors.commune = "requis";
-  else if (locality === null) errors.commune = "commune";
-
-  const street = input.rue.trim();
-  const houseNumber = input.numero.trim();
-  const box = input.boite.trim();
-  if (street.length > STREET_MAX) errors.rue = "long";
-  if (houseNumber.length > NUMBER_MAX) errors.numero = "long";
-  if (box.length > BOX_MAX) errors.boite = "long";
-  if (street !== "" && houseNumber === "") errors.numero ??= "adresseIncomplete";
-  if (houseNumber !== "" && street === "") errors.rue ??= "adresseIncomplete";
-  if (box !== "" && street === "" && houseNumber === "") errors.boite ??= "boiteSeule";
+  const commune = checkCommune(input.commune);
+  if (commune.error) errors.commune = commune.error;
+  const locality = commune.locality;
+  const { address, errors: addressErrors } = checkAddress(input, false);
+  Object.assign(errors, addressErrors);
 
   const context = input.contexte.trim();
   if (characterCount(context) > CONTEXT_MAX) errors.contexte = "contexteLong";
@@ -118,9 +153,9 @@ export function validateProfile(input: ProfileInput): ValidatedProfile {
       lastName,
       phone,
       locality,
-      street: orNull(street),
-      houseNumber: orNull(houseNumber),
-      box: orNull(box),
+      street: address?.street ?? null,
+      houseNumber: address?.houseNumber ?? null,
+      box: address?.box ?? null,
       context: orNull(context),
     },
   };

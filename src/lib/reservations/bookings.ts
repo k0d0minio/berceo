@@ -16,7 +16,8 @@ import {
   type Profession,
 } from "@/db";
 import { cardColumns, isUniqueViolation, nightAhead, UUID, type RequestCard } from "@/lib/demandes/requests";
-import { bookingAddress, familyHasAddress, type BookingAddress } from "@/lib/famille/profile";
+import { bookingAddress, type BookingAddress } from "@/lib/famille/profile";
+import { requestHasAddress } from "@/lib/famille/request-address";
 import { notSuspended, suspended } from "@/lib/auth/suspension";
 import { bonneGardeStatement } from "@/lib/messagerie/conversations";
 
@@ -78,7 +79,7 @@ export async function acceptCheck(
     {
       request: facts,
       answer: { status: facts.answerStatus, profileStatus: facts.suspended ? "suspendu" : facts.profileStatus },
-      hasAddress: await familyHasAddress(userId),
+      hasAddress: await requestHasAddress(userId, requestId),
     },
     now,
   );
@@ -184,8 +185,9 @@ export async function acceptAnswer(
         .returning({ id: careRequestApplications.id }),
       db.execute<{ id: string }>(sql`
         insert into bookings
-          (request_id, application_id, profile_id, family_user_id, night_date, night_rate_eur, confirmed_at, created_at)
-        select r.id, a.id, a.profile_id, r.family_user_id, r.night_date, a.night_rate_eur,
+          (request_id, application_id, profile_id, family_user_id, night_date, night_rate_eur, extra_hour_rate_eur,
+           confirmed_at, created_at)
+        select r.id, a.id, a.profile_id, r.family_user_id, r.night_date, a.night_rate_eur, a.extra_hour_rate_eur,
                ${at}::timestamptz, ${at}::timestamptz
         from care_request_applications a
         join care_requests r on r.id = a.request_id
@@ -313,6 +315,7 @@ export type FamilyBooking = {
   id: string;
   request: RequestCard;
   nightRateEur: number;
+  extraHourRateEur: number | null;
   confirmedAt: Date;
   garde: GardeRecord;
   professional: BookedProfessional;
@@ -321,6 +324,7 @@ export type FamilyBooking = {
 const familyBookingColumns = {
   id: bookings.id,
   nightRateEur: bookings.nightRateEur,
+  extraHourRateEur: bookings.extraHourRateEur,
   confirmedAt: bookings.confirmedAt,
   garde: gardeColumns,
   request: cardColumns,
@@ -365,6 +369,7 @@ export type ProfessionalBooking = {
   id: string;
   request: RequestCard;
   nightRateEur: number;
+  extraHourRateEur: number | null;
   confirmedAt: Date;
   garde: GardeRecord;
 };
@@ -372,6 +377,7 @@ export type ProfessionalBooking = {
 const professionalBookingColumns = {
   id: bookings.id,
   nightRateEur: bookings.nightRateEur,
+  extraHourRateEur: bookings.extraHourRateEur,
   confirmedAt: bookings.confirmedAt,
   garde: gardeColumns,
   request: cardColumns,

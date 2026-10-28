@@ -10,11 +10,11 @@ import { describe, expect, it } from "vitest";
  * refuses a new enum value in the transaction that adds it.
  */
 const sql = readFileSync(
-  fileURLToPath(new URL("../../drizzle/0018_declarations_charte.sql", import.meta.url)),
+  fileURLToPath(new URL("../../drizzle/0020_declarations_charte.sql", import.meta.url)),
   "utf8",
 );
 
-describe("migration 0018_declarations_charte", () => {
+describe("migration 0020_declarations_charte", () => {
   it("adds the change of situation and the charter to the declarations", () => {
     expect(sql).toContain(`ALTER TYPE "public"."declaration" ADD VALUE 'changement_de_situation'`);
     expect(sql).toContain(`ALTER TYPE "public"."declaration" ADD VALUE 'charte'`);

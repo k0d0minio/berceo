@@ -29,9 +29,10 @@ describe("reservations catalogue", () => {
     expect(text.toLowerCase()).not.toMatch(/virement|espèces|carte bancaire|bancontact/);
   });
 
-  it("names a price only in the rate line", () => {
-    expect(all.filter((text) => text.includes("€"))).toEqual([reservations.fr.tarif]);
+  it("names a price only in the rate lines", () => {
+    expect(all.filter((text) => text.includes("€"))).toEqual([reservations.fr.tarif, reservations.fr.tarifHeure]);
     expect(reservations.fr.tarif).toBe("{montant} € pour la garde de nuit");
+    expect(reservations.fr.tarifHeure).toBe("{montant} € par heure supplémentaire");
   });
 });
 

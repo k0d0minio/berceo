@@ -111,7 +111,11 @@ export default async function GardePage({
       {notice ? <FormMessage>{notice}</FormMessage> : null}
       <div className="flex max-w-2xl flex-col gap-3">
         <GardeStateMark state={gardeState(facts, now)} />
-        <RequestCard request={booking.request} rate={booking.nightRateEur} />
+        <RequestCard
+          request={booking.request}
+          rate={booking.nightRateEur}
+          extraHourRate={booking.extraHourRateEur}
+        />
         {cancelled ? <p className="text-corps font-semibold text-encre-taupe">{cancelled}</p> : null}
       </div>
       <section className="flex max-w-2xl flex-col gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">

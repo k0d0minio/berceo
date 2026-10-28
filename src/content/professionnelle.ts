@@ -39,6 +39,8 @@ export const professionnelle = catalogue({
       formations: "Formations complémentaires",
       zone: "Ma zone d'intervention",
       tarif: "Mon tarif de nuit",
+      /** Le mot du ticket (retour 1, profil-tarifs). */
+      tarifHeure: "Mon tarif par heure supplémentaire",
       bio: "Quelques mots sur moi",
       /** @relecture Surya — le guide ne nomme pas le champ de la photo. */
       photo: "Ma photo",
@@ -53,8 +55,10 @@ export const professionnelle = catalogue({
       formationsRestant: "{n} caractères restants",
       /** @relecture Surya — la recherche de communes (D-11). */
       zone: "Tapez le nom d'une commune ou son code postal, puis choisissez-la dans la liste.",
-      /** @relecture Surya — la fourchette de D-4, sans tarif suggéré. */
-      tarif: "Un montant entier entre 100 et 300 € pour une nuit.",
+      /** @relecture Surya — un plancher sans plafond, sans tarif suggéré (profil-tarifs). */
+      tarif: "Un montant entier à partir de 130 € pour une nuit de 11 heures.",
+      /** @relecture Surya — le tarif de chaque heure au-delà de la nuit (profil-tarifs). */
+      tarifHeure: "Un montant entier en euros pour chaque heure au-delà des 11 heures de la nuit.",
       /** Le guide : « Inviter la professionnelle à écrire en première personne ». @relecture Surya — la formulation. */
       bio: "Présentez-vous en quelques phrases, à la première personne.",
       /** @relecture Surya — compteur sous le champ. */
@@ -230,7 +234,10 @@ export const professionnelle = catalogue({
       communesMin: "Choisissez au moins une commune.",
       communesMax: "Choisissez cinquante communes au plus.",
       commune: "Choisissez les communes dans la liste proposée.",
-      tarif: "Indiquez un montant entier entre 100 et 300 €.",
+      /** @relecture Surya — profil-tarifs. */
+      tarif: "Indiquez un montant entier à partir de 130 €.",
+      /** @relecture Surya — profil-tarifs. */
+      tarifHeure: "Indiquez un montant entier à partir de 1 €.",
       bioLongue: "Votre présentation dépasse 500 caractères.",
       formationsLongues: "Vos formations dépassent 300 caractères.",
       photo: "Ajoutez une photo de vous.",
