@@ -2,7 +2,8 @@
  * The rules of a garde that do not need the database (D-105 to D-111): its
  * state read from the night and the clock, when each side may cancel it or
  * report the other absent, when the family may republish, when the professional
- * reads the address, what the fee line says, and when the reminder leaves.
+ * reads the address, what the founders' table does with the fee
+ * (annulations-table), what the fee line says, and when the reminder leaves.
  * Pure, so the pages, the server functions, the reminder route and the tests
  * read the same rules; `./gardes.ts` holds each of them again in the SQL of the
  * write it governs.
@@ -12,7 +13,14 @@
  * other side: « Terminée » and the address (D-110) read that same end.
  */
 
-import type { BookingSide, BookingStatus, CancellationKind, CancellationReason, PaymentStatus } from "@/db/schema";
+import type {
+  BookingSide,
+  BookingStatus,
+  CancellationKind,
+  CancellationReason,
+  CreditOrigin,
+  PaymentStatus,
+} from "@/db/schema";
 import { addDays, brusselsNow, endTime, hasNightEnded, hasNightStarted, toHourMinute } from "@/lib/demandes/rules";
 
 /** What each side sees (D-17): the stored `confirmee` split by the clock, or `annulee`. */
@@ -22,6 +30,9 @@ export type GardeFacts = { status: BookingStatus; nightDate: string; startTime: 
 
 /** An absence can be reported until 24 hours after the night ends (D-106). */
 export const ABSENCE_HOURS_AFTER_END = 24;
+
+/** The side reported absent can contest the report for 24 hours after it (annulations-table). */
+export const CONTEST_HOURS = 24;
 
 /**
  * The founders' cancellation delay (annulations-delai-et-motif, the answers
@@ -84,14 +95,19 @@ export function lateCancellationFrom(nightDate: string, startTime: string, delay
   return at.toISOString().slice(0, 16);
 }
 
+/** Whether the moment `at` falls `delayHours` or fewer before the start hour, or after it. */
+export function isWithinDelay(nightDate: string, startTime: string, at: Date, delayHours: number): boolean {
+  return nowStamp(at) >= lateCancellationFrom(nightDate, startTime, delayHours);
+}
+
 /**
  * Whether a cancellation at `now` falls inside the founders' delay: the garde
- * may still be cancelled, and its start is `delayHours` or fewer away. Nothing
- * reads it yet to decide the fee: annulations-table does.
+ * may still be cancelled, and its start is `delayHours` or fewer away. The
+ * family's cancel dialog reads it to say what happens to her fee.
  */
 export function isLateCancellation(garde: GardeFacts, now: Date, delayHours: number): boolean {
   if (!canCancel(garde, now)) return false;
-  return nowStamp(now) >= lateCancellationFrom(garde.nightDate, garde.startTime, delayHours);
+  return isWithinDelay(garde.nightDate, garde.startTime, now, delayHours);
 }
 
 /**
@@ -137,21 +153,97 @@ export function reminderNight(now: Date): string {
 
 export type Cancellation = { by: BookingSide; kind: CancellationKind };
 
-/** The fee line on the family's page, or null when there is nothing to say. */
-export type FeeLine = "rembourses" | "remboursementEnCours" | "conserves";
+/** What the founders' table does with a garde's fee (the answers [9.2, 9.3]). */
+export type FeeOutcome = "credit" | "conserve" | "litige" | "rien";
+
+/** One end of a garde, as the table reads it. */
+export type TableFacts = {
+  /** The side responsible (who cancelled, or who was absent), or Berceo. */
+  by: BookingSide | "berceo";
+  kind: CancellationKind;
+  nightDate: string;
+  startTime: string;
+  /** When the garde was cancelled, or the absence reported. */
+  at: Date;
+  /** The side reported absent contested the report. */
+  disputed: boolean;
+  /** The fee was paid and is still held: no fee (a garde booked before it existed), nothing to do. */
+  paid: boolean;
+};
 
 /**
- * What the family reads about the 3 % once a garde is cancelled (D-2): a
- * refunded fee says so whoever refunded it; a professional's cancellation not
- * yet refunded at Stripe is « en cours »; a family's cancellation keeps the
- * fee. An absence refunds nothing on its own (D-106), so it says nothing until
- * the founders refund. No paid fee (a garde booked before the fee existed),
+ * The line of the founders' table that applies (annulations-table, the
+ * answers [9.2, 9.3]), with the delay of the settings:
+ *
+ * - The family cancels more than the delay before the start: a credit.
+ * - The family cancels within the delay: the fee stays at Berceo.
+ * - The professional cancels, at any delay: a credit.
+ * - The professional is reported absent: a credit.
+ * - The family is reported absent, or the garde could not start at her home: the fee stays.
+ * - The absent side contests the report: « litige », no credit, the founders decide.
+ * - Berceo cancels: a credit.
+ *
+ * A cancellation « d'un commun accord » follows the side who clicks. `./gardes.ts`
+ * holds the same lines again in the SQL of the statement that ends the garde.
+ */
+export function outcomeOf(facts: TableFacts, delayHours: number): FeeOutcome {
+  if (facts.kind === "absence" && facts.disputed) return "litige";
+  if (!facts.paid) return "rien";
+  if (facts.by === "berceo" || facts.by === "professionnelle") return "credit";
+  if (facts.kind === "absence") return "conserve";
+  return isWithinDelay(facts.nightDate, facts.startTime, facts.at, delayHours) ? "conserve" : "credit";
+}
+
+/** Why the credit of a table line exists: its `credit_origin`. */
+export function creditOriginOf(by: BookingSide | "berceo", kind: CancellationKind): CreditOrigin {
+  if (by === "berceo") return "annulation_berceo";
+  if (by === "famille") return "annulation_famille";
+  return kind === "absence" ? "absence_professionnelle" : "annulation_professionnelle";
+}
+
+/** What a garde page reads to decide whether the viewer may contest an absence. */
+export type ContestFacts = {
+  status: BookingStatus;
+  cancellationKind: CancellationKind | null;
+  cancelledBy: BookingSide | null;
+  cancelledAt: Date | null;
+  disputedAt: Date | null;
+};
+
+/**
+ * The side reported absent contests the report (annulations-table, the
+ * answers [9.3]: « absence contestée »), once, for 24 hours after it. The
+ * garde then enters « litige ».
+ */
+export function canContest(garde: ContestFacts, viewer: BookingSide, now: Date): boolean {
+  if (garde.status !== "annulee" || garde.cancellationKind !== "absence") return false;
+  if (garde.cancelledBy !== viewer || garde.disputedAt || !garde.cancelledAt) return false;
+  return now.getTime() < garde.cancelledAt.getTime() + CONTEST_HOURS * 3_600_000;
+}
+
+/** The fee line on a cancelled garde's page, or null when there is nothing to say. */
+export type FeeLine = "credit" | "conserves" | "litige" | "rembourses";
+
+/**
+ * What each side reads about the 3 % once a garde ends early (D-2,
+ * annulations-table): a litige says the founders decide; a refunded fee says
+ * so whoever refunded it; a live credit of the garde names the credit; a fee
+ * the family's own cancellation or absence left at Berceo says it stays. A
+ * professional's cancellation made before the table has no credit: nothing,
+ * the founders refund it. No paid fee (a garde booked before the fee existed),
  * nothing.
  */
-export function feeLine(cancellation: Cancellation | null, payment: PaymentStatus | null): FeeLine | null {
-  if (!cancellation || !payment) return null;
+export function feeLine(
+  cancellation: Cancellation | null,
+  disputed: boolean,
+  payment: PaymentStatus | null,
+  credited: boolean,
+): FeeLine | null {
+  if (!cancellation) return null;
+  if (disputed) return "litige";
+  if (!payment) return null;
   if (payment === "remboursee") return "rembourses";
+  if (credited) return "credit";
   if (payment !== "payee" && payment !== "remboursement_echoue") return null;
-  if (cancellation.kind !== "annulation") return null;
-  return cancellation.by === "professionnelle" ? "remboursementEnCours" : "conserves";
+  return cancellation.by === "famille" ? "conserves" : null;
 }

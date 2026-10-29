@@ -25,23 +25,32 @@ export type CreditFacts = {
   amountCents: number;
   spentCents: number;
   expiresAt: Date;
+  /** Set when a contested absence cancelled it (annulations-table). */
+  voidedAt?: Date | null;
 };
 
-/** How a credit reads at `now`: still usable, spent to the last cent, or past its expiry. */
-export type CreditState = "disponible" | "utilise" | "expire";
+/**
+ * How a credit reads at `now`: still usable, spent to the last cent, cancelled
+ * by a contested absence, or past its expiry.
+ */
+export type CreditState = "disponible" | "utilise" | "annule" | "expire";
 
 export function isExpired(credit: Pick<CreditFacts, "expiresAt">, now: Date): boolean {
   return credit.expiresAt.getTime() <= now.getTime();
 }
 
-/** A spent credit reads « Utilisé » even past its expiry: it did its work. */
+/**
+ * A spent credit reads « Utilisé » even past its expiry or its voiding: it did
+ * its work. A voided one reads « Annulé » from its voiding on, at any expiry.
+ */
 export function creditState(credit: CreditFacts, now: Date): CreditState {
   if (credit.spentCents >= credit.amountCents) return "utilise";
+  if (credit.voidedAt && credit.voidedAt.getTime() <= now.getTime()) return "annule";
   if (isExpired(credit, now)) return "expire";
   return "disponible";
 }
 
-/** What a credit can still pay at `now`: nothing once spent or expired. */
+/** What a credit can still pay at `now`: nothing once spent, voided or expired. */
 export function remainingCents(credit: CreditFacts, now: Date): number {
   return creditState(credit, now) === "disponible" ? credit.amountCents - credit.spentCents : 0;
 }

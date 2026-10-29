@@ -448,12 +448,12 @@ export function gardeCancelledByProfessionalEmail(input: {
   prenom: string;
   professionnelle: string;
   date: string;
-  /** The fee's state: refunded at Stripe, being refunded, or none paid. */
-  refund: "fait" | "enCours" | null;
+  /** Whether her fee became a credit (annulations-table): false for a garde booked before the fee existed. */
+  credited: boolean;
   url: string;
 }): RenderedEmail {
   const r = t.annulationParProfessionnelle;
-  const refund = input.refund === "fait" ? [r.remboursement] : input.refund === "enCours" ? [r.remboursementEnCours] : [];
+  const credit = input.credited ? [r.credit] : [];
   return {
     subject: fill(r.objet, { date: input.date }),
     ...layout({
@@ -461,7 +461,7 @@ export function gardeCancelledByProfessionalEmail(input: {
       prenom: input.prenom,
       paragraphs: [
         fill(r.corps, { prenom: input.professionnelle, date: input.date }),
-        ...refund,
+        ...credit,
         r.suite,
       ],
       cta: { label: r.cta, href: input.url },
@@ -469,7 +469,7 @@ export function gardeCancelledByProfessionalEmail(input: {
   };
 }
 
-/** An absence reported: to the side recorded absent (D-106). `auteur` is who reported it. */
+/** An absence reported: to the side recorded absent (D-106), with the way to contest it (annulations-table). `auteur` is who reported it. */
 export function absenceReportedEmail(input: {
   siteUrl: string;
   prenom: string;
@@ -483,7 +483,7 @@ export function absenceReportedEmail(input: {
     ...layout({
       siteUrl: input.siteUrl,
       prenom: input.prenom,
-      paragraphs: [fill(r.corps, { prenom: input.auteur, date: input.date })],
+      paragraphs: [fill(r.corps, { prenom: input.auteur, date: input.date }), r.contestation],
       cta: { label: r.cta, href: input.url },
     }),
   };

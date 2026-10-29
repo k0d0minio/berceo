@@ -342,6 +342,8 @@ export const admin = catalogue({
       aRembourser: "À rembourser",
       /** @relecture Surya — pourquoi ces frais sont à rembourser (D-2). */
       aRembourserDetail: "Garde annulée par la professionnelle, frais dus en entier.",
+      /** @relecture Surya — des frais devenus un crédit Berceo de la famille (annulations-table). */
+      devenusCredit: "Devenus un crédit Berceo",
       /** @relecture Surya — compte supprimé depuis. */
       inconnu: "Compte supprimé",
       /** @relecture Surya — le bouton et sa confirmation (D-24). */
@@ -365,6 +367,8 @@ export const admin = catalogue({
         rembourses: "Les frais ont été remboursés.",
         echec: "Stripe n'a pas pu rembourser ces frais. Réessayez dans un instant.",
         statut: "Ces frais ne peuvent pas être remboursés.",
+        /** @relecture Surya — des frais devenus un crédit Berceo ne sont pas remboursés en plus (annulations-table). */
+        credit: "Ces frais sont devenus un crédit Berceo. Ils ne peuvent pas être remboursés en plus.",
         generique: "Le remboursement n'a pas pu être fait. Réessayez dans un instant.",
       },
       /** @relecture Surya — liste vide et pagination. */
@@ -709,9 +713,9 @@ export const admin = catalogue({
     signalements: {
       /** @relecture Surya — titre de la page. */
       titre: "Signalements",
-      /** @relecture Surya — ce que la page montre, et où rembourser. */
+      /** @relecture Surya — ce que la page montre, le litige (annulations-table), et où rembourser. */
       intro:
-        "Chaque garde annulée par une famille ou une professionnelle, et chaque absence signalée, la plus récente en premier. Les litiges arrivent par e-mail. Les frais ne sont jamais remboursés d'office : le remboursement se fait depuis la page des paiements.",
+        "Chaque garde annulée par une famille ou une professionnelle, et chaque absence signalée, la plus récente en premier. Une absence contestée est un litige : aucun crédit n'est accordé, l'équipe Berceo décide. Les frais ne sont jamais remboursés d'office : le remboursement se fait depuis la page des paiements.",
       /** @relecture Surya — colonnes. */
       colonnes: {
         date: "Signalé le",
@@ -741,6 +745,8 @@ export const admin = catalogue({
       },
       /** @relecture Surya — une absence, ou une garde annulée avant les motifs (annulations-delai-et-motif). */
       sansMotif: "Aucun motif",
+      /** @relecture Surya — l'absence a été contestée : la garde est en litige (annulations-table). */
+      litige: "Litige : signalement contesté le {date}",
       /** @relecture Surya — le suivi. */
       marquer: "Marquer comme traité",
       traite: "Traité le {date} par {nom}",

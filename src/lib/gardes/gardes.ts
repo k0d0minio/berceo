@@ -12,23 +12,27 @@ import {
   UUID,
   type PublishResult,
 } from "@/lib/demandes/requests";
+import { gardeCreditStatement, voidGardeCreditStatement } from "@/lib/credits/credits";
 import { nightAddressOf } from "@/lib/famille/request-address";
-import { bookingFees, refundFee, type BookingFee } from "@/lib/paiements/payments";
+import { bookingFees, type BookingFee } from "@/lib/paiements/payments";
+import { cancellationDelayHours } from "@/lib/settings";
 
-import { ABSENCE_HOURS_AFTER_END, canRepublish, isReasonOf, reminderNight } from "./rules";
+import { ABSENCE_HOURS_AFTER_END, canRepublish, CONTEST_HOURS, creditOriginOf, isReasonOf, reminderNight } from "./rules";
 
 /**
  * The life of a garde after its booking (cycle-de-garde-et-annulation): the
- * only writes of a booking's status columns. Cancelling (D-105) and reporting
- * an absence (D-106) are one statement each, which also cancels the booked
- * request (`src/lib/demandes/`, D-110); the rules of ./rules.ts are held again
- * in its SQL, so a second click, the other side at the same moment, or a page
- * left open past the start hour changes nothing. The professional's
- * cancellation refunds the fee through `refundFee` after the statement commits
- * (D-2, D-94); a failed refund leaves the cancellation standing and the fee
- * `payee`, for the founders' button (D-101). The creation of a booking and
- * both sides' reads stay in `src/lib/reservations/bookings.ts`, and what the
- * e-mails read in `bookingNotice` (`src/lib/reservations/notices.ts`).
+ * only writes of a booking's status columns. Cancelling (D-105), reporting an
+ * absence (D-106) and contesting one (annulations-table) are one transaction
+ * each. Cancelling and reporting also cancel the booked request
+ * (`src/lib/demandes/`, D-110), and write what the founders' table does with
+ * the fee (`outcomeOf`): a credit through `src/lib/credits/`, or nothing when
+ * the fee stays at Berceo. Contesting voids that credit. The rules of
+ * ./rules.ts are held again in their SQL, so a second click, the other side at
+ * the same moment, or a page left open past the start hour changes nothing.
+ * No end of a garde calls Stripe: a refund is the founders' button (D-101).
+ * The creation of a booking and both sides' reads stay in
+ * `src/lib/reservations/bookings.ts`, and what the e-mails read in
+ * `bookingNotice` (`src/lib/reservations/notices.ts`).
  */
 
 /** Logs a failure with ids only: Drizzle's and Stripe's messages can carry the query's values. */
@@ -62,9 +66,11 @@ export type GardeWrite = { ok: true } | { ok: false };
  * Cancels her or his confirmed garde before its start hour (D-105): recorded
  * against `side`, with who clicked, when, and the reason chosen from the
  * side's list (annulations-delai-et-motif); its request is cancelled in the
- * same statement. A reason outside the list cancels nothing. A professional's
- * cancellation then refunds the family's fee (D-2). Returns ok only to the call
- * that cancelled it.
+ * same transaction. A reason outside the list cancels nothing. The founders'
+ * table decides the fee in the same transaction (annulations-table): the
+ * professional's cancellation turns it into a credit at any delay; the
+ * family's does so only more than the founders' delay before the start hour,
+ * and leaves it at Berceo within it. Returns ok only to the call that cancelled it.
  */
 export async function cancelGarde(
   side: BookingSide,
@@ -75,6 +81,12 @@ export async function cancelGarde(
 ): Promise<GardeWrite> {
   if (!UUID.test(bookingId) || !isReasonOf(side, reason)) return { ok: false };
   const at = now.toISOString();
+  // The family's credit holds only before the delay: `isWithinDelay`, at the moment of this transaction.
+  const delay = side === "famille" ? await cancellationDelayHours() : 0;
+  const beforeDelay =
+    side === "famille"
+      ? sql`(r.night_date + r.start_time) - make_interval(hours => ${delay}::int) > ${localNow}`
+      : sql`true`;
   const [cancelled] = await db.batch([
     db.execute<{ id: string }>(sql`
       update bookings b
@@ -90,30 +102,36 @@ export async function cancelGarde(
       returning b.id
     `),
     db.execute(cancelBookedRequestStatement(bookingId, at)),
+    db.execute(
+      gardeCreditStatement(
+        bookingId,
+        creditOriginOf(side, "annulation"),
+        sql`${endedHere("annulation", side, userId, at)} and ${beforeDelay}`,
+        now,
+      ),
+    ),
   ]);
-  if (cancelled.rows.length === 0) return { ok: false };
-
-  if (side === "professionnelle") await refundOnCancellation(bookingId, now);
-  return { ok: true };
+  return cancelled.rows.length > 0 ? { ok: true } : { ok: false };
 }
 
-/** The fee of a garde the professional cancelled, refunded in full (D-2); a failure is the founders' to retry. */
-async function refundOnCancellation(bookingId: string, now: Date): Promise<void> {
-  try {
-    const fee = (await bookingFees([bookingId])).get(bookingId);
-    if (!fee || fee.status !== "payee") return;
-    const refunded = await refundFee(fee.id, "annulation_professionnelle", now);
-    if (!refunded.ok) logError("fee not refunded on a professional's cancellation", { bookingId, reason: refunded.reason });
-  } catch (error) {
-    logError("fee not refunded on a professional's cancellation", { bookingId }, error);
-  }
+/**
+ * The end this batch wrote, for the credit statement's `when`: the booking `b`
+ * cancelled at `at` by `userId`, of `kind`, against `side`. A refused update
+ * wrote nothing, so the credit statement finds nothing to credit.
+ */
+function endedHere(kind: "annulation" | "absence", side: BookingSide, userId: string, at: string) {
+  return sql`b.status = 'annulee' and b.cancellation_kind = ${kind}::cancellation_kind
+    and b.cancelled_by = ${side}::booking_side
+    and b.cancelled_at = ${at}::timestamptz and b.cancelled_by_user_id = ${userId}::uuid`;
 }
 
 /**
  * Reports the other side absent (D-106), from the start hour until 24 hours
  * after the night ends: the garde is cancelled against the absent side, kind
  * `absence`, with who reported it and when; its request is cancelled in the
- * same statement. Nothing is refunded: the founders decide (D-101).
+ * same transaction. The founders' table decides the fee there too
+ * (annulations-table): the professional's absence turns it into a credit, the
+ * family's leaves it at Berceo.
  */
 export async function reportAbsence(
   side: BookingSide,
@@ -123,10 +141,11 @@ export async function reportAbsence(
 ): Promise<GardeWrite> {
   if (!UUID.test(bookingId)) return { ok: false };
   const at = now.toISOString();
+  const absent = otherSide(side);
   const [reported] = await db.batch([
     db.execute<{ id: string }>(sql`
       update bookings b
-      set status = 'annulee', cancelled_at = ${at}::timestamptz, cancelled_by = ${otherSide(side)}::booking_side,
+      set status = 'annulee', cancelled_at = ${at}::timestamptz, cancelled_by = ${absent}::booking_side,
           cancelled_by_user_id = ${userId}::uuid, cancellation_kind = 'absence'
       from care_requests r
       where b.id = ${bookingId}
@@ -138,8 +157,57 @@ export async function reportAbsence(
       returning b.id
     `),
     db.execute(cancelBookedRequestStatement(bookingId, at)),
+    // Only the professional's absence turns the fee into a credit: the family's leaves it at Berceo.
+    db.execute(
+      gardeCreditStatement(
+        bookingId,
+        creditOriginOf(absent, "absence"),
+        absent === "professionnelle" ? endedHere("absence", absent, userId, at) : sql`false`,
+        now,
+      ),
+    ),
   ]);
   return reported.rows.length > 0 ? { ok: true } : { ok: false };
+}
+
+/**
+ * The side reported absent contests the report (annulations-table, the
+ * answers [9.3]), once, for 24 hours after it: the garde enters « litige »,
+ * with who contested and when, and returns to the founders' « À traiter ». The
+ * credit the report issued is voided in the same transaction, its spent part
+ * aside: no credit until the founders decide (`annulations-back-office`).
+ */
+export async function contestAbsence(
+  side: BookingSide,
+  userId: string,
+  bookingId: string,
+  now: Date,
+): Promise<GardeWrite> {
+  if (!UUID.test(bookingId)) return { ok: false };
+  const at = now.toISOString();
+  const [contested] = await db.batch([
+    db.execute<{ id: string }>(sql`
+      update bookings b
+      set disputed_at = ${at}::timestamptz, disputed_by_user_id = ${userId}::uuid,
+          report_handled_at = null, report_handled_by = null
+      where b.id = ${bookingId}
+        and b.status = 'annulee'
+        and b.cancellation_kind = 'absence'
+        and b.cancelled_by = ${side}::booking_side
+        and b.disputed_at is null
+        and b.cancelled_at + make_interval(hours => ${CONTEST_HOURS}::int) > ${at}::timestamptz
+        and ${partyOf(side, userId)}
+      returning b.id
+    `),
+    db.execute(
+      voidGardeCreditStatement(
+        bookingId,
+        sql`b.disputed_at = ${at}::timestamptz and b.disputed_by_user_id = ${userId}::uuid`,
+        now,
+      ),
+    ),
+  ]);
+  return contested.rows.length > 0 ? { ok: true } : { ok: false };
 }
 
 export type RepublishResult =
@@ -245,7 +313,7 @@ export async function releaseReminder(bookingId: string): Promise<void> {
 // Reads
 // ---------------------------------------------------------------------------
 
-/** The fee of one of her gardes, for the fee line of her page. */
+/** The fee of one garde, for the fee line of each side's page. */
 export async function gardeFee(bookingId: string): Promise<BookingFee | null> {
   return (await bookingFees([bookingId])).get(bookingId) ?? null;
 }

@@ -161,16 +161,14 @@ export const emails = catalogue({
       cta: "Voir mes gardes",
     },
 
-    /** La professionnelle a annulé la garde : à la famille, les frais remboursés (D-2, D-105). */
+    /** La professionnelle a annulé la garde : à la famille, ses frais en crédit Berceo (D-105, annulations-table). */
     annulationParProfessionnelle: {
       /** @relecture Surya — objet. */
       objet: "Votre garde du {date} est annulée",
       /** @relecture Surya — corps. */
       corps: "{prenom} a annulé la garde du {date}.",
-      /** @relecture Surya — le remboursement, une fois fait chez Stripe. */
-      remboursement: "Les frais de service de 3 % vous sont intégralement remboursés.",
-      /** @relecture Surya — le remboursement, pas encore confirmé chez Stripe. */
-      remboursementEnCours: "Le remboursement intégral de vos frais de service de 3 % est en cours.",
+      /** @relecture Surya — le crédit Berceo, écrit avec l'annulation. */
+      credit: "Vos frais de service de 3 % sont devenus un crédit Berceo, valable 24 mois pour une prochaine réservation.",
       /** @relecture Surya — la suite : republier (D-107). */
       suite: "Vous pouvez republier votre demande depuis votre réservation pour trouver une autre professionnelle.",
       /** @relecture Surya — bouton vers la réservation. */
@@ -184,6 +182,9 @@ export const emails = catalogue({
       /** @relecture Surya — corps : qui l'a signalée, et la suite. */
       corps:
         "{prenom} nous a signalé votre absence lors de la garde du {date}. La garde est enregistrée comme annulée et l'équipe Berceo va examiner la situation.",
+      /** @relecture Surya — la contestation, pendant 24 heures (annulations-table). */
+      contestation:
+        "Si ce signalement est inexact, vous pouvez le contester depuis la garde pendant 24 heures. L'équipe Berceo examinera alors la situation.",
       /** @relecture Surya — bouton vers la garde. */
       cta: "Voir la garde",
     },

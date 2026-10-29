@@ -7,7 +7,7 @@ import { FormMessage } from "@/components/auth/field";
 import { criteriaLabels } from "@/components/avis/criteria";
 import { GivenRating, NoteDisplay } from "@/components/avis/stars";
 import { RequestCard } from "@/components/demandes/request-card";
-import { CancelGarde, ReportAbsence } from "@/components/gardes/garde-dialogs";
+import { CancelGarde, ContestAbsence, ReportAbsence } from "@/components/gardes/garde-dialogs";
 import { GardeStateMark } from "@/components/gardes/garde-state";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
@@ -21,30 +21,35 @@ import { withQuery } from "@/lib/auth/routing";
 import { professionalRatingPath } from "@/lib/avis/paths";
 import { familyNotesOfRequests, NO_NOTE, ratingsGiven } from "@/lib/avis/ratings";
 import { canRate } from "@/lib/avis/rules";
+import { gardeCredits } from "@/lib/credits/credits";
 import { formatDate } from "@/lib/demandes/format";
 import { brusselsNow } from "@/lib/demandes/rules";
 import { conversationOfBooking } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
-import { cancelledLine, reasonLine } from "@/lib/gardes/format";
-import { canCancel, canReportAbsence, gardeState, isAddressVisible } from "@/lib/gardes/rules";
+import { gardeFee } from "@/lib/gardes/gardes";
+import { cancelledLine, disputeLine, feeText, reasonLine } from "@/lib/gardes/format";
+import { canCancel, canContest, canReportAbsence, gardeState, isAddressVisible } from "@/lib/gardes/rules";
 import { professionalBooking } from "@/lib/reservations/bookings";
 import { recapNight } from "@/lib/reservations/format";
 import { PROFESSIONAL_BOOKINGS_PATH, professionalBookingPath } from "@/lib/reservations/paths";
 
-import { cancelGardeAction, reportAbsenceAction } from "../actions";
+import { cancelGardeAction, contestAbsenceAction, reportAbsenceAction } from "../actions";
 
 const t = words(reservations);
 const m = words(messagerie);
 const g = words(gardes);
 
-type Notice = { annulee?: string; absence?: string; erreur?: string };
+type Notice = { annulee?: string; absence?: string; contestation?: string; erreur?: string };
 
-/** The line a redirect back here asks for: after a cancellation, a report, or a refusal. */
+/** The line a redirect back here asks for: after a cancellation, a report, a contest, or a refusal. */
 function noticeText(notice: Notice): string | null {
   if (notice.annulee === "1") return g.annulation.faite;
   if (notice.absence === "1") return g.absence.faite;
+  if (notice.contestation === "1") return g.contestation.faite;
   const erreur = notice.erreur;
-  if (erreur === "annulation" || erreur === "absence" || erreur === "generique") return g.erreurs[erreur];
+  if (erreur === "annulation" || erreur === "absence" || erreur === "contestation" || erreur === "generique") {
+    return g.erreurs[erreur];
+  }
   return null;
 }
 
@@ -74,7 +79,10 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
  *
  * The garde's life (cycle-de-garde-et-annulation): its state (D-109);
  * « Annuler la garde » until the start hour (D-105); « Signaler une absence »
- * from it until 24 hours after the night (D-106); once cancelled, who and when.
+ * from it until 24 hours after the night (D-106); « Contester ce signalement »
+ * for 24 hours after the family reported her absent (annulations-table); once
+ * cancelled, who and when, the litige, and what became of the family's fee
+ * (the credit, the fee kept, the litige or the refund).
  *
  * The ratings (avis-etoiles): the family's note beside her name (D-118);
  * « Laisser un avis » while she may rate it, then the stars she gave, never
@@ -108,10 +116,15 @@ export default async function GardePage({
   const duration = recapNight(booking.request.nightDate, booking.request.startTime, booking.request.extraHours).duree;
   const cancelled = cancelledLine(booking.garde, "professionnelle", family.firstName);
   const reason = reasonLine(booking.garde);
-  const [familyNotes, given] = await Promise.all([
+  const dispute = disputeLine(booking.garde);
+  const ended = booking.garde.status === "annulee";
+  const [familyNotes, given, fee, liveCredit] = await Promise.all([
     familyNotesOfRequests([booking.request.id]),
     ratingsGiven("professionnelle", [booking.id]),
+    ended ? gardeFee(booking.id) : Promise.resolve(null),
+    ended ? gardeCredits([booking.id]) : Promise.resolve(null),
   ]);
+  const feeLine = feeText(booking.garde, fee?.status ?? null, liveCredit?.get(booking.id) ?? null, "professionnelle");
   const familyNote = familyNotes.get(booking.request.id) ?? NO_NOTE;
   const myRating = given.get(booking.id) ?? null;
 
@@ -128,6 +141,8 @@ export default async function GardePage({
         />
         {cancelled ? <p className="text-corps font-semibold text-encre-taupe">{cancelled}</p> : null}
         {reason ? <p className="text-corps text-encre-taupe">{reason}</p> : null}
+        {dispute ? <p className="text-corps font-semibold text-encre-taupe">{dispute}</p> : null}
+        {feeLine ? <p className="text-corps text-encre-taupe">{feeLine}</p> : null}
       </div>
       <section className="flex max-w-2xl flex-col gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">
         <h2 className="font-display text-h3 text-encre-sauge uppercase">{t.gardes.famille}</h2>
@@ -197,6 +212,9 @@ export default async function GardePage({
             description={g.absence.descriptionProfessionnelle}
             onReport={reportAbsenceAction.bind(null, booking.id)}
           />
+        ) : null}
+        {canContest(booking.garde, "professionnelle", now) ? (
+          <ContestAbsence onContest={contestAbsenceAction.bind(null, booking.id)} />
         ) : null}
       </div>
     </SpaceShell>

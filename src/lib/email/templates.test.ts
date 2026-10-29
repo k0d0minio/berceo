@@ -114,7 +114,7 @@ const all: [string, RenderedEmail][] = [
       prenom: "Julie",
       professionnelle: "Emma",
       date: "30/09/2026",
-      refund: "fait",
+      credited: true,
       url: `${SITE}/b`,
     }),
   ],
@@ -426,23 +426,22 @@ describe("the garde's e-mails (cycle-de-garde-et-annulation)", () => {
     expect(email.text).toContain(`Voir mes gardes : ${SITE}/g`);
   });
 
-  it("tells the family the professional cancelled, and the refund only as far as Stripe made it", () => {
+  it("tells the family the professional cancelled, and names the credit her fee became", () => {
     const input = { siteUrl: SITE, prenom: "Julie", professionnelle: "Emma", date: "30/09/2026", url: `${SITE}/b` };
-    const refunded = gardeCancelledByProfessionalEmail({ ...input, refund: "fait" });
-    expect(refunded.subject).toBe("Votre garde du 30/09/2026 est annulée");
-    expect(refunded.text).toContain("Emma a annulé la garde du 30/09/2026.");
-    expect(refunded.text).toContain("Les frais de service de 3 % vous sont intégralement remboursés.");
-    expect(refunded.text).toContain("republier votre demande");
-    const pending = gardeCancelledByProfessionalEmail({ ...input, refund: "enCours" }).text;
-    expect(pending).toContain("est en cours");
-    expect(pending).not.toContain("vous sont intégralement remboursés");
-    expect(gardeCancelledByProfessionalEmail({ ...input, refund: null }).text).not.toMatch(/rembours/);
+    const credited = gardeCancelledByProfessionalEmail({ ...input, credited: true });
+    expect(credited.subject).toBe("Votre garde du 30/09/2026 est annulée");
+    expect(credited.text).toContain("Emma a annulé la garde du 30/09/2026.");
+    expect(credited.text).toContain("sont devenus un crédit Berceo, valable 24 mois");
+    expect(credited.text).toContain("republier votre demande");
+    expect(credited.text).not.toMatch(/rembours/);
+    expect(gardeCancelledByProfessionalEmail({ ...input, credited: false }).text).not.toMatch(/crédit|rembours/);
   });
 
   it("tells the absent side who reported the absence, for which night", () => {
     const email = absenceReportedEmail({ siteUrl: SITE, prenom: "Julie", auteur: "Emma", date: "30/09/2026", url: `${SITE}/b` });
     expect(email.subject).toBe("Une absence a été signalée pour la garde du 30/09/2026");
     expect(email.text).toContain("Emma nous a signalé votre absence lors de la garde du 30/09/2026.");
+    expect(email.text).toContain("vous pouvez le contester depuis la garde pendant 24 heures");
   });
 
   it("reminds each side of tomorrow's garde, the hour and the other's first name", () => {

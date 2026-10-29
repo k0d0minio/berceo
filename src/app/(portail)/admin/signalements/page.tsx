@@ -20,8 +20,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 /*
- * « Signalements » (back-office-admin, D-139; D-17: disputes arrive by
- * e-mail): every cancelled garde and every reported absence, « À traiter » by
+ * « Signalements » (back-office-admin, D-139): every cancelled garde and
+ * every reported absence, a contested one marked « Litige »
+ * (annulations-table, which supersedes D-17's disputes by e-mail), « À traiter » by
  * default, which is what the overview counts, or all of them; 50 a page. It
  * supersedes « Absences signalées », whose address redirects here. A 404 to
  * anyone but an admin (D-33).

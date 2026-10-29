@@ -6,8 +6,11 @@ import {
   CANCELLATION_DELAY_HOURS,
   CANCELLATION_REASONS,
   canCancel,
+  canContest,
   canReportAbsence,
   canRepublish,
+  CONTEST_HOURS,
+  creditOriginOf,
   feeLine,
   gardeState,
   isAddressVisible,
@@ -15,9 +18,13 @@ import {
   isLateCancellation,
   isReasonOf,
   isReminderTime,
+  isWithinDelay,
   lateCancellationFrom,
+  outcomeOf,
   reminderNight,
+  type ContestFacts,
   type GardeFacts,
+  type TableFacts,
 } from "./rules";
 
 /**
@@ -28,10 +35,9 @@ import {
  * side reports the other absent from the start hour until 24 h after the night
  * ends; the family republishes an annulée garde whose night has not started;
  * the professional reads the address on a confirmed garde until the night
- * ends; a professional's cancellation refunds the fee, a family's keeps it, an
- * absence refunds nothing on its own; the reminder leaves between 10:00 and
- * 10:59 in Brussels, about tomorrow's night. Written from the acceptance
- * criteria.
+ * ends; the reminder leaves between 10:00 and 10:59 in Brussels, about
+ * tomorrow's night. Written from the acceptance criteria. The fee follows the
+ * founders' table: `outcomeOf` below (annulations-table).
  */
 
 // The night of 30 September 2026 from 20:00 ends on 1 October at 07:00 in Brussels (CEST, UTC+2).
@@ -154,27 +160,160 @@ describe("otherSide", () => {
 describe("feeLine", () => {
   const byProfessional = { by: "professionnelle", kind: "annulation" } as const;
   const byFamily = { by: "famille", kind: "annulation" } as const;
-  const absence = { by: "professionnelle", kind: "absence" } as const;
+  const professionalAbsent = { by: "professionnelle", kind: "absence" } as const;
+  const familyAbsent = { by: "famille", kind: "absence" } as const;
 
-  it("says refunded once Stripe refunded, and in progress until then, when the professional cancels", () => {
-    expect(feeLine(byProfessional, "remboursee")).toBe("rembourses");
-    expect(feeLine(byProfessional, "payee")).toBe("remboursementEnCours");
-    expect(feeLine(byProfessional, "remboursement_echoue")).toBe("remboursementEnCours");
+  it("names the credit when the garde has a live one", () => {
+    expect(feeLine(byProfessional, false, "payee", true)).toBe("credit");
+    expect(feeLine(byFamily, false, "payee", true)).toBe("credit");
+    expect(feeLine(professionalAbsent, false, "payee", true)).toBe("credit");
   });
 
-  it("says the fee is kept when the family cancels", () => {
-    expect(feeLine(byFamily, "payee")).toBe("conserves");
+  it("says the fee stays when the family's cancellation or absence left it at Berceo", () => {
+    expect(feeLine(byFamily, false, "payee", false)).toBe("conserves");
+    expect(feeLine(familyAbsent, false, "payee", false)).toBe("conserves");
   });
 
-  it("promises nothing on an absence until the founders refund", () => {
-    expect(feeLine(absence, "payee")).toBeNull();
-    expect(feeLine(absence, "remboursee")).toBe("rembourses");
+  it("says the founders decide on a litige, whatever the fee", () => {
+    expect(feeLine(professionalAbsent, true, "payee", false)).toBe("litige");
+    expect(feeLine(familyAbsent, true, null, false)).toBe("litige");
+  });
+
+  it("says refunded once the founders refunded", () => {
+    expect(feeLine(byProfessional, false, "remboursee", false)).toBe("rembourses");
+  });
+
+  it("promises nothing on a professional's cancellation made before the table, the founders refund it", () => {
+    expect(feeLine(byProfessional, false, "payee", false)).toBeNull();
+    expect(feeLine(byProfessional, false, "remboursement_echoue", false)).toBeNull();
   });
 
   it("says nothing on a confirmed garde or without a paid fee", () => {
-    expect(feeLine(null, "payee")).toBeNull();
-    expect(feeLine(byProfessional, null)).toBeNull();
-    expect(feeLine(byFamily, "expiree")).toBeNull();
+    expect(feeLine(null, false, "payee", true)).toBeNull();
+    expect(feeLine(byProfessional, false, null, false)).toBeNull();
+    expect(feeLine(byFamily, false, "expiree", false)).toBeNull();
+  });
+});
+
+/**
+ * Spec (annulations-table, the answers [9.2, 9.3]): one line of the founders'
+ * table per end of a garde, with the delay from the settings. The family
+ * cancels more than the delay before the start: a credit. Within it: the fee
+ * stays. The professional cancels, at any delay: a credit. The professional is
+ * reported absent: a credit. The family is reported absent: the fee stays. The
+ * absent side contests: « litige », no credit. Berceo cancels: a credit. No
+ * paid fee: nothing to do.
+ */
+describe("outcomeOf, the founders' table", () => {
+  // The night of 30 September 2026 from 20:00 in Brussels; 24 hours before is 29 September at 20:00.
+  const base: TableFacts = {
+    by: "famille",
+    kind: "annulation",
+    nightDate: "2026-09-30",
+    startTime: "20:00:00",
+    at: new Date("2026-09-29T17:59:00Z"), // 19:59 the day before
+    disputed: false,
+    paid: true,
+  };
+  const late = new Date("2026-09-29T18:00:00Z"); // 20:00 the day before
+  const night = new Date("2026-09-30T23:00:00Z"); // 01:00 during the night
+
+  it("credits the family who cancels more than the delay before the start", () => {
+    expect(outcomeOf(base, CANCELLATION_DELAY_HOURS)).toBe("credit");
+  });
+
+  it("keeps the fee when the family cancels within the delay", () => {
+    expect(outcomeOf({ ...base, at: late }, CANCELLATION_DELAY_HOURS)).toBe("conserve");
+    expect(outcomeOf({ ...base, at: new Date("2026-09-30T17:59:00Z") }, CANCELLATION_DELAY_HOURS)).toBe("conserve");
+  });
+
+  it("reads the founders' delay, not a fixed 24 hours", () => {
+    expect(outcomeOf({ ...base, at: late }, 1)).toBe("credit");
+    expect(outcomeOf({ ...base, at: new Date("2026-09-30T17:00:00Z") }, 1)).toBe("conserve");
+    expect(outcomeOf(base, 48)).toBe("conserve");
+  });
+
+  it("credits the professional's cancellation at any delay", () => {
+    for (const at of [base.at, late, new Date("2026-09-30T17:59:00Z")]) {
+      expect(outcomeOf({ ...base, by: "professionnelle", at }, CANCELLATION_DELAY_HOURS)).toBe("credit");
+    }
+  });
+
+  it("credits the professional's absence", () => {
+    expect(outcomeOf({ ...base, by: "professionnelle", kind: "absence", at: night }, CANCELLATION_DELAY_HOURS)).toBe(
+      "credit",
+    );
+  });
+
+  it("keeps the fee when the family is absent or the garde could not start at her home", () => {
+    expect(outcomeOf({ ...base, kind: "absence", at: night }, CANCELLATION_DELAY_HOURS)).toBe("conserve");
+  });
+
+  it("opens a litige, with no credit, when the absent side contests", () => {
+    for (const by of ["famille", "professionnelle"] as const) {
+      expect(outcomeOf({ ...base, by, kind: "absence", at: night, disputed: true }, CANCELLATION_DELAY_HOURS)).toBe(
+        "litige",
+      );
+    }
+  });
+
+  it("credits a cancellation by Berceo", () => {
+    expect(outcomeOf({ ...base, by: "berceo", at: late }, CANCELLATION_DELAY_HOURS)).toBe("credit");
+  });
+
+  it("does nothing for a garde with no paid fee", () => {
+    expect(outcomeOf({ ...base, paid: false }, CANCELLATION_DELAY_HOURS)).toBe("rien");
+    expect(outcomeOf({ ...base, by: "professionnelle", paid: false }, CANCELLATION_DELAY_HOURS)).toBe("rien");
+  });
+
+  it("names the origin of each credit", () => {
+    expect(creditOriginOf("famille", "annulation")).toBe("annulation_famille");
+    expect(creditOriginOf("professionnelle", "annulation")).toBe("annulation_professionnelle");
+    expect(creditOriginOf("professionnelle", "absence")).toBe("absence_professionnelle");
+    expect(creditOriginOf("berceo", "annulation")).toBe("annulation_berceo");
+  });
+
+  it("agrees with the cancel dialog on the edge of the delay", () => {
+    expect(isWithinDelay("2026-09-30", "20:00:00", base.at, 24)).toBe(false);
+    expect(isWithinDelay("2026-09-30", "20:00:00", late, 24)).toBe(true);
+    expect(isLateCancellation(confirmed, late, 24)).toBe(true);
+  });
+});
+
+/**
+ * Spec (annulations-table, the answers [9.3]): the side reported absent
+ * contests the report once, for 24 hours after it; the reporting side cannot.
+ */
+describe("canContest", () => {
+  const reportedAt = new Date("2026-09-30T23:00:00Z");
+  const professionalAbsent: ContestFacts = {
+    status: "annulee",
+    cancellationKind: "absence",
+    cancelledBy: "professionnelle",
+    cancelledAt: reportedAt,
+    disputedAt: null,
+  };
+
+  it("lets the absent side contest for 24 hours after the report", () => {
+    expect(CONTEST_HOURS).toBe(24);
+    expect(canContest(professionalAbsent, "professionnelle", reportedAt)).toBe(true);
+    expect(canContest(professionalAbsent, "professionnelle", new Date("2026-10-01T22:59:00Z"))).toBe(true);
+    expect(canContest(professionalAbsent, "professionnelle", new Date("2026-10-01T23:00:00Z"))).toBe(false);
+  });
+
+  it("never lets the reporting side contest its own report", () => {
+    expect(canContest(professionalAbsent, "famille", reportedAt)).toBe(false);
+  });
+
+  it("contests once", () => {
+    expect(canContest({ ...professionalAbsent, disputedAt: reportedAt }, "professionnelle", reportedAt)).toBe(false);
+  });
+
+  it("contests an absence only", () => {
+    expect(canContest({ ...professionalAbsent, cancellationKind: "annulation" }, "professionnelle", reportedAt)).toBe(
+      false,
+    );
+    expect(canContest({ ...professionalAbsent, status: "confirmee" }, "professionnelle", reportedAt)).toBe(false);
   });
 });
 

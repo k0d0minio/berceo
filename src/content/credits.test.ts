@@ -20,7 +20,7 @@ describe("credits catalogue", () => {
   const all = strings(creditsFamille.fr);
 
   it("has words to check", () => {
-    expect(all.length).toBe(13);
+    expect(all.length).toBe(14);
   });
 
   it.each(all)("follows the guide's rules: %s", (text) => {

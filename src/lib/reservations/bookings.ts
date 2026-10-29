@@ -297,6 +297,8 @@ export type GardeRecord = {
   cancellationKind: CancellationKind | null;
   /** The reason the cancelling side chose (annulations-delai-et-motif); null for an absence or an older garde. */
   cancellationReason: CancellationReason | null;
+  /** When the side reported absent contested the report: the garde is in « litige » (annulations-table). */
+  disputedAt: Date | null;
 };
 
 const gardeColumns = {
@@ -305,6 +307,7 @@ const gardeColumns = {
   cancelledBy: bookings.cancelledBy,
   cancellationKind: bookings.cancellationKind,
   cancellationReason: bookings.cancellationReason,
+  disputedAt: bookings.disputedAt,
 };
 
 /** The professional booked, as the family sees her (D-72: her phone, never her surname). */

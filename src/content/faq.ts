@@ -96,7 +96,7 @@ export const faq = catalogue({
           {
             question: "Que se passe-t-il en cas d'annulation ?",
             answer:
-              "Si la professionnelle annule, les frais de service vous sont intégralement remboursés. Si vous annulez, ils ne sont pas remboursés. En cas de difficulté, contactez l'équipe Berceo.",
+              "Si vous annulez plus de 24 heures avant le début de la garde, vos frais de service deviennent un crédit Berceo, valable 24 mois pour une prochaine réservation. Moins de 24 heures avant, ils restent acquis à Berceo. Si la professionnelle annule ou ne se présente pas, vos frais deviennent un crédit Berceo. En cas de difficulté, contactez l'équipe Berceo.",
           },
         ],
       },

@@ -21,6 +21,7 @@ import {
   type RefundReason,
 } from "@/db";
 import { journalInsertAfter, type Person } from "@/lib/admin/journal";
+import { feeHasLiveCredit } from "@/lib/credits/credits";
 import { formatDate } from "@/lib/demandes/format";
 import { isUniqueViolation, UUID } from "@/lib/demandes/requests";
 import { acceptAnswer, acceptCheck } from "@/lib/reservations/bookings";
@@ -377,7 +378,7 @@ export type RefundResult =
       /** False when another caller had already recorded this same refund. */
       recorded: boolean;
     }
-  | { ok: false; reason: "introuvable" | "statut" };
+  | { ok: false; reason: "introuvable" | "statut" | "credit" };
 
 /** Who asked for a refund from the back office, for the journal (D-101). */
 export type RefundBy = { admin: Person; motif: string };
@@ -390,8 +391,10 @@ export type RefundBy = { admin: Person; motif: string };
  * its `frais_rembourses` journal line in the same statement as the record, so
  * one is never without the other. A caller that finds this same refund already
  * recorded by another answers ok, and records nothing twice. It never touches
- * the booking: cancelling one is cycle-de-garde-et-annulation's, which calls
- * this with `annulation_professionnelle`.
+ * the booking. A fee that became a live credit is refused before Stripe
+ * (annulations-table): one fee is never both credited and refunded. No end of a
+ * garde calls it any more; `annulation_professionnelle` stays for the fees
+ * refunded before the founders' table.
  */
 export async function refundFee(
   paymentId: string,
@@ -403,6 +406,7 @@ export async function refundFee(
     .select({
       payment: payments,
       family: { id: users.id, firstName: users.firstName, lastName: users.lastName },
+      credited: feeHasLiveCredit(payments.id),
     })
     .from(payments)
     .leftJoin(users, eq(users.id, payments.familyUserId))
@@ -411,6 +415,7 @@ export async function refundFee(
   if (!row) return { ok: false, reason: "introuvable" };
   const { payment } = row;
   if (!isRefundable(payment.status) || !payment.stripePaymentIntentId) return { ok: false, reason: "statut" };
+  if (row.credited) return { ok: false, reason: "credit" };
 
   const previous = payment.status === "remboursement_echoue" ? payment.stripeRefundId : null;
   const refund = await stripe().refunds.create(
@@ -518,8 +523,7 @@ export type BookingFee = { id: string; status: PaymentStatus; amountCents: numbe
 
 /**
  * The fee that made each of these bookings, by booking id: a cancelled garde's
- * page says whether it was refunded, the professional's cancellation refunds it
- * (cycle-de-garde-et-annulation, D-2), the founders' absences list shows it. A
+ * page says what became of it, the founders' list of reports shows it. A
  * booking made before the fee existed has none.
  */
 export async function bookingFees(bookingIds: string[]): Promise<Map<string, BookingFee>> {
@@ -556,6 +560,8 @@ export type AdminPayment = Pick<
   professional: string | null;
   /** Owed back to the family after the professional cancelled (D-162). */
   toRefund: boolean;
+  /** Turned into a live credit by the founders' table (annulations-table): never refunded on top. */
+  credited: boolean;
 };
 
 const professionalUser = alias(users, "professional_user");
@@ -570,11 +576,13 @@ function paidSince(since: Date | null) {
 }
 
 /**
- * A fee Berceo still owes (D-162): refundable, and its booking cancelled by
- * the professional, kind `annulation` (D-2), so the automatic refund failed
- * or never ran. An absence is the founders' call (D-106), never flagged. The
- * row mark, the « À rembourser » filter and the overview's count all read
- * this one condition (D-133, D-164).
+ * A fee Berceo still owes (D-162): refundable, its booking cancelled by the
+ * professional, kind `annulation` (D-2), and no live credit made of it. Since
+ * the founders' table (annulations-table) such a cancellation turns the fee
+ * into a credit, so only a cancellation made before it still waits here. An
+ * absence is the founders' call (D-106), never flagged. The row mark, the
+ * « À rembourser » filter and the overview's count all read this one
+ * condition (D-133, D-164).
  */
 function awaitingRefund() {
   return sql<boolean>`(${inArray(payments.status, [...REFUNDABLE])} and exists (
@@ -583,7 +591,7 @@ function awaitingRefund() {
       and rb.status = 'annulee'
       and rb.cancelled_by = 'professionnelle'
       and rb.cancellation_kind = 'annulation'
-  ))`;
+  ) and not ${feeHasLiveCredit(payments.id)})`;
 }
 
 /** How many fees Berceo still owes: the overview's « frais à rembourser » line. */
@@ -632,6 +640,7 @@ export async function readPayments(
         familyLastName: users.lastName,
         professional: professionalUser.firstName,
         toRefund: awaitingRefund(),
+        credited: feeHasLiveCredit(payments.id),
       })
       .from(payments)
       .leftJoin(users, eq(users.id, payments.familyUserId))

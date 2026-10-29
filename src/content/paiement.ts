@@ -19,9 +19,9 @@ export const paiement = catalogue({
       montant: "{montant} €",
       /** Guide (page Tarifs) — la première phrase du paragraphe des frais. */
       prelevement: "Des frais de service de 3 % sont prélevés à la confirmation de chaque réservation.",
-      /** Page Tarifs — la règle de remboursement (D-2). */
+      /** Page Tarifs — le tableau des fondatrices (annulations-table), mot pour mot. */
       remboursement:
-        "Si la professionnelle annule la garde, ces frais vous sont intégralement remboursés. Si vous annulez, ils ne sont pas remboursés.",
+        "Si vous annulez plus de 24 heures avant le début de la garde, ou si la professionnelle annule ou ne se présente pas, ces frais deviennent un crédit Berceo, valable 24 mois pour une prochaine réservation. Si vous annulez moins de 24 heures avant le début, ils restent acquis à Berceo.",
       /** @relecture Surya — où et comment la famille règle les frais. */
       stripe: "Vous réglez les frais de service sur la page sécurisée de Stripe, par Bancontact ou par carte.",
       /** @relecture Surya — réponse qui confirme (vert, D-24) et mène au paiement. */

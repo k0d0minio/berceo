@@ -3,12 +3,14 @@ import { catalogue } from "./locale";
 /**
  * The life of a garde (cycle-de-garde-et-annulation): its state on both
  * sides' lists and pages (D-17, D-109), cancelling it (D-105), reporting an
- * absence (D-106), the lines of a cancelled garde, the fee line (D-2),
+ * absence (D-106), contesting one (annulations-table), the lines of a
+ * cancelled garde, the fee line of each side (D-2, the founders' table),
  * republishing (D-107), and the founders' list of absences. Surya's guide has
  * no words for any of it: every entry is ours, written in the guide's rules
  * (vouvoiement, no exclamation mark, no em dash, no ellipsis, no insurance
- * wording, D-8) and waiting for Surya. The only price named is the 3 % (D-2).
- * `{name}` slots are filled with `fill()` from ./locale.
+ * wording, D-8) and waiting for Surya. The only price named is the 3 % (D-2);
+ * `{montant}` is the garde's own fee with its €, and `{heures}` the founders'
+ * delay. `{name}` slots are filled with `fill()` from ./locale.
  */
 export const gardes = catalogue({
   fr: {
@@ -28,12 +30,15 @@ export const gardes = catalogue({
       bouton: "Annuler la garde",
       /** @relecture Surya — titre de la confirmation. */
       titre: "Annuler cette garde",
-      /** @relecture Surya — conséquence pour la famille : les frais restent acquis (D-2). */
+      /** @relecture Surya — conséquence pour la famille, plus que le délai avant le début : un crédit Berceo (annulations-table). */
       descriptionFamille:
-        "{prenom} sera prévenue par e-mail. Les frais de service de 3 % restent acquis à Berceo lorsque la famille annule.",
-      /** @relecture Surya — conséquence pour la professionnelle : la famille est remboursée (D-2). */
+        "{prenom} sera prévenue par e-mail. Vos frais de service de 3 % deviendront un crédit Berceo, valable 24 mois pour une prochaine réservation.",
+      /** @relecture Surya — conséquence pour la famille, dans le délai : les frais restent acquis (annulations-table). */
+      descriptionFamilleTardive:
+        "{prenom} sera prévenue par e-mail. À moins de {heures} heures du début de la garde, les frais de service de 3 % restent acquis à Berceo.",
+      /** @relecture Surya — conséquence pour la professionnelle : la famille reçoit un crédit (annulations-table). */
       descriptionProfessionnelle:
-        "La famille sera prévenue par e-mail et ses frais de service lui seront intégralement remboursés.",
+        "La famille sera prévenue par e-mail et ses frais de service deviendront un crédit Berceo pour une prochaine réservation.",
       /** @relecture Surya — réponse qui annule (rouge, D-24). */
       oui: "Oui, annuler la garde",
       /** @relecture Surya — réponse qui garde la garde (vert, D-24). */
@@ -75,7 +80,7 @@ export const gardes = catalogue({
       titre: "Signaler une absence",
       /** @relecture Surya — côté famille : la professionnelle n'est pas venue. */
       descriptionFamille:
-        "Vous signalez que {prenom} n'est pas venue pour cette garde. La garde sera enregistrée comme annulée et l'équipe Berceo examinera la situation.",
+        "Vous signalez que {prenom} n'est pas venue pour cette garde. La garde sera enregistrée comme annulée et vos frais de service deviendront un crédit Berceo.",
       /** @relecture Surya — côté professionnelle : la famille était absente. */
       descriptionProfessionnelle:
         "Vous signalez que la famille était absente pour cette garde. La garde sera enregistrée comme annulée et l'équipe Berceo examinera la situation.",
@@ -85,6 +90,23 @@ export const gardes = catalogue({
       non: "Non, revenir à la garde",
       /** @relecture Surya — après le signalement. */
       faite: "L'absence est signalée. L'équipe Berceo examinera la situation.",
+    },
+
+    /** Contester un signalement d'absence (annulations-table, les réponses [9.3]) : la garde passe en litige. */
+    contestation: {
+      /** @relecture Surya — bouton, pendant 24 heures après le signalement, pour la partie déclarée absente. */
+      bouton: "Contester ce signalement",
+      /** @relecture Surya — titre de la confirmation. */
+      titre: "Contester ce signalement",
+      /** @relecture Surya — conséquence : un litige, l'équipe Berceo décide des frais. */
+      description:
+        "Vous indiquez que ce signalement d'absence est inexact. La garde passera en litige et l'équipe Berceo examinera la situation avant de décider des frais de service.",
+      /** @relecture Surya — réponse qui conteste (rouge, D-24). */
+      oui: "Oui, contester",
+      /** @relecture Surya — réponse qui renonce (vert, D-24). */
+      non: "Non, revenir à la garde",
+      /** @relecture Surya — après la contestation. */
+      faite: "Le signalement est contesté. L'équipe Berceo examinera la situation.",
     },
 
     /** Les lignes d'une garde annulée : qui, comment, quand. Jamais de nom de famille. */
@@ -99,16 +121,32 @@ export const gardes = catalogue({
       absenceVous: "Votre absence a été signalée le {date}.",
       /** @relecture Surya — le motif choisi par la partie qui a annulé. */
       motif: "Motif : « {motif} ».",
+      /** @relecture Surya — le signalement a été contesté : la garde est en litige (annulations-table). */
+      litige: "Signalement contesté le {date}. La garde est en litige.",
     },
 
-    /** La ligne des frais de service sur la page de la famille (D-2). */
+    /** La ligne des frais de service sur la page de la famille (D-2, le tableau des fondatrices). */
     frais: {
-      /** @relecture Surya — remboursés. */
-      rembourses: "Frais de service remboursés.",
-      /** @relecture Surya — le remboursement n'est pas encore confirmé. */
-      remboursementEnCours: "Remboursement des frais de service en cours.",
-      /** @relecture Surya — la famille a annulé, les frais restent acquis. */
+      /** @relecture Surya — un crédit Berceo, son montant (« 4,50 € », `paiement.recapitulatif.montant`) et sa date d'expiration. */
+      credit: "Vos frais de service de {montant} sont devenus un crédit Berceo, valable jusqu'au {date}.",
+      /** @relecture Surya — la famille a annulé dans le délai, ou était absente : les frais restent acquis. */
       conserves: "Les frais de service de 3 % restent acquis à Berceo.",
+      /** @relecture Surya — un litige : l'équipe Berceo décide. */
+      litige: "L'équipe Berceo examine la situation et décidera des frais de service.",
+      /** @relecture Surya — remboursés par l'équipe Berceo. */
+      rembourses: "Frais de service remboursés.",
+    },
+
+    /** La même ligne sur la page de la professionnelle (annulations-table) : ce que deviennent les frais de la famille. */
+    fraisProfessionnelle: {
+      /** @relecture Surya — la famille reçoit un crédit Berceo. */
+      credit: "Les frais de service de la famille sont devenus un crédit Berceo.",
+      /** @relecture Surya — les frais restent acquis à Berceo. */
+      conserves: "Les frais de service de la famille restent acquis à Berceo.",
+      /** @relecture Surya — un litige : l'équipe Berceo décide. */
+      litige: "L'équipe Berceo examine la situation et décidera des frais de service.",
+      /** @relecture Surya — remboursés par l'équipe Berceo. */
+      rembourses: "Les frais de service de la famille lui ont été remboursés.",
     },
 
     /** @relecture Surya — l'adresse côté professionnelle, une fois la garde annulée ou terminée (D-110). */
@@ -140,6 +178,8 @@ export const gardes = catalogue({
       annulation: "Cette garde ne peut plus être annulée.",
       /** @relecture Surya — signalement refusé. */
       absence: "Une absence ne peut plus être signalée pour cette garde.",
+      /** @relecture Surya — contestation refusée : plus de 24 heures après le signalement, ou déjà contesté. */
+      contestation: "Ce signalement ne peut plus être contesté.",
       /** @relecture Surya — republication refusée. */
       republication: "Cette demande ne peut plus être republiée.",
       /** @relecture Surya — erreur générique. */
