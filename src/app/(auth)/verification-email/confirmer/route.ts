@@ -25,6 +25,11 @@ import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
  *   token, so the session cookies still go out and the user lands on sign-in,
  *   which sends a signed-in visitor on to her space once the database answers.
  * - Second click (already verified, no new session): sign-in, told it is done.
+ *
+ * Neon Auth's `verify-email` answers `{ status: true, user: null }` on every
+ * success (Better Auth). The session cookie is the only sign of a first click,
+ * so the identity comes from `get-session` with that cookie, through the same
+ * proxy (triage/verification-email-connexion).
  * - Expired or forged token: sign-in, told the link is no longer valid.
  *
  * The link proves the mailbox as a code does (comptes-2fa): a new
@@ -36,6 +41,30 @@ export const dynamic = "force-dynamic";
 
 function to(request: NextRequest, path: string) {
   return NextResponse.redirect(new URL(path, request.url));
+}
+
+/** The `name=value` of the session cookie Neon Auth set, or null on a second click. */
+function sessionCookie(cookies: string[]): string | null {
+  for (const cookie of cookies) {
+    const pair = cookie.split(";", 1)[0].trim();
+    const name = pair.slice(0, pair.indexOf("="));
+    if (name.includes("session_token")) return pair;
+  }
+  return null;
+}
+
+/** The Neon Auth identity of a new session, asked of `get-session` through the proxy. */
+async function identityOf(request: NextRequest, session: string): Promise<string | undefined> {
+  const upstream = new Request(new URL("/api/auth/get-session", request.url), {
+    method: "GET",
+    headers: { cookie: session },
+  });
+  const answer = await getAuth()
+    .handler()
+    .GET(upstream, { params: Promise.resolve({ path: ["get-session"] }) });
+  if (!answer.ok) return undefined;
+  const body = (await answer.json().catch(() => null)) as { user?: { id?: string } | null } | null;
+  return body?.user?.id ?? undefined;
 }
 
 export async function GET(request: NextRequest) {
@@ -52,14 +81,23 @@ export async function GET(request: NextRequest) {
 
   if (!answer.ok) return to(request, `${SIGN_IN_PATH}?lien=invalide`);
 
-  const body = (await answer.json().catch(() => null)) as {
-    user?: { id?: string } | null;
-  } | null;
   const cookies = answer.headers.getSetCookie();
-  const authUserId = body?.user?.id;
+  const session = sessionCookie(cookies);
+  if (!session) return to(request, `${SIGN_IN_PATH}?verifie=1`);
 
-  if (!authUserId || !cookies.some((cookie) => cookie.includes("session_token"))) {
-    return to(request, `${SIGN_IN_PATH}?verifie=1`);
+  let authUserId: string | undefined;
+  try {
+    authUserId = await identityOf(request, session);
+  } catch (error) {
+    console.error("[comptes] get-session failed after verification", {
+      error: error instanceof Error ? error.name : typeof error,
+    });
+  }
+  if (!authUserId) {
+    // Neon has consumed the token: hand over its session, and let sign-in send her on.
+    const response = to(request, `${SIGN_IN_PATH}?verifie=1`);
+    for (const cookie of cookies) response.headers.append("Set-Cookie", cookie);
+    return response;
   }
 
   let row: User | null | undefined;
