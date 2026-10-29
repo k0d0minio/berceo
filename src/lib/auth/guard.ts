@@ -7,7 +7,8 @@ import { mustRenewDeclarations } from "@/lib/professionnelle/declarations";
 import { NEW_DECLARATIONS_PATH } from "@/lib/professionnelle/paths";
 
 import { currentUser } from "./current-user";
-import { accessFor, landingFor, pathnameOf, signInWithReturn } from "./routing";
+import { accessFor, landingFor, pathnameOf, signInWithReturn, withReturn } from "./routing";
+import { CODE_PATH } from "./second-factor";
 import { SUSPENDED_PATH } from "./suspension";
 
 /**
@@ -21,10 +22,20 @@ import { SUSPENDED_PATH } from "./suspension";
  * A professional whose submitted file carries declarations of an older
  * version accepts the new ones before any other page of her space opens, at
  * sign-in and on every later visit (onboarding-retour-1).
+ *
+ * A professional or a founder whose device owes the code (comptes-2fa) goes
+ * to the code page first, with the way back, before the declarations. Her
+ * own role decides what she may see: a professional on /admin still gets
+ * the 404, and a founder sent from /admin learns nothing new.
  */
 export async function requireAccess(path: string): Promise<User> {
   const who = await currentUser();
   const pathname = pathnameOf(path);
+
+  if (who.status === "needs-code") {
+    if (accessFor(who.user.role, pathname).kind === "not-found") notFound();
+    redirect(withReturn(CODE_PATH, path));
+  }
 
   if (who.status !== "ok") {
     // /admin never confirms it exists, not even to a signed-out visitor.
@@ -48,8 +59,9 @@ export async function requireAccess(path: string): Promise<User> {
   return who.user;
 }
 
-/** The account pages are for signed-out visitors: a signed-in user goes to their space. */
+/** The account pages are for signed-out visitors: a signed-in user goes to their space, or to the code she owes. */
 export async function redirectIfSignedIn(retour?: string | null): Promise<void> {
   const who = await currentUser();
   if (who.status === "ok") redirect(landingFor(who.user.role, retour));
+  if (who.status === "needs-code") redirect(withReturn(CODE_PATH, retour));
 }

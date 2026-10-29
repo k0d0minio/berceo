@@ -10,6 +10,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * Spec (abonnements-inscription-famille): a family's sign-up needs one of the
  * four plans, and her users row keeps it beside the two consent rows; a
  * professional's sign-up has no plan. Neon Auth, the database and the orphan helpers are mocked at their module boundary.
+ *
+ * Spec (comptes-2fa): after her password, a professional or a founder on a
+ * device no code trusted gets a code and lands on the code page; a trusted
+ * device and a family land as before. The code page's action checks the six
+ * digits, trusts the device, or sends a new code. The store and the sender
+ * are mocked at their module boundary.
  */
 
 const m = vi.hoisted(() => {
@@ -27,6 +33,13 @@ const m = vi.hoisted(() => {
     userByAuthId: vi.fn(),
     orphanByEmail: vi.fn(),
     deleteOrphanIdentity: vi.fn(async (_authUserId: string) => true),
+    cookieGet: vi.fn((_name: string): { value: string } | undefined => undefined),
+    cookieSet: vi.fn(),
+    currentUser: vi.fn(),
+    isDeviceTrusted: vi.fn(async (_userId: string, _token: string | undefined) => false),
+    checkSignInCode: vi.fn(),
+    trustDevice: vi.fn(async (_userId: string) => ({ token: "jeton-brut", expiresAt: new Date() })),
+    sendSignInCode: vi.fn(async (_user: unknown): Promise<"sent" | "too-soon" | "failed"> => "sent"),
   };
 });
 
@@ -35,7 +48,14 @@ vi.mock("next/navigation", () => ({
     throw new m.Redirected(to);
   },
 }));
-vi.mock("next/headers", () => ({ cookies: async () => ({ set: vi.fn() }) }));
+vi.mock("next/headers", () => ({ cookies: async () => ({ set: m.cookieSet, get: m.cookieGet }) }));
+vi.mock("@/lib/auth/current-user", () => ({ currentUser: m.currentUser }));
+vi.mock("@/lib/auth/second-factor-store", () => ({
+  isDeviceTrusted: m.isDeviceTrusted,
+  checkSignInCode: m.checkSignInCode,
+  trustDevice: m.trustDevice,
+}));
+vi.mock("@/lib/auth/second-factor-send", () => ({ sendSignInCode: m.sendSignInCode }));
 vi.mock("@/lib/auth/server", () => ({
   getAuth: () => ({ signUp: { email: m.signUpEmail }, signIn: { email: m.signInEmail }, signOut: m.signOut }),
 }));
@@ -56,7 +76,7 @@ vi.mock("@/db", async () => {
   };
 });
 
-const { signIn, signUp } = await import("./actions");
+const { signIn, signInCode, signUp } = await import("./actions");
 
 const EMAIL = "julie.dupont@exemple.be";
 
@@ -94,6 +114,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   m.batch.mockResolvedValue(undefined);
   m.deleteOrphanIdentity.mockResolvedValue(true);
+  m.cookieGet.mockReturnValue(undefined);
+  m.isDeviceTrusted.mockResolvedValue(false);
+  m.sendSignInCode.mockResolvedValue("sent");
+  m.trustDevice.mockResolvedValue({ token: "jeton-brut", expiresAt: new Date() });
 });
 
 describe("a sign-up whose users row fails to write (D-159)", () => {
@@ -236,5 +260,128 @@ describe("a sign-in with no users row (D-171)", () => {
       state: { message: "inscriptionIncomplete", email: EMAIL },
     });
     expect(m.signOut).toHaveBeenCalledTimes(1);
+  });
+});
+
+const row = (role: "parent" | "professionnel" | "admin") => ({
+  id: `u-${role}`,
+  authUserId: "auth-1",
+  email: EMAIL,
+  firstName: "Julie",
+  role,
+  suspendedAt: null,
+});
+
+function signInForm(): FormData {
+  const form = new FormData();
+  form.set("email", EMAIL);
+  form.set("motDePasse", "nuit-calme");
+  return form;
+}
+
+describe("the second factor at sign-in (comptes-2fa)", () => {
+  beforeEach(() => {
+    m.signInEmail.mockResolvedValue({ data: { user: { id: "auth-1" } }, error: null });
+  });
+
+  it.each([["professionnel", "/connexion/code"], ["admin", "/connexion/code"]] as const)(
+    "sends a %s on a device no code trusted a code, then to the code page",
+    async (role, page) => {
+      m.userByAuthId.mockResolvedValue(row(role));
+      expect(await outcome(signIn(null, {}, signInForm()))).toEqual({ redirect: page });
+      expect(m.isDeviceTrusted).toHaveBeenCalledWith(`u-${role}`, undefined);
+      expect(m.sendSignInCode).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ id: `u-${role}` }));
+    },
+  );
+
+  it("keeps the way back through the code page", async () => {
+    m.userByAuthId.mockResolvedValue(row("professionnel"));
+    expect(await outcome(signIn("/espace/professionnelle/demandes", {}, signInForm()))).toEqual({
+      redirect: "/connexion/code?retour=%2Fespace%2Fprofessionnelle%2Fdemandes",
+    });
+  });
+
+  it("says on the code page when the e-mail did not leave", async () => {
+    m.userByAuthId.mockResolvedValue(row("admin"));
+    m.sendSignInCode.mockResolvedValue("failed");
+    expect(await outcome(signIn(null, {}, signInForm()))).toEqual({ redirect: "/connexion/code?envoi=echec" });
+  });
+
+  it("lands a professional on a trusted device in her space, with no code", async () => {
+    m.userByAuthId.mockResolvedValue(row("professionnel"));
+    m.cookieGet.mockReturnValue({ value: "jeton-brut" });
+    m.isDeviceTrusted.mockResolvedValue(true);
+    expect(await outcome(signIn(null, {}, signInForm()))).toEqual({ redirect: "/espace/professionnelle" });
+    expect(m.isDeviceTrusted).toHaveBeenCalledWith("u-professionnel", "jeton-brut");
+    expect(m.sendSignInCode).not.toHaveBeenCalled();
+  });
+
+  it("asks a family nothing: her password opens her space", async () => {
+    m.userByAuthId.mockResolvedValue(row("parent"));
+    expect(await outcome(signIn(null, {}, signInForm()))).toEqual({ redirect: "/espace/famille" });
+    expect(m.isDeviceTrusted).not.toHaveBeenCalled();
+    expect(m.sendSignInCode).not.toHaveBeenCalled();
+  });
+});
+
+describe("the code page's action (comptes-2fa)", () => {
+  const codeForm = (code: string, intention = "valider") => {
+    const form = new FormData();
+    form.set("code", code);
+    form.set("intention", intention);
+    return form;
+  };
+
+  beforeEach(() => {
+    m.currentUser.mockResolvedValue({ status: "needs-code", user: row("professionnel") });
+  });
+
+  it("trusts the device on a correct code: the cookie is set and she lands where she was going", async () => {
+    m.checkSignInCode.mockResolvedValue("ok");
+    expect(await outcome(signInCode("/espace/professionnelle/gardes", {}, codeForm("123 456")))).toEqual({
+      redirect: "/espace/professionnelle/gardes",
+    });
+    expect(m.checkSignInCode).toHaveBeenCalledWith("u-professionnel", "123456");
+    expect(m.trustDevice).toHaveBeenCalledExactlyOnceWith("u-professionnel");
+    expect(m.cookieSet).toHaveBeenCalledWith(
+      "berceo-appareil",
+      "jeton-brut",
+      expect.objectContaining({ httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 30 * 24 * 60 * 60 }),
+    );
+  });
+
+  it.each([
+    ["wrong", "codeIncorrect"],
+    ["dead", "codeEpuise"],
+    ["expired", "codeExpire"],
+    ["none", "codeExpire"],
+  ] as const)("answers a %s code with « %s » and trusts nothing", async (check, message) => {
+    m.checkSignInCode.mockResolvedValue(check);
+    expect(await outcome(signInCode(null, {}, codeForm("000000")))).toEqual({ state: { message } });
+    expect(m.trustDevice).not.toHaveBeenCalled();
+    expect(m.cookieSet).not.toHaveBeenCalled();
+  });
+
+  it("refuses anything but six digits before any read", async () => {
+    expect(await outcome(signInCode(null, {}, codeForm("12345")))).toEqual({ state: { message: "codeInvalide" } });
+    expect(m.checkSignInCode).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["sent", "codeRenvoye"],
+    ["too-soon", "codeAttendre"],
+    ["failed", "codeEnvoiEchoue"],
+  ] as const)("« Renvoyer le code » answers %s with « %s »", async (sent, message) => {
+    m.sendSignInCode.mockResolvedValue(sent);
+    expect(await outcome(signInCode(null, {}, codeForm("", "renvoyer")))).toEqual({ state: { message } });
+    expect(m.checkSignInCode).not.toHaveBeenCalled();
+  });
+
+  it("sends a session that owes no code to its space, and a signed-out visitor to sign-in", async () => {
+    m.currentUser.mockResolvedValue({ status: "ok", user: row("admin") });
+    expect(await outcome(signInCode(null, {}, codeForm("123456")))).toEqual({ redirect: "/admin" });
+    m.currentUser.mockResolvedValue({ status: "signed-out" });
+    expect(await outcome(signInCode(null, {}, codeForm("123456")))).toEqual({ redirect: "/connexion" });
+    expect(m.checkSignInCode).not.toHaveBeenCalled();
   });
 });

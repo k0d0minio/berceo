@@ -32,6 +32,8 @@ export const comptes = catalogue({
       nouveauMotDePasse: "Nouveau mot de passe",
       /** @relecture Surya — titre de page. */
       verification: "Vérifiez votre boîte e-mail",
+      /** @relecture Surya — titre de page (comptes-2fa). */
+      code: "Code de connexion",
       /** @relecture Surya — titre de page. */
       espace: "Mon espace",
     },
@@ -148,6 +150,41 @@ export const comptes = catalogue({
       bouton: "Enregistrer le mot de passe",
       /** @relecture Surya — état du bouton pendant l'envoi. */
       enCours: "Enregistrement en cours",
+    },
+
+    /** The code a professional or a founder types after her password (comptes-2fa). */
+    code: {
+      /** @relecture Surya — titre de la page du code. */
+      title: "Saisissez votre code de connexion",
+      /** @relecture Surya — l'adresse où le code est parti et sa durée de vie. */
+      intro: "Nous avons envoyé un code à 6 chiffres à {email}. Il reste valable 10 minutes.",
+      /** @relecture Surya — pourquoi le code est demandé, une seule fois par appareil. */
+      pourquoi:
+        "Cette étape protège votre espace. Elle ne vous sera plus demandée sur cet appareil pendant 30 jours.",
+      /** @relecture Surya — libellé du champ. */
+      champ: "Code reçu par e-mail",
+      /** @relecture Surya — bouton de validation. */
+      bouton: "Valider le code",
+      /** @relecture Surya — état du bouton pendant la vérification. */
+      enCours: "Vérification en cours",
+      /** @relecture Surya — bouton pour recevoir un nouveau code. */
+      renvoyer: "Renvoyer le code",
+      /** @relecture Surya — bouton de déconnexion depuis la page du code. */
+      deconnexion: "Se déconnecter",
+      /** @relecture Surya — confirmation après le renvoi. */
+      renvoye: "Un nouveau code vous attend dans votre boîte e-mail.",
+      /** @relecture Surya — un code vient de partir, le suivant attend une minute. */
+      attendre: "Un code vient de partir. Patientez une minute avant d'en demander un nouveau.",
+      /** @relecture Surya — l'e-mail n'est pas parti. */
+      envoiEchoue: "Nous n'avons pas pu envoyer le code. Demandez-en un nouveau dans quelques instants.",
+      /** @relecture Surya — code faux. */
+      incorrect: "Ce code est incorrect. Vérifiez les 6 chiffres et réessayez.",
+      /** @relecture Surya — cinq essais faux. */
+      epuise: "Ce code n'est plus valable après cinq essais. Demandez-en un nouveau.",
+      /** @relecture Surya — code de plus de 10 minutes, ou déjà utilisé. */
+      expire: "Ce code n'est plus valable. Demandez-en un nouveau.",
+      /** @relecture Surya — champ vide ou autre chose que 6 chiffres. */
+      invalide: "Saisissez les 6 chiffres du code reçu par e-mail.",
     },
 
     verification: {

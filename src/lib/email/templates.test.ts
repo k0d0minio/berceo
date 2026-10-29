@@ -23,6 +23,7 @@ import {
   reminderProfessionalEmail,
   requestDigestEmail,
   resetPasswordEmail,
+  signInCodeEmail,
   urgentRequestEmail,
   verificationEmail,
   welcomeFamilyEmail,
@@ -62,6 +63,7 @@ const LIST = `${SITE}/espace/professionnelle/demandes`;
 const all: [string, RenderedEmail][] = [
   ["verification", verificationEmail({ siteUrl: SITE, prenom: "Julie", url: `${SITE}/v?token=a` })],
   ["reset", resetPasswordEmail({ siteUrl: SITE, prenom: "Julie", url: `${SITE}/r?token=a` })],
+  ["sign-in code", signInCodeEmail({ siteUrl: SITE, prenom: "Julie", code: "123456" })],
   ["welcome", welcomeFamilyEmail({ siteUrl: SITE, prenom: "Julie", url: `${SITE}/espace/famille` })],
   ["validation", profileValidatedEmail({ siteUrl: SITE, prenom: "Julie", url: `${SITE}/espace/professionnelle` })],
   [
@@ -172,6 +174,22 @@ describe("welcome e-mail", () => {
       "Votre compte est créé. Vous pouvez désormais accéder aux profils de nos professionnelles et publier votre première demande de garde. Prenez le temps de vous reposer, c'est pour ça qu'on est là.",
     );
     expect(email.text).toContain(`Publier ma première demande : ${SITE}/espace/famille`);
+  });
+});
+
+describe("the sign-in code (comptes-2fa)", () => {
+  const email = signInCodeEmail({ siteUrl: SITE, prenom: "Julie", code: "042917" });
+
+  it("carries the six digits in two groups, in the text and the HTML, and no button", () => {
+    expect(email.subject).toBe("Votre code de connexion Berceo");
+    expect(email.text).toContain("042 917");
+    expect(email.html).toContain("042 917");
+    expect(email.html).not.toContain("<a href");
+  });
+
+  it("says how long the code and the trust last", () => {
+    expect(email.text).toContain("10 minutes");
+    expect(email.text).toContain("30 jours");
   });
 });
 

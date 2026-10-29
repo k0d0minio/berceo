@@ -4,6 +4,8 @@ import type { User } from "@/db";
 import { SUBSCRIPTION_START_PATH } from "@/lib/abonnements/paths";
 import { RETURN_COOKIE, verifiedLanding } from "@/lib/auth/retour";
 import { SIGN_IN_PATH } from "@/lib/auth/routing";
+import { DEVICE_COOKIE, DEVICE_COOKIE_OPTIONS, needsSecondFactor } from "@/lib/auth/second-factor";
+import { trustDevice } from "@/lib/auth/second-factor-store";
 import { getAuth } from "@/lib/auth/server";
 import { userByAuthId } from "@/lib/auth/users";
 import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
@@ -24,6 +26,10 @@ import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
  *   which sends a signed-in visitor on to her space once the database answers.
  * - Second click (already verified, no new session): sign-in, told it is done.
  * - Expired or forged token: sign-in, told the link is no longer valid.
+ *
+ * The link proves the mailbox as a code does (comptes-2fa): a new
+ * professional's device is trusted for 30 days on her first click, so her
+ * space opens with no code. A failure here costs her one code, no more.
  */
 
 export const dynamic = "force-dynamic";
@@ -79,6 +85,14 @@ export async function GET(request: NextRequest) {
     response = to(request, landing);
     // The way back outlives the Checkout: the subscription's return page reads and clears it.
     if (landing !== SUBSCRIPTION_START_PATH) response.cookies.delete(RETURN_COOKIE);
+    if (needsSecondFactor(row.role)) {
+      try {
+        const { token } = await trustDevice(row.id);
+        response.cookies.set(DEVICE_COOKIE, token, DEVICE_COOKIE_OPTIONS);
+      } catch (error) {
+        console.error("[comptes] device not trusted after verification", { userId: row.id, error });
+      }
+    }
   }
 
   for (const cookie of cookies) response.headers.append("Set-Cookie", cookie);

@@ -281,6 +281,19 @@ export const emails = catalogue({
       ignorer: "Si vous n'avez pas créé de compte sur Berceo, ignorez simplement cet e-mail.",
     },
 
+    /** The sign-in code of a professional or a founder (comptes-2fa). No button: the code is the action. */
+    codeConnexion: {
+      /** @relecture Surya — objet de l'e-mail du code. */
+      objet: "Votre code de connexion Berceo",
+      /** @relecture Surya — la phrase avant le code. */
+      corps: "Vous venez de saisir votre mot de passe sur Berceo. Voici votre code de connexion :",
+      /** @relecture Surya — la durée de vie du code et de la confiance accordée à l'appareil. */
+      validite: "Ce code reste valable 10 minutes. Une fois saisi, il ne vous sera plus demandé sur cet appareil pendant 30 jours.",
+      /** @relecture Surya — mention pour qui n'a rien demandé : le mot de passe a été saisi. */
+      ignorer:
+        "Si vous n'êtes pas à l'origine de cette connexion, changez votre mot de passe sans attendre depuis « Mot de passe oublié ».",
+    },
+
     reinitialisation: {
       /** @relecture Surya — objet de l'e-mail de réinitialisation. */
       objet: "Choisissez un nouveau mot de passe",
