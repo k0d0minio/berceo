@@ -1,13 +1,14 @@
 import "server-only";
 
-import { and, eq, inArray, or } from "drizzle-orm";
+import { and, desc, eq, inArray, or } from "drizzle-orm";
 
 import { db, favourites, professionalProfiles } from "@/db";
 import { deletedAtExactly } from "@/lib/auth/suspension";
 
 /**
- * Every read and write of `favourites` (favoris-marquer). The family's id
- * comes from the session (the caller's `requireAccess`), never from a form.
+ * Every read and write of `favourites` (favoris-marquer, favoris-liste). The
+ * family's id comes from the session (the caller's `requireAccess`), never
+ * from a form.
  * The caller checks the subscription's gate and that the profile is
  * validated before a mark. A mark is hers alone: no page of the professional
  * and no page of the founders imports this module (`isolation.test.ts`).
@@ -21,6 +22,16 @@ export async function markedAmong(familyUserId: string, profileIds: readonly str
     .from(favourites)
     .where(and(eq(favourites.familyUserId, familyUserId), inArray(favourites.profileId, [...profileIds])));
   return new Set(rows.map((row) => row.profileId));
+}
+
+/** The profiles the family marked, the last marked first (favoris-liste). Any status: the list reads it. */
+export async function markedProfiles(familyUserId: string): Promise<string[]> {
+  const rows = await db
+    .select({ profileId: favourites.profileId })
+    .from(favourites)
+    .where(eq(favourites.familyUserId, familyUserId))
+    .orderBy(desc(favourites.createdAt), desc(favourites.profileId));
+  return rows.map((row) => row.profileId);
 }
 
 /** Whether the family marked this profile. */

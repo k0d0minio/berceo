@@ -9,6 +9,7 @@ import { common } from "@/content/common";
 import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
 import { famille } from "@/content/famille";
+import { favoris } from "@/content/favoris";
 import { fill, words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
 import { planWords, renewalDate } from "@/lib/abonnements/format";
@@ -23,6 +24,7 @@ import { FAMILY_REQUESTS_PATH, NEW_REQUEST_PATH, NEW_URGENT_REQUEST_PATH } from 
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyCommune } from "@/lib/famille/profile";
 import { SEARCH_PATH } from "@/lib/recherche/slugs";
+import { FAMILY_PROFESSIONALS_PATH } from "@/lib/reservations/paths";
 import { siteOrigin } from "@/lib/site-origin";
 
 import { startSubscriptionAction } from "./abonnement/actions";
@@ -42,7 +44,8 @@ export const dynamic = "force-dynamic";
 
 /*
  * The parent's space. Until her commune is saved it asks her to complete her
- * profile. The two ways to publish (D-60) and her requests are one tap away.
+ * profile. The two ways to publish (D-60), the search, « Mes professionnelles »
+ * (favoris-liste) and her requests are one tap away.
  * Her own note and gardes count close the page (avis-etoiles, D-121). « Votre
  * abonnement » shows her plan and its renewal date, or leads to the four plans
  * (abonnements-catalogue-stripe); a cancelled one shows its end date and a
@@ -138,6 +141,12 @@ export default async function EspaceFamillePage() {
         className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
       >
         {words(recherche).nav}
+      </Link>
+      <Link
+        href={FAMILY_PROFESSIONALS_PATH}
+        className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+      >
+        {words(favoris).nav}
       </Link>
       <Link
         href={FAMILY_REQUESTS_PATH}

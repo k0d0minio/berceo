@@ -16,7 +16,8 @@ import { publicProfile } from "@/lib/reservations/profiles";
  * again here: the subscription's gate (`favori`), since a subscription can
  * end between the page and the click, and a validated profile, as
  * `publicProfile` reads it. A refusal changes nothing, and the page shows the
- * invitation line or no mark at its next render.
+ * invitation line or no mark at its next render. « Mes professionnelles »
+ * (favoris-liste) re-reads its list after the write.
  */
 export async function markAction(profileId: string, marked: boolean): Promise<void> {
   const user = await requireAccess(FAMILY_PROFESSIONALS_PATH);
@@ -26,4 +27,5 @@ export async function markAction(profileId: string, marked: boolean): Promise<vo
   await setMark(user.id, profile.id, marked === true);
   revalidatePath(professionalProfilePath(profile.id));
   revalidatePath(SEARCH_PATH);
+  revalidatePath(FAMILY_PROFESSIONALS_PATH);
 }

@@ -15,7 +15,8 @@ Set by Jamie on 2026-10-29.
 
 1. triage
 2. annulations-credits
-3. favoris
+1. triage
+2. annulations-credits
 
 ## The backlog on 2026-10-23
 
