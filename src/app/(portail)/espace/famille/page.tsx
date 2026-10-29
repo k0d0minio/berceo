@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { OwnNote } from "@/components/avis/stars";
+import { CreditsBlock } from "@/components/credits/credits-block";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { abonnements } from "@/content/abonnements";
@@ -20,6 +21,7 @@ import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
 import { noteOfUser } from "@/lib/avis/ratings";
+import { familyCredits } from "@/lib/credits/credits";
 import { FAMILY_REQUESTS_PATH, NEW_REQUEST_PATH, NEW_URGENT_REQUEST_PATH } from "@/lib/demandes/paths";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { familyCommune } from "@/lib/famille/profile";
@@ -49,7 +51,8 @@ export const dynamic = "force-dynamic";
  * Her own note and gardes count close the page (avis-etoiles, D-121). « Votre
  * abonnement » shows her plan and its renewal date, or leads to the four plans
  * (abonnements-catalogue-stripe); a cancelled one shows its end date and a
- * failed renewal one line of warning (abonnements-espace-echec-paiement). A family who left the Checkout of the plan
+ * failed renewal one line of warning (abonnements-espace-echec-paiement). « Mes crédits » under it shows her
+ * balance and each Berceo credit with its expiry (credits-registre). A family who left the Checkout of the plan
  * she picked at sign-up gets one call to finish it instead
  * (abonnements-inscription-famille). An outlined button opens the charter the
  * professionals accept (charte-cote-parents). A welcome
@@ -58,14 +61,16 @@ export const dynamic = "force-dynamic";
 export default async function EspaceFamillePage() {
   const user = await requireAccess(SPACES.parent);
   scheduleWelcomeIfDue(user, await siteOrigin());
-  const [commune, note, live, completed] = await Promise.all([
+  const now = new Date();
+  const [commune, note, live, completed, wallet] = await Promise.all([
     familyCommune(user.id),
     noteOfUser(user.id),
     liveSubscription(user.id),
     hasCompletedCheckout(user.id),
+    familyCredits(user.id, now),
   ]);
   const running = live && (live.status === "active" || live.status === "impayee") ? live : null;
-  const state = running ? subscriptionState(running, new Date()) : null;
+  const state = running ? subscriptionState(running, now) : null;
   const toFinish = planToFinish(user.signupPlan, completed);
 
   return (
@@ -127,6 +132,7 @@ export default async function EspaceFamillePage() {
           </>
         )}
       </section>
+      <CreditsBlock list={wallet.list} balanceCents={wallet.balanceCents} />
       <p className="max-w-2xl text-intro text-encre-taupe">{d.famille.accueil}</p>
       <div className="flex flex-wrap gap-3">
         <Button asChild>

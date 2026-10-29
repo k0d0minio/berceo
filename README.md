@@ -44,6 +44,7 @@ The contract: `.icm/uat/CONTEXT.md`.
 | [src/lib/messagerie/](src/lib/messagerie/), [src/components/messagerie/](src/components/messagerie/) | The conversation per answer: its rules, reads and writes, the send action, the new-message e-mail. See **The conversation** below. |
 | [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
 | [src/lib/favoris/](src/lib/favoris/), [src/components/favoris/](src/components/favoris/) | A family's favourite professionals: the mark and its reads and writes, and the list « Mes professionnelles ». See **The favourites** below. |
+| [src/lib/credits/](src/lib/credits/), [src/components/credits/](src/components/credits/) | A family's Berceo credits: the ledger's rules, its only reads and writes, and the block « Mes crédits ». See **The credits** below. |
 | [src/lib/paiements/](src/lib/paiements/), [src/app/api/webhooks/stripe/](src/app/api/webhooks/stripe/) | The 3 % service fee through Stripe: the Checkout, the webhook, refunds, the founders' list. See **The service fee** below. |
 | [src/lib/abonnements/](src/lib/abonnements/) | The four family subscriptions through Stripe: the plans, the Checkout in subscription mode, the row the webhook keeps true, `hasActiveSubscription`. See **The subscriptions** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`. |
@@ -756,6 +757,38 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
 - **Hers alone:** only `src/lib/favoris/favourites.ts` names the table. No page of the
   professional, of the founders or of the vitrine reads it. `src/lib/favoris/isolation.test.ts`
   holds both. Words in `src/content/favoris.ts`, every one `@relecture`.
+
+## The credits
+
+- **The credit (credits-registre):** a fee kept for a later garde, from the founders' table
+  (the answers [9.2]). It lasts 24 months from its issue, `CREDIT_MONTHS` in
+  `src/lib/credits/rules.ts`, a constant and not a founders' setting. The amount is the fee's,
+  in cents, never a night rate. Nothing issues one yet: `annulations-table` writes the table's
+  lines and `annulations-back-office` the founders' hand, both through `issueCredit`.
+- **The table:** `credits`, one row per credit: the family, `amount_cents`, `spent_cents`, the
+  origin (`annulation_famille`, `annulation_professionnelle`, `absence_professionnelle`,
+  `annulation_berceo`, `geste_berceo`), the payment and the booking it comes from or the founder
+  who granted it, a note, `issued_at` and `expires_at`. A money record like a payment: every
+  link is set null on delete, never cascaded, so a deleted account never deletes a credit.
+  Checks hold the amount positive, `spent_cents` within it and the expiry after the issue.
+- **The rules, pure:** a credit reads `disponible` until its expiry, `expire` from it, and
+  `utilise` once spent to the last cent, whatever the clock. `remainingCents` is what it can
+  still pay, 0 once spent or expired. `balanceCents` sums the remainders. `spendingPlan` picks
+  the credits that pay an amount, the earliest expiry first, then the earliest issue, each to its
+  remainder, and names the rest the Checkout takes (`credits-au-paiement`). `rules.test.ts`
+  holds them.
+- **The statements:** `familyCredits` reads every credit of a family at a moment, the earliest
+  expiry first, with its state, its remainder and her balance. `issueCredit` writes one at a
+  moment with its expiry. `spendCredits` applies the plan in one batch, each take guarded on
+  the amount already spent, and throws when a credit changed meanwhile. No code calls the last
+  two yet.
+- **The block:** « Mes crédits », `src/components/credits/credits-block.tsx`, on the family's
+  home under « Votre abonnement » and on « Mes réservations » under the intro. Her balance, then
+  each usable credit with what it can still pay and « valable jusqu'au » its expiry, then the
+  spent and expired ones under « Crédits utilisés ou expirés », each with its origin. With no
+  credit, one line. Words in `src/content/credits.ts`, every one `@relecture`.
+- **Hers alone:** only `src/lib/credits/` and the schema name the table.
+  `src/lib/credits/isolation.test.ts` holds that.
 
 ## The professional's onboarding and documents
 

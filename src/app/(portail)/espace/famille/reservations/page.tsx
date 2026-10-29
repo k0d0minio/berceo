@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { CreditsBlock } from "@/components/credits/credits-block";
 import { GardeStateMark } from "@/components/gardes/garde-state";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { SpaceShell } from "@/components/shell/space-shell";
@@ -11,6 +12,7 @@ import { requireAccess } from "@/lib/auth/guard";
 import { familyRatingPath } from "@/lib/avis/paths";
 import { ratingsGiven } from "@/lib/avis/ratings";
 import { canRate } from "@/lib/avis/rules";
+import { familyCredits } from "@/lib/credits/credits";
 import { cardTitle, nightLine } from "@/lib/demandes/format";
 import { hasNightStarted } from "@/lib/demandes/rules";
 import { gardeState } from "@/lib/gardes/rules";
@@ -84,12 +86,13 @@ function List({
  * ones, latest first, each with its state (D-109). This is where she finds the professionals she already
  * booked and sends them a new request in priority (cahier des charges D-07,
  * « Contact récurrent »), and « Laisser un avis » on a terminée garde she has
- * not rated, for 14 days (avis-etoiles, D-117).
+ * not rated, for 14 days (avis-etoiles, D-117). « Mes crédits » under the
+ * intro shows her balance and each Berceo credit with its expiry (credits-registre).
  */
 export default async function ReservationsPage() {
   const user = await requireAccess(FAMILY_BOOKINGS_PATH);
   const now = new Date();
-  const all = await familyBookings(user.id);
+  const [all, wallet] = await Promise.all([familyBookings(user.id), familyCredits(user.id, now)]);
   const started = (b: FamilyBooking) => hasNightStarted(b.request.nightDate, b.request.startTime, now);
   const coming = all.filter((b) => !started(b));
   const past = all.filter(started).reverse();
@@ -98,6 +101,7 @@ export default async function ReservationsPage() {
   return (
     <SpaceShell user={user} title={t.reservationsFamille.titre}>
       <p className="max-w-2xl text-intro text-encre-taupe">{t.reservationsFamille.intro}</p>
+      <CreditsBlock list={wallet.list} balanceCents={wallet.balanceCents} />
       {all.length === 0 ? <p className="max-w-2xl text-corps text-encre-taupe">{t.reservationsFamille.vide}</p> : null}
       <List title={t.reservationsFamille.aVenir} items={coming} rated={rated} now={now} />
       <List title={t.reservationsFamille.passees} items={past} rated={rated} now={now} />
