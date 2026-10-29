@@ -60,13 +60,19 @@ const prose = all.filter(([path]) => !/\.(href|src)$/.test(path));
 const word = (pattern: string, flags = "iu") =>
   new RegExp(`(?<!\\p{L})(?:${pattern})(?!\\p{L})`, flags);
 
-const banned: [string, RegExp][] = [
-  ["exclamation mark", /!/],
-  ["ellipsis", /…|\.\.\./],
-  ["em dash", /—/],
-  ["insurance (D-8)", word("assurances?|assuré(?:e|es|s)?")],
-  ["coverage (D-8)", word("couvert(?:e|es|s)?")],
-  ["Facebook group (D-23)", word("facebook")],
+/*
+ * D-8 keeps every insurance wording out, bar one line: the fee sentence on
+ * « Tarifs », which the founders wrote (Jamie, 2026-10-29).
+ */
+const feeSentence = "tarifs.frais.paragraphs[0]";
+
+const banned: [string, RegExp, string[]][] = [
+  ["exclamation mark", /!/, []],
+  ["ellipsis", /…|\.\.\./, []],
+  ["em dash", /—/, []],
+  ["insurance (D-8)", word("assurances?|assuré(?:e|es|s)?"), [feeSentence]],
+  ["coverage (D-8)", word("couvert(?:e|es|s)?"), []],
+  ["Facebook group (D-23)", word("facebook"), []],
 ];
 
 describe("the vitrine's catalogue", () => {
@@ -74,12 +80,22 @@ describe("the vitrine's catalogue", () => {
     expect(prose.length).toBeGreaterThan(50);
   });
 
-  for (const [rule, pattern] of banned) {
+  for (const [rule, pattern, allowed] of banned) {
     it(`contains no ${rule}`, () => {
-      const offenders = prose.filter(([, text]) => pattern.test(text));
+      const offenders = prose.filter(
+        ([path, text]) => !allowed.includes(path) && pattern.test(text),
+      );
       expect(offenders).toEqual([]);
     });
   }
+
+  it("names the insurance in the fee sentence, as the founders wrote it (Jamie, 2026-10-29)", () => {
+    const [path, text] = prose.find(([p]) => p === feeSentence) ?? [];
+    expect(path).toBe(feeSentence);
+    expect(text).toBe(
+      "Des frais de service de 3 % sont prélevés à la confirmation de chaque réservation. Ils couvrent le bon fonctionnement de la plateforme et l'assurance.",
+    );
+  });
 
   it("drops the intro the founders struck out (feedback round 1)", () => {
     const offenders = prose.filter(([, text]) =>

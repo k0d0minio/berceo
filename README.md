@@ -109,7 +109,8 @@ vouvoiement, no exclamation mark, no em dash, no ellipsis, the validated lexicon
   `@relecture Surya — <why>` tag (on an object, it covers every entry inside it).
   `grep -rn @relecture src/content` is the list to send Surya.
 - **The rules are tested**: `src/content/vitrine.test.ts` fails on `!`, `…`, `—`, insurance
-  wording (D-8), Facebook (D-23), an amount in euros other than the four subscription prices
+  wording (D-8, bar the fee sentence on « Tarifs », which the founders wrote: D-8 is superseded
+  for that one line, Jamie, 2026-10-29), Facebook (D-23), an amount in euros other than the four subscription prices
   and 130, a percentage other than 3, "sans abonnement" or "aucun abonnement", and a title or
   description out of the guide's lengths (50–60, 140–160) or used twice.
 - **Adding a language**: add its code to `locales` in `locale.ts`, then add the same key to
@@ -949,7 +950,7 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   réseau" (outlined) to `/inscription-professionnelle`. "Trouver votre gardienne de la nuit"
   is used only under text that names health professionals; everywhere else it is "Trouver une
   professionnelle" (D-25).
-- **Reassurance is the manual verification**, never insurance (D-8).
+- **Reassurance is the manual verification**, never insurance (D-8), bar the fee sentence on « Tarifs » (Jamie, 2026-10-29).
 - **Prices**: the four family subscriptions of the devis (Découverte, 1 mois, 24,90 € ·
   Parenthèse, 3 mois, 59,90 € · Sérénité, 6 mois, 94,90 € · Premium, 12 mois, 159,90 €) in
   `src/content/abonnements.ts`, the professional's night rate from 130 € with no ceiling and her
