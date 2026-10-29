@@ -37,6 +37,8 @@ type LayoutInput = {
   siteUrl: string;
   prenom: string | null;
   paragraphs: readonly string[];
+  /** A short value set apart in the display size: the sign-in code (comptes-2fa). */
+  emphasis?: string;
   /** The one action; a founder's own message (D-138) carries none. */
   cta?: { label: string; href: string };
   note?: string;
@@ -50,10 +52,12 @@ function button(cta: { label: string; href: string }): string {
 <p style="margin:0 0 24px;font-size:14px;line-height:1.5;color:${TAUPE};">${escapeHtml(t.layout.lienTexte)}<br><a href="${escapeHtml(cta.href)}" style="color:${SAUGE};word-break:break-all;">${escapeHtml(cta.href)}</a></p>`;
 }
 
-function layout({ siteUrl, prenom, paragraphs, cta, note }: LayoutInput) {
+function layout({ siteUrl, prenom, paragraphs, emphasis, cta, note }: LayoutInput) {
   const logo = `${siteUrl}/emails/logotype-sauge.png`;
   const para = (text: string) =>
     `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${TAUPE};">${escapeHtml(text)}</p>`;
+  const big = (text: string) =>
+    `<p style="margin:8px 0 24px;font-size:32px;line-height:1.2;font-weight:600;letter-spacing:0.2em;color:${SAUGE};">${escapeHtml(text)}</p>`;
 
   const html = `<!doctype html>
 <html lang="fr">
@@ -66,6 +70,7 @@ function layout({ siteUrl, prenom, paragraphs, cta, note }: LayoutInput) {
 <tr><td>
 ${para(greeting(prenom))}
 ${paragraphs.map(para).join("\n")}
+${emphasis ? big(emphasis) : ""}
 ${cta ? button(cta) : ""}
 ${note ? para(note) : ""}
 ${para(t.layout.signature)}
@@ -81,6 +86,7 @@ ${para(t.layout.signature)}
     greeting(prenom),
     "",
     ...paragraphs.flatMap((p) => [p, ""]),
+    ...(emphasis ? [emphasis, ""] : []),
     ...(cta ? [`${cta.label} : ${cta.href}`, ""] : []),
     ...(note ? [note, ""] : []),
     t.layout.signature,
@@ -123,6 +129,26 @@ export function resetPasswordEmail(input: {
       paragraphs: [r.corps],
       cta: { label: r.cta, href: input.url },
       note: r.ignorer,
+    }),
+  };
+}
+
+/** The six digits a professional or a founder types after her password (comptes-2fa). */
+export function signInCodeEmail(input: {
+  siteUrl: string;
+  prenom: string | null;
+  code: string;
+}): RenderedEmail {
+  const c = t.codeConnexion;
+  return {
+    subject: c.objet,
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [c.corps],
+      // "123 456" reads in one glance; the page accepts the space.
+      emphasis: `${input.code.slice(0, 3)} ${input.code.slice(3)}`,
+      note: `${c.validite} ${c.ignorer}`,
     }),
   };
 }

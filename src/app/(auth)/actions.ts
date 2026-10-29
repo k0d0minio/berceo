@@ -6,9 +6,19 @@ import { redirect } from "next/navigation";
 import { siteUrl } from "@/app/site";
 import { db, userConsents, users } from "@/db";
 import { consentRows } from "@/lib/auth/consent";
+import { currentUser } from "@/lib/auth/current-user";
 import { RETURN_COOKIE, RETURN_COOKIE_OPTIONS, returnToStore } from "@/lib/auth/retour";
 import { authOutcome } from "@/lib/auth/errors";
-import { landingFor, SIGN_IN_PATH } from "@/lib/auth/routing";
+import { landingFor, SIGN_IN_PATH, withReturn } from "@/lib/auth/routing";
+import {
+  CODE_PATH,
+  DEVICE_COOKIE,
+  DEVICE_COOKIE_OPTIONS,
+  needsSecondFactor,
+  normalizeCode,
+} from "@/lib/auth/second-factor";
+import { sendSignInCode } from "@/lib/auth/second-factor-send";
+import { checkSignInCode, isDeviceTrusted, trustDevice, type CodeCheck } from "@/lib/auth/second-factor-store";
 import { getAuth } from "@/lib/auth/server";
 import { deleteOrphanIdentity, orphanByEmail, userByAuthId } from "@/lib/auth/users";
 import {
@@ -37,7 +47,14 @@ export type FormMessage =
   | "suspendu"
   | "generique"
   | "renvoye"
-  | "confirmation";
+  | "confirmation"
+  | "codeRenvoye"
+  | "codeAttendre"
+  | "codeEnvoiEchoue"
+  | "codeIncorrect"
+  | "codeEpuise"
+  | "codeExpire"
+  | "codeInvalide";
 
 export type SignUpState = {
   errors?: FieldErrors<SignUpField>;
@@ -198,7 +215,69 @@ export async function signIn(
     return { message: "suspendu", email };
   }
 
+  // A professional or a founder gives a code on a device no code trusted yet (comptes-2fa).
+  if (needsSecondFactor(row.role)) {
+    const token = (await cookies()).get(DEVICE_COOKIE)?.value;
+    if (!(await isDeviceTrusted(row.id, token))) {
+      const sent = await sendSignInCode(row);
+      // The page opens either way: a failed e-mail is said there, and « Renvoyer le code » replaces it.
+      redirect(codePage(retour, sent === "failed"));
+    }
+  }
+
   redirect(landingFor(row.role, retour));
+}
+
+/** The code page's address, with the way back and, when the e-mail did not leave, the notice. */
+function codePage(retour: string | null, sendFailed: boolean): string {
+  const page = withReturn(CODE_PATH, retour);
+  if (!sendFailed) return page;
+  return `${page}${page.includes("?") ? "&" : "?"}envoi=echec`;
+}
+
+export type SignInCodeState = { message?: FormMessage };
+
+/**
+ * The code page's one action (comptes-2fa). « Valider le code » checks the six
+ * digits and trusts the device; « Renvoyer le code » (`intention=renvoyer`)
+ * sends a new code. Only a session that owes the code may call it: anyone
+ * else goes where she belongs.
+ */
+export async function signInCode(
+  retour: string | null,
+  _previous: SignInCodeState,
+  form: FormData,
+): Promise<SignInCodeState> {
+  const who = await currentUser();
+  if (who.status === "ok") redirect(landingFor(who.user.role, retour));
+  if (who.status !== "needs-code") redirect(SIGN_IN_PATH);
+
+  if (form.get("intention") === "renvoyer") {
+    const sent = await sendSignInCode(who.user);
+    if (sent === "too-soon") return { message: "codeAttendre" };
+    if (sent === "failed") return { message: "codeEnvoiEchoue" };
+    return { message: "codeRenvoye" };
+  }
+
+  const code = normalizeCode(String(form.get("code") ?? ""));
+  if (!code) return { message: "codeInvalide" };
+
+  let check: CodeCheck = "none";
+  let token = "";
+  try {
+    check = await checkSignInCode(who.user.id, code);
+    if (check === "ok") ({ token } = await trustDevice(who.user.id));
+  } catch (error) {
+    console.error("[comptes] sign-in code check failed", { userId: who.user.id, error });
+    return { message: "generique" };
+  }
+  if (check === "wrong") return { message: "codeIncorrect" };
+  if (check === "dead") return { message: "codeEpuise" };
+  if (check !== "ok") return { message: "codeExpire" };
+
+  // The browser keeps the raw token for 30 days; the row keeps its hash.
+  (await cookies()).set(DEVICE_COOKIE, token, DEVICE_COOKIE_OPTIONS);
+  redirect(landingFor(who.user.role, retour));
 }
 
 /** Always the same neutral answer: whether the address exists is never said. */

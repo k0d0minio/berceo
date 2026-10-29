@@ -1,9 +1,12 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { cache } from "react";
 
 import type { User } from "@/db";
 
+import { DEVICE_COOKIE, needsSecondFactor } from "./second-factor";
+import { isDeviceTrusted } from "./second-factor-store";
 import { getAuth } from "./server";
 import { userByAuthId } from "./users";
 
@@ -19,12 +22,17 @@ import { userByAuthId } from "./users";
  *   failed. It opens nothing and is logged.
  * - `suspended`: a founder suspended the account (back-office-admin, D-134).
  *   It opens nothing; its session ends on the next page (`SUSPENDED_PATH`).
+ * - `needs-code`: a professional or a founder whose device no correct code
+ *   trusted in the last 30 days (comptes-2fa). It opens nothing but the code
+ *   page: the guard sends it there, and every action refuses it as it refuses
+ *   any status but `ok`. One read of `trusted_devices`, for these two roles only.
  */
 export type CurrentUser =
   | { status: "signed-out" }
   | { status: "unverified"; email: string }
   | { status: "no-row"; authUserId: string }
   | { status: "suspended"; user: User }
+  | { status: "needs-code"; user: User }
   | { status: "ok"; user: User };
 
 export const currentUser = cache(async (): Promise<CurrentUser> => {
@@ -46,5 +54,9 @@ export const currentUser = cache(async (): Promise<CurrentUser> => {
   }
 
   if (row.suspendedAt) return { status: "suspended", user: row };
+  if (needsSecondFactor(row.role)) {
+    const token = (await cookies()).get(DEVICE_COOKIE)?.value;
+    if (!(await isDeviceTrusted(row.id, token))) return { status: "needs-code", user: row };
+  }
   return { status: "ok", user: row };
 });

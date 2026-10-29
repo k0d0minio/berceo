@@ -40,6 +40,10 @@
  * A family keeps her favourite professionals (favoris-marquer) in
  * `favourites`, hers alone.
  *
+ * A professional and a founder give a six-digit code after their password
+ * (comptes-2fa): `sign_in_codes` holds the live code's hash, `trusted_devices`
+ * the hash of each device a correct code trusted for 30 days.
+ *
  * The founders' back-office (back-office-admin) suspends and deletes accounts
  * on `users` (a deleted account is anonymised, never removed, D-136) and marks
  * a cancelled garde handled on `bookings`.
@@ -203,6 +207,58 @@ export const userConsents = pgTable(
     acceptedAt: timestamp("accepted_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("user_consents_user_id_idx").on(table.userId)],
+);
+
+// ---------------------------------------------------------------------------
+// The second factor at sign-in
+// ---------------------------------------------------------------------------
+
+/**
+ * The six-digit code a professional or a founder types after her password
+ * (comptes-2fa). The site makes it, sends it by e-mail and checks it; Neon
+ * Auth never sees it. The row holds the code's SHA-256 only, never the code.
+ * At most one live row per user: a new code deletes the older ones. The
+ * rules (its life, the tries, the resend gap) are in
+ * `src/lib/auth/second-factor.ts`; `second-factor-store.ts` is the only reader
+ * and writer. A family never gets a row.
+ */
+export const signInCodes = pgTable(
+  "sign_in_codes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** SHA-256 of the six digits, hex. */
+    codeHash: text("code_hash").notNull(),
+    /** Wrong tries so far. The fifth ends the code. */
+    attempts: integer("attempts").notNull().default(0),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("sign_in_codes_user_id_idx").on(table.userId)],
+);
+
+/**
+ * A device a correct code (or a new professional's verification link) trusted
+ * for 30 days: the browser holds the raw token in the cookie `berceo-appareil`,
+ * the row its SHA-256. A trusted device skips the code, never the password.
+ * The row is read once per request by `currentUser()`, for a professional
+ * or a founder only.
+ */
+export const trustedDevices = pgTable(
+  "trusted_devices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** SHA-256 of the random 32-byte token the cookie holds, hex. */
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("trusted_devices_user_id_idx").on(table.userId)],
 );
 
 // ---------------------------------------------------------------------------
@@ -1120,6 +1176,8 @@ export type NewUser = typeof users.$inferInsert;
 export type UserRole = (typeof userRoleEnum.enumValues)[number];
 export type FamilyProfile = typeof familyProfiles.$inferSelect;
 export type UserConsent = typeof userConsents.$inferSelect;
+export type SignInCode = typeof signInCodes.$inferSelect;
+export type TrustedDevice = typeof trustedDevices.$inferSelect;
 export type ConsentDocument = (typeof consentDocumentEnum.enumValues)[number];
 export type ProfessionalProfile = typeof professionalProfiles.$inferSelect;
 export type ProfileStatus = (typeof profileStatusEnum.enumValues)[number];

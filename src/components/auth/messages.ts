@@ -19,6 +19,20 @@ export function formMessage(message: FormMessage | undefined): string | undefine
       return t.connexion.renvoye
     case "confirmation":
       return t.motDePasseOublie.confirmation
+    case "codeRenvoye":
+      return t.code.renvoye
+    case "codeAttendre":
+      return t.code.attendre
+    case "codeEnvoiEchoue":
+      return t.code.envoiEchoue
+    case "codeIncorrect":
+      return t.code.incorrect
+    case "codeEpuise":
+      return t.code.epuise
+    case "codeExpire":
+      return t.code.expire
+    case "codeInvalide":
+      return t.code.invalide
     default:
       return t.erreurs[message]
   }

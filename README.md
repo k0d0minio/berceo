@@ -203,8 +203,20 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   lookup and the delete (`orphanByEmail`, `deleteOrphanIdentity`, `src/lib/auth/users.ts`) are
   the accounts code's only statements on `neon_auth."user"`; the delete refuses any identity a
   `users` row carries, in the same statement.
+- **The second factor (comptes-2fa):** after her password, a professional or a founder types a
+  six-digit code Berceo sent to her e-mail address; a family never does. Neon Auth has no managed
+  factor yet, so the site makes, sends and checks the code itself: the rules (who, 10 minutes, five
+  tries, one code per 60 seconds, 30 days of trust) are `src/lib/auth/second-factor.ts`, the only
+  reads and writes of `sign_in_codes` and `trusted_devices` are `second-factor-store.ts`, and the
+  e-mail is `sendSignInCode` (`second-factor-send.ts`). The database holds SHA-256 hashes only. A
+  correct code trusts the device for 30 days through the cookie `berceo-appareil` (the raw token;
+  its hash is the row), and so does a new professional's verification link. `currentUser()` answers
+  `needs-code` for a professional or a founder whose device is not trusted, with one read of
+  `trusted_devices`; `requireAccess` sends her to `/connexion/code` with the way back, and every
+  action refuses her as it refuses any status but `ok`. A trusted device skips the code, never the
+  password; a password reset ends no trust.
 - **Routes:** `/inscription-famille`, `/inscription-professionnelle`, `/connexion`,
-  `/mot-de-passe-oublie`, `/nouveau-mot-de-passe`, `/verification-email` (`src/app/(auth)/`);
+  `/connexion/code`, `/mot-de-passe-oublie`, `/nouveau-mot-de-passe`, `/verification-email` (`src/app/(auth)/`);
   the spaces `/espace/famille`, `/espace/professionnelle`, `/admin` (`src/app/(portail)/`).
   `src/proxy.ts` refreshes the session on `/espace/**` and bounces signed-out visitors to
   `/connexion?retour=…`. `/admin` answers 404 to anyone but an admin.
