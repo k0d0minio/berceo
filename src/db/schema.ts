@@ -1135,6 +1135,66 @@ export const favourites = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// Credits
+// ---------------------------------------------------------------------------
+
+/**
+ * Why a credit exists (credits-registre, the answers [9.2]): the lines of the
+ * founders' table that turn a fee into a credit, and a founder's hand.
+ * `annulation_famille`: the family cancelled more than the delay before the
+ * start. `annulation_professionnelle` and `absence_professionnelle`: the
+ * professional cancelled, or did not come. `annulation_berceo`: Berceo
+ * cancelled the garde. `geste_berceo`: a founder granted it by hand. Nothing
+ * writes one yet (`annulations-table`, `annulations-back-office`).
+ */
+export const creditOriginEnum = pgEnum("credit_origin", [
+  "annulation_famille",
+  "annulation_professionnelle",
+  "absence_professionnelle",
+  "annulation_berceo",
+  "geste_berceo",
+]);
+
+/**
+ * A Berceo credit (credits-registre): a fee kept for a later garde, 24 months
+ * from its issue (the answers [9.2]). A money record like a payment: every
+ * link is set null, never cascaded, and the amount stays on the row.
+ * `spent_cents` grows as later fees take from it (`credits-au-paiement`); a
+ * credit is spent once it equals `amount_cents`, and expired once
+ * `expires_at` passes (`src/lib/credits/rules.ts`). `src/lib/credits/` holds
+ * the only statements on it (`isolation.test.ts`).
+ */
+export const credits = pgTable(
+  "credits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    familyUserId: uuid("family_user_id").references(() => users.id, { onDelete: "set null" }),
+    /** The fee's amount in cents (`payments.amount_cents`), never a night rate. */
+    amountCents: integer("amount_cents").notNull(),
+    spentCents: integer("spent_cents").notNull().default(0),
+    origin: creditOriginEnum("origin").notNull(),
+    /** The fee the credit comes from, when one does. */
+    paymentId: uuid("payment_id").references(() => payments.id, { onDelete: "set null" }),
+    /** The garde whose cancellation or absence made it, when one did. */
+    bookingId: uuid("booking_id").references(() => bookings.id, { onDelete: "set null" }),
+    /** The founder who granted it by hand (`geste_berceo`). */
+    grantedByUserId: uuid("granted_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    /** The founders' note, when they wrote one. */
+    note: text("note"),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("credits_family_user_id_idx").on(table.familyUserId),
+    check("credits_amount_positive", sql`${table.amountCents} > 0`),
+    check("credits_spent_range", sql`${table.spentCents} >= 0 AND ${table.spentCents} <= ${table.amountCents}`),
+    check("credits_expiry_after_issue", sql`${table.expiresAt} > ${table.issuedAt}`),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------
 
@@ -1240,3 +1300,5 @@ export type SubscriptionStatus = (typeof subscriptionStatusEnum.enumValues)[numb
 export type Rating = typeof ratings.$inferSelect;
 export type RatingSide = (typeof ratingSideEnum.enumValues)[number];
 export type Favourite = typeof favourites.$inferSelect;
+export type Credit = typeof credits.$inferSelect;
+export type CreditOrigin = (typeof creditOriginEnum.enumValues)[number];

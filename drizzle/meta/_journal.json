@@ -225,6 +225,13 @@
       "when": 1793242396283,
       "tag": "0031_second-factor",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793243537929,
+      "tag": "0032_credits",
+      "breakpoints": true
     }
   ]
 }
