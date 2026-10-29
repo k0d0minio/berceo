@@ -550,6 +550,23 @@ never touches the money for the night (D-1).
   closes the request's open Checkout if any (one per request, a partial unique index), opens a
   30-minute Checkout and records it in `payments` as `en_attente`. Nothing about the request or
   its answers changes while the family is on Stripe.
+- **The credit pays first (credits-au-paiement):** before the Checkout, her Berceo credit pays
+  its part (**The credits**). `payments.credit_cents` records it, and Stripe asks
+  `amount_cents - credit_cents`.
+  - A balance that covers the fee writes the row `payee` with no session and its takes
+    `confirmee`, in one batch. `settle` then books it at once. No Stripe page opens.
+  - A smaller balance holds its takes `reservee` in the batch that records the Checkout. A held
+    credit leaves her balance at once, so a second tab cannot spend it.
+  - The payment confirms the takes in the batch that writes `payee`. Every other way out of
+    `en_attente` (expired, abandoned, failed) gives them back in the batch that writes the status.
+    `startCheckout` first closes her own stale Checkouts that hold credit, for previews that get
+    no webhook.
+  - A Checkout that turned out paid after its credit went back books nothing. Its card part is
+    refunded (`creditPartHeld`).
+  - A cancellation that the founders' table turns into a credit issues the whole fee as a new
+    credit, 24 new months.
+  - The récapitulatif names the credit part and the rest before « Confirmer ». The garde's page,
+    the confirmation e-mail and `/admin/paiements` name the credit part too.
 - **The booking is made by the payment (D-102, D-103):** `confirmPayment` in
   `src/lib/paiements/payments.ts` reads the session from Stripe, takes the row
   `en_attente → payee` with one conditional update, then runs `acceptAnswer`, which books only
@@ -567,6 +584,9 @@ never touches the money for the night (D-1).
   line), `stripe` (a refund made in Stripe's dashboard, synced by the webhook). A refund Stripe
   reports failed reads `remboursement_echoue`. A fee that became a live credit is refused
   before Stripe (`feeHasLiveCredit` from `src/lib/credits/`), so no fee is credited and refunded.
+  A fee a credit paid in part refunds its card part at Stripe, and its credit part goes back to
+  its credits in the same batch. A fee a credit paid whole calls no Stripe. A credit is never
+  refunded to a card (credits-au-paiement).
 - **The founders' list (D-93):** `/admin/paiements`, every fee newest first, 50 per page, with
   « Rembourser les frais ». Families and professionals see no payment history.
 - **Fees still owed (D-162, D-164):** a `payee` or `remboursement_echoue` fee whose booking the
@@ -802,17 +822,28 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   holds them.
 - **The statements:** `familyCredits` reads every credit of a family at a moment, the earliest
   expiry first, with its state, its remainder and her balance. `issueCredit` writes one at a
-  moment with its expiry. `spendCredits` applies the plan in one batch, each take guarded on
-  the amount already spent, and throws when a credit changed meanwhile. No code calls the last
-  two yet. `gardeCreditStatement` and `voidGardeCreditStatement` are the end of a garde's
+  moment with its expiry. No code calls it yet. `gardeCreditStatement` and `voidGardeCreditStatement` are the end of a garde's
   statements, `gardeCredits` the garde pages' read, and `feeHasLiveCredit` the fee's condition.
+- **The credit pays a fee (credits-au-paiement, Jamie 2026-10-29):** `planCreditPart` reads her
+  balance and takes `creditShare` of the fee: the whole fee when the balance covers it, equal or
+  above. Otherwise all it can, but Stripe never asks less than 0,50 € (`STRIPE_MIN_CENTS`), so the
+  credit then pays a little less. `spendingPlan` picks the credits. A partly spent credit keeps
+  its balance.
+- **The takes:** `credit_spends`, one row per credit a fee takes from: the credit, the payment,
+  the cents and a state, `reservee`, `confirmee` or `liberee`. A take adds to `spent_cents` in
+  the same statement (`holdStatements`), guarded on the spent amount the plan read. A take
+  whose credit changed writes 0 cents, and `credit_spends_cents_positive` rolls the whole batch
+  back (`isHoldConflict`). `confirmHoldStatement` confirms the takes once the fee is paid.
+  `releaseHoldStatement` gives them back once the fee closed unpaid or was refunded, and only
+  then: it reads any status but `en_attente` and `payee`. It is safe to repeat. A credit that
+  expired or was voided meanwhile gets its cents back and still pays nothing.
 - **The block:** « Mes crédits », `src/components/credits/credits-block.tsx`, on the family's
   home under « Votre abonnement » and on « Mes réservations » under the intro. Her balance, then
   each usable credit with what it can still pay and « valable jusqu'au » its expiry, then the
   spent, voided and expired ones under « Crédits utilisés, annulés ou expirés », each with its origin. With no
   credit, one line. Words in `src/content/credits.ts`, every one `@relecture`.
-- **Hers alone:** only `src/lib/credits/` and the schema name the table.
-  `src/lib/credits/isolation.test.ts` holds that.
+- **Hers alone:** only `src/lib/credits/` and the schema name the tables `credits` and
+  `credit_spends`. `src/lib/credits/isolation.test.ts` holds that.
 
 ## The professional's onboarding and documents
 

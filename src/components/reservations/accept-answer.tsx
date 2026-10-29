@@ -16,6 +16,9 @@ import { reservations } from "@/content/reservations"
  * fee is paid (frais-de-service). Confirming is green, going back red (D-24).
  * No word about insurance (D-8). Confirming opens Stripe's page; the booking
  * is made by the payment, on the server, which holds every rule again (D-102).
+ * Her Berceo credit pays first (credits-au-paiement): the dialog names its
+ * part and the rest Stripe asks. A credit that pays the whole fee opens no
+ * Stripe page, and the dialog says so. The server reads her balance again.
  */
 
 export type Recap = {
@@ -29,6 +32,10 @@ export type Recap = {
   tarifHeure?: string
   /** « 4,11 € », computed on the server from the answer's rate (D-99). */
   frais: string
+  /** The part her Berceo credit pays, « 2,00 € »; absent when it pays nothing. */
+  credit?: string
+  /** What Stripe asks after the credit, « 2,11 € »; null when the credit pays it all. */
+  reste?: string | null
 }
 
 function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promise<void> }) {
@@ -45,7 +52,14 @@ function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promi
     [l.tarif, recap.tarif],
     ...(recap.tarifHeure ? [[l.tarifHeure, recap.tarifHeure] as [string, string]] : []),
     [f.frais, recap.frais],
+    ...(recap.credit
+      ? [
+          [f.credit, recap.credit] as [string, string],
+          ...(recap.reste ? [[f.reste, recap.reste] as [string, string]] : []),
+        ]
+      : []),
   ]
+  const creditPaysAll = Boolean(recap.credit) && !recap.reste
 
   return (
     <ConfirmDialog
@@ -53,7 +67,7 @@ function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promi
       title={t.recapitulatif.titre}
       description={t.recapitulatif.paiement}
       action={{
-        label: f.confirmer,
+        label: creditPaysAll ? f.confirmerCredit : f.confirmer,
         tone: "confirmation",
         onSelect: () => startTransition(onAccept),
       }}
@@ -70,7 +84,7 @@ function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promi
       <div className="flex flex-col gap-2 text-legende text-encre-taupe">
         <p>{f.prelevement}</p>
         <p>{f.remboursement}</p>
-        <p>{f.stripe}</p>
+        <p>{creditPaysAll ? f.creditTotal : recap.credit ? f.stripeReste : f.stripe}</p>
       </div>
     </ConfirmDialog>
   )

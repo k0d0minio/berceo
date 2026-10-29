@@ -18,7 +18,8 @@ const date = new Intl.DateTimeFormat("fr-BE", { dateStyle: "short", timeZone: "E
  * left unrefunded is marked « À rembourser » (D-162, D-164). A fee the
  * founders' table turned into a credit is marked so, and offers no refund
  * (annulations-table). Any other paid fee offers « Rembourser les frais »
- * (D-101); nothing else on this page changes a payment.
+ * (D-101); nothing else on this page changes a payment. The fee names the
+ * part a Berceo credit paid (credits-au-paiement).
  */
 function PaymentsTable({ rows, now }: { rows: AdminPayment[]; now: Date }) {
   const p = words(admin).paiements
@@ -50,7 +51,12 @@ function PaymentsTable({ rows, now }: { rows: AdminPayment[]; now: Date }) {
                 <TableCell>{row.professional ?? p.inconnu}</TableCell>
                 <TableCell>{formatDate(row.nightDate)}</TableCell>
                 <TableCell>{fill(p.montant, { montant: String(row.nightRateEur) })}</TableCell>
-                <TableCell>{euros(row.amountCents)}</TableCell>
+                <TableCell className="whitespace-normal">
+                  {euros(row.amountCents)}
+                  {row.creditCents > 0 ? (
+                    <span className="block text-legende">{fill(p.dontCredit, { montant: euros(row.creditCents) })}</span>
+                  ) : null}
+                </TableCell>
                 <TableCell className="whitespace-normal">
                   <span className="font-semibold">{p.statuts[status]}</span>
                   {row.refundedAt && row.refundReason ? (
@@ -70,7 +76,8 @@ function PaymentsTable({ rows, now }: { rows: AdminPayment[]; now: Date }) {
                       <RefundButton
                         paymentId={row.id}
                         family={family}
-                        amount={euros(row.amountCents)}
+                        amount={row.amountCents > row.creditCents ? euros(row.amountCents - row.creditCents) : null}
+                        credit={row.creditCents > 0 ? euros(row.creditCents) : undefined}
                         toRefund={row.toRefund}
                       />
                     </div>

@@ -28,6 +28,7 @@ import {
 import { isEditable } from "@/lib/demandes/rules";
 import { pendingCounts, republishRequest, type RepublishResult } from "@/lib/reservations/answers";
 import { PAYMENT_RETURN_PATH } from "@/lib/paiements/paths";
+import { paymentDestination } from "@/lib/paiements/destination";
 import { startCheckout, type StartResult } from "@/lib/paiements/payments";
 import { notifyDeclined, notifyPriority, notifySeriesPriority } from "@/lib/reservations/notify";
 import { priorityPath } from "@/lib/reservations/paths";
@@ -264,7 +265,8 @@ export async function cancelSeriesAction(seriesId: string): Promise<void> {
 
 /**
  * « Accepter et réserver », confirmed in the summary: opens the fee's Stripe
- * Checkout and sends her there (D-102). Nothing is booked here: the payment
+ * Checkout and sends her there (D-102). A credit that covers the fee books at
+ * once, with no Checkout (credits-au-paiement). Nothing is booked here: the payment
  * books when Stripe reports it, through the webhook or the return page. A
  * refusal reads today's message; an earlier Checkout found paid is confirmed
  * instead of opening a second one.
@@ -290,6 +292,11 @@ export async function acceptAnswerAction(requestId: string, applicationId: strin
   }
 
   if (result.kind === "stripe") redirect(result.url);
+  // Her credit paid the whole fee: no Stripe page, the garde was settled at once (credits-au-paiement).
+  if (result.kind === "credit") {
+    revalidatePath(SPACES.parent, "layout");
+    redirect(paymentDestination(result.result, null));
+  }
   if (result.kind === "dejaPaye") {
     redirect(`${PAYMENT_RETURN_PATH}?session_id=${encodeURIComponent(result.sessionId)}`);
   }

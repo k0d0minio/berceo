@@ -335,14 +335,28 @@ export function bookingFamilyEmail(input: {
   date: string;
   heure: string;
   url: string;
+  /**
+   * The fee when a Berceo credit paid some of it (credits-au-paiement): the
+   * fee, the credit's part, and what Stripe took (null when the credit paid it all).
+   */
+  credit?: { montant: string; credit: string; reste: string | null };
 }): RenderedEmail {
   const r = t.reservationFamille;
+  const credit = input.credit;
+  const creditLine = credit
+    ? credit.reste
+      ? fill(r.creditPartiel, { montant: credit.montant, credit: credit.credit, reste: credit.reste })
+      : fill(r.creditTotal, { montant: credit.montant })
+    : null;
   return {
     subject: fill(r.objet, { date: input.date }),
     ...layout({
       siteUrl: input.siteUrl,
       prenom: input.prenom,
-      paragraphs: [fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure })],
+      paragraphs: [
+        fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure }),
+        ...(creditLine ? [creditLine] : []),
+      ],
       cta: { label: r.cta, href: input.url },
       note: t.cadre,
     }),
@@ -354,8 +368,10 @@ export function refundFamilyEmail(input: {
   siteUrl: string;
   prenom: string;
   date: string;
-  /** « 4,11 € ». */
-  montant: string;
+  /** « 4,11 € »: what Stripe refunds to her card. Null when a credit paid the whole fee. */
+  montant: string | null;
+  /** « 2,00 € »: the part a Berceo credit paid, back on her credit (credits-au-paiement). */
+  credit?: string;
   url: string;
 }): RenderedEmail {
   const r = t.remboursementFamille;
@@ -364,7 +380,11 @@ export function refundFamilyEmail(input: {
     ...layout({
       siteUrl: input.siteUrl,
       prenom: input.prenom,
-      paragraphs: [fill(r.corps, { date: input.date }), fill(r.remboursement, { montant: input.montant })],
+      paragraphs: [
+        fill(r.corps, { date: input.date }),
+        ...(input.montant ? [fill(r.remboursement, { montant: input.montant })] : []),
+        ...(input.credit ? [fill(r.credit, { credit: input.credit })] : []),
+      ],
       cta: { label: r.cta, href: input.url },
     }),
   };

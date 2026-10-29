@@ -94,6 +94,22 @@ export function spendingPlan(
   return { takes, restCents: rest };
 }
 
+/** Stripe's smallest charge in euros, 0,50 €: a Checkout never asks less (credits-au-paiement). */
+export const STRIPE_MIN_CENTS = 50;
+
+/**
+ * What a balance pays of a fee (credits-au-paiement, Jamie 2026-10-29): the
+ * whole fee when the balance covers it, with no Checkout. Otherwise all it
+ * can, but never so much that Stripe would ask less than its minimum. The
+ * credit then pays a little less, and Stripe asks 0,50 €. Nothing when the
+ * balance is empty.
+ */
+export function creditShare(feeCents: number, balance: number): number {
+  if (!Number.isInteger(feeCents) || feeCents <= 0) throw new RangeError(`fee out of range: ${feeCents}`);
+  if (balance >= feeCents) return feeCents;
+  return Math.max(0, Math.min(balance, feeCents - STRIPE_MIN_CENTS));
+}
+
 /** The origins in the order the founders' table names them, then the founders' hand. */
 export const CREDIT_ORIGINS = [
   "annulation_famille",

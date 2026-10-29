@@ -107,6 +107,10 @@ export const emails = catalogue({
       objet: "Votre garde du {date} est confirmée ✓",
       corps: "Tout est prêt. {prenom} sera chez vous le {date} à partir de {heure}. L'adresse lui a été transmise.",
       cta: "Voir les détails de ma réservation",
+      /** @relecture Surya — le crédit Berceo a payé tous les frais (credits-au-paiement). */
+      creditTotal: "Vos frais de service de {montant} sont réglés avec votre crédit Berceo.",
+      /** @relecture Surya — le crédit Berceo a payé une part des frais (credits-au-paiement). */
+      creditPartiel: "Vos frais de service de {montant} sont réglés : {credit} avec votre crédit Berceo et {reste} par Stripe.",
     },
 
     /** @relecture Surya — la garde payée n'a pas pu être réservée, les frais sont remboursés (frais-de-service, D-103). */
@@ -115,6 +119,8 @@ export const emails = catalogue({
       corps:
         "Votre paiement est arrivé alors que la demande ou la réponse de la professionnelle avait changé. La garde du {date} n'a donc pas pu être réservée.",
       remboursement: "Les frais de service de {montant} vous sont intégralement remboursés.",
+      /** @relecture Surya — la part payée par crédit revient au crédit, jamais sur une carte (credits-au-paiement). */
+      credit: "La part réglée avec votre crédit Berceo, {credit}, revient à votre crédit.",
       cta: "Voir ma demande",
     },
 

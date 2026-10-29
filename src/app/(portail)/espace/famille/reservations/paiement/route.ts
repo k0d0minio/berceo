@@ -3,10 +3,9 @@ import { notFound, redirect } from "next/navigation";
 
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
-import { FAMILY_REQUESTS_PATH, familyRequestPath } from "@/lib/demandes/paths";
+import { paymentDestination } from "@/lib/paiements/destination";
 import { PAYMENT_RETURN_PATH } from "@/lib/paiements/paths";
 import { confirmPayment, paymentOwner, type ConfirmResult } from "@/lib/paiements/payments";
-import { familyBookingPath } from "@/lib/reservations/paths";
 import { siteOrigin } from "@/lib/site-origin";
 
 /*
@@ -17,28 +16,6 @@ import { siteOrigin } from "@/lib/site-origin";
  */
 
 export const dynamic = "force-dynamic";
-
-function destination(result: ConfirmResult, sessionId: string): string {
-  const request = (requestId: string | null, notice: string) =>
-    requestId ? `${familyRequestPath(requestId)}?paiement=${notice}` : FAMILY_REQUESTS_PATH;
-  switch (result.kind) {
-    case "reservee":
-      return `${familyBookingPath(result.bookingId)}?confirmee=1`;
-    case "enCours":
-      // « Actualiser la page » comes back here with the session, to settle it again.
-      return result.requestId
-        ? `${request(result.requestId, "enCours")}&session=${encodeURIComponent(sessionId)}`
-        : FAMILY_REQUESTS_PATH;
-    case "remboursee":
-      return request(result.requestId, "rembourse");
-    case "remboursementEnAttente":
-      return request(result.requestId, "remboursementEnAttente");
-    case "nonPayee":
-      return request(result.requestId, "abandonne");
-    case "inconnue":
-      return FAMILY_REQUESTS_PATH;
-  }
-}
 
 export async function GET(request: Request): Promise<Response> {
   const sessionId = new URL(request.url).searchParams.get("session_id") ?? "";
@@ -60,5 +37,5 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   revalidatePath(SPACES.parent, "layout");
-  redirect(destination(result, sessionId));
+  redirect(paymentDestination(result, sessionId));
 }

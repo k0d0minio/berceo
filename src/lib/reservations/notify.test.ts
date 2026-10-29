@@ -100,6 +100,25 @@ describe("a booking", () => {
     expect(by("julie@example.be")[2]).toBe("non-retenue-a2");
     expect(declinedNotices).toHaveBeenCalledWith(["a2"]);
   });
+
+  it("names the credit part of the fee in the family's e-mail only (credits-au-paiement)", async () => {
+    bookingNotice.mockResolvedValue({
+      id: "b1",
+      nightDate: "2026-09-30",
+      startTime: "20:00:00",
+      family: { email: "sophie@example.be", firstName: "Sophie" },
+      professional: { email: "emma@example.be", firstName: "Emma" },
+    });
+    declinedNotices.mockResolvedValue([]);
+
+    await notifyBooking("b1", [], SITE, { amountCents: 450, creditCents: 200 });
+
+    const by = (to: string) => sendEmail.mock.calls.find(([address]) => address === to)!;
+    expect(by("sophie@example.be")[1].text).toContain(
+      "Vos frais de service de 4,50 € sont réglés : 2,00 € avec votre crédit Berceo et 2,50 € par Stripe.",
+    );
+    expect(by("emma@example.be")[1].text).not.toContain("avec votre crédit Berceo");
+  });
 });
 
 describe("a priority request", () => {

@@ -320,6 +320,8 @@ export const admin = catalogue({
       },
       /** Le tarif et les frais, l'euro après le nombre. */
       montant: "{montant} €",
+      /** @relecture Surya — la part des frais payée par un crédit Berceo (credits-au-paiement). */
+      dontCredit: "dont {montant} en crédit Berceo",
       /** @relecture Surya — les statuts d'un paiement. */
       statuts: {
         en_attente: "Paiement en cours",
@@ -355,6 +357,8 @@ export const admin = catalogue({
         /** @relecture Surya — la même confirmation, sur des frais à rembourser (D-164). */
         descriptionARembourser:
           "La professionnelle a annulé cette garde. Les frais de service de {montant} sont dus en entier à la famille. Le motif sera inscrit au journal.",
+        /** @relecture Surya — la part payée par crédit revient au crédit de la famille (credits-au-paiement). */
+        creditRendu: "La part réglée en crédit Berceo, {montant}, revient au crédit de la famille. Elle n'est pas remboursée sur une carte.",
         motif: "Motif",
         motifAide: "Le motif reste interne à Berceo.",
         oui: "Oui, rembourser",

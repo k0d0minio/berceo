@@ -25,7 +25,9 @@ import { PROFILE_PATH } from "@/lib/famille/paths";
 import { requestHasAddress } from "@/lib/famille/request-address";
 import { isMarked } from "@/lib/favoris/favourites";
 import { waitingAnswerOf } from "@/lib/reservations/answers";
-import { feeLine } from "@/lib/paiements/format";
+import { creditShares } from "@/lib/credits/credits";
+import { creditRecap, feeLine } from "@/lib/paiements/format";
+import { feeCents } from "@/lib/paiements/rules";
 import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import { priorityPath, professionalProfilePath } from "@/lib/reservations/paths";
 import { reachLine } from "@/lib/recherche/rules";
@@ -87,10 +89,12 @@ export default async function ProfilProfessionnellePage({
   const answer =
     request && isChangeable(request, now) ? await waitingAnswerOf(user.id, request.id, profile.id) : null;
   const mayMark = familyMay("favori", { subscribed });
-  const [hasAddress, nights, marked] = await Promise.all([
+  const [hasAddress, nights, marked, shares] = await Promise.all([
     answer && request ? requestHasAddress(user.id, request.id) : Promise.resolve(false),
     nextAvailableNights(profile.id, now),
     mayMark ? isMarked(user.id, profile.id) : Promise.resolve(false),
+    // The part her Berceo credit would pay, for the récapitulatif (credits-au-paiement).
+    answer ? creditShares(user.id, [feeCents(answer.nightRateEur)], now) : Promise.resolve(new Map<number, number>()),
   ]);
 
   // Her radius in one line under her chosen communes (zone-rayon-lecture).
@@ -161,6 +165,7 @@ export default async function ProfilProfessionnellePage({
               tarif: rateLine(answer.nightRateEur),
               tarifHeure: answer.extraHourRateEur ? extraHourLine(answer.extraHourRateEur) : undefined,
               frais: feeLine(answer.nightRateEur),
+              ...creditRecap(answer.nightRateEur, shares),
             }}
             onAccept={acceptAnswerAction.bind(null, request.id, answer.applicationId)}
           />

@@ -940,11 +940,14 @@ export const refundReasonEnum = pgEnum("refund_reason", [
 ]);
 
 /**
- * One row per Stripe Checkout opened for the 3 % fee (D-99, D-93). The fee is
+ * One row per fee (D-99, D-93): a Stripe Checkout opened for the 3 % fee, or
+ * a fee that Berceo credits pay whole (credits-au-paiement). The fee is
  * a money record: every link is set null, never cascaded, so deleting an
  * account never deletes what was paid, and the night and the rate are kept
  * on the row. `src/lib/paiements/` reads and writes it; `acceptAnswer` alone
- * sets `booking_id`, in the booking's own transaction.
+ * sets `booking_id`, in the booking's own transaction. `credit_cents` is the
+ * part a family's credit paid; Stripe asks `amount_cents - credit_cents`. A
+ * fee the credit pays whole has no Checkout, so no session.
  */
 export const payments = pgTable(
   "payments",
@@ -966,7 +969,10 @@ export const payments = pgTable(
     amountCents: integer("amount_cents").notNull(),
     currency: text("currency").notNull().default("eur"),
     status: paymentStatusEnum("status").notNull().default("en_attente"),
-    stripeSessionId: text("stripe_session_id").notNull().unique(),
+    /** The part of the fee a Berceo credit paid (credits-au-paiement); 0 when none did. */
+    creditCents: integer("credit_cents").notNull().default(0),
+    /** Null only for a fee a credit pays whole: it opens no Checkout. */
+    stripeSessionId: text("stripe_session_id").unique(),
     stripePaymentIntentId: text("stripe_payment_intent_id"),
     stripeRefundId: text("stripe_refund_id"),
     /** When the Checkout closes on its own (30 minutes, D-92). */
@@ -987,6 +993,15 @@ export const payments = pgTable(
     // 3 % of a rate from 100 €, with no ceiling (onboarding-retour-1).
     check("payments_amount_min", sql`${table.amountCents} >= 300`),
     check("payments_currency", sql`${table.currency} = 'eur'`),
+    // The credit pays the whole fee, or leaves Stripe at least its 0,50 € minimum (credits-au-paiement).
+    check(
+      "payments_credit_range",
+      sql`${table.creditCents} >= 0 AND (${table.creditCents} = ${table.amountCents} OR ${table.amountCents} - ${table.creditCents} >= 50)`,
+    ),
+    check(
+      "payments_session_or_credit",
+      sql`(${table.stripeSessionId} IS NULL) = (${table.creditCents} = ${table.amountCents})`,
+    ),
     check(
       "payments_paid_at",
       sql`(${table.status} IN ('payee', 'remboursee', 'remboursement_echoue')) = (${table.paidAt} IS NOT NULL)`,
@@ -1211,6 +1226,44 @@ export const credits = pgTable(
   ],
 );
 
+/**
+ * Where a credit's part of a fee stands (credits-au-paiement). `reservee`: an
+ * open Checkout holds it. `confirmee`: the fee is paid. `liberee`: the cents
+ * went back to the credit, after a Checkout that closed unpaid or a refund.
+ */
+export const creditSpendStatusEnum = pgEnum("credit_spend_status", ["reservee", "confirmee", "liberee"]);
+
+/**
+ * One row per credit a fee takes from (credits-au-paiement): which credit,
+ * which fee, how many cents, and where the take stands. The take adds to
+ * `credits.spent_cents` in the same statement; a release subtracts it in the
+ * same statement. A money record: no link cascades. `src/lib/credits/` holds
+ * the only statements on it (`isolation.test.ts`).
+ */
+export const creditSpends = pgTable(
+  "credit_spends",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    creditId: uuid("credit_id")
+      .notNull()
+      .references(() => credits.id),
+    paymentId: uuid("payment_id")
+      .notNull()
+      .references(() => payments.id),
+    cents: integer("cents").notNull(),
+    status: creditSpendStatusEnum("status").notNull().default("reservee"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    // A fee takes from one credit once.
+    uniqueIndex("credit_spends_credit_payment_key").on(table.creditId, table.paymentId),
+    index("credit_spends_payment_id_idx").on(table.paymentId),
+    // A take that found its credit changed writes 0, and this check rolls the whole batch back.
+    check("credit_spends_cents_positive", sql`${table.cents} > 0`),
+  ],
+);
+
 // ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------
@@ -1319,3 +1372,5 @@ export type RatingSide = (typeof ratingSideEnum.enumValues)[number];
 export type Favourite = typeof favourites.$inferSelect;
 export type Credit = typeof credits.$inferSelect;
 export type CreditOrigin = (typeof creditOriginEnum.enumValues)[number];
+export type CreditSpend = typeof creditSpends.$inferSelect;
+export type CreditSpendStatus = (typeof creditSpendStatusEnum.enumValues)[number];

@@ -15,6 +15,7 @@ import { avis } from "@/content/avis";
 import { gardes } from "@/content/gardes";
 import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
+import { paiement } from "@/content/paiement";
 import { reservations } from "@/content/reservations";
 import { familyMay } from "@/lib/abonnements/rules";
 import { isSubscribed } from "@/lib/abonnements/subscriptions";
@@ -31,6 +32,7 @@ import { brusselsNow } from "@/lib/demandes/rules";
 import { familyRequestPath } from "@/lib/demandes/paths";
 import { liveRequestOn } from "@/lib/demandes/requests";
 import { gardeFee } from "@/lib/gardes/gardes";
+import { eurosFromCents } from "@/lib/paiements/rules";
 import { cancelledLine, disputeLine, feeText, reasonLine } from "@/lib/gardes/format";
 import {
   canCancel,
@@ -101,7 +103,8 @@ export const dynamic = "force-dynamic";
  * her absent; once cancelled, who and when, the litige, the fee line (D-2: the
  * credit, the fee kept, the litige or the refund), and « Republier ma
  * demande » until the night starts, or a link to her live request that night
- * (D-107).
+ * (D-107). The récapitulatif names the fee and the part her Berceo credit
+ * paid (credits-au-paiement).
  *
  * The rating (avis-etoiles): « Laisser un avis » while she may rate it, then
  * the stars she gave, never the professional's rating of her (D-117).
@@ -149,7 +152,8 @@ export default async function ReservationPage({
   const cancellable = canCancel(facts, now);
   const ended = booking.garde.status === "annulee";
   const [fee, liveCredit, delay, liveRequest, given, subscribed] = await Promise.all([
-    ended ? gardeFee(booking.id) : Promise.resolve(null),
+    // The fee and its credit part show on the récapitulatif (credits-au-paiement); once cancelled, its fate too.
+    gardeFee(booking.id),
     ended ? gardeCredits([booking.id]) : Promise.resolve(null),
     cancellable ? cancellationDelayHours() : Promise.resolve(null),
     republishable ? liveRequestOn(user.id, request.nightDate) : Promise.resolve(null),
@@ -161,7 +165,16 @@ export default async function ReservationPage({
   const cancelled = cancelledLine(booking.garde, "famille", professional.firstName);
   const reason = reasonLine(booking.garde);
   const dispute = disputeLine(booking.garde);
-  const feeLine = feeText(booking.garde, fee?.status ?? null, liveCredit?.get(booking.id) ?? null, "famille");
+  const feeLine = feeText(booking.garde, ended ? (fee?.status ?? null) : null, liveCredit?.get(booking.id) ?? null, "famille");
+  const p = words(paiement).recapitulatif;
+  const euros = (cents: number) => fill(p.montant, { montant: eurosFromCents(cents) });
+  // A booking made before the fee existed has none, and no line.
+  const feeRows: [string, string][] = fee
+    ? [
+        [p.frais, euros(fee.amountCents)],
+        ...(fee.creditCents > 0 ? [[p.credit, euros(fee.creditCents)] as [string, string]] : []),
+      ]
+    : [];
   // Within the founders' delay her fee stays at Berceo; before it, it becomes a credit (annulations-table).
   const cancelDescription =
     delay !== null && isLateCancellation(facts, now, delay)
@@ -180,7 +193,7 @@ export default async function ReservationPage({
           </h2>
         </div>
         <dl className="flex flex-col gap-3">
-          {rows.map(([label, value]) => (
+          {[...rows, ...feeRows].map(([label, value]) => (
             <div key={label} className="flex flex-wrap justify-between gap-x-4">
               <dt className="text-corps font-semibold text-encre-taupe">{label}</dt>
               <dd className="text-corps text-encre-taupe">{value}</dd>

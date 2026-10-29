@@ -16,17 +16,23 @@ import { ReasonDialog } from "./decision-panel"
  * the server refunds the whole fee and writes the journal line. The reason is
  * checked here and again on the server; the result is said under the button.
  * On a fee the professional's cancellation left unrefunded, the dialog says
- * so instead of « La garde n'est pas annulée » (D-164).
+ * so instead of « La garde n'est pas annulée » (D-164). A fee a Berceo credit
+ * paid in part refunds its card part only, and the dialog says the credit
+ * part goes back to the family's credit (credits-au-paiement).
  */
 function RefundButton({
   paymentId,
   family,
   amount,
+  credit,
   toRefund = false,
 }: {
   paymentId: string
   family: string
-  amount: string
+  /** What Stripe refunds to her card; null when a credit paid the whole fee. */
+  amount: string | null
+  /** The part a Berceo credit paid, back on her credit. */
+  credit?: string
   toRefund?: boolean
 }) {
   const t = words(admin)
@@ -55,9 +61,12 @@ function RefundButton({
           </Button>
         }
         title={fill(p.confirmation.titre, { nom: family })}
-        description={fill(toRefund ? p.confirmation.descriptionARembourser : p.confirmation.description, {
-          montant: amount,
-        })}
+        description={[
+          ...(amount
+            ? [fill(toRefund ? p.confirmation.descriptionARembourser : p.confirmation.description, { montant: amount })]
+            : []),
+          ...(credit ? [fill(p.confirmation.creditRendu, { montant: credit })] : []),
+        ].join(" ")}
         tone="confirmation"
         onConfirm={refund}
         labels={p.confirmation}
