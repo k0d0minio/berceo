@@ -29,7 +29,9 @@ describe("only the favoris module names the table", () => {
   });
 
   it.each(files)("%s", (file) => {
-    expect(readFileSync(file, "utf8")).not.toMatch(/\bfavourites\b/);
+    // The module's own path names the file, not the table: an import of it is allowed here.
+    const text = readFileSync(file, "utf8").replaceAll("@/lib/favoris/favourites", "");
+    expect(text).not.toMatch(/\bfavourites\b/);
   });
 });
 
