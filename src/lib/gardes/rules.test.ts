@@ -3,13 +3,19 @@ import { describe, expect, it } from "vitest";
 import { otherSide } from "@/lib/demandes/rules";
 
 import {
+  CANCELLATION_DELAY_HOURS,
+  CANCELLATION_REASONS,
   canCancel,
   canReportAbsence,
   canRepublish,
   feeLine,
   gardeState,
   isAddressVisible,
+  isCancellationDelay,
+  isLateCancellation,
+  isReasonOf,
   isReminderTime,
+  lateCancellationFrom,
   reminderNight,
   type GardeFacts,
 } from "./rules";
@@ -185,5 +191,66 @@ describe("the reminder of the day before", () => {
   it("is about tomorrow's night", () => {
     expect(reminderNight(new Date("2026-09-29T08:00:00Z"))).toBe("2026-09-30");
     expect(reminderNight(new Date("2026-12-31T09:00:00Z"))).toBe("2027-01-01");
+  });
+});
+
+/**
+ * Spec (annulations-delai-et-motif): the founders' delay is 24 hours until they
+ * change it, a whole number of hours from 1 to 168; a cancellation from that
+ * many hours before the start hour until the start is late; each side cancels
+ * with one reason of its own short list.
+ */
+describe("the cancellation delay", () => {
+  it("is 24 hours by default", () => {
+    expect(CANCELLATION_DELAY_HOURS).toBe(24);
+  });
+
+  it("takes a whole number of hours from 1 to 168", () => {
+    for (const value of [1, 24, 168]) expect(isCancellationDelay(value)).toBe(true);
+    for (const value of [0, 169, -24, 24.5, Number.NaN, "24", null, undefined]) {
+      expect(isCancellationDelay(value)).toBe(false);
+    }
+  });
+
+  it("starts the delay that many wall-clock hours before the start hour", () => {
+    expect(lateCancellationFrom("2026-09-30", "20:00:00", 24)).toBe("2026-09-29T20:00");
+    expect(lateCancellationFrom("2026-09-30", "20:00:00", 1)).toBe("2026-09-30T19:00");
+    expect(lateCancellationFrom("2026-09-30", "20:00:00", 168)).toBe("2026-09-23T20:00");
+    expect(lateCancellationFrom("2026-03-01", "06:00", 24)).toBe("2026-02-28T06:00");
+  });
+
+  it("reads a cancellation late from the delay until the start hour", () => {
+    // 19:59 and 20:00 in Brussels the day before the night of 30 September from 20:00.
+    expect(isLateCancellation(confirmed, new Date("2026-09-29T17:59:00Z"), 24)).toBe(false);
+    expect(isLateCancellation(confirmed, new Date("2026-09-29T18:00:00Z"), 24)).toBe(true);
+    expect(isLateCancellation(confirmed, BEFORE_START, 24)).toBe(true);
+  });
+
+  it("follows the founders' value", () => {
+    // 18:59 and 19:00 in Brussels the same evening, with a delay of one hour.
+    expect(isLateCancellation(confirmed, new Date("2026-09-30T16:59:00Z"), 1)).toBe(false);
+    expect(isLateCancellation(confirmed, new Date("2026-09-30T17:00:00Z"), 1)).toBe(true);
+  });
+
+  it("says nothing of a garde that can no longer be cancelled", () => {
+    expect(isLateCancellation(confirmed, AT_START, 24)).toBe(false);
+    expect(isLateCancellation(cancelled, BEFORE_START, 24)).toBe(false);
+  });
+});
+
+describe("the reasons of a cancellation", () => {
+  it("gives each side four reasons, « Autre » last", () => {
+    expect(CANCELLATION_REASONS.famille).toEqual(["plus_besoin", "imprevu", "autre_solution", "autre"]);
+    expect(CANCELLATION_REASONS.professionnelle).toEqual(["malade", "empechement", "indisponible", "autre"]);
+  });
+
+  it("holds a reason to its side's list", () => {
+    expect(isReasonOf("famille", "plus_besoin")).toBe(true);
+    expect(isReasonOf("professionnelle", "malade")).toBe(true);
+    expect(isReasonOf("famille", "autre")).toBe(true);
+    expect(isReasonOf("professionnelle", "autre")).toBe(true);
+    expect(isReasonOf("famille", "malade")).toBe(false);
+    expect(isReasonOf("professionnelle", "plus_besoin")).toBe(false);
+    for (const value of ["", "inconnu", null, undefined, 1]) expect(isReasonOf("famille", value)).toBe(false);
   });
 });

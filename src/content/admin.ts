@@ -170,6 +170,7 @@ export const admin = catalogue({
         compte_supprime: "Compte supprimé",
         utilisateur_contacte: "Utilisateur contacté",
         signalement_traite: "Signalement traité",
+        reglage_delai_annulation: "Réglage : délai d'annulation",
       },
       /** @relecture Surya — détail du réglage, de la purge, du message et du signalement. */
       details: {
@@ -179,6 +180,7 @@ export const admin = catalogue({
         suppression: "après la suppression du compte",
         objet: "Objet : {objet}",
         garde: "Garde du {date}",
+        delai: "{heures} heures avant le début de la garde",
       },
       /** @relecture Surya — l'auteur d'une action automatique. */
       automatique: "Berceo (automatique)",
@@ -222,6 +224,39 @@ export const admin = catalogue({
       },
       /** @relecture Surya — échec de l'enregistrement. */
       erreur: "Le réglage n'a pas pu être enregistré. Réessayez dans un instant.",
+    },
+
+    /**
+     * Le délai d'annulation (annulations-delai-et-motif, les réponses [9.2]) :
+     * combien d'heures avant le début une annulation devient tardive. Le
+     * barème des frais qui le lit arrive avec annulations-table.
+     */
+    delaiAnnulation: {
+      /** @relecture Surya — nom du réglage. */
+      titre: "Délai d'annulation",
+      /** @relecture Surya — ce que fait le réglage. */
+      description:
+        "Une annulation faite moins de ce nombre d'heures avant le début de la garde est tardive. Le délai se compte en heures entières, de 1 à 168.",
+      /** @relecture Surya — valeur actuelle. */
+      actuel: "{heures} heures avant le début de la garde",
+      /** @relecture Surya — dernier changement. */
+      modifie: "Modifié le {date} par {nom}",
+      jamais: "Jamais modifié",
+      /** @relecture Surya — le champ et le bouton. */
+      champ: "Nouveau délai, en heures",
+      enregistrer: "Enregistrer le délai",
+      confirmation: {
+        titre: "Changer le délai d'annulation ?",
+        description: "Le délai passera de {avant} à {apres} heures avant le début de la garde.",
+        oui: "Oui, confirmer",
+        non: "Non, ne rien changer",
+      },
+      /** @relecture Surya — valeur refusée, inchangée, ou échec de l'enregistrement. */
+      invalide: "Indiquez un nombre entier d'heures, de 1 à 168.",
+      inchange: "Le délai est déjà de {heures} heures.",
+      erreur: "Le délai n'a pas pu être enregistré. Réessayez dans un instant.",
+      /** @relecture Surya — après l'enregistrement. */
+      enregistre: "Le délai est enregistré.",
     },
 
     /** Les avis après les gardes (avis-etoiles, G-03, D-118), en lecture seule. */
@@ -684,6 +719,7 @@ export const admin = catalogue({
         famille: "Famille",
         professionnelle: "Professionnelle",
         signalement: "Signalement",
+        motif: "Motif",
         frais: "Frais",
         suivi: "Suivi",
       },
@@ -703,6 +739,8 @@ export const admin = catalogue({
           professionnelle: "Absence de la professionnelle signalée",
         },
       },
+      /** @relecture Surya — une absence, ou une garde annulée avant les motifs (annulations-delai-et-motif). */
+      sansMotif: "Aucun motif",
       /** @relecture Surya — le suivi. */
       marquer: "Marquer comme traité",
       traite: "Traité le {date} par {nom}",

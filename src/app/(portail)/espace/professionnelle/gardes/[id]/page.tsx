@@ -25,7 +25,7 @@ import { formatDate } from "@/lib/demandes/format";
 import { brusselsNow } from "@/lib/demandes/rules";
 import { conversationOfBooking } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
-import { cancelledLine } from "@/lib/gardes/format";
+import { cancelledLine, reasonLine } from "@/lib/gardes/format";
 import { canCancel, canReportAbsence, gardeState, isAddressVisible } from "@/lib/gardes/rules";
 import { professionalBooking } from "@/lib/reservations/bookings";
 import { recapNight } from "@/lib/reservations/format";
@@ -107,6 +107,7 @@ export default async function GardePage({
   // The duration names the extra hours apart, as on the family's récapitulatif: she prices them apart.
   const duration = recapNight(booking.request.nightDate, booking.request.startTime, booking.request.extraHours).duree;
   const cancelled = cancelledLine(booking.garde, "professionnelle", family.firstName);
+  const reason = reasonLine(booking.garde);
   const [familyNotes, given] = await Promise.all([
     familyNotesOfRequests([booking.request.id]),
     ratingsGiven("professionnelle", [booking.id]),
@@ -126,6 +127,7 @@ export default async function GardePage({
           note={duration}
         />
         {cancelled ? <p className="text-corps font-semibold text-encre-taupe">{cancelled}</p> : null}
+        {reason ? <p className="text-corps text-encre-taupe">{reason}</p> : null}
       </div>
       <section className="flex max-w-2xl flex-col gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">
         <h2 className="font-display text-h3 text-encre-sauge uppercase">{t.gardes.famille}</h2>
@@ -185,6 +187,7 @@ export default async function GardePage({
         </Button>
         {canCancel(facts, now) ? (
           <CancelGarde
+            side="professionnelle"
             description={g.annulation.descriptionProfessionnelle}
             onCancel={cancelGardeAction.bind(null, booking.id)}
           />

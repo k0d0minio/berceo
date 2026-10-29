@@ -2,6 +2,7 @@ import Link from "next/link"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { admin } from "@/content/admin"
+import { gardes } from "@/content/gardes"
 import { fill, words } from "@/content/locale"
 import type { AdminReportRow } from "@/lib/admin/lists"
 import { adminUserPath } from "@/lib/admin/paths"
@@ -16,13 +17,15 @@ const day = new Intl.DateTimeFormat("fr-BE", { dateStyle: "short", timeStyle: "s
 /*
  * « Signalements » (D-139): every cancelled garde and reported absence,
  * newest first: when, the night, both people (opening their accounts), what
- * happened and on which side, the fee with the way to the refund (D-101,
+ * happened and on which side, the reason the cancelling side chose
+ * (annulations-delai-et-motif), the fee with the way to the refund (D-101,
  * unchanged), and the follow-up: « Marquer comme traité », or who did.
  */
 function ReportsTable({ rows }: { rows: AdminReportRow[] }) {
   const a = words(admin)
   const t = a.signalements
   const p = a.paiements
+  const motifs = words(gardes).motifs
 
   return (
     <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
@@ -34,6 +37,7 @@ function ReportsTable({ rows }: { rows: AdminReportRow[] }) {
             <TableHead>{t.colonnes.famille}</TableHead>
             <TableHead>{t.colonnes.professionnelle}</TableHead>
             <TableHead>{t.colonnes.signalement}</TableHead>
+            <TableHead>{t.colonnes.motif}</TableHead>
             <TableHead>{t.colonnes.frais}</TableHead>
             <TableHead>{t.colonnes.suivi}</TableHead>
           </TableRow>
@@ -56,6 +60,7 @@ function ReportsTable({ rows }: { rows: AdminReportRow[] }) {
                 </Link>
               </TableCell>
               <TableCell className="whitespace-normal">{t.types[row.kind][row.side]}</TableCell>
+              <TableCell className="whitespace-normal">{row.reason ? motifs[row.reason] : t.sansMotif}</TableCell>
               <TableCell>
                 {row.fee ? (
                   <>

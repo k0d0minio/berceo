@@ -10,11 +10,12 @@ import { decide, type DecisionResult } from "@/lib/admin/review";
 import { isDecision } from "@/lib/admin/rules";
 import { currentUser } from "@/lib/auth/current-user";
 import { SPACES } from "@/lib/auth/routing";
-import { setStudentsAdmitted } from "@/lib/settings";
+import { isCancellationDelay } from "@/lib/gardes/rules";
+import { setCancellationDelayHours, setStudentsAdmitted } from "@/lib/settings";
 
 /*
- * The founders' actions: the students switch and the three decisions on a
- * file. The role is checked here at runtime, whatever the page showed: a
+ * The founders' actions: the students switch, the cancellation delay and the
+ * three decisions on a file. The role is checked here at runtime, whatever the page showed: a
  * server action is reachable by anyone who can post to it (Learned rules), and
  * it answers a non-admin exactly as a failure. Every argument is checked too.
  */
@@ -40,6 +41,24 @@ export async function setStudents(value: boolean): Promise<SettingResult> {
   } catch (error) {
     console.error("[admin] students switch not saved", { error });
     return { ok: false };
+  }
+  revalidatePath(ADMIN_FILES_PATH);
+  return { ok: true };
+}
+
+export type DelayResult = { ok: true } | { ok: false; error: "invalide" | "generique" };
+
+/** « Délai d'annulation » (annulations-delai-et-motif): a whole number of hours from 1 to 168. */
+export async function setCancellationDelay(hours: number): Promise<DelayResult> {
+  const user = await admin();
+  if (!user) return { ok: false, error: "generique" };
+  if (!isCancellationDelay(hours)) return { ok: false, error: "invalide" };
+
+  try {
+    await setCancellationDelayHours(hours, { id: user.id, name: fullName(user) });
+  } catch (error) {
+    console.error("[admin] cancellation delay not saved", { error });
+    return { ok: false, error: "generique" };
   }
   revalidatePath(ADMIN_FILES_PATH);
   return { ok: true };

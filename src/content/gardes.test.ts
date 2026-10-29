@@ -3,6 +3,9 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+import { cancellationReasonEnum } from "@/db/schema";
+import { CANCELLATION_REASONS } from "@/lib/gardes/rules";
+
 import { emails } from "./emails";
 import { gardes } from "./gardes";
 
@@ -44,6 +47,12 @@ describe("the garde's catalogue", () => {
       expect(text).not.toMatch(/€/);
       for (const percent of text.match(/\d+\s?%/g) ?? []) expect(percent).toBe("3 %");
     }
+  });
+
+  it("names every reason of a cancellation, and each side's list (annulations-delai-et-motif)", () => {
+    for (const reason of cancellationReasonEnum.enumValues) expect(gardes.fr.motifs[reason]).toBeTruthy();
+    const listed = new Set([...CANCELLATION_REASONS.famille, ...CANCELLATION_REASONS.professionnelle]);
+    expect([...listed].sort()).toEqual([...cancellationReasonEnum.enumValues].sort());
   });
 
   it("names the four states of D-17", () => {

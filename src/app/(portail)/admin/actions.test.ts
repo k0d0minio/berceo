@@ -16,13 +16,16 @@ vi.mock("@/lib/admin/review", () => ({ decide: vi.fn(async () => ({ ok: true, em
 vi.mock("@/lib/admin/journal", () => ({
   fullName: (u: { firstName: string; lastName: string }) => `${u.firstName} ${u.lastName}`,
 }));
-vi.mock("@/lib/settings", () => ({ setStudentsAdmitted: vi.fn(async () => {}) }));
+vi.mock("@/lib/settings", () => ({
+  setStudentsAdmitted: vi.fn(async () => {}),
+  setCancellationDelayHours: vi.fn(async () => {}),
+}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers({ origin: "https://uat.berceo.be" }) }));
 
-const { decideFile, setStudents } = await import("./actions");
+const { decideFile, setCancellationDelay, setStudents } = await import("./actions");
 const { decide } = await import("@/lib/admin/review");
-const { setStudentsAdmitted } = await import("@/lib/settings");
+const { setCancellationDelayHours, setStudentsAdmitted } = await import("@/lib/settings");
 
 const person = (role: User["role"]) =>
   ({ status: "ok", user: { id: `${role}-1`, role, firstName: "Alix", lastName: "Test" } }) as const;
@@ -36,6 +39,7 @@ const request = {
 beforeEach(() => {
   vi.mocked(decide).mockClear();
   vi.mocked(setStudentsAdmitted).mockClear();
+  vi.mocked(setCancellationDelayHours).mockClear();
 });
 
 describe.each([
@@ -59,6 +63,11 @@ describe.each([
     expect(await setStudents(true)).toEqual({ ok: false });
     expect(setStudentsAdmitted).not.toHaveBeenCalled();
   });
+
+  it("cannot change the cancellation delay", async () => {
+    expect(await setCancellationDelay(48)).toEqual({ ok: false, error: "generique" });
+    expect(setCancellationDelayHours).not.toHaveBeenCalled();
+  });
 });
 
 describe("an admin", () => {
@@ -78,6 +87,18 @@ describe("an admin", () => {
   it("flips the students switch under her name", async () => {
     expect(await setStudents(true)).toEqual({ ok: true });
     expect(setStudentsAdmitted).toHaveBeenCalledWith(true, { id: "admin-1", name: "Alix Test" });
+  });
+
+  it("changes the cancellation delay under her name (annulations-delai-et-motif)", async () => {
+    expect(await setCancellationDelay(48)).toEqual({ ok: true });
+    expect(setCancellationDelayHours).toHaveBeenCalledWith(48, { id: "admin-1", name: "Alix Test" });
+  });
+
+  it("is refused a delay outside 1 to 168 whole hours", async () => {
+    for (const bad of [0, 169, 12.5, Number.NaN, "24" as unknown as number]) {
+      expect(await setCancellationDelay(bad)).toEqual({ ok: false, error: "invalide" });
+    }
+    expect(setCancellationDelayHours).not.toHaveBeenCalled();
   });
 
   it("is refused a request that is not one", async () => {

@@ -392,6 +392,16 @@ in `src/lib/reservations/bookings.ts`.
   confirmed gardes only). A professional's cancellation then refunds the fee through `refundFee`;
   a failure leaves the garde cancelled and the fee `payee`, for the founders' button. A family's
   cancellation keeps the fee. The other side gets one e-mail.
+- **The reason (annulations-delai-et-motif, D-20):** the cancel dialog asks one reason from the
+  side's short list (`CANCELLATION_REASONS` in `rules.ts`), never free text. The dialog stays
+  open without one, and `cancelGarde` refuses a reason outside the side's list. The reason sits
+  in `bookings.cancellation_reason`. Both garde pages and `/admin/signalements` show it. An
+  absence has none, and neither has a garde cancelled before the column existed.
+- **The cancellation delay (annulations-delai-et-motif, the answers [9.2]):** `app_settings`
+  holds `delai_annulation_heures`, 24 by default, a whole number of hours from 1 to 168. A
+  founder changes it under « Réglages » on `/admin/dossiers`, through a confirmation, with a
+  journal entry (`src/lib/settings/`). `isLateCancellation` in `rules.ts` takes it. Nothing
+  decides the fee with it yet: `annulations-table` does.
 - **Reporting an absence (D-106):** from the start hour until 24 h after the night, either side
   reports the other absent; the garde is cancelled against the absent side (kind `absence`), who
   gets one e-mail. Nothing is refunded: the founders read it under `/admin/signalements` (with
