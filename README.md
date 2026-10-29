@@ -43,7 +43,7 @@ The contract: `.icm/uat/CONTEXT.md`.
 | [src/lib/avis/](src/lib/avis/), [src/components/avis/](src/components/avis/) | The stars after a garde: the rating form of each side, the note and gardes count wherever they show, the invitation e-mail, the founders' list. See **The ratings** below. |
 | [src/lib/messagerie/](src/lib/messagerie/), [src/components/messagerie/](src/components/messagerie/) | The conversation per answer: its rules, reads and writes, the send action, the new-message e-mail. See **The conversation** below. |
 | [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
-| [src/lib/favoris/](src/lib/favoris/), [src/components/favoris/](src/components/favoris/) | A family's favourite professionals: the mark and its reads and writes. See **The favourites** below. |
+| [src/lib/favoris/](src/lib/favoris/), [src/components/favoris/](src/components/favoris/) | A family's favourite professionals: the mark and its reads and writes, and the list « Mes professionnelles ». See **The favourites** below. |
 | [src/lib/paiements/](src/lib/paiements/), [src/app/api/webhooks/stripe/](src/app/api/webhooks/stripe/) | The 3 % service fee through Stripe: the Checkout, the webhook, refunds, the founders' list. See **The service fee** below. |
 | [src/lib/abonnements/](src/lib/abonnements/) | The four family subscriptions through Stripe: the plans, the Checkout in subscription mode, the row the webhook keeps true, `hasActiveSubscription`. See **The subscriptions** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`. |
@@ -719,6 +719,18 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   A lost subscription keeps the rows and hides the mark. A profile that is not `valide` keeps
   its rows, and no reader shows it. An account's deletion removes its rows and the rows on its
   profile in its own batch (`deletionForgetsFavourites`).
+- **The list (favoris-liste):** « Mes professionnelles », at `/espace/famille/professionnelles`,
+  in the parent's navigation after the search and linked from her home. Her marks first, the
+  last marked first, then the professionals of her past gardes, the most recent night first,
+  each profile once. A past garde is a `confirmee` booking whose night `gardeState` reads as
+  « Terminée »; `listedIds` in `rules.ts` holds the order and the dedupe, pure, with its test.
+  `listedProfiles` in `src/lib/reservations/profiles.ts` reads the cards (a subset of
+  `profileColumns`, the column test holds it): a deleted account is absent (D-136), a profile
+  not `valide` or an account suspended is `available: false` and its card reads unavailable,
+  with no link, no button and no mark. With a subscription each card opens the full profile
+  and the priority request and carries the mark, « Retirer » on a favourite and « Ajouter » on
+  a past garde's professional. Without one the invitation line shows once under the title and
+  the cards carry no button. Empty, the page sends her to the search.
 - **Hers alone:** only `src/lib/favoris/favourites.ts` names the table. No page of the
   professional, of the founders or of the vitrine reads it. `src/lib/favoris/isolation.test.ts`
   holds both. Words in `src/content/favoris.ts`, every one `@relecture`.

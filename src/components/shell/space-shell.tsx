@@ -4,6 +4,7 @@ import { signOut } from "@/app/(auth)/actions"
 import { PortalShell } from "@/components/shell/portal-shell"
 import { SignOutDialog } from "@/components/shell/sign-out-dialog"
 import { comptes } from "@/content/comptes"
+import { favoris } from "@/content/favoris"
 import { fill, words } from "@/content/locale"
 import { messagerie } from "@/content/messagerie"
 import { recherche } from "@/content/recherche"
@@ -16,13 +17,13 @@ import { unreadCount } from "@/lib/messagerie/conversations"
 import { unreadLabel } from "@/lib/messagerie/format"
 import { SEARCH_PATH } from "@/lib/recherche/slugs"
 import { FAMILY_MESSAGES_PATH, PROFESSIONAL_MESSAGES_PATH } from "@/lib/messagerie/paths"
-import { FAMILY_BOOKINGS_PATH, PROFESSIONAL_BOOKINGS_PATH } from "@/lib/reservations/paths"
+import { FAMILY_BOOKINGS_PATH, FAMILY_PROFESSIONALS_PATH, PROFESSIONAL_BOOKINGS_PATH } from "@/lib/reservations/paths"
 
 /*
  * A signed-in space: the portal shell with the role's home and the role's own
- * entries (a parent's search, requests, bookings and profile, a professional's
- * requests, gardes and availability), the sign-out dialog wired to the
- * session, and the greeting by first name. Each feature stub adds its own
+ * entries (a parent's search, « Mes professionnelles », requests, bookings
+ * and profile, a professional's requests, gardes and availability), the
+ * sign-out dialog wired to the session, and the greeting by first name. Each feature stub adds its own
  * navigation entries. « Messages » carries the number of conversations
  * holding an unread message, read on each page load (D-91).
  */
@@ -51,6 +52,7 @@ async function SpaceShell({
         ...(user.role === "parent"
           ? [
               { label: words(recherche).nav, href: SEARCH_PATH },
+              { label: words(favoris).nav, href: FAMILY_PROFESSIONALS_PATH },
               { label: t.navDemandesFamille, href: FAMILY_REQUESTS_PATH },
               { label: t.navReservations, href: FAMILY_BOOKINGS_PATH },
               { label: m.libelle, href: FAMILY_MESSAGES_PATH, badge },
