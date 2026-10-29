@@ -14,12 +14,13 @@ import { refundFee } from "@/lib/paiements/payments";
  * whatever the page showed: a server action is reachable by anyone who can
  * post to it (Learned rules), and it answers a non-admin exactly as a failure.
  * The id and the reason are checked again; the refund itself holds its rules
- * in its SQL and at Stripe (one idempotency key per payment and attempt).
+ * in its SQL and at Stripe (one idempotency key per payment and attempt), and
+ * refuses a fee that became a credit (annulations-table).
  */
 
 export type RefundActionResult =
   | { ok: true; status: "remboursee" | "remboursement_echoue" }
-  | { ok: false; error: "statut" | "generique" | "motifRequis" | "motifLong" };
+  | { ok: false; error: "statut" | "credit" | "generique" | "motifRequis" | "motifLong" };
 
 export async function refundPaymentAction(paymentId: string, reason: string): Promise<RefundActionResult> {
   const who = await currentUser();
@@ -36,7 +37,9 @@ export async function refundPaymentAction(paymentId: string, reason: string): Pr
       admin: { id: who.user.id, name: fullName(who.user) },
       motif: checked.value,
     });
-    if (!result.ok) return { ok: false, error: result.reason === "statut" ? "statut" : "generique" };
+    if (!result.ok) {
+      return { ok: false, error: result.reason === "statut" || result.reason === "credit" ? result.reason : "generique" };
+    }
     revalidatePath(ADMIN_PAYMENTS_PATH);
     return { ok: true, status: result.status };
   } catch (error) {

@@ -23,10 +23,12 @@ export const creditsFamille = catalogue({
     valable: "{montant} €, valable jusqu'au {date}",
     /** @relecture Surya — un crédit déjà utilisé en entier. */
     utilise: "{montant} €, utilisé",
+    /** @relecture Surya — un crédit annulé : l'absence qui l'a créé a été contestée (annulations-table). */
+    annule: "{montant} €, annulé après la contestation du signalement",
     /** @relecture Surya — un crédit expiré, et sa date d'expiration. */
     expire: "{montant} €, expiré le {date}",
     /** @relecture Surya — le titre de la liste des crédits qui ne paient plus rien. */
-    passes: "Crédits utilisés ou expirés",
+    passes: "Crédits utilisés, annulés ou expirés",
     /** @relecture Surya — l'origine d'un crédit, une ligne du tableau des fondatrices ou leur geste. */
     origines: {
       annulation_famille: "Garde annulée par vous",

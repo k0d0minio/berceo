@@ -64,6 +64,31 @@ describe("creditState and remainingCents", () => {
   });
 });
 
+/**
+ * Spec (annulations-table, the answers [9.3]): a contested absence voids the
+ * credit its report issued. What is left on it pays nothing from the voiding
+ * on, and a part already spent stays spent.
+ */
+describe("a voided credit", () => {
+  it("reads annule with nothing left from its voiding on", () => {
+    const c = credit({ voidedAt: now });
+    expect(creditState(c, now)).toBe("annule");
+    expect(remainingCents(c, now)).toBe(0);
+    expect(creditState(c, new Date(now.getTime() - 1))).toBe("disponible");
+  });
+
+  it("reads annule past its expiry, and utilise once spent to the last cent", () => {
+    expect(creditState(credit({ voidedAt: now, expiresAt: now }), now)).toBe("annule");
+    expect(creditState(credit({ voidedAt: now, spentCents: 450 }), now)).toBe("utilise");
+  });
+
+  it("leaves the balance and the spending plan", () => {
+    const list = [credit({ id: "a" }), credit({ id: "v", spentCents: 100, voidedAt: now })];
+    expect(balanceCents(list, now)).toBe(450);
+    expect(spendingPlan(list, 600, now)).toEqual({ takes: [{ id: "a", cents: 450 }], restCents: 150 });
+  });
+});
+
 describe("balanceCents", () => {
   it("sums what the credits can still pay and ignores expired and spent ones", () => {
     const list = [

@@ -8,7 +8,8 @@ import { eurosFromCents } from "@/lib/paiements/rules";
 /*
  * « Mes crédits » (credits-registre): the family's balance, then each credit
  * she can still use with what it can pay and its expiry, then the ones that
- * pay nothing any more, marked « utilisé » or « expiré ». With no credit at
+ * pay nothing any more, marked « utilisé », « annulé » (a contested absence,
+ * annulations-table) or « expiré ». With no credit at
  * all, one line. The same block sits on her home and on « Mes réservations »;
  * the page reads `familyCredits` and hands the result here.
  */
@@ -25,6 +26,8 @@ function creditLine(credit: FamilyCredit): string {
       return fill(t.valable, { montant: eurosFromCents(credit.remainingCents), date: expiryDay(credit.expiresAt) });
     case "utilise":
       return fill(t.utilise, { montant: eurosFromCents(credit.amountCents) });
+    case "annule":
+      return fill(t.annule, { montant: eurosFromCents(credit.amountCents - credit.spentCents) });
     case "expire":
       return fill(t.expire, { montant: eurosFromCents(credit.amountCents), date: expiryDay(credit.expiresAt) });
   }

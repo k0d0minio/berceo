@@ -52,8 +52,8 @@ export const tarifs = catalogue({
       paragraphs: [
         /** @relecture Surya — phrase du guide, sans « Ils couvrent l'assurance » (D-8). */
         "Des frais de service de 3 % sont prélevés à la confirmation de chaque réservation. Ils couvrent le bon fonctionnement de la plateforme.",
-        /** @relecture Surya — règle de remboursement (D-2). */
-        "Si la professionnelle annule la garde, ces frais vous sont intégralement remboursés. Si vous annulez, ils ne sont pas remboursés.",
+        /** @relecture Surya — le tableau des fondatrices (annulations-table) : le crédit Berceo et ses 24 mois. Le délai de 24 heures est le réglage des fondatrices en V1. */
+        "Si vous annulez plus de 24 heures avant le début de la garde, ou si la professionnelle annule ou ne se présente pas, ces frais deviennent un crédit Berceo, valable 24 mois pour une prochaine réservation. Si vous annulez moins de 24 heures avant le début, ils restent acquis à Berceo.",
       ],
     },
 

@@ -14,6 +14,7 @@ import {
   type CancellationKind,
   type CancellationReason,
 } from "@/db";
+import { gardeCredits } from "@/lib/credits/credits";
 import { nightEnd as nightEndOf } from "@/lib/demandes/night-end";
 import { TIME_ZONE } from "@/lib/demandes/rules";
 import { gardeState, type GardeState } from "@/lib/gardes/rules";
@@ -213,7 +214,8 @@ export async function readBookings(
       .innerJoin(careRequests, eq(careRequests.id, bookings.requestId))
       .where(where),
   ]);
-  const fees = await bookingFees(rows.map((row) => row.id));
+  const ids = rows.map((row) => row.id);
+  const [fees, live] = await Promise.all([bookingFees(ids), gardeCredits(ids)]);
   return {
     rows: rows.map((row) => ({
       id: row.id,
@@ -265,6 +267,10 @@ export type AdminReportRow = {
   family: { id: string; name: string };
   professional: { id: string; name: string };
   fee: BookingFee | null;
+  /** The fee became a live credit (annulations-table). */
+  credited: boolean;
+  /** When the side reported absent contested the report: the garde is in « litige » (annulations-table). */
+  disputedAt: Date | null;
   handled: { at: Date; by: string } | null;
 };
 
@@ -284,6 +290,7 @@ export async function readReports(
         side: bookings.cancelledBy,
         kind: bookings.cancellationKind,
         reason: bookings.cancellationReason,
+        disputedAt: bookings.disputedAt,
         handledAt: bookings.reportHandledAt,
         handledFirst: handledBy.firstName,
         handledLast: handledBy.lastName,
@@ -300,7 +307,8 @@ export async function readReports(
       .offset((page - 1) * LIST_PAGE_SIZE),
     db.select({ n: count() }).from(bookings).where(where),
   ]);
-  const fees = await bookingFees(rows.map((row) => row.id));
+  const ids = rows.map((row) => row.id);
+  const [fees, live] = await Promise.all([bookingFees(ids), gardeCredits(ids)]);
   return {
     rows: rows.flatMap((row) =>
       row.cancelledAt && row.side && row.kind
@@ -319,6 +327,8 @@ export async function readReports(
                 name: fullName({ firstName: row.professionalFirst, lastName: row.professionalLast }),
               },
               fee: fees.get(row.id) ?? null,
+              credited: live.has(row.id),
+              disputedAt: row.disputedAt,
               handled: row.handledAt
                 ? {
                     at: row.handledAt,

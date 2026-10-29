@@ -15,8 +15,10 @@ const date = new Intl.DateTimeFormat("fr-BE", { dateStyle: "short", timeZone: "E
  * professional, the night, the rate, the fee, the status (an open Checkout
  * past its expiry reads « Abandonnés », D-92), Stripe's PaymentIntent id and,
  * for a refund, its date and reason. A fee the professional's cancellation
- * left unrefunded is marked « À rembourser » (D-162, D-164). A paid fee offers
- * « Rembourser les frais » (D-101); nothing else on this page changes a payment.
+ * left unrefunded is marked « À rembourser » (D-162, D-164). A fee the
+ * founders' table turned into a credit is marked so, and offers no refund
+ * (annulations-table). Any other paid fee offers « Rembourser les frais »
+ * (D-101); nothing else on this page changes a payment.
  */
 function PaymentsTable({ rows, now }: { rows: AdminPayment[]; now: Date }) {
   const p = words(admin).paiements
@@ -62,7 +64,8 @@ function PaymentsTable({ rows, now }: { rows: AdminPayment[]; now: Date }) {
                       <span className="block text-legende">{p.aRembourserDetail}</span>
                     </span>
                   ) : null}
-                  {isRefundable(status) ? (
+                  {row.credited ? <span className="mt-2 block max-w-xs font-semibold">{p.devenusCredit}</span> : null}
+                  {isRefundable(status) && !row.credited ? (
                     <div className="mt-2">
                       <RefundButton
                         paymentId={row.id}

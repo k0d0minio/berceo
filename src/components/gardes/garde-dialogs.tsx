@@ -11,12 +11,12 @@ import type { BookingSide, CancellationReason } from "@/db/schema"
 import { CANCELLATION_REASONS } from "@/lib/gardes/rules"
 
 /*
- * The three acts on a garde (cycle-de-garde-et-annulation), each through the
- * confirmation dialog (D-24). Cancelling (D-105) and reporting an absence
- * (D-106) are the sensitive answer (red), keeping the garde the confirming
- * one (green); republishing (D-107) is the confirming answer (green),
- * declining it the other (red). The page shows each only when its rule allows
- * it; the server holds the rule again.
+ * The four acts on a garde (cycle-de-garde-et-annulation), each through the
+ * confirmation dialog (D-24). Cancelling (D-105), reporting an absence
+ * (D-106) and contesting one (annulations-table) are the sensitive answer
+ * (red), keeping the garde the confirming one (green); republishing (D-107)
+ * is the confirming answer (green), declining it the other (red). The page
+ * shows each only when its rule allows it; the server holds the rule again.
  *
  * Cancelling asks one reason from the side's list (annulations-delai-et-motif,
  * D-20: no free text). Without one, the dialog stays open and says so in red
@@ -118,6 +118,25 @@ function ReportAbsence({ description, onReport }: { description: string; onRepor
   )
 }
 
+function ContestAbsence({ onContest }: { onContest: Act }) {
+  const t = words(gardes).contestation
+  const [pending, startTransition] = useTransition()
+
+  return (
+    <ConfirmDialog
+      trigger={
+        <Button variant="raye" disabled={pending}>
+          {t.bouton}
+        </Button>
+      }
+      title={t.titre}
+      description={t.description}
+      action={{ label: t.oui, tone: "sensible", onSelect: () => startTransition(onContest) }}
+      cancel={{ label: t.non, tone: "confirmation" }}
+    />
+  )
+}
+
 function RepublishGarde({ onRepublish }: { onRepublish: Act }) {
   const t = words(gardes).republication
   const [pending, startTransition] = useTransition()
@@ -133,4 +152,4 @@ function RepublishGarde({ onRepublish }: { onRepublish: Act }) {
   )
 }
 
-export { CancelGarde, ReportAbsence, RepublishGarde }
+export { CancelGarde, ContestAbsence, ReportAbsence, RepublishGarde }

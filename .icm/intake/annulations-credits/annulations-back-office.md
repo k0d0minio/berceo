@@ -19,7 +19,9 @@ absences. Nothing lists credits, and the founders cannot grant one.
 outcome on each row, and a « Litige » filter. A new `/admin/credits` lists every credit, newest
 first, 50 per page, with the family, the amount, the origin, the expiry and the spent amount,
 and a « Vue d'ensemble » block. On a garde in litige or on a fee kept, a founder grants a credit
-of the fee with a confirmation, a reason and a journal entry.
+of the fee with a confirmation, a reason and a journal entry. A founder cancels a confirmed garde
+for Berceo (security, fraud, a suspension) with « Annuler la garde », and the fee becomes a credit
+of origin `annulation_berceo` (annulations-table, question 4).
 
 ## Acceptance criteria
 
@@ -27,6 +29,7 @@ of the fee with a confirmation, a reason and a journal entry.
 - [ ] `/admin/credits` lists the credits with the columns above, and « Vue d'ensemble » counts the live credits.
 - [ ] A founder grants a credit of the fee on a litige or a kept fee, once per garde, with a journal entry.
 - [ ] A granted credit shows in the family's space with its origin.
+- [ ] A founder cancels a confirmed garde for Berceo, with a confirmation and a journal entry, and the fee becomes a credit of origin `annulation_berceo`.
 
 ## Out of scope
 
@@ -35,6 +38,9 @@ of the fee with a confirmation, a reason and a journal entry.
 
 ## Notes
 
+- `outcomeOf` in `src/lib/gardes/rules.ts` already returns a credit for `by: "berceo"`, and
+  `creditOriginOf` names `annulation_berceo` (annulations-table). The booking has no side for
+  Berceo yet: the build decides how `cancelled_by` records it.
 - Files: `src/app/(portail)/admin/signalements/`, a new `src/app/(portail)/admin/credits/`,
   `src/lib/admin/lists.ts`, `src/lib/credits/`, `src/lib/admin/journal.ts` (a new action),
   `src/components/admin/admin-shell.tsx`, `src/content/admin.ts`.

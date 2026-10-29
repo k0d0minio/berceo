@@ -734,7 +734,9 @@ export const cancellationReasonEnum = pgEnum("cancellation_reason", [
  * responsible (the absent one for an absence), `cancelled_by_user_id` who
  * clicked (D-105, D-106), and `cancellation_reason` the reason that side chose
  * when it cancelled; an absence has none, and neither has a garde cancelled
- * before annulations-delai-et-motif.
+ * before annulations-delai-et-motif. `disputed_at` marks an absence the side
+ * reported absent contested: the garde is in « litige », and the founders
+ * decide its fee (annulations-table, the answers [9.3]).
  */
 export const bookings = pgTable(
   "bookings",
@@ -770,10 +772,14 @@ export const bookings = pgTable(
     reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
     /**
      * A founder's « Marquer comme traité » on a cancelled garde (back-office-admin,
-     * D-139); `src/lib/admin/` writes it, and only on a cancelled garde.
+     * D-139); `src/lib/admin/` writes it, and only on a cancelled garde. A
+     * contest clears it, so the litige waits in « À traiter » (annulations-table).
      */
     reportHandledAt: timestamp("report_handled_at", { withTimezone: true }),
     reportHandledBy: uuid("report_handled_by").references(() => users.id, { onDelete: "set null" }),
+    /** When the side reported absent contested the report (annulations-table); null otherwise. */
+    disputedAt: timestamp("disputed_at", { withTimezone: true }),
+    disputedByUserId: uuid("disputed_by_user_id").references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -795,6 +801,8 @@ export const bookings = pgTable(
       .on(table.cancelledAt)
       .where(sql`${table.status} = 'annulee' AND ${table.reportHandledAt} IS NULL`),
     check("bookings_night_rate_min", sql`${table.nightRateEur} >= 100`),
+    // Only a reported absence can be contested.
+    check("bookings_dispute_on_absence", sql`${table.disputedAt} IS NULL OR ${table.cancellationKind} = 'absence'`),
     check(
       "bookings_extra_hour_rate_min",
       sql`${table.extraHourRateEur} IS NULL OR ${table.extraHourRateEur} >= 1`,
@@ -1144,8 +1152,9 @@ export const favourites = pgTable(
  * `annulation_famille`: the family cancelled more than the delay before the
  * start. `annulation_professionnelle` and `absence_professionnelle`: the
  * professional cancelled, or did not come. `annulation_berceo`: Berceo
- * cancelled the garde. `geste_berceo`: a founder granted it by hand. Nothing
- * writes one yet (`annulations-table`, `annulations-back-office`).
+ * cancelled the garde. `geste_berceo`: a founder granted it by hand. The end
+ * of a garde writes the first three (annulations-table); the founders write
+ * the last two (`annulations-back-office`).
  */
 export const creditOriginEnum = pgEnum("credit_origin", [
   "annulation_famille",
@@ -1161,8 +1170,10 @@ export const creditOriginEnum = pgEnum("credit_origin", [
  * link is set null, never cascaded, and the amount stays on the row.
  * `spent_cents` grows as later fees take from it (`credits-au-paiement`); a
  * credit is spent once it equals `amount_cents`, and expired once
- * `expires_at` passes (`src/lib/credits/rules.ts`). `src/lib/credits/` holds
- * the only statements on it (`isolation.test.ts`).
+ * `expires_at` passes (`src/lib/credits/rules.ts`). `voided_at` marks a credit
+ * a contested absence cancelled (annulations-table): what is left on it pays
+ * nothing more, and the row stays. A garde holds one live credit at most.
+ * `src/lib/credits/` holds the only statements on it (`isolation.test.ts`).
  */
 export const credits = pgTable(
   "credits",
@@ -1183,11 +1194,17 @@ export const credits = pgTable(
     note: text("note"),
     issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    /** When a contested absence cancelled it (annulations-table); null while it stands. */
+    voidedAt: timestamp("voided_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index("credits_family_user_id_idx").on(table.familyUserId),
+    // One live credit per garde: a second end of the same garde issues nothing.
+    uniqueIndex("credits_booking_live_key")
+      .on(table.bookingId)
+      .where(sql`${table.bookingId} IS NOT NULL AND ${table.voidedAt} IS NULL`),
     check("credits_amount_positive", sql`${table.amountCents} > 0`),
     check("credits_spent_range", sql`${table.spentCents} >= 0 AND ${table.spentCents} <= ${table.amountCents}`),
     check("credits_expiry_after_issue", sql`${table.expiresAt} > ${table.issuedAt}`),

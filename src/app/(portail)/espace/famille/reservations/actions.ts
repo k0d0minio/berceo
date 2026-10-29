@@ -14,6 +14,7 @@ import { UUID } from "@/lib/demandes/requests";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import {
   cancelGarde,
+  contestAbsence,
   logError,
   reportAbsence,
   republishGarde,
@@ -39,7 +40,11 @@ function checkedId(id: string): string {
   return value;
 }
 
-/** « Annuler la garde » until the start hour (D-105): the professional is told; the fee stays with Berceo (D-2). */
+/**
+ * « Annuler la garde » until the start hour (D-105): the professional is told;
+ * the fee becomes a credit more than the founders' delay before the start, and
+ * stays with Berceo within it (annulations-table).
+ */
 export async function cancelGardeAction(bookingId: string, reason: CancellationReason): Promise<void> {
   const id = checkedId(bookingId);
   const user = await requireAccess(familyBookingPath(id));
@@ -61,7 +66,7 @@ export async function cancelGardeAction(bookingId: string, reason: CancellationR
   redirect(`${familyBookingPath(id)}?annulee=1`);
 }
 
-/** « Signaler une absence » of the professional, from the start hour (D-106): she is told; nothing is refunded. */
+/** « Signaler une absence » of the professional, from the start hour (D-106): she is told; the fee becomes a credit. */
 export async function reportAbsenceAction(bookingId: string): Promise<void> {
   const id = checkedId(bookingId);
   const user = await requireAccess(familyBookingPath(id));
@@ -79,6 +84,28 @@ export async function reportAbsenceAction(bookingId: string): Promise<void> {
   after(() => notifyAbsence(id, origin));
   revalidatePath(SPACES.parent, "layout");
   redirect(`${familyBookingPath(id)}?absence=1`);
+}
+
+/**
+ * « Contester ce signalement » when the professional reported her absent
+ * (annulations-table), for 24 hours after the report: the garde enters
+ * « litige », and the founders read it on « Signalements ». No e-mail.
+ */
+export async function contestAbsenceAction(bookingId: string): Promise<void> {
+  const id = checkedId(bookingId);
+  const user = await requireAccess(familyBookingPath(id));
+
+  let result: GardeWrite;
+  try {
+    result = await contestAbsence("famille", user.id, id, new Date());
+  } catch (error) {
+    logError("absence not contested", { userId: user.id, bookingId: id }, error);
+    redirect(`${familyBookingPath(id)}?erreur=generique`);
+  }
+  if (!result.ok) redirect(`${familyBookingPath(id)}?erreur=contestation`);
+
+  revalidatePath(SPACES.parent, "layout");
+  redirect(`${familyBookingPath(id)}?contestation=1`);
 }
 
 /**

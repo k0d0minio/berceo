@@ -1,5 +1,6 @@
 import "server-only";
 
+import { gardeCredits } from "@/lib/credits/credits";
 import { formatDate, formatTime } from "@/lib/demandes/format";
 import { sendEmail } from "@/lib/email/send";
 import {
@@ -9,7 +10,6 @@ import {
   reminderFamilyEmail,
   reminderProfessionalEmail,
 } from "@/lib/email/templates";
-import { bookingFees } from "@/lib/paiements/payments";
 import { bookingNotice } from "@/lib/reservations/notices";
 import { familyBookingPath, PROFESSIONAL_BOOKINGS_PATH, professionalBookingPath } from "@/lib/reservations/paths";
 
@@ -43,14 +43,8 @@ export async function notifyCancellation(bookingId: string, siteUrl: string): Pr
         key,
       );
     } else {
-      // The refund was attempted before this e-mail: say it is done only once Stripe did it (D-2).
-      const fee = (await bookingFees([bookingId])).get(bookingId);
-      const refund =
-        fee?.status === "remboursee"
-          ? "fait"
-          : fee?.status === "payee" || fee?.status === "remboursement_echoue"
-            ? "enCours"
-            : null;
+      // The credit was written with the cancellation (annulations-table): name it only when it exists.
+      const credited = (await gardeCredits([bookingId])).has(bookingId);
       await sendEmail(
         notice.family.email,
         gardeCancelledByProfessionalEmail({
@@ -58,7 +52,7 @@ export async function notifyCancellation(bookingId: string, siteUrl: string): Pr
           prenom: notice.family.firstName,
           professionnelle: notice.professional.firstName,
           date,
-          refund,
+          credited,
           url: `${siteUrl}${familyBookingPath(bookingId)}`,
         }),
         key,

@@ -6,7 +6,7 @@ import { SubscriptionRequired } from "@/components/abonnements/subscription-requ
 import { FormMessage } from "@/components/auth/field";
 import { criteriaLabels } from "@/components/avis/criteria";
 import { GivenRating } from "@/components/avis/stars";
-import { CancelGarde, ReportAbsence, RepublishGarde } from "@/components/gardes/garde-dialogs";
+import { CancelGarde, ContestAbsence, ReportAbsence, RepublishGarde } from "@/components/gardes/garde-dialogs";
 import { GardeStateMark } from "@/components/gardes/garde-state";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { SpaceShell } from "@/components/shell/space-shell";
@@ -23,6 +23,7 @@ import { withQuery } from "@/lib/auth/routing";
 import { familyRatingPath } from "@/lib/avis/paths";
 import { ratingsGiven } from "@/lib/avis/ratings";
 import { canRate } from "@/lib/avis/rules";
+import { gardeCredits } from "@/lib/credits/credits";
 import { conversationOfBooking } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
 import { cardTitle, childrenLine, feedingLine, formatDate } from "@/lib/demandes/format";
@@ -30,10 +31,18 @@ import { brusselsNow } from "@/lib/demandes/rules";
 import { familyRequestPath } from "@/lib/demandes/paths";
 import { liveRequestOn } from "@/lib/demandes/requests";
 import { gardeFee } from "@/lib/gardes/gardes";
-import { cancelledLine, feeText, reasonLine } from "@/lib/gardes/format";
-import { canCancel, canReportAbsence, canRepublish, gardeState } from "@/lib/gardes/rules";
+import { cancelledLine, disputeLine, feeText, reasonLine } from "@/lib/gardes/format";
+import {
+  canCancel,
+  canContest,
+  canReportAbsence,
+  canRepublish,
+  gardeState,
+  isLateCancellation,
+} from "@/lib/gardes/rules";
 import { familyBooking } from "@/lib/reservations/bookings";
 import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { cancellationDelayHours } from "@/lib/settings";
 import {
   FAMILY_BOOKINGS_PATH,
   familyBookingPath,
@@ -41,21 +50,28 @@ import {
   professionalProfilePath,
 } from "@/lib/reservations/paths";
 
-import { cancelGardeAction, reportAbsenceAction, republishGardeAction } from "../actions";
+import { cancelGardeAction, contestAbsenceAction, reportAbsenceAction, republishGardeAction } from "../actions";
 
 const t = words(reservations);
 const m = words(messagerie);
 const g = words(gardes);
 
-type Notice = { confirmee?: string; annulee?: string; absence?: string; erreur?: string };
+type Notice = { confirmee?: string; annulee?: string; absence?: string; contestation?: string; erreur?: string };
 
-/** The line a redirect back here asks for: after a payment, a cancellation, a report, or a refusal. */
+/** The line a redirect back here asks for: after a payment, a cancellation, a report, a contest, or a refusal. */
 function noticeText(notice: Notice, prenom: string): string | null {
   if (notice.confirmee === "1") return fill(t.reservationsFamille.confirmee, { prenom });
   if (notice.annulee === "1") return g.annulation.faite;
   if (notice.absence === "1") return g.absence.faite;
+  if (notice.contestation === "1") return g.contestation.faite;
   const erreur = notice.erreur;
-  if (erreur === "annulation" || erreur === "absence" || erreur === "republication" || erreur === "generique") {
+  if (
+    erreur === "annulation" ||
+    erreur === "absence" ||
+    erreur === "contestation" ||
+    erreur === "republication" ||
+    erreur === "generique"
+  ) {
     return g.erreurs[erreur];
   }
   return null;
@@ -78,10 +94,14 @@ export const dynamic = "force-dynamic";
  * family's booking, like an unknown one, is not found.
  *
  * The garde's life (cycle-de-garde-et-annulation): its state (D-109);
- * « Annuler la garde » until the start hour (D-105); « Signaler une absence »
- * from it until 24 hours after the night (D-106); once cancelled, who and
- * when, the fee line (D-2), and « Republier ma demande » until the night
- * starts, or a link to her live request that night (D-107).
+ * « Annuler la garde » until the start hour (D-105), its dialog saying what the
+ * founders' table does with her fee at this moment (annulations-table);
+ * « Signaler une absence » from it until 24 hours after the night (D-106);
+ * « Contester ce signalement » for 24 hours after the professional reported
+ * her absent; once cancelled, who and when, the litige, the fee line (D-2: the
+ * credit, the fee kept, the litige or the refund), and « Republier ma
+ * demande » until the night starts, or a link to her live request that night
+ * (D-107).
  *
  * The rating (avis-etoiles): « Laisser un avis » while she may rate it, then
  * the stars she gave, never the professional's rating of her (D-117).
@@ -126,8 +146,12 @@ export default async function ReservationPage({
   const facts = { ...request, status: booking.garde.status };
   const state = gardeState(facts, now);
   const republishable = canRepublish(facts, now);
-  const [fee, liveRequest, given, subscribed] = await Promise.all([
-    booking.garde.status === "annulee" ? gardeFee(booking.id) : Promise.resolve(null),
+  const cancellable = canCancel(facts, now);
+  const ended = booking.garde.status === "annulee";
+  const [fee, liveCredit, delay, liveRequest, given, subscribed] = await Promise.all([
+    ended ? gardeFee(booking.id) : Promise.resolve(null),
+    ended ? gardeCredits([booking.id]) : Promise.resolve(null),
+    cancellable ? cancellationDelayHours() : Promise.resolve(null),
     republishable ? liveRequestOn(user.id, request.nightDate) : Promise.resolve(null),
     ratingsGiven("famille", [booking.id]),
     isSubscribed(user.id, now),
@@ -136,7 +160,13 @@ export default async function ReservationPage({
   const myRating = given.get(booking.id) ?? null;
   const cancelled = cancelledLine(booking.garde, "famille", professional.firstName);
   const reason = reasonLine(booking.garde);
-  const feeLine = feeText(booking.garde, fee?.status ?? null);
+  const dispute = disputeLine(booking.garde);
+  const feeLine = feeText(booking.garde, fee?.status ?? null, liveCredit?.get(booking.id) ?? null, "famille");
+  // Within the founders' delay her fee stays at Berceo; before it, it becomes a credit (annulations-table).
+  const cancelDescription =
+    delay !== null && isLateCancellation(facts, now, delay)
+      ? fill(g.annulation.descriptionFamilleTardive, { prenom: professional.firstName, heures: String(delay) })
+      : fill(g.annulation.descriptionFamille, { prenom: professional.firstName });
 
   return (
     <SpaceShell user={user} title={t.recapitulatif.titre}>
@@ -172,6 +202,7 @@ export default async function ReservationPage({
         <p className="text-corps text-encre-taupe">{t.recapitulatif.paiement}</p>
         {cancelled ? <p className="text-corps font-semibold text-encre-taupe">{cancelled}</p> : null}
         {reason ? <p className="text-corps text-encre-taupe">{reason}</p> : null}
+        {dispute ? <p className="text-corps font-semibold text-encre-taupe">{dispute}</p> : null}
         {feeLine ? <p className="text-corps text-encre-taupe">{feeLine}</p> : null}
       </article>
       {myRating ? (
@@ -214,10 +245,10 @@ export default async function ReservationPage({
         <Button asChild variant="raye">
           <Link href={FAMILY_BOOKINGS_PATH}>{t.reservationsFamille.retour}</Link>
         </Button>
-        {canCancel(facts, now) ? (
+        {cancellable ? (
           <CancelGarde
             side="famille"
-            description={fill(g.annulation.descriptionFamille, { prenom: professional.firstName })}
+            description={cancelDescription}
             onCancel={cancelGardeAction.bind(null, booking.id)}
           />
         ) : null}
@@ -226,6 +257,9 @@ export default async function ReservationPage({
             description={fill(g.absence.descriptionFamille, { prenom: professional.firstName })}
             onReport={reportAbsenceAction.bind(null, booking.id)}
           />
+        ) : null}
+        {canContest(booking.garde, "famille", now) ? (
+          <ContestAbsence onContest={contestAbsenceAction.bind(null, booking.id)} />
         ) : null}
       </div>
     </SpaceShell>

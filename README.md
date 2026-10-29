@@ -403,9 +403,8 @@ in `src/lib/reservations/bookings.ts`.
   the red confirmation dialog. One statement cancels the garde (who is responsible, who clicked,
   when) and its request (`cancelBookedRequestStatement` in `src/lib/demandes/`), which closes its
   conversations and frees the professional's night (`bookings_profile_night_key` counts
-  confirmed gardes only). A professional's cancellation then refunds the fee through `refundFee`;
-  a failure leaves the garde cancelled and the fee `payee`, for the founders' button. A family's
-  cancellation keeps the fee. The other side gets one e-mail.
+  confirmed gardes only). The same batch writes what the founders' table does with the fee
+  (**The founders' table** below). No cancellation calls Stripe. The other side gets one e-mail.
 - **The reason (annulations-delai-et-motif, D-20):** the cancel dialog asks one reason from the
   side's short list (`CANCELLATION_REASONS` in `rules.ts`), never free text. The dialog stays
   open without one, and `cancelGarde` refuses a reason outside the side's list. The reason sits
@@ -414,12 +413,31 @@ in `src/lib/reservations/bookings.ts`.
 - **The cancellation delay (annulations-delai-et-motif, the answers [9.2]):** `app_settings`
   holds `delai_annulation_heures`, 24 by default, a whole number of hours from 1 to 168. A
   founder changes it under « Réglages » on `/admin/dossiers`, through a confirmation, with a
-  journal entry (`src/lib/settings/`). `isLateCancellation` in `rules.ts` takes it. Nothing
-  decides the fee with it yet: `annulations-table` does.
+  journal entry (`src/lib/settings/`). `isLateCancellation` in `rules.ts` takes it, and the
+  family's cancel dialog says from it whether her fee becomes a credit or stays at Berceo.
 - **Reporting an absence (D-106):** from the start hour until 24 h after the night, either side
   reports the other absent; the garde is cancelled against the absent side (kind `absence`), who
-  gets one e-mail. Nothing is refunded: the founders read it under `/admin/signalements` (with
-  every cancellation) and refund from `/admin/paiements` if they judge it fair.
+  gets one e-mail. The same batch applies the founders' table. The founders read it under
+  `/admin/signalements` with every cancellation.
+- **The founders' table (annulations-table, the answers [9.2, 9.3]):** `outcomeOf` in `rules.ts`
+  returns the line that applies, and `rules.test.ts` holds one test per line. The family cancels
+  more than the delay before the start: a credit. Within the delay: the fee stays at Berceo. The
+  professional cancels, at any delay: a credit. The professional is reported absent: a credit.
+  The family is reported absent: the fee stays. A cancellation by Berceo: a credit (the rule and
+  its origin only, the founders' button comes with `annulations-back-office`). A garde with no
+  paid fee: nothing. `cancelGarde` and `reportAbsence` hold the same lines in SQL. The credit is
+  one statement of their batch (`gardeCreditStatement` in `src/lib/credits/`), guarded on the end
+  this batch wrote and on a `payee` fee. A garde holds one live credit at most
+  (`credits_booking_live_key`).
+- **The litige (annulations-table):** for 24 hours after an absence report (`CONTEST_HOURS`), the
+  side reported absent may click « Contester ce signalement ». `contestAbsence` writes
+  `disputed_at` and `disputed_by_user_id`, clears the founders' handled marker, and voids the
+  credit the report issued (`voided_at`), in one batch. A litige issues no credit. Both garde
+  pages and `/admin/signalements` show it. The founders decide, by hand.
+- **The fee line:** `feeLine` in `rules.ts`, on both garde pages. The litige, a refund, the live
+  credit (the family reads its amount and its expiry), or the fee kept after the family's own
+  cancellation or absence. A professional's cancellation made before the table has no credit and
+  shows nothing: it waits in « À rembourser ».
 - **Republishing (D-107, D-112):** on a cancelled garde whose night has not started, « Republier
   ma demande » publishes a new request for the same night through `publishRequest` (the
   cancelled request's commune and address, the urgent flag by the date window), or links to
@@ -543,18 +561,20 @@ never touches the money for the night (D-1).
   `en_attente` past `expires_at` reads as expired without a cron.
 - **Refunds (D-101, D-94):** `refundFee(paymentId, reason, now, by?)` is the one refund: the whole
   fee, a `payee` row only (or a failed refund, to retry), one Stripe idempotency key per payment
-  and attempt. Reasons: `annulation_professionnelle` (a professional's cancellation, **The garde's life**),
-  `reservation_impossible`, `berceo` (the founders' button, one `frais_rembourses` journal
+  and attempt. Reasons: `annulation_professionnelle` (a professional's cancellation before the
+  founders' table, **The garde's life**), `reservation_impossible`, `berceo` (the founders' button, one `frais_rembourses` journal
   line), `stripe` (a refund made in Stripe's dashboard, synced by the webhook). A refund Stripe
-  reports failed reads `remboursement_echoue`.
+  reports failed reads `remboursement_echoue`. A fee that became a live credit is refused
+  before Stripe (`feeHasLiveCredit` from `src/lib/credits/`), so no fee is credited and refunded.
 - **The founders' list (D-93):** `/admin/paiements`, every fee newest first, 50 per page, with
   « Rembourser les frais ». Families and professionals see no payment history.
 - **Fees still owed (D-162, D-164):** a `payee` or `remboursement_echoue` fee whose booking the
   professional cancelled (kind `annulation`) is marked « À rembourser » on its row, listed by
   `/admin/paiements?statut=a-rembourser`, and counted on the overview when there are any. One
-  condition, `awaitingRefund()` in `src/lib/paiements/payments.ts`, drives all three; it is how
-  an automatic refund that failed reaches the founders. The founders' refund still records
-  `berceo` (D-163).
+  condition, `awaitingRefund()` in `src/lib/paiements/payments.ts`, drives all three. It leaves
+  out a fee that became a live credit, so only a cancellation made before the founders' table
+  waits there. A fee turned into a credit reads « Devenus un crédit Berceo » and offers no
+  refund. The founders' refund still records `berceo` (D-163).
 - **Configuration (D-100):** `STRIPE_SECRET_KEY` (test key on Preview, live key on
   Production only once the company's Stripe account exists) and `STRIPE_WEBHOOK_SECRET` (per
   environment). In Stripe's dashboard, per account: enable Bancontact, and add the endpoint
@@ -763,17 +783,19 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
 - **The credit (credits-registre):** a fee kept for a later garde, from the founders' table
   (the answers [9.2]). It lasts 24 months from its issue, `CREDIT_MONTHS` in
   `src/lib/credits/rules.ts`, a constant and not a founders' setting. The amount is the fee's,
-  in cents, never a night rate. Nothing issues one yet: `annulations-table` writes the table's
-  lines and `annulations-back-office` the founders' hand, both through `issueCredit`.
+  in cents, never a night rate. The end of a garde issues the table's lines
+  (`gardeCreditStatement`, inside the batch of `src/lib/gardes/gardes.ts`, annulations-table).
+  `annulations-back-office` writes the founders' hand through `issueCredit`.
 - **The table:** `credits`, one row per credit: the family, `amount_cents`, `spent_cents`, the
   origin (`annulation_famille`, `annulation_professionnelle`, `absence_professionnelle`,
   `annulation_berceo`, `geste_berceo`), the payment and the booking it comes from or the founder
-  who granted it, a note, `issued_at` and `expires_at`. A money record like a payment: every
+  who granted it, a note, `issued_at`, `expires_at` and `voided_at` (a contested absence). A
+  garde holds one live credit at most (`credits_booking_live_key`). A money record like a payment: every
   link is set null on delete, never cascaded, so a deleted account never deletes a credit.
   Checks hold the amount positive, `spent_cents` within it and the expiry after the issue.
-- **The rules, pure:** a credit reads `disponible` until its expiry, `expire` from it, and
-  `utilise` once spent to the last cent, whatever the clock. `remainingCents` is what it can
-  still pay, 0 once spent or expired. `balanceCents` sums the remainders. `spendingPlan` picks
+- **The rules, pure:** a credit reads `disponible` until its expiry, `expire` from it,
+  `annule` from its voiding, and `utilise` once spent to the last cent, whatever the clock.
+  `remainingCents` is what it can still pay, 0 once spent, voided or expired. `balanceCents` sums the remainders. `spendingPlan` picks
   the credits that pay an amount, the earliest expiry first, then the earliest issue, each to its
   remainder, and names the rest the Checkout takes (`credits-au-paiement`). `rules.test.ts`
   holds them.
@@ -781,11 +803,12 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   expiry first, with its state, its remainder and her balance. `issueCredit` writes one at a
   moment with its expiry. `spendCredits` applies the plan in one batch, each take guarded on
   the amount already spent, and throws when a credit changed meanwhile. No code calls the last
-  two yet.
+  two yet. `gardeCreditStatement` and `voidGardeCreditStatement` are the end of a garde's
+  statements, `gardeCredits` the garde pages' read, and `feeHasLiveCredit` the fee's condition.
 - **The block:** « Mes crédits », `src/components/credits/credits-block.tsx`, on the family's
   home under « Votre abonnement » and on « Mes réservations » under the intro. Her balance, then
   each usable credit with what it can still pay and « valable jusqu'au » its expiry, then the
-  spent and expired ones under « Crédits utilisés ou expirés », each with its origin. With no
+  spent, voided and expired ones under « Crédits utilisés, annulés ou expirés », each with its origin. With no
   credit, one line. Words in `src/content/credits.ts`, every one `@relecture`.
 - **Hers alone:** only `src/lib/credits/` and the schema name the table.
   `src/lib/credits/isolation.test.ts` holds that.
@@ -909,7 +932,8 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   (`src/lib/admin/lists.ts`, `paymentCountSince` in `src/lib/paiements/payments.ts`,
   `subscriptionListCondition` in `src/lib/abonnements/subscriptions.ts`). The payments block adds
   « {n} frais à rembourser », linking to `/admin/paiements?statut=a-rembourser`, only when a
-  professional's cancellation left a fee unrefunded (`awaitingRefundCount`, D-164).
+  professional's cancellation made before the founders' table left a fee unrefunded
+  (`awaitingRefundCount`, D-164).
 - **Accounts:** `/admin/utilisateurs` searches first name, last name, full name and e-mail
   (case and accents folded) and the phone by its digits in any notation; a deleted account is
   never found. `/admin/utilisateurs/[id]` shows the account (a family's commune, never her
