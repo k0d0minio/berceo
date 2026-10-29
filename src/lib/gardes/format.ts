@@ -28,6 +28,16 @@ export function cancelledLine(garde: GardeRecord, viewer: BookingSide, other: st
   return mine ? fill(t.annulee.parVous, { date }) : fill(t.annulee.parAutre, { prenom: other, date });
 }
 
+/**
+ * The reason line under a cancelled garde (annulations-delai-et-motif): the
+ * reason the cancelling side chose, as that side read it. Null on a confirmed
+ * garde, an absence, or a garde cancelled before the reason existed.
+ */
+export function reasonLine(garde: GardeRecord): string | null {
+  if (garde.status !== "annulee" || garde.cancellationKind !== "annulation" || !garde.cancellationReason) return null;
+  return fill(t.annulee.motif, { motif: t.motifs[garde.cancellationReason] });
+}
+
 /** The fee line of the family's cancelled garde (D-2), or null. */
 export function feeText(garde: GardeRecord, payment: Parameters<typeof feeLine>[1]): string | null {
   const cancellation =

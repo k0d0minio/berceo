@@ -4,11 +4,13 @@ import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { after } from "next/server";
 
+import type { CancellationReason } from "@/db/schema";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { UUID } from "@/lib/demandes/requests";
 import { cancelGarde, logError, reportAbsence, type GardeWrite } from "@/lib/gardes/gardes";
 import { notifyAbsence, notifyCancellation } from "@/lib/gardes/notify";
+import { isReasonOf } from "@/lib/gardes/rules";
 import { professionalBookingPath } from "@/lib/reservations/paths";
 import { siteOrigin } from "@/lib/site-origin";
 
@@ -27,13 +29,15 @@ function checkedId(id: string): string {
 }
 
 /** « Annuler la garde » until the start hour (D-105): the family is told and her fee refunded (D-2). */
-export async function cancelGardeAction(bookingId: string): Promise<void> {
+export async function cancelGardeAction(bookingId: string, reason: CancellationReason): Promise<void> {
   const id = checkedId(bookingId);
   const user = await requireAccess(professionalBookingPath(id));
+  // The dialog sends one of her side's reasons; anything else is refused like a stale page.
+  if (!isReasonOf("professionnelle", reason)) redirect(`${professionalBookingPath(id)}?erreur=annulation`);
 
   let result: GardeWrite;
   try {
-    result = await cancelGarde("professionnelle", user.id, id, new Date());
+    result = await cancelGarde("professionnelle", user.id, id, reason, new Date());
   } catch (error) {
     logError("garde not cancelled", { userId: user.id, bookingId: id }, error);
     redirect(`${professionalBookingPath(id)}?erreur=generique`);

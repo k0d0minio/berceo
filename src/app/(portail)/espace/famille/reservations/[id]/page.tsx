@@ -30,7 +30,7 @@ import { brusselsNow } from "@/lib/demandes/rules";
 import { familyRequestPath } from "@/lib/demandes/paths";
 import { liveRequestOn } from "@/lib/demandes/requests";
 import { gardeFee } from "@/lib/gardes/gardes";
-import { cancelledLine, feeText } from "@/lib/gardes/format";
+import { cancelledLine, feeText, reasonLine } from "@/lib/gardes/format";
 import { canCancel, canReportAbsence, canRepublish, gardeState } from "@/lib/gardes/rules";
 import { familyBooking } from "@/lib/reservations/bookings";
 import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
@@ -135,6 +135,7 @@ export default async function ReservationPage({
   const mayRepublish = familyMay("publier", { subscribed });
   const myRating = given.get(booking.id) ?? null;
   const cancelled = cancelledLine(booking.garde, "famille", professional.firstName);
+  const reason = reasonLine(booking.garde);
   const feeLine = feeText(booking.garde, fee?.status ?? null);
 
   return (
@@ -170,6 +171,7 @@ export default async function ReservationPage({
         </dl>
         <p className="text-corps text-encre-taupe">{t.recapitulatif.paiement}</p>
         {cancelled ? <p className="text-corps font-semibold text-encre-taupe">{cancelled}</p> : null}
+        {reason ? <p className="text-corps text-encre-taupe">{reason}</p> : null}
         {feeLine ? <p className="text-corps text-encre-taupe">{feeLine}</p> : null}
       </article>
       {myRating ? (
@@ -214,6 +216,7 @@ export default async function ReservationPage({
         </Button>
         {canCancel(facts, now) ? (
           <CancelGarde
+            side="famille"
             description={fill(g.annulation.descriptionFamille, { prenom: professional.firstName })}
             onCancel={cancelGardeAction.bind(null, booking.id)}
           />

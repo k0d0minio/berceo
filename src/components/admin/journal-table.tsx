@@ -24,6 +24,7 @@ function JournalTable({ entries }: { entries: AdminJournalEntry[] }) {
       return entry.detail === "suppression" ? t.details.suppression : t.details.purge
     }
     if (entry.action === "utilisateur_contacte" && entry.detail) return fill(t.details.objet, { objet: entry.detail })
+    if (entry.action === "reglage_delai_annulation" && entry.detail) return fill(t.details.delai, { heures: entry.detail })
     if (entry.action === "signalement_traite" && entry.detail) {
       return fill(t.details.garde, { date: formatDate(entry.detail) })
     }

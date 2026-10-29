@@ -2,7 +2,7 @@ import "server-only";
 
 import { and, eq, isNull, sql } from "drizzle-orm";
 
-import { bookings, careRequests, db, type BookingSide } from "@/db";
+import { bookings, careRequests, db, type BookingSide, type CancellationReason } from "@/db";
 import { nightEnd } from "@/lib/demandes/night-end";
 import { addDays, brusselsNow, otherSide, TIME_ZONE, URGENT_LAST_DAY } from "@/lib/demandes/rules";
 import {
@@ -15,7 +15,7 @@ import {
 import { nightAddressOf } from "@/lib/famille/request-address";
 import { bookingFees, refundFee, type BookingFee } from "@/lib/paiements/payments";
 
-import { ABSENCE_HOURS_AFTER_END, canRepublish, reminderNight } from "./rules";
+import { ABSENCE_HOURS_AFTER_END, canRepublish, isReasonOf, reminderNight } from "./rules";
 
 /**
  * The life of a garde after its booking (cycle-de-garde-et-annulation): the
@@ -60,23 +60,27 @@ export type GardeWrite = { ok: true } | { ok: false };
 
 /**
  * Cancels her or his confirmed garde before its start hour (D-105): recorded
- * against `side`, with who clicked and when; its request is cancelled in the
- * same statement. A professional's cancellation then refunds the family's fee
- * (D-2). Returns ok only to the call that cancelled it.
+ * against `side`, with who clicked, when, and the reason chosen from the
+ * side's list (annulations-delai-et-motif); its request is cancelled in the
+ * same statement. A reason outside the list cancels nothing. A professional's
+ * cancellation then refunds the family's fee (D-2). Returns ok only to the call
+ * that cancelled it.
  */
 export async function cancelGarde(
   side: BookingSide,
   userId: string,
   bookingId: string,
+  reason: CancellationReason,
   now: Date,
 ): Promise<GardeWrite> {
-  if (!UUID.test(bookingId)) return { ok: false };
+  if (!UUID.test(bookingId) || !isReasonOf(side, reason)) return { ok: false };
   const at = now.toISOString();
   const [cancelled] = await db.batch([
     db.execute<{ id: string }>(sql`
       update bookings b
       set status = 'annulee', cancelled_at = ${at}::timestamptz, cancelled_by = ${side}::booking_side,
-          cancelled_by_user_id = ${userId}::uuid, cancellation_kind = 'annulation'
+          cancelled_by_user_id = ${userId}::uuid, cancellation_kind = 'annulation',
+          cancellation_reason = ${reason}::cancellation_reason
       from care_requests r
       where b.id = ${bookingId}
         and r.id = b.request_id

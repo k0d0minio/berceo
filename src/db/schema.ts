@@ -654,12 +654,31 @@ export const bookingSideEnum = pgEnum("booking_side", ["famille", "professionnel
 export const cancellationKindEnum = pgEnum("cancellation_kind", ["annulation", "absence"]);
 
 /**
+ * Why a side cancelled its garde (annulations-delai-et-motif, the answers
+ * [9.2]): one choice from its side's short list, never free text (D-20). The
+ * family's are `plus_besoin`, `imprevu`, `autre_solution`; the professional's
+ * `malade`, `empechement`, `indisponible`; `autre` is both sides'. The lists
+ * are `CANCELLATION_REASONS` in `src/lib/gardes/rules.ts`.
+ */
+export const cancellationReasonEnum = pgEnum("cancellation_reason", [
+  "plus_besoin",
+  "imprevu",
+  "autre_solution",
+  "malade",
+  "empechement",
+  "indisponible",
+  "autre",
+]);
+
+/**
  * The night two people agreed on. Made from one answer, for one request, and
  * one confirmed garde per professional per night (D-73). It carries no
  * address: the professional reads the family's through `src/lib/famille/`
  * (D-77). `src/lib/gardes/` writes its cancellation: `cancelled_by` is the side
  * responsible (the absent one for an absence), `cancelled_by_user_id` who
- * clicked (D-105, D-106).
+ * clicked (D-105, D-106), and `cancellation_reason` the reason that side chose
+ * when it cancelled; an absence has none, and neither has a garde cancelled
+ * before annulations-delai-et-motif.
  */
 export const bookings = pgTable(
   "bookings",
@@ -690,6 +709,7 @@ export const bookings = pgTable(
     cancelledBy: bookingSideEnum("cancelled_by"),
     cancelledByUserId: uuid("cancelled_by_user_id").references(() => users.id, { onDelete: "set null" }),
     cancellationKind: cancellationKindEnum("cancellation_kind"),
+    cancellationReason: cancellationReasonEnum("cancellation_reason"),
     /** When the reminder of the day before claimed it (D-108); null until then. */
     reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
     /**
@@ -728,6 +748,10 @@ export const bookings = pgTable(
     check(
       "bookings_cancellation",
       sql`(${table.cancelledAt} IS NULL) = (${table.cancelledBy} IS NULL) AND (${table.cancelledAt} IS NULL) = (${table.cancellationKind} IS NULL)`,
+    ),
+    check(
+      "bookings_cancellation_reason",
+      sql`${table.cancellationReason} IS NULL OR ${table.cancellationKind} = 'annulation'`,
     ),
   ],
 );
@@ -1059,8 +1083,9 @@ export const favourites = pgTable(
 // ---------------------------------------------------------------------------
 
 /**
- * The founders' switches, one row per key. No row means the default (off).
- * Today: `etudiantes_admises` (D-7).
+ * The founders' settings, one row per key. No row means the default.
+ * Today: `etudiantes_admises` (D-7, off by default) and `delai_annulation_heures`
+ * (annulations-delai-et-motif, 24 by default; the migration writes its row).
  */
 export const appSettings = pgTable("app_settings", {
   key: text("key").primaryKey(),
@@ -1087,6 +1112,8 @@ export const adminActionEnum = pgEnum("admin_action", [
   "compte_supprime",
   "utilisateur_contacte",
   "signalement_traite",
+  // annulations-delai-et-motif
+  "reglage_delai_annulation",
 ]);
 
 /**
@@ -1141,6 +1168,7 @@ export type Booking = typeof bookings.$inferSelect;
 export type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
 export type BookingSide = (typeof bookingSideEnum.enumValues)[number];
 export type CancellationKind = (typeof cancellationKindEnum.enumValues)[number];
+export type CancellationReason = (typeof cancellationReasonEnum.enumValues)[number];
 export type Conversation = typeof conversations.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type MessageAuthor = (typeof messageAuthorEnum.enumValues)[number];
