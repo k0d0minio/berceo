@@ -208,8 +208,8 @@ describe("what a subscription opens", () => {
   const gate = (row: Parameters<typeof hasActiveSubscription>[0], booked = false) =>
     FAMILY_ACTIONS.filter((action) => familyMay(action, { subscribed: hasActiveSubscription(row, now), booked }));
 
-  it("names the six gated actions", () => {
-    expect([...FAMILY_ACTIONS]).toEqual(["publier", "modifier", "reserver", "priorite", "profil", "ecrire"]);
+  it("names the seven gated actions", () => {
+    expect([...FAMILY_ACTIONS]).toEqual(["publier", "modifier", "reserver", "priorite", "profil", "ecrire", "favori"]);
   });
 
   it("opens every action for an active subscription", () => {

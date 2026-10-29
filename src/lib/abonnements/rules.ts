@@ -143,9 +143,11 @@ export function hasActiveSubscription(
  * her account, her past gardes and her conversations in read-only, and
  * cancelling a request never closes. A confirmed booking is never cut: its
  * conversation stays writable until the night is over, which the closing rule
- * of `src/lib/messagerie/` holds. The professionals' side reads none of this.
+ * of `src/lib/messagerie/` holds. `favori` marks a professional as one of
+ * « mes professionnelles » (favoris-marquer). The professionals' side reads
+ * none of this.
  */
-export const FAMILY_ACTIONS = ["publier", "modifier", "reserver", "priorite", "profil", "ecrire"] as const;
+export const FAMILY_ACTIONS = ["publier", "modifier", "reserver", "priorite", "profil", "ecrire", "favori"] as const;
 
 export type FamilyAction = (typeof FAMILY_ACTIONS)[number];
 

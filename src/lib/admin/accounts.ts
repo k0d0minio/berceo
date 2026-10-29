@@ -29,6 +29,7 @@ import { sendEmail } from "@/lib/email/send";
 import { contactEmail } from "@/lib/email/templates";
 import { deletionForgetsFamilyProfile, familyCommune } from "@/lib/famille/profile";
 import { deletionForgetsRequestAddresses } from "@/lib/famille/request-address";
+import { deletionForgetsFavourites } from "@/lib/favoris/favourites";
 import { suspensionWithdrawsAnswers } from "@/lib/reservations/answers";
 
 import { fullName, journalFor, journalInsert, journalInsertAfter, journalInsertIf, type Person } from "./journal";
@@ -413,7 +414,7 @@ export type DeleteResult = ActResult | { ok: false; error: "nomDifferent" };
  * « Supprimer le compte » (D-136, D-137): anonymisation, never a removed row.
  * One transaction: the row renamed « Compte supprimé » with a dead address and
  * no phone, her family profile and the addresses of her requests, her
- * profile's personal fields and her radius, her communes, her reach and nights gone, her Neon Auth identity deleted (its sessions and accounts go
+ * profile's personal fields and her radius, her communes, her reach and nights gone, her marks of a favourite and the marks on her profile gone, her Neon Auth identity deleted (its sessions and accounts go
  * with it), and the journal entry under the name she had. Then her files leave
  * the bucket, each object before its row; whatever fails there stays listed
  * and the daily purge finishes it.
@@ -478,6 +479,7 @@ export async function deleteAccount(
       db.delete(professionalCommunes).where(and(inArray(professionalCommunes.profileId, ownProfile), deleted)),
       db.delete(professionalReach).where(and(inArray(professionalReach.profileId, ownProfile), deleted)),
       deletionForgetsAvailability(userId, now),
+      deletionForgetsFavourites(userId, now),
       db.execute(sql`delete from neon_auth."user" where id::text = ${account.authUserId} and ${deleted}`),
       journalInsertIf(
         { action: "compte_supprime", subject: { id: userId, name: fullName(account) }, admin, at: now },

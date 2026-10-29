@@ -43,6 +43,7 @@ The contract: `.icm/uat/CONTEXT.md`.
 | [src/lib/avis/](src/lib/avis/), [src/components/avis/](src/components/avis/) | The stars after a garde: the rating form of each side, the note and gardes count wherever they show, the invitation e-mail, the founders' list. See **The ratings** below. |
 | [src/lib/messagerie/](src/lib/messagerie/), [src/components/messagerie/](src/components/messagerie/) | The conversation per answer: its rules, reads and writes, the send action, the new-message e-mail. See **The conversation** below. |
 | [src/lib/disponibilites/](src/lib/disponibilites/), [src/components/disponibilites/](src/components/disponibilites/) | The professional's indicative calendar and the « Prochaines disponibilités » block. See **The professional's availability** below. |
+| [src/lib/favoris/](src/lib/favoris/), [src/components/favoris/](src/components/favoris/) | A family's favourite professionals: the mark and its reads and writes. See **The favourites** below. |
 | [src/lib/paiements/](src/lib/paiements/), [src/app/api/webhooks/stripe/](src/app/api/webhooks/stripe/) | The 3 % service fee through Stripe: the Checkout, the webhook, refunds, the founders' list. See **The service fee** below. |
 | [src/lib/abonnements/](src/lib/abonnements/) | The four family subscriptions through Stripe: the plans, the Checkout in subscription mode, the row the webhook keeps true, `hasActiveSubscription`. See **The subscriptions** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`. |
@@ -597,9 +598,10 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   reads it for a family. Every later stub of the epic reads this rule.
 - **What it opens (abonnements-acces):** `familyMay(action, { subscribed, booked })` in
   `rules.ts` is the one gate. `subscribed` is `hasActiveSubscription`, so the grace period
-  opens everything and a pending first payment opens nothing. The six actions: `publier`
+  opens everything and a pending first payment opens nothing. The seven actions: `publier`
   (publish and republish), `modifier`, `reserver` (« Accepter et réserver », before the fee's
-  Checkout), `priorite`, `profil` (the full profile) and `ecrire`. `booked` opens `ecrire` in
+  Checkout), `priorite`, `profil` (the full profile), `ecrire` and `favori` (the mark « mes
+  professionnelles »). `booked` opens `ecrire` in
   the booked answer's conversation, which closes when the night is over.
   `familyMayNow(userId, action, now)` reads it for a page or an action.
   - Each page shows the invitation line (`SubscriptionRequired`,
@@ -703,6 +705,23 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
 - **Where:** rules in `src/lib/disponibilites/rules.ts` (window, month blocks, what a save may
   carry), wording in `format.ts` (« Nuit du lundi 12 au mardi 13 octobre »), reads and writes in
   `nights.ts`; words in `src/content/disponibilites.ts`.
+
+## The favourites
+
+- **The mark (favoris-marquer):** a subscribed family marks a professional with « Ajouter à mes
+  professionnelles » and removes the mark with « Retirer de mes professionnelles ». The button
+  sits on the full profile, beside the priority request, and at the foot of each search card,
+  where a heart alone in a square capsule carries her first name as its name. The card's link
+  holds the content and the button sits outside it. `markAction` (beside
+  `espace/famille/professionnelles/`) reads `familyMayNow(…, "favori")` and `publicProfile`
+  again before the write.
+- **The table:** `favourites`, one row per `(family_user_id, profile_id)`, both cascading.
+  A lost subscription keeps the rows and hides the mark. A profile that is not `valide` keeps
+  its rows, and no reader shows it. An account's deletion removes its rows and the rows on its
+  profile in its own batch (`deletionForgetsFavourites`).
+- **Hers alone:** only `src/lib/favoris/favourites.ts` names the table. No page of the
+  professional, of the founders or of the vitrine reads it. `src/lib/favoris/isolation.test.ts`
+  holds both. Words in `src/content/favoris.ts`, every one `@relecture`.
 
 ## The professional's onboarding and documents
 
