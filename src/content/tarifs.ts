@@ -50,8 +50,11 @@ export const tarifs = catalogue({
       /** @relecture Surya — titre de section. */
       title: "Les frais de service",
       paragraphs: [
-        /** @relecture Surya — phrase du guide, sans « Ils couvrent l'assurance » (D-8). */
-        "Des frais de service de 3 % sont prélevés à la confirmation de chaque réservation. Ils couvrent le bon fonctionnement de la plateforme.",
+        /**
+         * @relecture Surya — texte des fondatrices. Seule phrase du site qui nomme
+         * l'assurance : Jamie lève D-8 pour elle le 2026-10-29.
+         */
+        "Des frais de service de 3 % sont prélevés à la confirmation de chaque réservation. Ils couvrent le bon fonctionnement de la plateforme et l'assurance.",
         /** @relecture Surya — règle de remboursement (D-2). */
         "Si la professionnelle annule la garde, ces frais vous sont intégralement remboursés. Si vous annulez, ils ne sont pas remboursés.",
       ],
