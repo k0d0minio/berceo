@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
+import { MarkButton } from "@/components/favoris/mark-button";
 import { NoResult } from "@/components/recherche/no-result";
 import { ProfessionalCard, TeaserCard } from "@/components/recherche/professional-card";
 import { SearchForm } from "@/components/recherche/search-form";
@@ -10,16 +11,20 @@ import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { fill, words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
-import { familyMayNow } from "@/lib/abonnements/subscriptions";
+import { familyMay } from "@/lib/abonnements/rules";
+import { isSubscribed } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { communeName, findLocality, parseLocalityValue, type Locality } from "@/lib/communes";
 import { NEW_REQUEST_PATH } from "@/lib/demandes/paths";
 import { familyCommune } from "@/lib/famille/profile";
+import { markedAmong } from "@/lib/favoris/favourites";
 import { cardsServing } from "@/lib/recherche/professionals";
 import { communesOfParams, resolveQuery, searchQuery, zoneNames } from "@/lib/recherche/rules";
 import { publicProfessionalPath, SEARCH_PATH } from "@/lib/recherche/slugs";
 import { professionalProfilePath } from "@/lib/reservations/paths";
+
+import { markAction } from "../professionnelles/actions";
 
 const t = words(recherche);
 
@@ -43,7 +48,8 @@ function first(value: string | string[] | undefined): string | undefined {
  * result list is a URL a family can reload. Opened bare, the page searches
  * her own commune when her profile has one. Without a subscription the page
  * stays open with the public teaser cards, each linking to the professional's
- * public page, under the invitation line (abonnements-acces).
+ * public page, under the invitation line (abonnements-acces). With one, each
+ * card carries the mark « mes professionnelles » (favoris-marquer).
  */
 export default async function RecherchePage({
   searchParams,
@@ -85,10 +91,13 @@ export default async function RecherchePage({
   }
 
   const now = new Date();
-  const [cards, full] = await Promise.all([
+  const [cards, subscribed] = await Promise.all([
     communes.length > 0 ? cardsServing(communes, now) : Promise.resolve([]),
-    familyMayNow(user.id, "profil", now),
+    isSubscribed(user.id, now),
   ]);
+  const full = familyMay("profil", { subscribed });
+  const mayMark = familyMay("favori", { subscribed });
+  const marked = mayMark ? await markedAmong(user.id, cards.map((card) => card.id)) : new Set<string>();
   const names = communes.map((ins) => communeName(ins) ?? ins).join(", ");
 
   return (
@@ -129,6 +138,16 @@ export default async function RecherchePage({
                     note={card.note}
                     photoId={card.photoId}
                     nights={card.nights}
+                    mark={
+                      mayMark ? (
+                        <MarkButton
+                          compact
+                          marked={marked.has(card.id)}
+                          prenom={card.firstName}
+                          onToggle={markAction.bind(null, card.id, !marked.has(card.id))}
+                        />
+                      ) : undefined
+                    }
                     className="h-full"
                   />
                 </li>

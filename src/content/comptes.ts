@@ -60,6 +60,7 @@ export const comptes = catalogue({
     },
 
     inscription: {
+      /** La phrase du guide, écrite pour la famille : la nuit de repos est la sienne. */
       message:
         "L'inscription prend 3 minutes. Votre première nuit de repos est plus proche que vous ne le pensez.",
       famille: {
@@ -69,6 +70,12 @@ export const comptes = catalogue({
           "Accédez aux profils des professionnelles de santé disponibles pour des gardes de nuit à domicile.",
       },
       professionnelle: {
+        /**
+         * @relecture Surya — première ligne de l'inscription professionnelle. Le délai
+         * de vérification est celui de la FAQ et de « Comment ça marche ».
+         */
+        message:
+          "L'inscription prend 3 minutes. L'équipe Berceo vérifie votre dossier dans les 24 heures ouvrables.",
         /** Le titre de l'étape 1 du guide. */
         title: "Créez votre compte",
         /** @relecture Surya — repère de progression avant l'onboarding (D-21). */

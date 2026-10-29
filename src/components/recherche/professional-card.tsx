@@ -17,7 +17,9 @@ import { cn } from "@/lib/utils"
  * photo, first name, profession, « Profil vérifié par Berceo », her zone with
  * the searched commune first and her radius (zone-rayon-lecture), her note and gardes count, and her next
  * indicative nights. The whole card is one link to her full profile, named by
- * her first name. 32 px corners, flat white on pearl, no shadow.
+ * her first name. 32 px corners, flat white on pearl, no shadow. A subscribed
+ * family's card carries the mark « mes professionnelles » at its foot
+ * (favoris-marquer), outside the link: a button never sits inside a link.
  */
 
 const t = words(recherche).carte
@@ -33,28 +35,37 @@ type CardProps = {
   className?: string
 }
 
+const CARD = "flex min-w-0 flex-col gap-4 rounded-carte bg-blanc px-6 py-6 md:px-8"
+
 function CardFrame({
   href,
   firstName,
   children,
+  footer,
   className,
 }: {
   href: string
   firstName: string
   children: React.ReactNode
+  footer?: React.ReactNode
   className?: string
 }) {
+  const label = fill(t.voirProfil, { prenom: firstName })
+  if (!footer) {
+    return (
+      <Link href={href} aria-label={label} className={cn(CARD, className)}>
+        {children}
+      </Link>
+    )
+  }
+  // The card's look moves to the frame. The link keeps the content, the foot holds the button.
   return (
-    <Link
-      href={href}
-      aria-label={fill(t.voirProfil, { prenom: firstName })}
-      className={cn(
-        "flex min-w-0 flex-col gap-4 rounded-carte bg-blanc px-6 py-6 md:px-8",
-        className
-      )}
-    >
-      {children}
-    </Link>
+    <div className={cn(CARD, className)}>
+      <Link href={href} aria-label={label} className="flex min-w-0 flex-1 flex-col gap-4">
+        {children}
+      </Link>
+      <div className="flex justify-end">{footer}</div>
+    </div>
   )
 }
 
@@ -79,14 +90,15 @@ function Zone({ zone, reach }: Pick<CardProps, "zone" | "reach">) {
   )
 }
 
-/** A signed-in family's card: with her photo and her next nights. */
+/** A signed-in family's card: with her photo and her next nights, and the mark when her subscription opens it. */
 function ProfessionalCard({
   photoId,
   nights,
+  mark,
   ...props
-}: CardProps & { photoId: string | null; nights: readonly string[] }) {
+}: CardProps & { photoId: string | null; nights: readonly string[]; mark?: React.ReactNode }) {
   return (
-    <CardFrame href={props.href} firstName={props.firstName} className={props.className}>
+    <CardFrame href={props.href} firstName={props.firstName} footer={mark} className={props.className}>
       <div className="flex items-center gap-4">
         <ProfessionalPhoto photoId={photoId} prenom={props.firstName} className="size-20" />
         <Identity firstName={props.firstName} profession={props.profession} />

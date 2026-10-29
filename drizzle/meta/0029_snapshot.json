@@ -1,5 +1,5 @@
 {
-  "id": "7e3e9ae1-304e-4abb-9fbd-c5bded5418e8",
+  "id": "57d4e31c-12db-4bc8-a22e-b1429a902e5e",
   "prevId": "8d58b0ff-1d15-4544-a77b-d1b7ac9f5fb1",
   "version": "7",
   "dialect": "postgresql",
@@ -245,13 +245,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "cancellation_reason": {
-          "name": "cancellation_reason",
-          "type": "cancellation_reason",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
         "reminder_sent_at": {
           "name": "reminder_sent_at",
           "type": "timestamp with time zone",
@@ -489,10 +482,6 @@
         "bookings_cancellation": {
           "name": "bookings_cancellation",
           "value": "(\"bookings\".\"cancelled_at\" IS NULL) = (\"bookings\".\"cancelled_by\" IS NULL) AND (\"bookings\".\"cancelled_at\" IS NULL) = (\"bookings\".\"cancellation_kind\" IS NULL)"
-        },
-        "bookings_cancellation_reason": {
-          "name": "bookings_cancellation_reason",
-          "value": "\"bookings\".\"cancellation_reason\" IS NULL OR \"bookings\".\"cancellation_kind\" = 'annulation'"
         }
       },
       "isRLSEnabled": false
@@ -1330,6 +1319,89 @@
           "value": "char_length(\"family_profiles\".\"context\") <= 300"
         }
       },
+      "isRLSEnabled": false
+    },
+    "public.favourites": {
+      "name": "favourites",
+      "schema": "",
+      "columns": {
+        "family_user_id": {
+          "name": "family_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "favourites_profile_id_idx": {
+          "name": "favourites_profile_id_idx",
+          "columns": [
+            {
+              "expression": "profile_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "favourites_family_user_id_users_id_fk": {
+          "name": "favourites_family_user_id_users_id_fk",
+          "tableFrom": "favourites",
+          "tableTo": "users",
+          "columnsFrom": [
+            "family_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "favourites_profile_id_professional_profiles_id_fk": {
+          "name": "favourites_profile_id_professional_profiles_id_fk",
+          "tableFrom": "favourites",
+          "tableTo": "professional_profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "favourites_family_user_id_profile_id_pk": {
+          "name": "favourites_family_user_id_profile_id_pk",
+          "columns": [
+            "family_user_id",
+            "profile_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.messages": {
@@ -2874,8 +2946,7 @@
         "compte_reactive",
         "compte_supprime",
         "utilisateur_contacte",
-        "signalement_traite",
-        "reglage_delai_annulation"
+        "signalement_traite"
       ]
     },
     "public.application_status": {
@@ -2926,19 +2997,6 @@
       "values": [
         "annulation",
         "absence"
-      ]
-    },
-    "public.cancellation_reason": {
-      "name": "cancellation_reason",
-      "schema": "public",
-      "values": [
-        "plus_besoin",
-        "imprevu",
-        "autre_solution",
-        "malade",
-        "empechement",
-        "indisponible",
-        "autre"
       ]
     },
     "public.care_request_children": {
