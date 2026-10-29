@@ -13,6 +13,11 @@ import { GET } from "./route";
  * sign-up lands on its Checkout, and the way back stays for her return from
  * Stripe.
  *
+ * Spec (triage/verification-email-connexion): Neon Auth's verify-email
+ * answers `{ status: true, user: null }` on every success, as Better Auth
+ * does. The first click is the one that sets a session cookie, and the
+ * identity comes from get-session with that cookie.
+ *
  * Spec (comptes-welcome-email-no-retry): the welcome is scheduled after the
  * redirect, never awaited (D-166); a failed `users` read still hands over
  * Neon's session cookies and lands on sign-in, never a 500.
@@ -61,14 +66,35 @@ beforeEach(() => {
   row.current = { id: "u1", role: "parent" };
   row.fails = false;
   // A fresh response per call: a body can be read once.
-  handlerGet.mockImplementation(
-    async () =>
-      new Response(JSON.stringify({ user: { id: "auth-1" } }), {
-        status: 200,
-        headers: { "set-cookie": "__Secure-neon-auth.session_token=s; Path=/; HttpOnly" },
-      }),
-  );
+  handlerGet.mockImplementation(neon({ verified: "first" }));
 });
+
+/**
+ * Neon Auth through the proxy, as it answers for real: verify-email never
+ * names the user, and get-session names her when the cookie carries a session.
+ */
+function neon(options: { verified: "first" | "again"; session?: "ok" | "fails" }) {
+  return async (request: Request, context: { params: Promise<{ path: string[] }> }) => {
+    const [path] = (await context.params).path;
+    if (path === "verify-email") {
+      return new Response(JSON.stringify({ status: true, user: null }), {
+        status: 200,
+        headers:
+          options.verified === "first"
+            ? { "set-cookie": "__Secure-neon-auth.session_token=s; Path=/; HttpOnly" }
+            : {},
+      });
+    }
+    if (path === "get-session") {
+      if (options.session === "fails") return new Response(null, { status: 500 });
+      const signedIn = (request.headers.get("cookie") ?? "").includes("__Secure-neon-auth.session_token=s");
+      return new Response(JSON.stringify(signedIn ? { session: {}, user: { id: "auth-1" } } : null), {
+        status: 200,
+      });
+    }
+    return new Response(null, { status: 404 });
+  };
+}
 
 function landing(response: Response): string {
   return new URL(response.headers.get("location") ?? "").pathname;
@@ -141,10 +167,9 @@ describe("the confirmer's other landings", () => {
   });
 
   it("sends a second click, which brings no new session, to sign-in, told it is done", async () => {
-    handlerGet.mockImplementation(
-      async () => new Response(JSON.stringify({ user: { id: "auth-1" } }), { status: 200 }),
-    );
+    handlerGet.mockImplementation(neon({ verified: "again" }));
     expect(target(await call())).toBe("/connexion?verifie=1");
+    expect(scheduleWelcomeIfDue).not.toHaveBeenCalled();
   });
 
   it("sends a link without a token to sign-in, told the link is no longer valid", async () => {
@@ -184,5 +209,30 @@ describe("a failed users read after Neon consumed the token", () => {
     const [message, context] = vi.mocked(console.error).mock.calls[0];
     expect(message).toMatch(/^\[comptes\] /);
     expect(context).toEqual({ authUserId: "auth-1", error: "Error" });
+  });
+});
+
+describe("the first click, with Neon Auth's real answer (triage/verification-email-connexion)", () => {
+  it("asks get-session for the identity with the new session cookie only", async () => {
+    await call(PROFILE);
+    expect(handlerGet).toHaveBeenCalledTimes(2);
+    const sessionCall = handlerGet.mock.calls[1][0] as Request;
+    expect(new URL(sessionCall.url).pathname).toBe("/api/auth/get-session");
+    expect(sessionCall.headers.get("cookie")).toBe("__Secure-neon-auth.session_token=s");
+  });
+
+  it("opens the space of the verified user and schedules her welcome once", async () => {
+    const response = await call();
+    expect(target(response)).toBe("/espace/famille");
+    expect(hasSession(response)).toBe(true);
+    expect(scheduleWelcomeIfDue).toHaveBeenCalledTimes(1);
+  });
+
+  it("lands on sign-in, told it is done, with the session cookies, when get-session fails", async () => {
+    handlerGet.mockImplementation(neon({ verified: "first", session: "fails" }));
+    const response = await call(PROFILE);
+    expect(target(response)).toBe("/connexion?verifie=1");
+    expect(hasSession(response)).toBe(true);
+    expect(scheduleWelcomeIfDue).not.toHaveBeenCalled();
   });
 });
