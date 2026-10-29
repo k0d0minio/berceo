@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import {
   db,
@@ -81,4 +81,44 @@ export async function publicProfile(profileId: string): Promise<PublicProfile | 
     notesOfProfiles([profileId]),
   ]);
   return { ...row, communes: communes.map((c) => c.ins), note: notes.get(profileId) ?? NO_NOTE };
+}
+
+/** What « Mes professionnelles » reads of each card (favoris-liste): a subset of `profileColumns`, the test holds it. */
+export const listColumns = {
+  id: profileColumns.id,
+  firstName: profileColumns.firstName,
+  profession: profileColumns.profession,
+  photoId: profileColumns.photoId,
+};
+
+export type ListedProfile = {
+  id: string;
+  firstName: string;
+  profession: Profession | null;
+  photoId: string | null;
+  /** A `valide` profile of an account that is not suspended: the one state that takes a request. */
+  available: boolean;
+  note: Note;
+};
+
+/**
+ * The profiles a family's list names, by id (favoris-liste). A deleted account
+ * is shown to no one (D-136), so its profile is absent. Any other profile
+ * is here, `available` or not: the list shows an unavailable one as such.
+ */
+export async function listedProfiles(profileIds: readonly string[]): Promise<Map<string, ListedProfile>> {
+  const ids = profileIds.filter((id) => UUID.test(id));
+  if (ids.length === 0) return new Map();
+  const rows = await db
+    .select({
+      ...listColumns,
+      available: sql<boolean>`(${professionalProfiles.status} = 'valide' and ${notSuspended(professionalProfiles.userId)})`,
+    })
+    .from(professionalProfiles)
+    .innerJoin(users, eq(users.id, professionalProfiles.userId))
+    .where(and(inArray(professionalProfiles.id, ids), isNull(users.deletedAt)));
+  const notes = await notesOfProfiles(rows.map((row) => row.id));
+  return new Map(
+    rows.map((row) => [row.id, { ...row, available: row.available === true, note: notes.get(row.id) ?? NO_NOTE }]),
+  );
 }

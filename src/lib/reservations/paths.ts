@@ -1,6 +1,6 @@
 import { SPACES } from "@/lib/auth/routing";
 
-/** A professional's full profile, as a family sees it (D-75). */
+/** « Mes professionnelles », the family's list (favoris-liste), and under it a professional's full profile (D-75). */
 export const FAMILY_PROFESSIONALS_PATH = `${SPACES.parent}/professionnelles`;
 
 export function professionalProfilePath(profileId: string, requestId?: string): string {

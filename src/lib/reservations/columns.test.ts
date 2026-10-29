@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { profileColumns } from "./profiles";
+import { listColumns, profileColumns } from "./profiles";
 
 /**
  * Spec (candidature-et-reservation, D-75): a family reads a validated
@@ -44,5 +44,10 @@ describe("the full profile a family reads", () => {
     ]) {
       expect(columns).not.toContain(hidden);
     }
+  });
+
+  it("lets « Mes professionnelles » read a subset of it (favoris-liste)", () => {
+    expect(Object.keys(listColumns).sort()).toEqual(["firstName", "id", "photoId", "profession"]);
+    for (const [key, column] of Object.entries(listColumns)) expect(column).toBe(profileColumns[key as keyof typeof profileColumns]);
   });
 });
