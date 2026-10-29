@@ -12,6 +12,7 @@ import {
   users,
   type BookingSide,
   type CancellationKind,
+  type CancellationReason,
 } from "@/db";
 import { nightEnd as nightEndOf } from "@/lib/demandes/night-end";
 import { TIME_ZONE } from "@/lib/demandes/rules";
@@ -259,6 +260,8 @@ export type AdminReportRow = {
   /** The side responsible: who cancelled, or who was absent. */
   side: BookingSide;
   kind: CancellationKind;
+  /** The reason the cancelling side chose (annulations-delai-et-motif); null for an absence or an older garde. */
+  reason: CancellationReason | null;
   family: { id: string; name: string };
   professional: { id: string; name: string };
   fee: BookingFee | null;
@@ -280,6 +283,7 @@ export async function readReports(
         cancelledAt: bookings.cancelledAt,
         side: bookings.cancelledBy,
         kind: bookings.cancellationKind,
+        reason: bookings.cancellationReason,
         handledAt: bookings.reportHandledAt,
         handledFirst: handledBy.firstName,
         handledLast: handledBy.lastName,
@@ -308,6 +312,7 @@ export async function readReports(
               cancelledAt: row.cancelledAt,
               side: row.side,
               kind: row.kind,
+              reason: row.reason,
               family: { id: row.familyId, name: fullName({ firstName: row.familyFirst, lastName: row.familyLast }) },
               professional: {
                 id: row.professionalId,

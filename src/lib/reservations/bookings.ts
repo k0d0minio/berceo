@@ -13,6 +13,7 @@ import {
   type BookingSide,
   type BookingStatus,
   type CancellationKind,
+  type CancellationReason,
   type Profession,
 } from "@/db";
 import { cardColumns, isUniqueViolation, nightAhead, UUID, type RequestCard } from "@/lib/demandes/requests";
@@ -294,6 +295,8 @@ export type GardeRecord = {
   cancelledAt: Date | null;
   cancelledBy: BookingSide | null;
   cancellationKind: CancellationKind | null;
+  /** The reason the cancelling side chose (annulations-delai-et-motif); null for an absence or an older garde. */
+  cancellationReason: CancellationReason | null;
 };
 
 const gardeColumns = {
@@ -301,6 +304,7 @@ const gardeColumns = {
   cancelledAt: bookings.cancelledAt,
   cancelledBy: bookings.cancelledBy,
   cancellationKind: bookings.cancellationKind,
+  cancellationReason: bookings.cancellationReason,
 };
 
 /** The professional booked, as the family sees her (D-72: her phone, never her surname). */

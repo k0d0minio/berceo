@@ -27,7 +27,7 @@ export default async function InscriptionProfessionnellePage() {
     <AuthPage
       eyebrow={t.inscription.professionnelle.etape}
       title={t.inscription.professionnelle.title}
-      intro={[t.inscription.message, t.inscription.professionnelle.accroche]}
+      intro={[t.inscription.professionnelle.message, t.inscription.professionnelle.accroche]}
     >
       <SignUpForm action={signUp.bind(null, "professionnel", null)} />
     </AuthPage>

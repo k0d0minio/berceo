@@ -40,6 +40,32 @@ export const gardes = catalogue({
       non: "Non, maintenir la garde",
       /** @relecture Surya — après l'annulation. */
       faite: "La garde est annulée. L'autre partie a été prévenue par e-mail.",
+      /** @relecture Surya — titre de la liste des motifs dans la confirmation (annulations-delai-et-motif). */
+      motif: "Motif de l'annulation",
+      /** @relecture Surya — aucun motif choisi : la confirmation reste ouverte. */
+      motifRequis: "Choisissez un motif pour annuler la garde.",
+    },
+
+    /**
+     * Les motifs d'une annulation (annulations-delai-et-motif, D-20) : une liste
+     * courte par côté, sans texte libre. `CANCELLATION_REASONS` dans
+     * `src/lib/gardes/rules.ts` dit quel côté propose lesquels.
+     */
+    motifs: {
+      /** @relecture Surya — famille. */
+      plus_besoin: "Nous n'avons plus besoin de la garde",
+      /** @relecture Surya — famille. */
+      imprevu: "Un imprévu",
+      /** @relecture Surya — famille. */
+      autre_solution: "Nous avons trouvé une autre solution",
+      /** @relecture Surya — professionnelle. */
+      malade: "Je suis malade",
+      /** @relecture Surya — professionnelle. */
+      empechement: "Un empêchement",
+      /** @relecture Surya — professionnelle. */
+      indisponible: "Je ne peux plus assurer cette garde",
+      /** @relecture Surya — les deux côtés. */
+      autre: "Autre",
     },
 
     absence: {
@@ -71,6 +97,8 @@ export const gardes = catalogue({
       absenceAutre: "Absence de {prenom} signalée le {date}.",
       /** @relecture Surya — absence de la personne qui lit, signalée par l'autre partie. */
       absenceVous: "Votre absence a été signalée le {date}.",
+      /** @relecture Surya — le motif choisi par la partie qui a annulé. */
+      motif: "Motif : « {motif} ».",
     },
 
     /** La ligne des frais de service sur la page de la famille (D-2). */

@@ -1,5 +1,5 @@
 {
-  "id": "eeb2272c-bbc2-4f06-b23b-230c448839c4",
+  "id": "c0e2fc1e-7b7d-45f0-bfb3-eea9290d4432",
   "prevId": "57d4e31c-12db-4bc8-a22e-b1429a902e5e",
   "version": "7",
   "dialect": "postgresql",
@@ -245,6 +245,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "cancellation_reason": {
+          "name": "cancellation_reason",
+          "type": "cancellation_reason",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
         "reminder_sent_at": {
           "name": "reminder_sent_at",
           "type": "timestamp with time zone",
@@ -482,6 +489,10 @@
         "bookings_cancellation": {
           "name": "bookings_cancellation",
           "value": "(\"bookings\".\"cancelled_at\" IS NULL) = (\"bookings\".\"cancelled_by\" IS NULL) AND (\"bookings\".\"cancelled_at\" IS NULL) = (\"bookings\".\"cancellation_kind\" IS NULL)"
+        },
+        "bookings_cancellation_reason": {
+          "name": "bookings_cancellation_reason",
+          "value": "\"bookings\".\"cancellation_reason\" IS NULL OR \"bookings\".\"cancellation_kind\" = 'annulation'"
         }
       },
       "isRLSEnabled": false
@@ -2563,88 +2574,6 @@
       },
       "isRLSEnabled": false
     },
-    "public.sign_in_codes": {
-      "name": "sign_in_codes",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "code_hash": {
-          "name": "code_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "attempts": {
-          "name": "attempts",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "sign_in_codes_user_id_idx": {
-          "name": "sign_in_codes_user_id_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "sign_in_codes_user_id_users_id_fk": {
-          "name": "sign_in_codes_user_id_users_id_fk",
-          "tableFrom": "sign_in_codes",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.subscriptions": {
       "name": "subscriptions",
       "schema": "",
@@ -2799,89 +2728,6 @@
           "value": "(\"subscriptions\".\"status\" = 'terminee') = (\"subscriptions\".\"ended_at\" IS NOT NULL)"
         }
       },
-      "isRLSEnabled": false
-    },
-    "public.trusted_devices": {
-      "name": "trusted_devices",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "token_hash": {
-          "name": "token_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "trusted_devices_user_id_idx": {
-          "name": "trusted_devices_user_id_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "trusted_devices_user_id_users_id_fk": {
-          "name": "trusted_devices_user_id_users_id_fk",
-          "tableFrom": "trusted_devices",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "trusted_devices_token_hash_unique": {
-          "name": "trusted_devices_token_hash_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "token_hash"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.user_consents": {
@@ -3111,7 +2957,8 @@
         "compte_reactive",
         "compte_supprime",
         "utilisateur_contacte",
-        "signalement_traite"
+        "signalement_traite",
+        "reglage_delai_annulation"
       ]
     },
     "public.application_status": {
@@ -3162,6 +3009,19 @@
       "values": [
         "annulation",
         "absence"
+      ]
+    },
+    "public.cancellation_reason": {
+      "name": "cancellation_reason",
+      "schema": "public",
+      "values": [
+        "plus_besoin",
+        "imprevu",
+        "autre_solution",
+        "malade",
+        "empechement",
+        "indisponible",
+        "autre"
       ]
     },
     "public.care_request_children": {

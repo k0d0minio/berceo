@@ -12,7 +12,7 @@
  * other side: « Terminée » and the address (D-110) read that same end.
  */
 
-import type { BookingSide, BookingStatus, CancellationKind, PaymentStatus } from "@/db/schema";
+import type { BookingSide, BookingStatus, CancellationKind, CancellationReason, PaymentStatus } from "@/db/schema";
 import { addDays, brusselsNow, endTime, hasNightEnded, hasNightStarted, toHourMinute } from "@/lib/demandes/rules";
 
 /** What each side sees (D-17): the stored `confirmee` split by the clock, or `annulee`. */
@@ -22,6 +22,16 @@ export type GardeFacts = { status: BookingStatus; nightDate: string; startTime: 
 
 /** An absence can be reported until 24 hours after the night ends (D-106). */
 export const ABSENCE_HOURS_AFTER_END = 24;
+
+/**
+ * The founders' cancellation delay (annulations-delai-et-motif, the answers
+ * [9.2]): a cancellation this many hours or fewer before the start hour is
+ * late. 24 until the founders change it in `app_settings`, in whole hours from
+ * 1 to 168, a week.
+ */
+export const CANCELLATION_DELAY_HOURS = 24;
+export const CANCELLATION_DELAY_MIN = 1;
+export const CANCELLATION_DELAY_MAX = 168;
 
 /** The reminder of the day before leaves between 10:00 and 10:59 in Brussels (D-108). */
 export const REMINDER_HOUR = 10;
@@ -51,6 +61,51 @@ export function gardeState(garde: GardeFacts, now: Date): GardeState {
 /** Either side cancels a confirmed garde until its start hour (D-105). */
 export function canCancel(garde: GardeFacts, now: Date): boolean {
   return gardeState(garde, now) === "a_venir";
+}
+
+/** Whether `value` is a delay the founders may set: a whole number of hours from 1 to 168. */
+export function isCancellationDelay(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= CANCELLATION_DELAY_MIN &&
+    value <= CANCELLATION_DELAY_MAX
+  );
+}
+
+/**
+ * The moment a cancellation becomes late: `delayHours` wall-clock hours before
+ * the start hour, in Brussels, like every other deadline here.
+ */
+export function lateCancellationFrom(nightDate: string, startTime: string, delayHours: number): string {
+  const [y, m, d] = nightDate.split("-").map(Number);
+  const [hour, minute] = toHourMinute(startTime).split(":").map(Number);
+  const at = new Date(Date.UTC(y, m - 1, d, hour - delayHours, minute));
+  return at.toISOString().slice(0, 16);
+}
+
+/**
+ * Whether a cancellation at `now` falls inside the founders' delay: the garde
+ * may still be cancelled, and its start is `delayHours` or fewer away. Nothing
+ * reads it yet to decide the fee: annulations-table does.
+ */
+export function isLateCancellation(garde: GardeFacts, now: Date, delayHours: number): boolean {
+  if (!canCancel(garde, now)) return false;
+  return nowStamp(now) >= lateCancellationFrom(garde.nightDate, garde.startTime, delayHours);
+}
+
+/**
+ * The reasons each side chooses from when it cancels (annulations-delai-et-motif,
+ * D-20: no free text). The words are `gardes.motifs`.
+ */
+export const CANCELLATION_REASONS = {
+  famille: ["plus_besoin", "imprevu", "autre_solution", "autre"],
+  professionnelle: ["malade", "empechement", "indisponible", "autre"],
+} as const satisfies Record<BookingSide, readonly CancellationReason[]>;
+
+/** Whether `value` is one of `side`'s reasons: the server's check of what the dialog sent. */
+export function isReasonOf(side: BookingSide, value: unknown): value is CancellationReason {
+  return (CANCELLATION_REASONS[side] as readonly unknown[]).includes(value);
 }
 
 /** From the start hour until 24 hours after the night ends, either side reports the other absent (D-106). */
