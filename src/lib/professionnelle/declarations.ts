@@ -12,7 +12,13 @@ import { needsNewDeclarations } from "./rules";
  * acceptance. A user with no profile row has nothing to renew.
  */
 export async function mustRenewDeclarations(userId: string): Promise<boolean> {
-  const [row] = await db
+  const [row] = await renewalQuery(userId);
+  return row ? needsNewDeclarations(row.status, row.version) : false;
+}
+
+/** `mustRenewDeclarations`' statement for her user, built and not run: her status and the version of her latest acceptance. */
+export function renewalQuery(userId: string) {
+  return db
     .select({
       status: professionalProfiles.status,
       version: sql<string | null>`(
@@ -25,5 +31,4 @@ export async function mustRenewDeclarations(userId: string): Promise<boolean> {
     .from(professionalProfiles)
     .where(eq(professionalProfiles.userId, userId))
     .limit(1);
-  return row ? needsNewDeclarations(row.status, row.version) : false;
 }
