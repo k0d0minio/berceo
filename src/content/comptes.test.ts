@@ -49,6 +49,12 @@ describe("the guide's lines, verbatim", () => {
   it("drops the SMS claim from the phone helper (D-27)", () => {
     expect(comptes.fr.aides.telephone).not.toMatch(/SMS/i);
   });
+
+  it("opens the professional's sign-up with her own line, not the family's night of rest", () => {
+    expect(comptes.fr.inscription.professionnelle.message).not.toBe(comptes.fr.inscription.message);
+    expect(comptes.fr.inscription.professionnelle.message).not.toMatch(/nuit de repos/);
+    expect(comptes.fr.inscription.message).toMatch(/nuit de repos/);
+  });
 });
 
 describe("the family profile's words", () => {
