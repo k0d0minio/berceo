@@ -21,6 +21,7 @@ of the request's night.
 ## Acceptance criteria
 
 - [ ] On the last two days of a month, the calendar opens on the next month.
-- [ ] The first selectable night has the focus when the calendar opens.
-- [ ] The edit page opens on the month of the request's night.
+- [ ] In the month of the first selectable night, the weeks that end before that night do not show.
+- [ ] The first selectable night holds the calendar's tab stop. The page moves no focus on load.
+- [ ] The edit page opens on the month of the request's night, also when the night is before today's window.
 - [ ] The windows of D-60 and `seriesWindow` do not change.
