@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 /**
- * Spec (credits-registre): only `src/lib/credits/` and the schema name the
- * table. A page reads a family's credits through the module and never writes
+ * Spec (credits-registre, credits-au-paiement): only `src/lib/credits/` and
+ * the schema name the tables `credits` and `credit_spends`. A page reads a family's credits through the module and never writes
  * one: no page, action, route or other module names `credits` as a table.
  */
 const src = fileURLToPath(new URL("../../", import.meta.url));
@@ -33,5 +33,7 @@ describe("only the credits module names the table", () => {
       .replaceAll(/(@|src)\/(lib|content|components)\/credits(\/[\w-]+)*/g, "")
       .replaceAll(/\b(annulations-credits|credits-(registre|au-paiement|table))\b/g, "");
     expect(text).not.toMatch(/\bcredits\b/);
+    // The takes of a fee (credits-au-paiement): the table and its Drizzle name.
+    expect(text).not.toMatch(/\bcredit_spends\b|\bcreditSpends\b/);
   });
 });

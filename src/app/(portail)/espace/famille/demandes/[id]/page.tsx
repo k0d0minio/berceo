@@ -31,9 +31,10 @@ import { PROFILE_PATH } from "@/lib/famille/paths";
 import { requestHasAddress } from "@/lib/famille/request-address";
 import { conversationsOfAnswers } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
-import { feeLine } from "@/lib/paiements/format";
+import { creditShares } from "@/lib/credits/credits";
+import { creditRecap, feeLine } from "@/lib/paiements/format";
 import { PAYMENT_RETURN_PATH } from "@/lib/paiements/paths";
-import { isSessionId } from "@/lib/paiements/rules";
+import { feeCents, isSessionId } from "@/lib/paiements/rules";
 import { familyAnswers } from "@/lib/reservations/answers";
 import { gardeState } from "@/lib/gardes/rules";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
@@ -132,7 +133,13 @@ export default async function DemandePage({
   // Republishing needs a waiting answer, so the answers' invitation line stands for it too.
   const republishable = canRepublish(facts, answers.length, now);
   const night = recapNight(request.nightDate, request.startTime, request.extraHours);
-  const conversationIds = await conversationsOfAnswers(user.id, answers.map((answer) => answer.applicationId));
+  const [conversationIds, shares] = await Promise.all([
+    conversationsOfAnswers(user.id, answers.map((answer) => answer.applicationId)),
+    // The part her Berceo credit would pay on each answer's fee, for the récapitulatif (credits-au-paiement).
+    mayBook && hasAddress
+      ? creditShares(user.id, answers.map((answer) => feeCents(answer.nightRateEur)), now)
+      : Promise.resolve(new Map<number, number>()),
+  ]);
 
   return (
     <SpaceShell user={user} title={t.meta.detail}>
@@ -226,6 +233,7 @@ export default async function DemandePage({
                                 ? extraHourLine(answer.extraHourRateEur)
                                 : undefined,
                               frais: feeLine(answer.nightRateEur),
+                              ...creditRecap(answer.nightRateEur, shares),
                             }}
                             onAccept={acceptAnswerAction.bind(null, request.id, answer.applicationId)}
                           />

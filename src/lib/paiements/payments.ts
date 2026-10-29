@@ -2,7 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
-import { and, count, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { after } from "next/server";
 import type Stripe from "stripe";
@@ -21,7 +21,17 @@ import {
   type RefundReason,
 } from "@/db";
 import { journalInsertAfter, type Person } from "@/lib/admin/journal";
-import { feeHasLiveCredit } from "@/lib/credits/credits";
+import {
+  confirmHoldStatement,
+  creditPartHeld,
+  feeHasLiveCredit,
+  holdStatements,
+  isHoldConflict,
+  planCreditPart,
+  releaseHoldOfSessionStatement,
+  releaseHoldStatement,
+  type CreditPart,
+} from "@/lib/credits/credits";
 import { formatDate } from "@/lib/demandes/format";
 import { isUniqueViolation, UUID } from "@/lib/demandes/requests";
 import { acceptAnswer, acceptCheck } from "@/lib/reservations/bookings";
@@ -54,6 +64,12 @@ import { stripe } from "./stripe";
  * by the webhook and by the return page, whichever comes first (D-102); a
  * refund is always `refundFee` (D-94). Each rule of ./rules.ts is held again
  * in the SQL of the write it governs.
+ *
+ * A family's Berceo credit pays first (credits-au-paiement). A balance that
+ * covers the fee writes it `payee` with no Checkout, and books at once. A
+ * smaller one is held by the open Checkout, which asks the rest. Every way out
+ * of `en_attente` but the payment, and every refund, gives the held part back
+ * in the statement batch that writes the status (`src/lib/credits/`).
  */
 
 const t = words(paiement);
@@ -80,6 +96,8 @@ function logError(what: string, context: Record<string, unknown>, error?: unknow
 
 export type StartResult =
   | { kind: "stripe"; url: string }
+  /** Her credit paid the whole fee: no Checkout, the fee was settled at once. */
+  | { kind: "credit"; result: ConfirmResult }
   /** An earlier Checkout for this request turned out paid: confirm that one instead. */
   | { kind: "dejaPaye"; sessionId: string }
   | { kind: "refus"; reason: AcceptRefusal | "introuvable" | "conflit" }
@@ -105,26 +123,37 @@ export async function startCheckout(input: {
   // A fee already paid for this request and still being settled: confirm it,
   // never charge a second one.
   const [inFlight] = await db
-    .select({ stripeSessionId: payments.stripeSessionId })
+    .select()
     .from(payments)
     .where(and(eq(payments.requestId, requestId), eq(payments.status, "payee"), isNull(payments.bookingId)))
     .limit(1);
-  if (inFlight) return { kind: "dejaPaye", sessionId: inFlight.stripeSessionId };
+  if (inFlight) {
+    // A fee her credit paid whole has no Checkout to come back from: settle it here.
+    if (!inFlight.stripeSessionId) return { kind: "credit", result: await settle(inFlight, siteUrl, now) };
+    return { kind: "dejaPaye", sessionId: inFlight.stripeSessionId };
+  }
 
   // One open Checkout per request (D-92): the last one is closed first.
-  const open = await db
-    .select({ id: payments.id, stripeSessionId: payments.stripeSessionId })
-    .from(payments)
-    .where(and(eq(payments.requestId, requestId), eq(payments.status, "en_attente")));
+  const open = await openCheckouts(eq(payments.requestId, requestId));
   for (const row of open) {
     const closed = await closeCheckout(row);
     if (closed === "payee") return { kind: "dejaPaye", sessionId: row.stripeSessionId };
   }
+  // Her other Checkouts past their expiry still hold credit when no webhook said so
+  // (previews never get it, D-92): close them, so her balance is whole again.
+  await releaseStaleHolds(user.id, siteUrl, now);
 
   const id = randomUUID();
   const amountCents = feeCents(check.nightRateEur);
+  const part = await planCreditPart(user.id, amountCents, now);
+  if (part.creditCents === amountCents) {
+    return payWithCredit({ id, user, requestId, applicationId, check, amountCents, part, siteUrl, now });
+  }
+
+  const chargeCents = amountCents - part.creditCents;
   const expiresAt = checkoutExpiry(now);
   const metadata = { payment_id: id, request_id: requestId, application_id: applicationId };
+  const date = formatDate(check.nightDate);
 
   let session: Stripe.Checkout.Session;
   try {
@@ -138,10 +167,16 @@ export async function startCheckout(input: {
             quantity: 1,
             price_data: {
               currency: "eur",
-              unit_amount: amountCents,
+              unit_amount: chargeCents,
               product_data: {
                 name: t.checkout.produit,
-                description: fill(t.checkout.description, { date: formatDate(check.nightDate) }),
+                description:
+                  part.creditCents > 0
+                    ? fill(t.checkout.descriptionCredit, {
+                        date,
+                        montant: fill(t.recapitulatif.montant, { montant: eurosFromCents(part.creditCents) }),
+                      })
+                    : fill(t.checkout.description, { date }),
               },
             },
           },
@@ -166,26 +201,33 @@ export async function startCheckout(input: {
   }
 
   try {
-    await db.insert(payments).values({
-      id,
-      requestId,
-      applicationId,
-      familyUserId: user.id,
-      nightDate: check.nightDate,
-      nightRateEur: check.nightRateEur,
-      amountCents,
-      stripeSessionId: session.id,
-      expiresAt,
-      createdAt: now,
-      updatedAt: now,
-    });
+    // The fee and the credit it holds land together, or neither does.
+    await db.batch([
+      db.insert(payments).values({
+        id,
+        requestId,
+        applicationId,
+        familyUserId: user.id,
+        nightDate: check.nightDate,
+        nightRateEur: check.nightRateEur,
+        amountCents,
+        creditCents: part.creditCents,
+        stripeSessionId: session.id,
+        expiresAt,
+        createdAt: now,
+        updatedAt: now,
+      }),
+      ...holdStatements(part, id, "reservee", now).map((statement) => db.execute(statement)),
+    ]);
   } catch (error) {
     // Two clicks racing: the other Checkout stands, this one is closed at once.
     await stripe()
       .checkout.sessions.expire(session.id)
       .catch((expireError: unknown) => logError("racing checkout not expired", { sessionId: session.id }, expireError));
     if (isUniqueViolation(error)) return { kind: "refus", reason: "conflit" };
-    logError("payment not recorded", { requestId, sessionId: session.id }, error);
+    // Her credit changed between the plan and the hold (another tab): she tries again.
+    if (isHoldConflict(error)) logError("credit changed before the hold", { requestId });
+    else logError("payment not recorded", { requestId, sessionId: session.id }, error);
     return { kind: "erreur" };
   }
 
@@ -193,11 +235,92 @@ export async function startCheckout(input: {
 }
 
 /**
+ * Her credit covers the fee (credits-au-paiement): the fee is written `payee`
+ * with no Checkout, and its credit part confirmed, in one batch. Then it is
+ * settled like a paid Checkout: booked, or its credit given back when the
+ * booking can no longer be made (D-103).
+ */
+async function payWithCredit(input: {
+  id: string;
+  user: { id: string };
+  requestId: string;
+  applicationId: string;
+  check: { nightDate: string; nightRateEur: number };
+  amountCents: number;
+  part: CreditPart;
+  siteUrl: string;
+  now: Date;
+}): Promise<StartResult> {
+  const { id, user, requestId, applicationId, check, amountCents, part, siteUrl, now } = input;
+  let payment: Payment | undefined;
+  try {
+    const [inserted] = await db.batch([
+      db
+        .insert(payments)
+        .values({
+          id,
+          requestId,
+          applicationId,
+          familyUserId: user.id,
+          nightDate: check.nightDate,
+          nightRateEur: check.nightRateEur,
+          amountCents,
+          creditCents: amountCents,
+          stripeSessionId: null,
+          status: "payee",
+          paidAt: now,
+          expiresAt: now,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning(),
+      ...holdStatements(part, id, "confirmee", now).map((statement) => db.execute(statement)),
+    ]);
+    payment = inserted[0];
+  } catch (error) {
+    if (isUniqueViolation(error)) return { kind: "refus", reason: "conflit" };
+    if (isHoldConflict(error)) logError("credit changed before the hold", { requestId });
+    else logError("credit payment not recorded", { requestId }, error);
+    return { kind: "erreur" };
+  }
+  if (!payment) return { kind: "erreur" };
+  return { kind: "credit", result: await settle(payment, siteUrl, now) };
+}
+
+type OpenCheckout = { id: string; stripeSessionId: string };
+
+/** The open Checkouts that match `where`. Each one has a session: a fee with none is never open. */
+async function openCheckouts(where: SQL | undefined): Promise<OpenCheckout[]> {
+  const rows = await db
+    .select({ id: payments.id, stripeSessionId: payments.stripeSessionId })
+    .from(payments)
+    .where(and(eq(payments.status, "en_attente"), where));
+  return rows.flatMap((row) => (row.stripeSessionId ? [{ id: row.id, stripeSessionId: row.stripeSessionId }] : []));
+}
+
+/**
+ * Her open Checkouts past their expiry that hold credit: closed at Stripe and
+ * released, or confirmed when one turns out paid.
+ */
+async function releaseStaleHolds(familyUserId: string, siteUrl: string, now: Date): Promise<void> {
+  const stale = await openCheckouts(
+    and(
+      eq(payments.familyUserId, familyUserId),
+      sql`${payments.creditCents} > 0`,
+      sql`${payments.expiresAt} <= ${now.toISOString()}::timestamptz`,
+    ),
+  );
+  for (const row of stale) {
+    if ((await closeCheckout(row)) === "payee") await confirmPayment(row.stripeSessionId, siteUrl, now);
+  }
+}
+
+/**
  * Closes an open Checkout at Stripe and records it `expiree`. Stripe refuses to
  * expire one that is no longer open: read it then, and say whether it was paid
  * (the caller confirms it) or had expired on its own.
  */
-async function closeCheckout(row: { id: string; stripeSessionId: string }): Promise<"expiree" | "payee"> {
+async function closeCheckout(row: OpenCheckout): Promise<"expiree" | "payee"> {
   try {
     await stripe().checkout.sessions.expire(row.stripeSessionId);
   } catch (error) {
@@ -208,10 +331,14 @@ async function closeCheckout(row: { id: string; stripeSessionId: string }): Prom
       throw error;
     }
   }
-  await db
-    .update(payments)
-    .set({ status: "expiree", updatedAt: new Date() })
-    .where(and(eq(payments.id, row.id), eq(payments.status, "en_attente")));
+  const now = new Date();
+  await db.batch([
+    db
+      .update(payments)
+      .set({ status: "expiree", updatedAt: now })
+      .where(and(eq(payments.id, row.id), eq(payments.status, "en_attente"))),
+    db.execute(releaseHoldStatement(row.id, now)),
+  ]);
   return "expiree";
 }
 
@@ -278,21 +405,25 @@ export async function confirmPayment(sessionId: string, siteUrl: string, now: Da
     if (session.status === "expired") await markSession(sessionId, "expiree");
     return { kind: "nonPayee", requestId: row.requestId };
   }
-  if (session.amount_total !== row.amountCents || session.currency !== row.currency) {
+  // Stripe asked only what her credit did not pay (credits-au-paiement).
+  if (session.amount_total !== row.amountCents - row.creditCents || session.currency !== row.currency) {
     logError("paid amount differs from the fee", { paymentId: row.id, amount: session.amount_total });
     throw new Error("paid amount differs from the fee");
   }
 
-  const [taken] = await db
-    .update(payments)
-    .set({
-      status: "payee",
-      paidAt: now,
-      stripePaymentIntentId: paymentIntentId(session.payment_intent),
-      updatedAt: now,
-    })
-    .where(and(eq(payments.id, row.id), inArray(payments.status, ["en_attente", "expiree"])))
-    .returning();
+  const [[taken]] = await db.batch([
+    db
+      .update(payments)
+      .set({
+        status: "payee",
+        paidAt: now,
+        stripePaymentIntentId: paymentIntentId(session.payment_intent),
+        updatedAt: now,
+      })
+      .where(and(eq(payments.id, row.id), inArray(payments.status, ["en_attente", "expiree"])))
+      .returning(),
+    db.execute(confirmHoldStatement(row.id, now)),
+  ]);
   if (!taken) {
     const again = await paymentBySession(sessionId);
     if (again?.status === "payee" && !again.bookingId) return settle(again, siteUrl, now);
@@ -308,14 +439,18 @@ export async function confirmPayment(sessionId: string, siteUrl: string, now: Da
  */
 async function settle(payment: Payment, siteUrl: string, now: Date): Promise<ConfirmResult> {
   const { requestId, applicationId, familyUserId } = payment;
+  // A Checkout that closed, gave its credit back, then turned out paid holds too
+  // little: it books nothing, and its card part is refunded (credits-au-paiement).
+  const held = await creditPartHeld(payment.id, payment.creditCents);
   const booked =
-    requestId && applicationId && familyUserId
+    held && requestId && applicationId && familyUserId
       ? await acceptAnswer(familyUserId, requestId, applicationId, payment.id, now)
       : ({ ok: false, reason: "introuvable" } as const);
 
   if (booked.ok) {
     const { bookingId, declined } = booked;
-    after(() => notifyBooking(bookingId, declined, siteUrl));
+    const fee = { amountCents: payment.amountCents, creditCents: payment.creditCents };
+    after(() => notifyBooking(bookingId, declined, siteUrl, fee));
     return { kind: "reservee", bookingId, requestId };
   }
 
@@ -338,10 +473,15 @@ async function settle(payment: Payment, siteUrl: string, now: Date): Promise<Con
 /** The webhook's word on a Checkout that closed unpaid: `expiree` or `echouee`, only from `en_attente`. */
 export async function markSession(sessionId: string, status: "expiree" | "echouee"): Promise<void> {
   if (!isSessionId(sessionId)) return;
-  await db
-    .update(payments)
-    .set({ status, updatedAt: new Date() })
-    .where(and(eq(payments.stripeSessionId, sessionId), eq(payments.status, "en_attente")));
+  const now = new Date();
+  await db.batch([
+    db
+      .update(payments)
+      .set({ status, updatedAt: now })
+      .where(and(eq(payments.stripeSessionId, sessionId), eq(payments.status, "en_attente"))),
+    // Her credit held by this Checkout goes back to her (credits-au-paiement).
+    db.execute(releaseHoldOfSessionStatement(sessionId, now)),
+  ]);
 }
 
 export type AbandonResult =
@@ -361,8 +501,9 @@ export async function abandonCheckout(paymentId: string, userId: string): Promis
     .where(and(eq(payments.id, paymentId), eq(payments.familyUserId, userId)))
     .limit(1);
   if (!row) return { kind: "inconnue" };
-  if (row.status === "en_attente" && (await closeCheckout(row)) === "payee") {
-    return { kind: "dejaPaye", sessionId: row.stripeSessionId };
+  const { stripeSessionId } = row;
+  if (row.status === "en_attente" && stripeSessionId && (await closeCheckout({ id: row.id, stripeSessionId })) === "payee") {
+    return { kind: "dejaPaye", sessionId: stripeSessionId };
   }
   return { kind: "abandonnee", requestId: row.requestId };
 }
@@ -395,6 +536,11 @@ export type RefundBy = { admin: Person; motif: string };
  * (annulations-table): one fee is never both credited and refunded. No end of a
  * garde calls it any more; `annulation_professionnelle` stays for the fees
  * refunded before the founders' table.
+ *
+ * A fee a credit paid in part refunds its card part at Stripe, and its credit
+ * part goes back to the credit it came from (credits-au-paiement, Jamie
+ * 2026-10-29). A fee the credit paid whole calls no Stripe: the record gives
+ * the credit back alone. A credit is never refunded to a card.
  */
 export async function refundFee(
   paymentId: string,
@@ -414,14 +560,21 @@ export async function refundFee(
     .limit(1);
   if (!row) return { ok: false, reason: "introuvable" };
   const { payment } = row;
-  if (!isRefundable(payment.status) || !payment.stripePaymentIntentId) return { ok: false, reason: "statut" };
+  const cardCents = payment.amountCents - payment.creditCents;
+  if (!isRefundable(payment.status)) return { ok: false, reason: "statut" };
+  if (cardCents > 0 && !payment.stripePaymentIntentId) return { ok: false, reason: "statut" };
   if (row.credited) return { ok: false, reason: "credit" };
 
-  const previous = payment.status === "remboursement_echoue" ? payment.stripeRefundId : null;
-  const refund = await stripe().refunds.create(
-    { payment_intent: payment.stripePaymentIntentId, metadata: { ...APP_REFUND, payment_id: payment.id } },
-    { idempotencyKey: refundKey(payment.id, previous) },
-  );
+  let refund: { id: string | null; status: string | null } = { id: null, status: null };
+  if (cardCents > 0 && payment.stripePaymentIntentId) {
+    const previous = payment.status === "remboursement_echoue" ? payment.stripeRefundId : null;
+    // The PaymentIntent holds the card part only: Stripe refunds that, never the credit.
+    const made = await stripe().refunds.create(
+      { payment_intent: payment.stripePaymentIntentId, metadata: { ...APP_REFUND, payment_id: payment.id } },
+      { idempotencyKey: refundKey(payment.id, previous) },
+    );
+    refund = { id: made.id, status: made.status };
+  }
   const status = refundFailed(refund.status) ? "remboursement_echoue" : "remboursee";
   if (status === "remboursement_echoue") logError("refund failed at Stripe", { paymentId: payment.id });
 
@@ -451,12 +604,17 @@ export async function refundFee(
       },
     );
     recorded = written.rows.length > 0;
+    // The journal's statement is one; the credit part follows it, guarded on the status it wrote.
+    if (payment.creditCents > 0) await db.execute(releaseHoldStatement(payment.id, now));
   } else {
-    const updated = await db
-      .update(payments)
-      .set({ status, stripeRefundId: refund.id, refundedAt: now, refundReason: reason, updatedAt: now })
-      .where(and(eq(payments.id, payment.id), inArray(payments.status, [...REFUNDABLE])))
-      .returning({ id: payments.id });
+    const [updated] = await db.batch([
+      db
+        .update(payments)
+        .set({ status, stripeRefundId: refund.id, refundedAt: now, refundReason: reason, updatedAt: now })
+        .where(and(eq(payments.id, payment.id), inArray(payments.status, [...REFUNDABLE])))
+        .returning({ id: payments.id }),
+      db.execute(releaseHoldStatement(payment.id, now)),
+    ]);
     recorded = updated.length > 0;
   }
 
@@ -491,10 +649,15 @@ export async function syncRefund(refund: Stripe.Refund): Promise<void> {
   });
   if (sync.kind === "dashboard") {
     const at = new Date(refund.created * 1000);
-    await db
-      .update(payments)
-      .set({ status: "remboursee", stripeRefundId: refund.id, refundedAt: at, refundReason: "stripe", updatedAt: new Date() })
-      .where(and(eq(payments.id, payment.id), eq(payments.status, "payee")));
+    const now = new Date();
+    await db.batch([
+      db
+        .update(payments)
+        .set({ status: "remboursee", stripeRefundId: refund.id, refundedAt: at, refundReason: "stripe", updatedAt: now })
+        .where(and(eq(payments.id, payment.id), eq(payments.status, "payee"))),
+      // A refund made in Stripe's dashboard gives the credit part back too (credits-au-paiement).
+      db.execute(releaseHoldStatement(payment.id, now)),
+    ]);
   } else if (sync.kind === "echec") {
     await db
       .update(payments)
@@ -519,7 +682,13 @@ export async function paymentOwner(
   return row ? { familyUserId: row.familyUserId, requestId: row.requestId } : null;
 }
 
-export type BookingFee = { id: string; status: PaymentStatus; amountCents: number };
+export type BookingFee = {
+  id: string;
+  status: PaymentStatus;
+  amountCents: number;
+  /** The part a Berceo credit paid (credits-au-paiement). */
+  creditCents: number;
+};
 
 /**
  * The fee that made each of these bookings, by booking id: a cancelled garde's
@@ -535,6 +704,7 @@ export async function bookingFees(bookingIds: string[]): Promise<Map<string, Boo
       id: payments.id,
       status: payments.status,
       amountCents: payments.amountCents,
+      creditCents: payments.creditCents,
     })
     .from(payments)
     .where(inArray(payments.bookingId, ids));
@@ -550,6 +720,7 @@ export type AdminPayment = Pick<
   | "nightDate"
   | "nightRateEur"
   | "amountCents"
+  | "creditCents"
   | "status"
   | "expiresAt"
   | "stripePaymentIntentId"
@@ -631,6 +802,7 @@ export async function readPayments(
         nightDate: payments.nightDate,
         nightRateEur: payments.nightRateEur,
         amountCents: payments.amountCents,
+        creditCents: payments.creditCents,
         status: payments.status,
         expiresAt: payments.expiresAt,
         stripePaymentIntentId: payments.stripePaymentIntentId,

@@ -21,7 +21,7 @@ credit and the part paid at Stripe. The récapitulatif and the confirmation e-ma
 
 ## Acceptance criteria
 
-- [ ] With a balance above the fee, « Accepter et réserver » books the garde with no Checkout, and the credit's spent amount grows by the fee.
+- [ ] With a balance equal to or above the fee, « Accepter et réserver » books the garde with no Checkout, and the credit's spent amount grows by the fee.
 - [ ] With a smaller balance, the Checkout asks the difference, and the booking is made when it completes.
 - [ ] A Checkout that expires or is abandoned spends no credit.
 - [ ] The payment row and the family's récapitulatif show the part paid by credit.
@@ -34,8 +34,12 @@ credit and the part paid at Stripe. The récapitulatif and the confirmation e-ma
 
 ## Notes
 
-- Question, with a default: the breakdown's question 2.
-- The spend and the booking land in one statement, or the spend is reserved and confirmed by
-  the webhook, like the booking by the payment (D-100). Decide at Spec approved.
+- Jamie accepted the six defaults of the pull request on 2026-10-29:
+  1. A smaller credit pays its part. Stripe takes the rest (the breakdown's question 2).
+  2. A rest under 0,50 € makes the credit pay less, so that Stripe takes 0,50 €.
+  3. The Checkout reserves the credit. The payment confirms it (D-102).
+  4. A cancellation credits the whole fee, valid 24 new months.
+  5. A refund returns the card part at Stripe. The credit part goes back to its credits.
+  6. A balance equal to the fee books with no Checkout.
 - Files: `src/lib/paiements/payments.ts`, `src/lib/reservations/bookings.ts`, `src/lib/credits/`,
   `src/app/api/webhooks/stripe/route.ts`, `src/content/paiement.ts`, `src/content/emails.ts`, `src/content/admin.ts`.

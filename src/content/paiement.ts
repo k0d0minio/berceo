@@ -26,6 +26,16 @@ export const paiement = catalogue({
       stripe: "Vous réglez les frais de service sur la page sécurisée de Stripe, par Bancontact ou par carte.",
       /** @relecture Surya — réponse qui confirme (vert, D-24) et mène au paiement. */
       confirmer: "Confirmer et régler les frais de service",
+      /** @relecture Surya — la part des frais que paie le crédit Berceo (credits-au-paiement). */
+      credit: "Réglés avec votre crédit Berceo",
+      /** @relecture Surya — ce que Stripe demande après le crédit (credits-au-paiement). */
+      reste: "Reste à régler",
+      /** @relecture Surya — le crédit paie tout : pas de page Stripe (credits-au-paiement). */
+      creditTotal: "Votre crédit Berceo règle la totalité des frais de service. Aucun paiement ne vous est demandé.",
+      /** @relecture Surya — le crédit paie une part, Stripe le reste (credits-au-paiement). */
+      stripeReste: "Vous réglez le reste sur la page sécurisée de Stripe, par Bancontact ou par carte.",
+      /** @relecture Surya — réponse qui confirme (vert, D-24) quand le crédit paie tout. */
+      confirmerCredit: "Confirmer et régler avec mon crédit Berceo",
     },
 
     /** La ligne que Stripe affiche sur sa page de paiement. */
@@ -34,6 +44,8 @@ export const paiement = catalogue({
       produit: "Frais de service Berceo",
       /** @relecture Surya — la nuit concernée. */
       description: "Garde de nuit du {date}",
+      /** @relecture Surya — la nuit concernée et le crédit déjà déduit (credits-au-paiement). */
+      descriptionCredit: "Garde de nuit du {date}, crédit Berceo de {montant} déduit",
     },
 
     /** Au retour de la page de Stripe, sur la page de la demande. */

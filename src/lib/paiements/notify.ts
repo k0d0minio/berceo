@@ -16,6 +16,7 @@ type RefundNotice = {
   requestId: string | null;
   nightDate: string;
   amountCents: number;
+  creditCents: number;
   family: { email: string; firstName: string };
 };
 
@@ -26,6 +27,7 @@ async function refundNotice(paymentId: string): Promise<RefundNotice | null> {
       requestId: payments.requestId,
       nightDate: payments.nightDate,
       amountCents: payments.amountCents,
+      creditCents: payments.creditCents,
       family: { email: users.email, firstName: users.firstName },
     })
     .from(payments)
@@ -46,13 +48,17 @@ export async function notifyRefund(paymentId: string, siteUrl: string): Promise<
     const notice = await refundNotice(paymentId);
     if (!notice) return;
     const path = notice.requestId ? familyRequestPath(notice.requestId) : FAMILY_REQUESTS_PATH;
+    const euros = (cents: number) => fill(words(paiement).recapitulatif.montant, { montant: eurosFromCents(cents) });
+    // Stripe refunds the card part; the credit part goes back to her credit (credits-au-paiement).
+    const cardCents = notice.amountCents - notice.creditCents;
     await sendEmail(
       notice.family.email,
       refundFamilyEmail({
         siteUrl,
         prenom: notice.family.firstName,
         date: formatDate(notice.nightDate),
-        montant: fill(words(paiement).recapitulatif.montant, { montant: eurosFromCents(notice.amountCents) }),
+        montant: cardCents > 0 ? euros(cardCents) : null,
+        credit: notice.creditCents > 0 ? euros(notice.creditCents) : undefined,
         url: `${siteUrl}${path}`,
       }),
       `remboursement-frais-${paymentId}`,

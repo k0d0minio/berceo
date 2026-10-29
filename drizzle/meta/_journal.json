@@ -239,6 +239,13 @@
       "when": 1793244878725,
       "tag": "0033_annulations-table",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793271748297,
+      "tag": "0034_credits-au-paiement",
+      "breakpoints": true
     }
   ]
 }

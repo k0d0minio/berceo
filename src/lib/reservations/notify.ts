@@ -1,9 +1,12 @@
 import "server-only";
 
+import { fill, words } from "@/content/locale";
+import { paiement } from "@/content/paiement";
 import { formatDate, formatTime } from "@/lib/demandes/format";
 import { logFailures, seriesSummary, summary } from "@/lib/demandes/notify";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
 import { sendEmail } from "@/lib/email/send";
+import { eurosFromCents } from "@/lib/paiements/rules";
 import {
   bookingFamilyEmail,
   bookingProfessionalEmail,
@@ -76,8 +79,25 @@ export async function notifyDeclined(applicationIds: string[], siteUrl: string):
   }
 }
 
+/**
+ * The credit line of her confirmation (credits-au-paiement): the fee, the
+ * credit's part and what Stripe took. Nothing when no credit paid.
+ */
+function creditLine(fee: { amountCents: number; creditCents: number }) {
+  if (fee.creditCents <= 0) return undefined;
+  const euros = (cents: number) => fill(words(paiement).recapitulatif.montant, { montant: eurosFromCents(cents) });
+  const rest = fee.amountCents - fee.creditCents;
+  return { montant: euros(fee.amountCents), credit: euros(fee.creditCents), reste: rest > 0 ? euros(rest) : null };
+}
+
 /** A booking: the guide's two confirmations, then « not retained » to the others who waited. */
-export async function notifyBooking(bookingId: string, declined: string[], siteUrl: string): Promise<void> {
+export async function notifyBooking(
+  bookingId: string,
+  declined: string[],
+  siteUrl: string,
+  /** The fee that made the booking, from the caller that holds it: its credit part goes in her e-mail. */
+  fee?: { amountCents: number; creditCents: number },
+): Promise<void> {
   try {
     const notice = await bookingNotice(bookingId);
     if (notice) {
@@ -92,6 +112,7 @@ export async function notifyBooking(bookingId: string, declined: string[], siteU
             date,
             heure: formatTime(notice.startTime),
             url: `${siteUrl}${familyBookingPath(bookingId)}`,
+            credit: fee ? creditLine(fee) : undefined,
           }),
           `reservation-famille-${bookingId}`,
         ),

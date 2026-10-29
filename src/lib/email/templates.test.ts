@@ -384,6 +384,52 @@ describe("the fee's refund e-mail (frais-de-service, D-103)", () => {
     expect(email.text).toContain("Les frais de service de 4,11 € vous sont intégralement remboursés.");
     expect(email.text).toContain(`Voir ma demande : ${SITE}/d`);
   });
+
+  it("refunds the card part and gives the credit part back to her credit (credits-au-paiement)", () => {
+    const email = refundFamilyEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      date: "30/09/2026",
+      montant: "2,50 €",
+      credit: "2,00 €",
+      url: `${SITE}/d`,
+    });
+    expect(email.text).toContain("Les frais de service de 2,50 € vous sont intégralement remboursés.");
+    expect(email.text).toContain("La part réglée avec votre crédit Berceo, 2,00 €, revient à votre crédit.");
+  });
+
+  it("names no card refund when a credit paid the whole fee", () => {
+    const email = refundFamilyEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      date: "30/09/2026",
+      montant: null,
+      credit: "4,50 €",
+      url: `${SITE}/d`,
+    });
+    expect(email.text).not.toContain("intégralement remboursés");
+    expect(email.text).toContain("La part réglée avec votre crédit Berceo, 4,50 €, revient à votre crédit.");
+  });
+});
+
+describe("the booking e-mail names the credit (credits-au-paiement)", () => {
+  const base = { siteUrl: SITE, prenom: "Julie", professionnelle: "Emma", date: "30/09/2026", heure: "20h00", url: `${SITE}/b` };
+
+  it("names the credit part and the rest Stripe took", () => {
+    const email = bookingFamilyEmail({ ...base, credit: { montant: "4,50 €", credit: "2,00 €", reste: "2,50 €" } });
+    expect(email.text).toContain(
+      "Vos frais de service de 4,50 € sont réglés : 2,00 € avec votre crédit Berceo et 2,50 € par Stripe.",
+    );
+  });
+
+  it("says the credit paid the whole fee", () => {
+    const email = bookingFamilyEmail({ ...base, credit: { montant: "4,50 €", credit: "4,50 €", reste: null } });
+    expect(email.text).toContain("Vos frais de service de 4,50 € sont réglés avec votre crédit Berceo.");
+  });
+
+  it("says nothing about a credit when none paid", () => {
+    expect(bookingFamilyEmail(base).text).not.toContain("crédit Berceo");
+  });
 });
 
 describe("the new-message e-mail (messagerie, D-90)", () => {

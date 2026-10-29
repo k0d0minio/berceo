@@ -4,11 +4,13 @@ import {
   balanceCents,
   CREDIT_MONTHS,
   CREDIT_ORIGINS,
+  creditShare,
   creditState,
   expiryOf,
   isExpired,
   remainingCents,
   spendingPlan,
+  STRIPE_MIN_CENTS,
   type SpendableCredit,
 } from "./rules";
 
@@ -140,6 +142,39 @@ describe("spendingPlan", () => {
     expect(spendingPlan([credit()], 0, now)).toEqual({ takes: [], restCents: 0 });
     expect(() => spendingPlan([credit()], -1, now)).toThrow(RangeError);
     expect(() => spendingPlan([credit()], 1.5, now)).toThrow(RangeError);
+  });
+});
+
+describe("creditShare (credits-au-paiement)", () => {
+  it("pays the whole fee when the balance covers it, equal or above", () => {
+    expect(creditShare(450, 450)).toBe(450);
+    expect(creditShare(450, 900)).toBe(450);
+  });
+
+  it("pays its part of a larger fee, and Stripe asks the rest", () => {
+    expect(creditShare(450, 300)).toBe(300);
+  });
+
+  it("leaves Stripe its 0,50 € minimum: the credit pays a little less", () => {
+    expect(STRIPE_MIN_CENTS).toBe(50);
+    expect(creditShare(450, 420)).toBe(400);
+    expect(creditShare(450, 449)).toBe(400);
+  });
+
+  it("pays nothing from an empty balance", () => {
+    expect(creditShare(450, 0)).toBe(0);
+  });
+
+  it("never leaves Stripe a rest between 0 and its minimum", () => {
+    for (let balance = 0; balance <= 600; balance += 1) {
+      const rest = 450 - creditShare(450, balance);
+      expect(rest === 0 || rest >= STRIPE_MIN_CENTS).toBe(true);
+    }
+  });
+
+  it("refuses a fee that is not a positive whole number of cents", () => {
+    expect(() => creditShare(0, 100)).toThrow(RangeError);
+    expect(() => creditShare(4.5, 100)).toThrow(RangeError);
   });
 });
 
