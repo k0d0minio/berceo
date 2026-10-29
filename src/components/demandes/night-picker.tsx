@@ -19,6 +19,9 @@ import { cn } from "@/lib/utils"
  * opened the phone's own picker, too small to read. One month shows at a time,
  * with the previous and next months a tap away. Only the nights inside the
  * window (D-60) can be chosen; the others show greyed and refuse the tap. The
+ * calendar opens on the month of the chosen night, or of the first night
+ * allowed, and leaves out the weeks that end before it: a month with one
+ * night left in the window shows one row, not thirty greyed days. The
  * keyboard moves day by day (arrows), week by week (up, down), to the week's
  * ends (Home, End) and month by month (Page Up, Page Down); Enter or Space
  * chooses. The chosen night goes to the server in a hidden `date` field, as
@@ -82,12 +85,17 @@ function NightPicker({
   const [selected, setSelected] = useState<string[]>(() =>
     (defaultValue ?? "").split(",").filter(Boolean).sort()
   )
-  // The day that holds the tab stop; its month is the month on screen.
+  // The day that holds the tab stop: the chosen night, else the first night allowed.
   const [active, setActive] = useState(() => clamp(selected[0] || min))
+  // The month on screen. An edited request opens on its night's month, also when that
+  // night is now before the window and the tab stop sits in the next month.
+  const [month, setMonth] = useState(() => (selected[0] || min).slice(0, 7))
+  // The weeks that end before this day stay hidden: the first night allowed, or the
+  // edited night when it is earlier.
+  const [floor] = useState(() => (selected[0] && selected[0] < min ? selected[0] : min))
   const grid = useRef<HTMLDivElement>(null)
   const moved = useRef(false)
 
-  const month = active.slice(0, 7)
   const firstMonth = min.slice(0, 7)
   const lastMonth = max.slice(0, 7)
 
@@ -98,7 +106,10 @@ function NightPicker({
     grid.current?.querySelector<HTMLButtonElement>(`[data-date="${active}"]`)?.focus()
   }, [active])
 
+  const weeks = monthWeeks(month).filter((week) => week[6].date >= floor)
+
   function showMonth(target: string) {
+    setMonth(target)
     setActive(clamp(`${target}-01`))
   }
 
@@ -120,6 +131,7 @@ function NightPicker({
     const next = clamp(target())
     if (next === date) return
     moved.current = true
+    setMonth(next.slice(0, 7))
     setActive(next)
   }
 
@@ -173,7 +185,7 @@ function NightPicker({
             <span key={day}>{day}</span>
           ))}
         </div>
-        {monthWeeks(month).map((week) => (
+        {weeks.map((week) => (
           <div key={week[0].date} className="grid grid-cols-7 gap-px sm:gap-1">
             {week.map((day) => {
               if (!day.inWindow) return <span key={day.date} aria-hidden="true" className="min-h-11" />
