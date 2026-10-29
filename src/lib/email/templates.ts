@@ -631,7 +631,7 @@ export function newMessageEmail(input: {
     ...layout({
       siteUrl: input.siteUrl,
       prenom: input.prenom,
-      paragraphs: [fill(r.corps, { prenom: input.auteur, date: input.date }), r.contestation],
+      paragraphs: [fill(r.corps, { prenom: input.auteur, date: input.date })],
       cta: { label: r.cta, href: input.url },
     }),
   };

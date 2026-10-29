@@ -214,8 +214,7 @@ export async function readBookings(
       .innerJoin(careRequests, eq(careRequests.id, bookings.requestId))
       .where(where),
   ]);
-  const ids = rows.map((row) => row.id);
-  const [fees, live] = await Promise.all([bookingFees(ids), gardeCredits(ids)]);
+  const fees = await bookingFees(rows.map((row) => row.id));
   return {
     rows: rows.map((row) => ({
       id: row.id,
