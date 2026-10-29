@@ -11,9 +11,12 @@ the order of the epics (`CONTEXT.md`, The order of the epics).
 
 ## Order
 
-Set by Jamie on 2026-10-28.
+Set by Jamie on 2026-10-29.
 
 1. triage
+2. annulations-credits
+3. comptes-2fa
+4. favoris
 
 ## The backlog on 2026-10-23
 
