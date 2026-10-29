@@ -37,6 +37,9 @@
  * `ratings`, four whole scores and no text, and `rating_invitations`, the
  * e-mail that asked for them, once per garde and side.
  *
+ * A family keeps her favourite professionals (favoris-marquer) in
+ * `favourites`, hers alone.
+ *
  * The founders' back-office (back-office-admin) suspends and deletes accounts
  * on `users` (a deleted account is anonymised, never removed, D-136) and marks
  * a cancelled garde handled on `bookings`.
@@ -1024,6 +1027,34 @@ export const ratingInvitations = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// Favourites
+// ---------------------------------------------------------------------------
+
+/**
+ * A family's favourite professionals (favoris-marquer): one row per family and
+ * profile she marked « Ajouter à mes professionnelles ». Hers alone: neither
+ * the professional nor the founders read it. `src/lib/favoris/` is its only
+ * reader and writer. A deleted account is anonymised, not removed (D-136), so
+ * the deletion removes these rows itself; the cascades serve a removed row.
+ */
+export const favourites = pgTable(
+  "favourites",
+  {
+    familyUserId: uuid("family_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => professionalProfiles.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.familyUserId, table.profileId] }),
+    index("favourites_profile_id_idx").on(table.profileId),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------
 
@@ -1122,3 +1153,4 @@ export type SubscriptionPlan = (typeof subscriptionPlanEnum.enumValues)[number];
 export type SubscriptionStatus = (typeof subscriptionStatusEnum.enumValues)[number];
 export type Rating = typeof ratings.$inferSelect;
 export type RatingSide = (typeof ratingSideEnum.enumValues)[number];
+export type Favourite = typeof favourites.$inferSelect;

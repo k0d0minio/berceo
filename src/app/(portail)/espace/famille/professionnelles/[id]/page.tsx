@@ -5,13 +5,15 @@ import { notFound } from "next/navigation";
 import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
 import { NoteDisplay } from "@/components/avis/stars";
 import { ProchainesDisponibilites } from "@/components/disponibilites/prochaines-disponibilites";
+import { MarkButton } from "@/components/favoris/mark-button";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
-import { familyMayNow } from "@/lib/abonnements/subscriptions";
+import { familyMay } from "@/lib/abonnements/rules";
+import { isSubscribed } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { communeName } from "@/lib/communes";
@@ -21,6 +23,7 @@ import { isChangeable } from "@/lib/demandes/rules";
 import { nextAvailableNights } from "@/lib/disponibilites/nights";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { requestHasAddress } from "@/lib/famille/request-address";
+import { isMarked } from "@/lib/favoris/favourites";
 import { waitingAnswerOf } from "@/lib/reservations/answers";
 import { feeLine } from "@/lib/paiements/format";
 import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
@@ -29,6 +32,7 @@ import { reachLine } from "@/lib/recherche/rules";
 import { publicProfile } from "@/lib/reservations/profiles";
 
 import { acceptAnswerAction } from "../../demandes/actions";
+import { markAction } from "../actions";
 
 const r = words(reservations);
 
@@ -50,7 +54,9 @@ export const dynamic = "force-dynamic";
  * always (D-71); « Accepter et réserver » when opened from one of the family's
  * open requests on which her answer waits (`?demande=`). Without a
  * subscription the invitation line takes the profile's place, from any link
- * (abonnements-acces).
+ * (abonnements-acces). With one, « Ajouter à mes professionnelles » or
+ * « Retirer de mes professionnelles » beside the priority request
+ * (favoris-marquer).
  */
 export default async function ProfilProfessionnellePage({
   params,
@@ -66,7 +72,8 @@ export default async function ProfilProfessionnellePage({
   if (!profile) notFound();
 
   const now = new Date();
-  if (!(await familyMayNow(user.id, "profil", now))) {
+  const subscribed = await isSubscribed(user.id, now);
+  if (!familyMay("profil", { subscribed })) {
     return (
       <SpaceShell user={user} title={r.meta.profil}>
         <SubscriptionRequired />
@@ -79,9 +86,11 @@ export default async function ProfilProfessionnellePage({
   const request = demande ? await ownRequest(user.id, demande) : null;
   const answer =
     request && isChangeable(request, now) ? await waitingAnswerOf(user.id, request.id, profile.id) : null;
-  const [hasAddress, nights] = await Promise.all([
+  const mayMark = familyMay("favori", { subscribed });
+  const [hasAddress, nights, marked] = await Promise.all([
     answer && request ? requestHasAddress(user.id, request.id) : Promise.resolve(false),
     nextAvailableNights(profile.id, now),
+    mayMark ? isMarked(user.id, profile.id) : Promise.resolve(false),
   ]);
 
   // Her radius in one line under her chosen communes (zone-rayon-lecture).
@@ -159,6 +168,13 @@ export default async function ProfilProfessionnellePage({
         <Button asChild variant={answer ? "raye" : "blanc"}>
           <Link href={priorityPath(profile.id)}>{r.profil.priorite}</Link>
         </Button>
+        {mayMark ? (
+          <MarkButton
+            marked={marked}
+            prenom={profile.firstName}
+            onToggle={markAction.bind(null, profile.id, !marked)}
+          />
+        ) : null}
         {request ? (
           <Button asChild variant="raye">
             <Link href={familyRequestPath(request.id)}>{r.profil.retourDemande}</Link>
