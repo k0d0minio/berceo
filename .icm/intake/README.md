@@ -1,17 +1,20 @@
 # Intake
 
-The tickets of this repo, as markdown stubs. An epic is a folder with a `breakdown.md` and one
-stub per unit of work. A one-off finding is a stub in `triage/`. A stub's path is its identity
-and its folder is its status: open here, done in `_done/`. The desk reads this folder on `main`.
-The contract, the formats and the loop from stub to merge: `CONTEXT.md`.
+This file has the decisions and the epics of the build. Since 2026-11-18 the pipeline is the
+BAXTER blueprint (`.icm/_system/ROUTER.md`), and a ticket is a Linear key of the team `JAM`.
+The rules for this folder are in `.icm/_system/rules/ticket.md`. The markdown stubs of the epics
+and of `triage/` are the backlog of before that date: `.icm/local/ROUTES.md` says how one
+becomes a ticket.
 
-This page is the repo's own. Copier writes it once. What is true of this backlog goes below:
-`## Order`, the decisions of record that bind the epics, the milestones. Jamie sets `## Order`,
+- `tickets/<KEY>.md`: one stub for each ticket in work.
+- `_done/<KEY>.md`: the stub after the merge.
+
+## Order`, the decisions of record that bind the epics, the milestones. Jamie sets `## Order`,
 the order of the epics (`CONTEXT.md`, The order of the epics).
 
 ## Order
 
-Set by Jamie on 2026-10-29.
+Set by Jamie on 2026-10-29, for the markdown backlog.
 
 1. triage
 2. annulations-credits

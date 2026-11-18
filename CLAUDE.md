@@ -3,9 +3,9 @@
 The platform for Berceo, a Belgian two-sided marketplace connecting parents of newborns with
 professionals who take overnight post-partum care shifts (*gardes de nuit*). In French: the
 public site (the vitrine), accounts and the signed-in spaces, built increment by increment on
-`main`, tested on UAT (`uat.berceo.be`) and promoted to production as a batch. Built by Legible
-Consulting; the repo tracks `legible-consulting/blueprint` through
-`.copier-answers.yml`. This file is identity and routing only.
+`main`, tested on UAT (`uat.berceo.be`) and promoted to production as a batch. The work pipeline
+is the BAXTER blueprint (`.icm/_system/`, version in `.icm/_system/VERSION`, answers in
+`.icm/.copier-answers.yml`). This file is identity and routing only.
 
 Next.js (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui · Drizzle on Neon Postgres,
 deployed on Vercel. The package is still named `berceo-shell`.
@@ -18,20 +18,21 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
 
 ## Routing
 
+@.icm/_system/ROUTER.md
+
+The router has the commands, the stages and the lanes. A ticket is a Linear key of the team
+`JAM`. The files below belong to this repo.
+
 | You are asked to | Go to |
 |---|---|
-| build the next ticket, or any ticket | `.icm/intake/CONTEXT.md` (the loop), then the stub |
-| fix a bug, make a tweak or do a chore, with or without a stub | `.icm/lanes/<lane>/CONTEXT.md`: `bug`, `tweak` or `chore` |
-| fix a fault that production shows now | `.icm/lanes/hotfix/CONTEXT.md` |
-| do work that has no ticket | `.icm/intake/CONTEXT.md` § A request with no stub |
-| answer a question about the build, or review | read and answer. No stub, no branch, no pull request |
-| open, fill or finish a pull request | `.github/pull_request_template.md`. The gates sit at its top |
-| merge after the tick, release or promote | `.icm/intake/CONTEXT.md` § The loop, step 7, and § After the tick, then `.icm/uat/CONTEXT.md` |
-| plan new work | `.icm/intake/CONTEXT.md` (an epic with a breakdown), never a loose list |
-| change what CI checks or how a release is cut | `legible-consulting/.github` (`check-client.yml`, `release.yml`). `ci.yml` here only calls them |
-| change a file the blueprint renders | the blueprint, then `copier update` here |
-| read the UAT batch, record the client's sign-off, roll back | `.icm/uat/CONTEXT.md` (the whole UAT contract), then its scripts |
-| change the database, or read where a preview's database comes from | `.icm/database/CONTEXT.md`, then `preview-db.sh` |
+| answer a question about the build, or review | read and answer. No ticket, no branch, no pull request |
+| read a decision, the epics or the backlog of before 2026-11-18 | `.icm/intake/README.md`, and `.icm/local/ROUTES.md` for the markdown stubs |
+| read where the build runs | `.icm/environments.md`, the one home of the addresses |
+| read the UAT batch, record the client's sign-off, promote, roll back | `.icm/_system/features/uat.md`, then `.icm/_system/scripts/promote.sh` |
+| change the database, or read which database a deployment reads | `.icm/_system/features/database.md` (the rule), then `.icm/local/database.md` (the databases of today and the migration at build) |
+| do a setup act in Vercel, GitHub or Neon | `.icm/setup/`: one file for each act. A person ticks its boxes |
+| change what CI checks or how a release is cut | the blueprint. `ci.yml`, `promote.yml`, `db-reset.yml` and `icm.yml` come from it |
+| change a file below `.icm/_system/` | the blueprint, then an update of this repo. Never edit the folder here |
 
 | The task | Go to |
 |---|---|
@@ -73,21 +74,22 @@ previews. If Berceo wants the brand kept quiet until launch, make `isIndexable` 
 ## Rules
 
 - Client-facing text in `fr-BE`; code, commits and notes in English.
-- Technical text (stubs, pull request bodies, commits, questions) in Simplified Technical
+- Technical text (pull request bodies, commits, questions) in Simplified Technical
   English: short active sentences, one instruction each, no semicolons. A question for Jamie
   is numbered and carries a default answer.
 - CI is truth: never run build, lint, typecheck, test, format or dev locally. Push, then read
   the `ci` run and the Vercel preview.
 - Secrets never in git: names only, values in GitHub or Vercel settings. Flag any plaintext
   credential found.
-- One ticket is one branch and one pull request. The pull request moves the stub to `_done/`.
+- One ticket is one run, one branch and one pull request.
 - `main` changes by pull request. Gates are human checkboxes: read them, never tick them.
-  Jamie ticks Ready to merge, and the session merges with `.icm/scripts/merge.sh`.
-  The release is Jamie's word `release` in the session: the session runs `.icm/scripts/release.sh`.
+  Jamie ticks Ready to merge. The Release stage merges.
 - A ticket's merge reaches the UAT environment, where the client tests the batch. The merge of
-  the release pull request makes the release tag and moves nothing. Production moves when the
-  session dispatches `promote.yml` with `.icm/scripts/promote.sh run`, on Jamie's word, after the
-  session records the client's sign-off (`.icm/uat/CONTEXT.md`).
+  the release pull request makes the release tag and moves nothing. Production moves only on
+  Jamie's word, after the client's sign-off (`.icm/_system/features/uat.md`).
+- Linear: a ticket is a key of the team `JAM`. A session in this repo does not write to Linear
+  (`linear_writes: false`), and no workflow moves a ticket (`linear_states: false`). A person
+  or BAXTER moves the states.
 - Never invent a commercial term. Rates, scope, launch dates and contact addresses come from
   Jamie or from `.icm/docs/`. Berceo has no published email or domain yet; a blank is the
   correct state until it does. The vitrine deliberately shows no contact for exactly this reason.
