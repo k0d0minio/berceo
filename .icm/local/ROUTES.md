@@ -27,19 +27,21 @@ A ticket is now a Linear key of the team `JAM`. A stub is not a ticket.
 `.icm/intake/setup/` has the setup stubs of the pipeline of before, with their notes. They are
 records. The setup acts of today are in `.icm/setup/`.
 
-- `neon-vercel-integration` and `github-delete-head-branches` asked for one Neon branch for
-  each preview. `.icm/setup/databases.md` replaces them: it asks for one shared preview
-  database and no branch for a pull request.
+- `neon-vercel-integration` and `github-delete-head-branches` are open. They ask for one Neon
+  branch for each preview. No file of `.icm/setup/` replaces them: the repo answered
+  `database: none`.
 - `uat-variables` has one open point in its notes: `RESEND_API_KEY` is not on the Vercel
   environment `uat`. It is part of `.icm/setup/vercel-uat.md`, step 6.
 
 ## The database
 
-`.icm/_system/features/database.md` is the rule. `.icm/local/database.md` has the databases of
-today and the migration at the Vercel build (`.icm/local/vercel-build.sh`). The two local files
-leave when the setup act `.icm/setup/databases.md` is done.
+`.icm/local/database.md` is the database rule of this repo: the Neon databases, the migration
+at the Vercel build (`.icm/local/vercel-build.sh`), and the migration of production before a
+promotion (`.github/workflows/migrate-production.yml`). The database model of the blueprint
+is not adopted.
 
 ## The scheduled product workflows
 
 `.github/workflows/avis-invitations.yml`, `demandes-digest.yml` and `gardes-rappel.yml` belong
-to the product. Each calls a cron route of the application. The blueprint does not own them.
+to the product. Each calls a cron route of the application. `migrate-production.yml` belongs to
+the repo also. The blueprint does not own them.

@@ -29,9 +29,9 @@ The router has the commands, the stages and the lanes. A ticket is a Linear key 
 | read a decision, the epics or the backlog of before 2026-11-18 | `.icm/intake/README.md`, and `.icm/local/ROUTES.md` for the markdown stubs |
 | read where the build runs | `.icm/environments.md`, the one home of the addresses |
 | read the UAT batch, record the client's sign-off, promote, roll back | `.icm/_system/features/uat.md`, then `.icm/_system/scripts/promote.sh` |
-| change the database, or read which database a deployment reads | `.icm/_system/features/database.md` (the rule), then `.icm/local/database.md` (the databases of today and the migration at build) |
+| change the database, read which database a deployment reads, or migrate production | `.icm/local/database.md`, then `.icm/local/vercel-build.sh` and `.github/workflows/migrate-production.yml` |
 | do a setup act in Vercel, GitHub or Neon | `.icm/setup/`: one file for each act. A person ticks its boxes |
-| change what CI checks or how a release is cut | the blueprint. `ci.yml`, `promote.yml`, `db-reset.yml` and `icm.yml` come from it |
+| change what CI checks or how a release is cut | the blueprint. `ci.yml`, `promote.yml` and `icm.yml` come from it |
 | change a file below `.icm/_system/` | the blueprint, then an update of this repo. Never edit the folder here |
 
 | The task | Go to |
@@ -87,6 +87,8 @@ The router has the commands, the stages and the lanes. A ticket is a Linear key 
 - A ticket's merge reaches the UAT environment, where the client tests the batch. The merge of
   the release pull request makes the release tag and moves nothing. Production moves only on
   Jamie's word, after the client's sign-off (`.icm/_system/features/uat.md`).
+- The workflow `promote` does not migrate production. A release with a migration needs
+  `migrate-production.yml` before `promote.sh run` (`.icm/local/database.md`).
 - Linear: a ticket is a key of the team `JAM`. A session in this repo does not write to Linear
   (`linear_writes: false`), and no workflow moves a ticket (`linear_states: false`). A person
   or BAXTER moves the states.

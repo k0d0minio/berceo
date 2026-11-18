@@ -170,13 +170,11 @@ npm run db:verify                      # every journal entry is in __drizzle_mig
 npm run db:studio                      # browse the database
 ```
 
-Production is migrated by `promote.yml` on Jamie's dispatch of a release tag, from the
-`DATABASE_URL` repository secret, before the staged build is promoted
-(`.icm/_system/features/uat.md`). CI applies each migration from zero on a new Postgres in the
-job `code`, and its job `database` migrates the shared databases
-(`.icm/_system/features/database.md`). Until the setup act `.icm/setup/databases.md` is done, a
-Vercel build of UAT or of a preview also migrates its database first: the `vercel-build`
-script runs `db:migrate` and `db:verify` (`.icm/local/database.md`).
+Production is migrated by the workflow `migrate-production.yml`, on Jamie's word, for a release
+tag, from the `DATABASE_URL` repository secret, before the staged build is promoted
+(`.icm/local/database.md`). A Vercel build of UAT or of a preview migrates its database first:
+the `vercel-build` script runs `db:migrate` and `db:verify` (`.icm/local/vercel-build.sh`). The
+build of production never migrates.
 `src/db/migrations-journal.test.ts` refuses a journal whose stamps are out of order — the one
 way Drizzle's migrator skips a file silently.
 
