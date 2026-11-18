@@ -9,8 +9,8 @@ becomes a ticket.
 - `tickets/<KEY>.md`: one stub for each ticket in work.
 - `_done/<KEY>.md`: the stub after the merge.
 
-## Order`, the decisions of record that bind the epics, the milestones. Jamie sets `## Order`,
-the order of the epics (`CONTEXT.md`, The order of the epics).
+What is true of the markdown backlog goes below: the order of the epics, the decisions of
+record that bind them, the milestones. Jamie sets the order.
 
 ## Order
 
