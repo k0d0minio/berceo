@@ -20,13 +20,17 @@ function PlaceholderPage({
   text,
   closing,
   cta,
+  titleLevel = 1,
 }: {
   title: string
   text: string
   closing?: string
   cta?: { label: string; href: string }
+  /** The title's rank: 1 on a page, 3 where the page is shown as a specimen. */
+  titleLevel?: 1 | 3
 }) {
   const p = words(photos)
+  const Title = titleLevel === 1 ? "h1" : "h3"
   return (
     <section className="relative isolate flex w-full flex-col items-center gap-8 overflow-hidden px-4 py-16 md:py-24">
       <Photo
@@ -41,7 +45,7 @@ function PlaceholderPage({
           aria-hidden
           className="pointer-events-none absolute top-4 right-4 size-10 text-beurre md:size-14"
         />
-        <h1 className="font-display text-h2 text-balance">{title}</h1>
+        <Title className="font-display text-h2 text-balance">{title}</Title>
         <p className="text-intro">{text}</p>
         {closing ? <p>{closing}</p> : null}
         {cta ? (

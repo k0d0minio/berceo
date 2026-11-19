@@ -18,6 +18,7 @@ function PageHeader({
   intro,
   nav,
   ornaments = [OursonIcon, MobileIcon],
+  titleLevel = 1,
   className,
 }: {
   title: string
@@ -25,9 +26,12 @@ function PageHeader({
   nav?: React.ReactNode
   /** The two icons on the title: the first at its top right, the second at its bottom left. */
   ornaments?: readonly [Ornament, Ornament]
+  /** The title's rank: 1 on a page, 3 where the banner is shown as a specimen. */
+  titleLevel?: 1 | 3
   className?: string
 }) {
   const [First, Second] = ornaments
+  const Title = titleLevel === 1 ? "h1" : "h3"
   return (
     <div className={cn("bg-sauge text-blanc [--ring:var(--blanc)]", className)}>
       <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 px-4 pt-10 pb-14 text-center md:px-8 md:pt-14 md:pb-20">
@@ -36,7 +40,7 @@ function PageHeader({
             aria-hidden
             className="pointer-events-none absolute -top-7 right-0 size-10 text-beurre md:-top-9 md:size-14"
           />
-          <h1 className="font-display text-h1 text-balance">{title}</h1>
+          <Title className="font-display text-h1 text-balance">{title}</Title>
           <Second
             aria-hidden
             className="pointer-events-none absolute -bottom-8 left-0 size-10 text-beurre md:-bottom-10 md:size-14"

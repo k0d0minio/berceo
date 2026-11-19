@@ -116,6 +116,62 @@ export const designSystem = catalogue({
       text: "Des icônes pleines, simples et arrondies. 20 à 24 px dans les champs et la navigation, 24 à 32 px dans les cartes, 40 à 56 px pour les services.",
     },
 
+    /**
+     * The deck's screens, one specimen for each slide, so Surya can examine
+     * them (JAM-327). The slide numbers are the pages of `Direction
+     * artistique web.pdf`.
+     */
+    ecrans: {
+      /** @relecture Surya — page interne, non indexée. */
+      title: "Les écrans du deck",
+      /** @relecture Surya — explication interne. */
+      text: "Un exemple pour chaque diapositive du deck « Direction artistique web ». Le numéro est celui de la page du PDF.",
+      /** @relecture Surya — légende d'un exemple, « Diapositive 19 ». */
+      diapositive: "Diapositive {n}",
+      /** @relecture Surya — légendes internes des exemples. */
+      legendes: {
+        accueil: "L'en-tête sur la photo, le héros et le premier bloc sur rayures",
+        bandeau: "Le bandeau de section, puis le bloc taupe sur rayures",
+        blocTaupe: "Le bloc de contenu taupe",
+        carteTransparente: "La carte transparente à icônes sur une photo",
+        recherche: "Le bloc transparent sur une photo, et le champ de recherche sur sauge",
+        dialogue: "Le dialogue de confirmation",
+        cartes: "La carte de profil et la carte de demande, sur sauge",
+        histoire: "« Notre histoire »",
+        temoignages: "Les cartes de témoignage",
+        attente: "La page d'attente",
+        icones: "Les 18 icônes de Surya",
+      },
+      /** The deck's sample of slide 10. */
+      bandeau: {
+        title: "Les Gardiennes",
+        text: "Les professionnelles de santé qui veillent sur les premières nuits des familles.",
+      },
+      /** The deck's sample of slide 21. */
+      recherche: { titre: "Titre", texte: "Un texte court sur une photographie.", ville: "ville" },
+      /** The deck's sample card of slide 25. */
+      profil: { prenom: "Emma", commune: "Bruxelles" },
+      /**
+       * The deck's sample testimonial of slide 27, word for word. It is an
+       * example, not a real testimonial: it never leaves this page.
+       */
+      temoignage: {
+        exemple: "Exemple",
+        etoiles: "5 étoiles sur 5",
+        liste: "Exemples de témoignages",
+        quote:
+          "« Après plusieurs semaines sans véritable nuit de repos, nous avons réservé une garde avec une sage-femme rencontrée sur Berceo. Son profil vérifié nous a immédiatement rassurés. Cette nuit nous a permis de souffler tout en sachant notre bébé entre de bonnes mains. »",
+        name: "Sophie, Bruxelles",
+        detail: "Maman d'un bébé de trois mois",
+      },
+      /** The deck's waiting page of slide 29, word for word. */
+      attente: {
+        title: "Votre bébé est entre de bonnes mains",
+        text: "Berceo met en relation les familles avec des professionnelles de santé diplômées pour des gardes de nuit à domicile.",
+        bouton: "Site en construction",
+      },
+    },
+
     portail: {
       meta: {
         /** @relecture Surya — page interne, non indexée. */
