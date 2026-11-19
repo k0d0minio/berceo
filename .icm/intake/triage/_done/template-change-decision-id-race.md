@@ -23,7 +23,7 @@ A pointer, never a cut: no lane here consumes it.
 
 Template change request — from berceo · 2026-09-29
 
-In the icm-board repo (`~/Apps`), change how the template-owned pipeline numbers decisions. The
+In the repo of the old desk (`~/Apps`), change how the template-owned pipeline numbers decisions. The
 files are `_system/template/icm-pipeline/_shared/scope-template.md` (the Decisions table),
 `_system/template/icm-pipeline/stages/02_define/CONTEXT.md` (step 5, seeding `decisions.md`),
 `_system/template/icm-pipeline/stages/03_build/CONTEXT.md`,
@@ -33,7 +33,7 @@ files are `_system/template/icm-pipeline/_shared/scope-template.md` (the Decisio
 paths under `.icm/`, `T` lines of the MANIFEST). Read `_system/contracts/PIPELINE.md` → File-level
 ownership first.
 
-What it says today (berceo's copy, `.icm/template-version`: icm-board e7a99bb),
+What it says today (berceo's copy, `.icm/template-version`: the old desk, e7a99bb),
 `_shared/scope-template.md`:
 > Ids are stable — `D-n` is the trace from this table to the stub's `Notes for Define` to the spec,
 > so a decision is never renumbered.
