@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 /*
  * The top of an inner vitrine page: its one H1 and an introduction, with an
  * optional photograph (a `Photo` in `fillHeight` mode) beside them from lg
- * up, on the home hero's grid; stacked below lg (premier-ecran). An optional
+ * up, as large as the text, as in the mock-ups (JAM-300); stacked below lg. An optional
  * `nav` (the persona switch) sits at the top right, above both.
  */
 function PageHeader({
@@ -25,7 +25,7 @@ function PageHeader({
     <div
       className={cn(
         "mx-auto grid max-w-6xl gap-10 px-4 pt-10 pb-12 md:px-8 md:pt-16 md:pb-16",
-        aside ? "lg:grid-cols-[minmax(0,1fr)_22rem]" : null,
+        aside ? "lg:grid-cols-2" : null,
         className
       )}
     >

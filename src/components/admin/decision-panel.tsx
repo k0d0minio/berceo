@@ -81,7 +81,7 @@ function DecisionPanel({
             />
             <ReasonDialog
               trigger={
-                <Button type="button" variant="raye" disabled={pending}>
+                <Button type="button" variant="rouge" disabled={pending}>
                   {d.refuser}
                 </Button>
               }
@@ -112,7 +112,7 @@ function ReasonDialog({
   trigger: React.ReactElement
   title: string
   description: string
-  /** The confirming answer's colour: green to ask, red to refuse (D-24). */
+  /** The confirming answer's colour: green to ask, red to refuse (JAM-300). */
   tone: "confirmation" | "sensible"
   onConfirm: (reason: string) => void
   labels?: ReasonLabels

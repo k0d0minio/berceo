@@ -1,19 +1,20 @@
 import Link from "next/link"
 
-import { BerceoWordmark } from "@/components/berceo-logo"
+import { HeaderLogo } from "@/components/shell/header-logo"
 import { MobileMenu } from "@/components/shell/mobile-menu"
 import { Button } from "@/components/ui/button"
 import { common } from "@/content/common"
 import { words } from "@/content/locale"
 
 /*
- * The public header: the wordmark home, the vitrine's pages, the two account
+ * The public header: the mark home (the logotype on the home page and the
+ * account pages, the logomark on the inner pages, JAM-300), the vitrine's pages, the two account
  * entries. The full row needs about 1,075 px, which only the max-w-6xl
  * container at xl gives, so below xl the pages and entries move into the menu
  * panel (premier-ecran). Links never wrap; the capsules keep their height and
  * type, and only their side padding tightens here, to the DA's 24 px floor.
  */
-function PublicHeader() {
+function PublicHeader({ fullLogo }: { fullLogo?: boolean } = {}) {
   const t = words(common)
   const links = [
     t.pages.commentCaMarche,
@@ -34,7 +35,7 @@ function PublicHeader() {
           aria-label={t.header.homeLabel}
           className="shrink-0 rounded-md text-sauge"
         >
-          <BerceoWordmark aria-hidden className="w-32 md:w-36" />
+          <HeaderLogo full={fullLogo} />
         </Link>
 
         <nav aria-label={t.header.navLabel} className="hidden xl:block">

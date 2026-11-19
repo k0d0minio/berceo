@@ -28,6 +28,9 @@ const buttonVariants = cva(
           "border-blanc bg-sauge text-blanc hover:border-beurre hover:bg-beurre hover:text-sauge",
         taupe:
           "border-blanc bg-taupe text-blanc hover:border-beurre hover:bg-beurre hover:text-taupe",
+        /** The founders' « refuser » (JAM-300): the DA's confirmation red, on any background. */
+        rouge:
+          "border-rouge-confirmation bg-rouge-confirmation text-blanc hover:border-rouge-confirmation hover:bg-rouge-confirmation hover:text-blanc",
       },
       size: {
         default: "",

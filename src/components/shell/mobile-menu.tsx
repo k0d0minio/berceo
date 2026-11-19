@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Dialog as DialogPrimitive } from "radix-ui"
 import { MenuIcon, XIcon } from "lucide-react"
 
+import { BerceoLogomark } from "@/components/berceo-logo"
 import { Button } from "@/components/ui/button"
 
 /*
@@ -68,9 +69,13 @@ function MobileMenu({
           className="fixed inset-x-4 top-4 z-50 flex max-h-[calc(100dvh-2rem)] flex-col gap-6 overflow-y-auto rounded-carte bg-blanc p-6 text-taupe"
         >
           <div className="flex items-center justify-between">
-            <DialogPrimitive.Title className="font-display text-nav text-sauge">
-              {labels.title}
-            </DialogPrimitive.Title>
+            <div className="flex items-center gap-3">
+              {/* The logomark of the mobile navigation (DA, JAM-300). */}
+              <BerceoLogomark className="h-10 w-auto text-sauge" />
+              <DialogPrimitive.Title className="font-display text-nav text-sauge">
+                {labels.title}
+              </DialogPrimitive.Title>
+            </div>
             <DialogPrimitive.Close asChild>
               <Button size="icon" aria-label={labels.close}>
                 <XIcon aria-hidden />
