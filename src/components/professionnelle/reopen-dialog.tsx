@@ -23,7 +23,7 @@ function ReopenDialog() {
   return (
     <ConfirmDialog
       trigger={
-        <Button type="button" variant="raye" disabled={pending} className="self-start">
+        <Button type="button" variant="raye" disabled={pending} className="h-auto max-w-full self-start py-3 whitespace-normal">
           {t.bouton}
         </Button>
       }

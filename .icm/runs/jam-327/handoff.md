@@ -32,20 +32,29 @@ Vérifiés par la session sur le serveur local (`npm run dev`, base UAT confirm�
 - Espace professionnelle, profil non validé : `inscription/profil` (étapes et formulaire en cartes blanches), `demandes`, `disponibilites`, `gardes`, `messages` (messages d'attente). Les autres adresses renvoient à l'étape du profil.
 - Corrigé pendant ce test : un message de formulaire était perle sur perle. Il est blanc avec un contour taupe.
 
+Deuxième test local, complet (demande de Jamie, 2026-11-19), avec trois comptes de test :
+
+- **Préparation.** Un troisième compte, `test+admin327@jamienisbet.com`, promu avec `npm run admin:grant`. Deux écritures directes dans la base UAT, sur les lignes des comptes de test seulement, parce que le local n'a ni Stripe ni stockage de documents : un abonnement Découverte `active` pour la famille de test (`stripe_customer_id` `cus_test_jam327`), et le dossier de la professionnelle de test passé de `brouillon` à `en_attente`.
+- **Administration : les 15 adresses.** `/admin`, `abonnements`, `absences` (redirige vers `signalements`), `avis`, `codes-promo`, `credits`, `demandes`, `dossiers`, `dossiers/[id]`, `journal`, `paiements`, `reservations`, `signalements`, `utilisateurs`, `utilisateurs/[id]`. Aucune erreur, aucun défilement en largeur à 375 px, un H1 par page, tableaux dans une carte blanche, navigation en capsules, états vides en bloc taupe. Le dialogue « Valider le profil » s'ouvre et valide : le dossier passe à « Profil validé » et le mail part.
+- **Espace famille avec abonnement.** Le profil (commune enregistrée), le formulaire de demande (carte blanche), la publication d'une demande, la page de la demande (carte de la diapositive 25), la liste des demandes (zone sauge), `modifier`, le profil complet d'une professionnelle, la demande en priorité (zone sauge, bouton sauge plein), la réponse d'une professionnelle sur la demande (carte blanche en zone sauge, ligne tarif à icône), la conversation, et l'annulation de la demande par le dialogue rouge et vert.
+- **Espace professionnelle validée.** La connexion par mot de passe puis par code reçu par e-mail (`/connexion/code`), la page « Vos déclarations ont changé » et sa confirmation, l'accueil, `demandes` (cartes en zone sauge, son tarif sous son libellé), la réponse « Je suis disponible pour cette garde », `demandes/[id]`, `disponibilites` (calendrier en carte blanche), `gardes` (vide), `messages` et la conversation (bulle Berceo blanche), `profil` (« Mon dossier »).
+- **Corrigé pendant ce test.** À 375 px, la liste des demandes d'une professionnelle débordait de 13 px (le bouton de réponse ne revenait pas à la ligne), et « Mon dossier » de 6 px (un bouton long). Les deux tiennent maintenant dans l'écran.
+
 Non vérifié :
 
-- **L'administration** (15 pages). Un compte admin demande un changement à la main dans la base.
-- **Les pages qui demandent un abonnement ou des données** : le formulaire de demande, une demande et ses réponses, le profil complet d'une professionnelle, la demande en priorité, une réservation et son avis, une conversation. Stripe ne s'ouvre pas en local, donc le compte de test n'a pas d'abonnement.
-- **Les pages d'une professionnelle validée** : les étapes justificatifs et déclarations, son profil, une demande, une garde et son avis, le calendrier.
-- `/mot-de-passe-oublie`, `/nouveau-mot-de-passe`, `/connexion/code` : affichées sur la prévisualisation seulement, pas utilisées.
+- **Une réservation et tout ce qui en dépend** : `reservations/[id]`, les deux pages d'avis, `gardes/[id]`, l'annulation d'une garde, un signalement d'absence. « Accepter et réserver » ouvre Stripe, qui n'est pas configuré en local.
+- **Le dépôt d'un fichier** : la photo et les justificatifs (`inscription/justificatifs`, `inscription/declarations` dans le parcours d'inscription). Le stockage de documents n'est pas configuré en local (`DOCUMENTS_S3_ENDPOINT` absent).
+- **Les actions de l'administration autres que la validation** : suspendre, supprimer, refuser, rembourser, accorder un crédit, créer un code promo. Leurs pages sont vues, leurs dialogues ne sont pas ouverts.
+- `/mot-de-passe-oublie`, `/nouveau-mot-de-passe` : affichées sur la prévisualisation seulement.
 - L'envoi d'un message de contact : aucun `CONTACT_EMAIL` en local ni sur la prévisualisation.
 - La comparaison à 1440 px contre le deck : la fenêtre du navigateur de la session fait 532 à 638 px.
 
 Traces laissées par le test :
 
-- Deux comptes de test dans la base UAT : `test+famille327@jamienisbet.com` (famille, formule Découverte choisie, non payée) et `test+pro327@jamienisbet.com` (professionnelle, profil non rempli). Leur mot de passe n'est dans aucun fichier du dépôt.
-- Un compte Neon Auth orphelin pour `test@jamienisbet.com` : cette adresse a déjà une ligne `users` en UAT, donc la première inscription a créé le compte d'authentification puis a échoué. Voir `findings.md`.
-- Deux mails de vérification dans la boîte `contact@jamienisbet.com`. Aucun mail envoyé par la session.
+- Trois comptes de test dans la base UAT : `test+famille327@jamienisbet.com` (famille, abonnement de test actif, commune Ixelles), `test+pro327@jamienisbet.com` (professionnelle validée, sans photo ni justificatif, visible dans la recherche et sur sa page publique en UAT), `test+admin327@jamienisbet.com` (**admin**). Leur mot de passe n'est dans aucun fichier du dépôt. À supprimer ou à suspendre depuis `/admin/utilisateurs` quand Jamie n'en a plus besoin.
+- Une demande de test annulée (Ixelles, nuit du 25/11/2026), une réponse et une conversation entre les deux comptes de test. Deux lignes du journal admin (validation du dossier).
+- Un compte Neon Auth orphelin pour `test@jamienisbet.com` (voir `findings.md`, point 8).
+- Des mails de l'application dans la boîte `contact@jamienisbet.com` : trois vérifications, un code de connexion, la validation du profil, et les notifications de réponse. Aucun mail envoyé par la session.
 - Dans le worktree, hors de git : `.env.local` (copié par Jamie), `node_modules/`, `.claude/launch.json`.
 - Le serveur local est arrêté.
 
@@ -79,8 +88,9 @@ Traces laissées par le test :
 
 - Jamie : tester, puis cocher **Ready to merge** sur la pull request #136.
 - Jamie : poser `CONTACT_EMAIL` dans Vercel (`.icm/setup/contact-email.md`).
-- Jamie : tester lui-même l'administration et les pages qui demandent un abonnement ou un profil validé, sur la prévisualisation ou sur UAT.
-- La case **Ready to merge** était cochée avant les deux derniers commits de produit (`fix(da)` du titre de bandeau et du message de formulaire). Jamie décide si la coche tient.
+- Jamie : tester sur UAT ce que le local ne peut pas ouvrir : une réservation payée, les avis, le dépôt d'un fichier.
+- Jamie : supprimer ou garder les trois comptes de test en UAT, dont un admin.
+- La case **Ready to merge** était cochée avant les trois derniers commits de produit (`fix(da)` : titre de bandeau, message de formulaire, boutons longs à 375 px). Jamie décide si la coche tient.
 
 ## Do not touch
 

@@ -85,7 +85,7 @@ function RequestCard({
   }).format(request.createdAt)
 
   return (
-    <article className="flex h-full flex-col gap-4 rounded-carte bg-blanc px-6 py-8 text-taupe md:px-10">
+    <article className="flex h-full min-w-0 flex-col gap-4 rounded-carte bg-blanc px-6 py-8 text-taupe md:px-10">
       {priority || request.urgent || status ? (
         <div className="flex flex-wrap items-center gap-2">
           {priority ? <Mark className="bg-beurre">{r.professionnelle.prioritaire}</Mark> : null}
@@ -129,7 +129,12 @@ function RequestCard({
           <Link href={href}>{t.boutons.voir}</Link>
         </Button>
       ) : null}
-      {footer ? <div className="mt-auto flex flex-wrap gap-3 pt-2">{footer}</div> : null}
+      {/* A long answer button wraps inside the card on a phone, in place of pushing the page sideways. */}
+      {footer ? (
+        <div className="mt-auto flex flex-wrap gap-3 pt-2 [&_button]:h-auto [&_button]:max-w-full [&_button]:py-3 [&_button]:whitespace-normal">
+          {footer}
+        </div>
+      ) : null}
     </article>
   )
 }

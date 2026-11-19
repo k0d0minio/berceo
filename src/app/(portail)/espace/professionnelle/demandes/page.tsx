@@ -71,7 +71,7 @@ export default async function DemandesProfessionnellePage({
                 {groupForProfessional(view.requests).map((entry) =>
                   entry.kind === "serie" ? (
                     // A regular request answered as one (JAM-302): one card, one answer for all its nights.
-                    <li key={entry.seriesId} id={`demande-${entry.requests[0].id}`} className="scroll-mt-24">
+                    <li key={entry.seriesId} id={`demande-${entry.requests[0].id}`} className="min-w-0 scroll-mt-24">
                       <SeriesEntry
                         nights={entry.requests}
                         seriesId={entry.seriesId}
@@ -84,7 +84,7 @@ export default async function DemandesProfessionnellePage({
                       />
                     </li>
                   ) : (
-                    <li key={entry.request.id} id={`demande-${entry.request.id}`} className="scroll-mt-24">
+                    <li key={entry.request.id} id={`demande-${entry.request.id}`} className="min-w-0 scroll-mt-24">
                       <RequestCard
                         request={entry.request}
                         href={professionalRequestPath(entry.request.id)}
