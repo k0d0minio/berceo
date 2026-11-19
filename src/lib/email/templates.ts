@@ -489,6 +489,87 @@ export function gardeCancelledByProfessionalEmail(input: {
   };
 }
 
+/**
+ * A founder cancelled the garde for Berceo (annulations-back-office): to the
+ * family, naming the credit her fee became when there is one, and the way to
+ * republish while the night has not started. Never the founders' note.
+ */
+export function gardeCancelledByBerceoFamilyEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: string;
+  date: string;
+  /** Whether her fee became a credit: false for a garde booked before the fee existed. */
+  credited: boolean;
+  /** Whether she can still republish: the night has not started. */
+  republish: boolean;
+  url: string;
+}): RenderedEmail {
+  const r = t.annulationParBerceo;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [
+        fill(r.famille, { prenom: input.professionnelle, date: input.date }),
+        ...(input.credited ? [r.credit] : []),
+        ...(input.republish ? [r.suite] : []),
+      ],
+      cta: { label: r.ctaFamille, href: input.url },
+    }),
+  };
+}
+
+/** A founder cancelled the garde for Berceo (annulations-back-office): to the professional. Never the founders' note. */
+export function gardeCancelledByBerceoProfessionalEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  prenomFamille: string;
+  date: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.annulationParBerceo;
+  return {
+    subject: fill(r.objet, { date: input.date }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [fill(r.professionnelle, { prenomFamille: input.prenomFamille, date: input.date })],
+      cta: { label: r.ctaProfessionnelle, href: input.url },
+    }),
+  };
+}
+
+/**
+ * A founder granted the family a credit of a garde's fee (annulations-back-office):
+ * the amount, the night, the expiry, and the way to her credits. Never the
+ * founders' note.
+ */
+export function creditGrantedEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  /** « 4,50 € ». */
+  montant: string;
+  date: string;
+  expiration: string;
+  url: string;
+}): RenderedEmail {
+  const r = t.creditOffert;
+  return {
+    subject: r.objet,
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [
+        fill(r.corps, { montant: input.montant, date: input.date }),
+        fill(r.validite, { expiration: input.expiration }),
+      ],
+      cta: { label: r.cta, href: input.url },
+    }),
+  };
+}
+
 /** An absence reported: to the side recorded absent (D-106), with the way to contest it (annulations-table). `auteur` is who reported it. */
 export function absenceReportedEmail(input: {
   siteUrl: string;
