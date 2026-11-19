@@ -5,5 +5,5 @@
 - link: https://linear.app/jamienisbet/issue/JAM-249/berceo-the-public-pages-say-that-a-subscription-opens-the-full
 - branch: contact/jam-249-berceo-the-public-pages-say-that-a
 - lane: tweak
-- pr: pending
+- pr: #128
 - started: 2026-11-19
