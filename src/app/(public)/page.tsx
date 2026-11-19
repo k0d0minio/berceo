@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ShieldCheckIcon } from "lucide-react";
+import { ShieldCheckIcon } from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import { StripedSection } from "@/components/ui/striped-section";
+import { TranslucentBlock } from "@/components/ui/translucent-block";
 import { CtaPair } from "@/components/vitrine/cta-pair";
 import { Photo } from "@/components/vitrine/photo";
 import { ReasonGrid } from "@/components/vitrine/reason-grid";
@@ -21,44 +22,47 @@ const p = words(photos);
 export const metadata = pageMetadata(t.meta, "/");
 
 /**
- * The home page. Its H1 and the two doors sit above the fold on a phone; the
- * reassurance line follows them in the first screen (the guide's "premier
+ * The home page. Its H1 and the two doors sit in a pearl block over a large
+ * photograph, above the fold on a phone; the reassurance line follows them in
+ * the first screen (the guide's "premier
  * tiers"). Four H2 below: the family's three steps, who the professionals
  * are, why Berceo, and the professionals' band on the stripes.
  */
 export default function AccueilPage() {
   return (
     <>
-      {/* Stacked below lg; from lg the text takes all but the photo's 22rem, which keeps the 88-character H1 to 4 lines at 60 px (premier-ecran, D-6). Below 360 px, « professionnelles » needs 294 px even at the DA's 38 px floor, so the gutter narrows to 12 px there (operator, 2026-09-25). */}
-      <section className="mx-auto grid max-w-6xl gap-10 px-4 pt-8 pb-14 max-[22.5rem]:px-3 md:px-8 md:pt-14 md:pb-20 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="flex flex-col gap-6">
-          <h1 className="font-display text-h1 text-balance text-encre-sauge max-[22.5rem]:text-[2.375rem]">
-            {t.hero.title}
-          </h1>
-          <p className="max-w-xl text-intro">{t.hero.message}</p>
-          {/* The message above names health professionals, so the family door may say "gardienne de la nuit" (D-25). */}
-          <CtaPair
-            family={{
-              label: c.cta.trouverGardienne,
-              href: c.pages.inscriptionFamille.href,
-            }}
-            professional={{
-              label: c.cta.rejoindreReseau,
-              href: c.pages.inscriptionProfessionnelle.href,
-            }}
-          />
-          <p className="flex items-start gap-3 font-semibold text-encre-sauge">
-            <ShieldCheckIcon aria-hidden className="mt-0.5 size-6 shrink-0" />
-            {t.hero.reassurance}
-          </p>
-        </div>
-        {/* The portrait crop keeps the fist and the mouth in frame. */}
+      {/* The first screen: a large photograph across the page, and the H1, the two doors and the reassurance in a pearl block over it (DA, Le système de transparence; JAM-300). Below 360 px the gutter narrows to 12 px so « professionnelles » fits at the DA's 38 px floor (operator, 2026-09-25). */}
+      <section className="relative isolate w-full overflow-hidden">
+        {/* The crop keeps the fist and the mouth in frame. */}
         <Photo
           photo={p.bebeEndormi}
           preload
-          fillHeight
-          className="lg:object-[30%_50%]"
+          sizes="100vw"
+          className="absolute inset-0 -z-10 h-full rounded-none object-[30%_50%]"
         />
+        <div className="mx-auto max-w-6xl px-4 py-16 max-[22.5rem]:px-3 md:px-8 md:py-28">
+          <TranslucentBlock className="max-w-4xl gap-6">
+            <h1 className="font-display text-h1 text-balance max-[22.5rem]:text-[2.375rem]">
+              {t.hero.title}
+            </h1>
+            <p className="max-w-xl text-intro">{t.hero.message}</p>
+            {/* The message above names health professionals, so the family door may say "gardienne de la nuit" (D-25). */}
+            <CtaPair
+              family={{
+                label: c.cta.trouverGardienne,
+                href: c.pages.inscriptionFamille.href,
+              }}
+              professional={{
+                label: c.cta.rejoindreReseau,
+                href: c.pages.inscriptionProfessionnelle.href,
+              }}
+            />
+            <p className="flex items-start gap-3 font-semibold">
+              <ShieldCheckIcon aria-hidden className="mt-0.5 size-6 shrink-0" />
+              {t.hero.reassurance}
+            </p>
+          </TranslucentBlock>
+        </div>
       </section>
 
       <VitrineSection title={t.etapes.title} tone="perle">
@@ -67,7 +71,7 @@ export default function AccueilPage() {
           <li>
             <Link
               href={c.pages.commentCaMarche.href}
-              className="font-semibold text-encre-sauge underline underline-offset-4"
+              className="font-semibold text-sauge underline underline-offset-4"
             >
               {t.etapes.liens.commentCaMarche}
             </Link>
@@ -75,7 +79,7 @@ export default function AccueilPage() {
           <li>
             <Link
               href={c.pages.tarifs.href}
-              className="font-semibold text-encre-sauge underline underline-offset-4"
+              className="font-semibold text-sauge underline underline-offset-4"
             >
               {t.etapes.liens.tarifs}
             </Link>

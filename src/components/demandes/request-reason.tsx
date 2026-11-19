@@ -6,8 +6,8 @@
 function RequestReason({ title, reason }: { title: string; reason: string }) {
   return (
     <section className="flex max-w-2xl flex-col gap-2 rounded-carte border border-solid border-perle bg-blanc px-6 py-6 md:px-8">
-      <h2 className="text-corps font-semibold text-encre-taupe">{title}</h2>
-      <p className="text-corps whitespace-pre-line break-words text-encre-taupe">{reason}</p>
+      <h2 className="text-corps font-semibold text-taupe">{title}</h2>
+      <p className="text-corps whitespace-pre-line break-words text-taupe">{reason}</p>
     </section>
   )
 }

@@ -45,7 +45,7 @@ export default async function SignalementsPage({
 
   return (
     <AdminShell user={user} title={t.titre} current="signalements">
-      <p className="max-w-3xl text-corps text-encre-taupe">{t.intro}</p>
+      <p className="max-w-3xl text-corps text-taupe">{t.intro}</p>
       <FilterLinks
         label={t.colonnes.suivi}
         options={REPORT_FILTERS.map((filter) => ({
@@ -55,7 +55,7 @@ export default async function SignalementsPage({
         }))}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{empty[filtre]}</p>
+        <p className="text-corps text-taupe">{empty[filtre]}</p>
       ) : (
         <ReportsTable rows={rows} />
       )}

@@ -51,7 +51,7 @@ function SignInCodeForm({
       </form>
 
       <form action={signOut}>
-        <button type="submit" className="text-corps text-encre-sauge underline">
+        <button type="submit" className="text-corps text-sauge underline">
           {t.code.deconnexion}
         </button>
       </form>

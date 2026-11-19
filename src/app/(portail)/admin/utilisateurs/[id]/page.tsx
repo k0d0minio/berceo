@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const date = new Intl.DateTimeFormat("fr-BE", { dateStyle: "long", timeZone: "Europe/Brussels" });
-const link = "text-corps font-semibold text-encre-sauge underline underline-offset-4";
+const link = "text-corps font-semibold text-sauge underline underline-offset-4";
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -46,7 +46,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-display text-h2 text-encre-sauge">{title}</h2>
+      <h2 className="font-display text-h2 text-sauge">{title}</h2>
       {children}
     </section>
   );
@@ -92,7 +92,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
   return (
     <AdminShell user={user} title={name} current="utilisateurs">
       <Section title={t.sections.identite}>
-        <dl className="flex flex-col gap-3 text-corps text-encre-taupe">
+        <dl className="flex flex-col gap-3 text-corps text-taupe">
           <Row label={t.champs.role}>{u.roles[account.role]}</Row>
           <Row label={t.champs.email}>{account.deletedAt ? t.nonRenseigne : account.email}</Row>
           <Row label={t.champs.telephone}>{account.phone ?? t.nonRenseigne}</Row>
@@ -151,7 +151,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
       </Section>
 
       <Section title={t.sections.activite}>
-        <ul className="flex flex-col gap-2 text-corps text-encre-taupe">
+        <ul className="flex flex-col gap-2 text-corps text-taupe">
           {account.role === "parent" ? (
             <li className="flex flex-wrap gap-x-4">
               {fill(t.compteurs.demandes, { n: String(view.counts.requests) })}
@@ -177,9 +177,9 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
       {account.role !== "admin" ? (
         <Section title={t.sections.gardes}>
           {upcoming.length === 0 ? (
-            <p className="text-corps text-encre-taupe">{t.aucuneGarde}</p>
+            <p className="text-corps text-taupe">{t.aucuneGarde}</p>
           ) : (
-            <ul className="flex list-disc flex-col gap-3 pl-6 text-corps text-encre-taupe">
+            <ul className="flex list-disc flex-col gap-3 pl-6 text-corps text-taupe">
               {view.upcoming.map((garde, index) => (
                 <li key={garde.bookingId} className="flex flex-col gap-2">
                   {upcoming[index]}
@@ -199,9 +199,9 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
 
       <Section title={t.sections.actions}>
         {account.role === "admin" ? (
-          <p className="text-corps text-encre-taupe">{t.sansActionAdmin}</p>
+          <p className="text-corps text-taupe">{t.sansActionAdmin}</p>
         ) : account.deletedAt ? (
-          <p className="text-corps text-encre-taupe">{t.sansActionSupprime}</p>
+          <p className="text-corps text-taupe">{t.sansActionSupprime}</p>
         ) : (
           <AccountActions
             userId={account.id}
@@ -216,7 +216,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
 
       <Section title={t.sections.historique}>
         {view.journal.length === 0 ? (
-          <p className="text-corps text-encre-taupe">{t.aucunHistorique}</p>
+          <p className="text-corps text-taupe">{t.aucunHistorique}</p>
         ) : (
           <JournalTable entries={view.journal} />
         )}

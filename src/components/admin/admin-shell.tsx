@@ -76,7 +76,7 @@ async function AdminShell({
                 href={href}
                 aria-current={section === current ? "page" : undefined}
                 className={cn(
-                  "inline-flex min-h-12 items-center rounded-capsule border border-solid border-encre-sauge px-5 text-corps font-semibold text-encre-sauge transition-colors duration-200 ease-out hover:bg-beurre",
+                  "inline-flex min-h-12 items-center rounded-capsule border border-solid border-sauge px-5 text-corps font-semibold text-sauge transition-colors duration-200 ease-out hover:bg-beurre",
                   section === current && "border-beurre bg-beurre",
                 )}
               >

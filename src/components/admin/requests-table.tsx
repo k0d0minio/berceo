@@ -24,7 +24,7 @@ function RequestsTable({ rows, now }: { rows: AdminRequestRow[]; now: Date }) {
 
   return (
     <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
-      <Table className="text-corps text-encre-taupe">
+      <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>
             <TableHead>{t.colonnes.nuit}</TableHead>
@@ -44,7 +44,7 @@ function RequestsTable({ rows, now }: { rows: AdminRequestRow[]; now: Date }) {
                 </TableCell>
                 <TableCell>{placeLine(row.postcode, row.locality)}</TableCell>
                 <TableCell>
-                  <Link href={adminUserPath(row.familyUserId)} className="text-encre-sauge underline underline-offset-4">
+                  <Link href={adminUserPath(row.familyUserId)} className="text-sauge underline underline-offset-4">
                     {row.family}
                   </Link>
                   {row.familySuspended ? <span className="block text-legende font-semibold">{r.suspendu}</span> : null}
@@ -56,7 +56,7 @@ function RequestsTable({ rows, now }: { rows: AdminRequestRow[]; now: Date }) {
                 <TableRow>
                   <TableCell colSpan={5} className="pt-0">
                     <details>
-                      <summary className="cursor-pointer text-legende font-semibold text-encre-sauge">{t.motif}</summary>
+                      <summary className="cursor-pointer text-legende font-semibold text-sauge">{t.motif}</summary>
                       <p className="max-w-2xl pt-2 whitespace-pre-line break-words">{row.reason}</p>
                     </details>
                   </TableCell>

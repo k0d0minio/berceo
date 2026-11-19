@@ -53,7 +53,7 @@ export default async function CommunePage({ params }: { params: Promise<{ commun
       <PageHeader title={fill(t.titre, { commune: name })} intro={fill(t.intro, { commune: name })} />
 
       <VitrineSection tone="perle" title={fill(t.liste, { commune: name })}>
-        <p className="max-w-2xl text-corps text-encre-taupe">{t.verification}</p>
+        <p className="max-w-2xl text-corps text-taupe">{t.verification}</p>
         {teasers.length === 0 ? (
           <NoResult text={a.texteCommune} className="bg-blanc">
             <Button asChild variant="sauge">
@@ -80,16 +80,16 @@ export default async function CommunePage({ params }: { params: Promise<{ commun
       </VitrineSection>
 
       <VitrineSection title={fill(t.ctaTitre, { commune: name })}>
-        <p className="max-w-2xl text-corps text-encre-taupe">{t.ctaTexte}</p>
+        <p className="max-w-2xl text-corps text-taupe">{t.ctaTexte}</p>
         <Button asChild variant="sauge" className="self-start">
           <Link href={signUp}>{t.ctaBouton}</Link>
         </Button>
         <nav aria-label={t.enSavoirPlus} className="flex flex-col gap-2">
-          <p className="text-legende font-semibold text-encre-taupe">{t.enSavoirPlus}</p>
+          <p className="text-legende font-semibold text-taupe">{t.enSavoirPlus}</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             {[c.pages.commentCaMarche, c.pages.tarifs].map((page) => (
               <li key={page.href}>
-                <Link href={page.href} className="text-corps text-encre-sauge underline underline-offset-4">
+                <Link href={page.href} className="text-corps text-sauge underline underline-offset-4">
                   {page.label}
                 </Link>
               </li>

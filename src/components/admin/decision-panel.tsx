@@ -52,10 +52,10 @@ function DecisionPanel({
     <div className="flex flex-col gap-4">
       {message ? <FormMessage>{message}</FormMessage> : null}
       {!isReviewable(status) ? (
-        <p className="text-corps text-encre-taupe">{t.dossier.sansDecision}</p>
+        <p className="text-corps text-taupe">{t.dossier.sansDecision}</p>
       ) : (
         <>
-          {held ? <p className="max-w-2xl text-corps text-encre-taupe">{t.dossier.etudiantesRetenue}</p> : null}
+          {held ? <p className="max-w-2xl text-corps text-taupe">{t.dossier.etudiantesRetenue}</p> : null}
           <div className="flex flex-wrap gap-4">
             <ConfirmDialog
               trigger={
@@ -81,7 +81,7 @@ function DecisionPanel({
             />
             <ReasonDialog
               trigger={
-                <Button type="button" variant="raye" disabled={pending}>
+                <Button type="button" variant="rouge" disabled={pending}>
                   {d.refuser}
                 </Button>
               }
@@ -118,7 +118,7 @@ function ReasonDialog({
   trigger: React.ReactElement
   title: string
   description: string
-  /** The confirming answer's colour: green to ask, red to refuse (D-24). */
+  /** The confirming answer's colour: green to ask, red to refuse (JAM-300). */
   tone: "confirmation" | "sensible"
   onConfirm: (reason: string) => void
   labels?: ReasonLabels
@@ -156,7 +156,7 @@ function ReasonDialog({
       cancel={{ label: l.non, tone: tone === "sensible" ? "confirmation" : "sensible" }}
     >
       <div className="flex flex-col gap-2">
-        <label htmlFor={`${id}-motif`} className="text-corps font-semibold text-encre-taupe">
+        <label htmlFor={`${id}-motif`} className="text-corps font-semibold text-taupe">
           {l.motif}
         </label>
         <textarea
@@ -167,9 +167,9 @@ function ReasonDialog({
           onChange={(event) => setReason(event.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={[`${id}-aide`, error ? `${id}-erreur` : ""].filter(Boolean).join(" ")}
-          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge aria-invalid:border-destructive"
+          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge aria-invalid:border-destructive"
         />
-        <p id={`${id}-aide`} className="px-6 text-legende text-encre-taupe">
+        <p id={`${id}-aide`} className="px-6 text-legende text-taupe">
           {l.motifAide}
         </p>
         {error ? (

@@ -26,7 +26,7 @@ function BookingsTable({ rows }: { rows: AdminBookingRow[] }) {
 
   const person = (who: AdminBookingRow["family"]) => (
     <>
-      <Link href={adminUserPath(who.id)} className="text-encre-sauge underline underline-offset-4">
+      <Link href={adminUserPath(who.id)} className="text-sauge underline underline-offset-4">
         {who.name}
       </Link>
       {who.suspended ? <span className="block text-legende font-semibold">{t.suspendu}</span> : null}
@@ -35,7 +35,7 @@ function BookingsTable({ rows }: { rows: AdminBookingRow[] }) {
 
   return (
     <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
-      <Table className="text-corps text-encre-taupe">
+      <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>
             <TableHead>{t.colonnes.nuit}</TableHead>

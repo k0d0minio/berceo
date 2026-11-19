@@ -49,7 +49,7 @@ function GrantCreditButton({ bookingId, family, amount }: { bookingId: string; f
         errors={a.note}
       />
       {message ? (
-        <p role="status" className="max-w-xs text-legende text-encre-taupe">
+        <p role="status" className="max-w-xs text-legende text-taupe">
           {message}
         </p>
       ) : null}

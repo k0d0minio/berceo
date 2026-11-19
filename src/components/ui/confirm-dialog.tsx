@@ -15,12 +15,12 @@ import {
 import { cn } from "@/lib/utils"
 
 /*
- * The confirmation dialog (DA, Couleurs de confirmation; D-24).
+ * The confirmation dialog (DA, Couleurs de confirmation; JAM-300).
  *
- * This is the only component that may use the confirmation colours: red for
- * the sensitive answer (cancel, refuse, leave), green for the confirming one.
- * They never appear as page-wide buttons. The red also marks form errors,
- * through the `destructive` token (onboarding-retour-1). Each answer says which it is, so a
+ * The confirmation colours are for important choices only: red for the
+ * sensitive answer (cancel, refuse, leave), green for the confirming one. The
+ * founders' « refuser » button is red too (Button `rouge`). The red also marks
+ * form errors, through the `destructive` token (onboarding-retour-1). Each answer says which it is, so a
  * dialog reads the same whichever of the two actually runs the action.
  *
  * Focus is trapped in the dialog, Escape closes it, and focus goes back to the
@@ -39,7 +39,7 @@ const toneClasses: Record<Tone, string> = {
   sensible:
     "border-rouge-confirmation bg-rouge-confirmation text-blanc hover:border-rouge-confirmation hover:bg-rouge-confirmation",
   confirmation:
-    "border-vert-confirmation bg-vert-confirmation text-encre-sauge hover:border-vert-confirmation hover:bg-vert-confirmation",
+    "border-vert-confirmation bg-vert-confirmation text-sauge hover:border-vert-confirmation hover:bg-vert-confirmation",
 }
 
 /* The DA's button construction, with the confirmation fill instead of a background variant. */

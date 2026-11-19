@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const JOURNAL = ADMIN_JOURNAL_PATH;
-const link = "text-corps font-semibold text-encre-sauge underline underline-offset-4";
+const link = "text-corps font-semibold text-sauge underline underline-offset-4";
 
 /*
  * "Journal des actions administratives" (verification-back-office): every
@@ -39,12 +39,12 @@ export default async function JournalPage({
   return (
     <AdminShell user={user} title={a.journal.titre} current="journal">
       {entries.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{a.journal.vide}</p>
+        <p className="text-corps text-taupe">{a.journal.vide}</p>
       ) : (
         <JournalTable entries={entries} />
       )}
       {pages > 1 ? (
-        <nav className="flex flex-wrap items-center gap-6 text-corps text-encre-taupe">
+        <nav className="flex flex-wrap items-center gap-6 text-corps text-taupe">
           {page > 1 ? (
             <Link href={`${JOURNAL}?page=${page - 1}`} className={link}>
               {a.journal.precedente}

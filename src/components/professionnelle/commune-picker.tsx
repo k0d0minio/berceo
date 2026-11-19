@@ -1,6 +1,6 @@
 "use client"
 
-import { X } from "lucide-react"
+import { XIcon } from "@/components/icons"
 import * as React from "react"
 
 import { Input } from "@/components/ui/input"
@@ -80,11 +80,11 @@ function CommunePicker({
                 <button
                   type="button"
                   onClick={() => setSelected((current) => current.filter((n) => n !== nis))}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-capsule border border-solid border-encre-sauge bg-blanc px-4 text-corps text-encre-sauge"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-capsule border border-solid border-sauge bg-blanc px-4 text-corps text-sauge"
                   aria-label={fill(t.retirerCommune, { commune: name })}
                 >
                   {name}
-                  <X aria-hidden className="size-4" />
+                  <XIcon aria-hidden className="size-4" />
                 </button>
               </li>
             )
@@ -118,7 +118,7 @@ function CommunePicker({
             className="absolute z-10 mt-2 flex max-h-72 w-full flex-col overflow-y-auto rounded-carte border border-solid border-perle bg-blanc py-2"
           >
             {suggestions.length === 0 ? (
-              <li className="px-6 py-2 text-corps text-encre-taupe">{t.aucuneCommune}</li>
+              <li className="px-6 py-2 text-corps text-taupe">{t.aucuneCommune}</li>
             ) : (
               suggestions.map((commune, i) => (
                 <li
@@ -134,8 +134,8 @@ function CommunePicker({
                   onMouseEnter={() => setActive(i)}
                   className={
                     i === active
-                      ? "cursor-pointer bg-perle px-6 py-2 text-corps text-encre-taupe"
-                      : "cursor-pointer px-6 py-2 text-corps text-encre-taupe"
+                      ? "cursor-pointer bg-perle px-6 py-2 text-corps text-taupe"
+                      : "cursor-pointer px-6 py-2 text-corps text-taupe"
                   }
                 >
                   <span className="font-semibold">{commune.name}</span>

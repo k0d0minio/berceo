@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils"
 /*
  * Motif rayé (DA, Couleurs p. 18): a full-width white and taupe section with
  * one solid block in front. Text never sits on the stripes: the section only
- * renders its children inside that block, the white block the DA allows, with
- * taupe-ink text. The taupe block is gone: white text on taupe cannot reach
- * AA (finition-accueil D-2). A translucent block is never placed here.
+ * renders its children inside that block, the plain taupe block the DA
+ * prefers, with white text (JAM-300). A translucent block is never placed
+ * here, and two striped sections never follow each other.
  *
  * The block's text is aligned left, heading and button with it: the DA
  * never centres more than three lines, and a paragraph held to its 60 to 75
@@ -34,7 +34,7 @@ function StripedSection({
       <div
         data-slot="striped-section-block"
         className={cn(
-          "mx-auto flex max-w-2xl flex-col items-start gap-6 rounded-carte bg-blanc p-6 text-encre-taupe md:p-12",
+          "mx-auto flex max-w-2xl flex-col items-start gap-6 rounded-carte bg-taupe p-6 text-blanc md:p-12",
           blockClassName
         )}
       >
