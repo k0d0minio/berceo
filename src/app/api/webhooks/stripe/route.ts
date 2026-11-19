@@ -1,6 +1,9 @@
 import {
+  confirmNightPassCheckout,
   confirmSubscriptionCheckout,
+  isNightPassSession,
   markCheckoutExpired,
+  markNightPassClosed,
   syncFromInvoice,
   syncSubscription,
 } from "@/lib/abonnements/subscriptions";
@@ -19,8 +22,9 @@ import { siteOrigin } from "@/lib/site-origin";
  * refund.created, refund.updated, refund.failed,
  * customer.subscription.created, customer.subscription.updated,
  * customer.subscription.deleted, invoice.paid, invoice.payment_failed.
- * A Checkout in subscription mode goes to the subscriptions, every other
- * Checkout to the fee.
+ * A Checkout in subscription mode goes to the subscriptions, a one-night
+ * pass's Checkout (JAM-304, its metadata) to the passes, every other Checkout
+ * to the fee.
  *
  * Nothing is read before the signature is checked on the raw body: an
  * unsigned or wrongly signed call answers 400 and touches nothing. Every
@@ -54,6 +58,12 @@ export async function POST(request: Request): Promise<Response> {
         if (session.mode === "subscription") {
           if (event.type === "checkout.session.expired") await markCheckoutExpired(session.id, now);
           else await confirmSubscriptionCheckout(session.id, now);
+        } else if (isNightPassSession(session)) {
+          if (event.type === "checkout.session.expired" || event.type === "checkout.session.async_payment_failed") {
+            await markNightPassClosed(session.id, now);
+          } else {
+            await confirmNightPassCheckout(session.id, now);
+          }
         } else if (event.type === "checkout.session.expired") {
           await markSession(session.id, "expiree");
         } else if (event.type === "checkout.session.async_payment_failed") {

@@ -16,8 +16,10 @@ import { tarifs } from "./tarifs";
  * The vitrine's writing rules, asserted over the catalogue's values (never its
  * comments), from the spec's acceptance criteria: Surya's punctuation rules
  * (D-19), no insurance (D-8), no Facebook group (D-23), no amount but the
- * four subscriptions, the 130 € floor and the 3 % fee (feedback round 1,
- * which supersedes D-3 and D-4), and the guide's title and meta lengths.
+ * four subscriptions, the one-night plan at 14,75 € (feedback round 2, JAM-304:
+ * the client's request wins over the rule, Jamie, 2026-11-18), the 130 € floor
+ * and the 3 % fee (feedback round 1, which supersedes D-3 and D-4), and the
+ * guide's title and meta lengths.
  */
 
 const surfaces = {
@@ -104,7 +106,7 @@ describe("the vitrine's catalogue", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("names no amount in euros but the four subscriptions and 130 € (feedback round 1)", () => {
+  it("names no amount in euros but the four subscriptions, the one-night plan and 130 € (feedback rounds 1 and 2)", () => {
     const amounts = prose.flatMap(([path, text]) =>
       [...text.matchAll(/(\d[\d  .,]*)\s*€/g)].map(
         (match) => [path, match[1].replace(/[\s  ]/g, "")] as const,
@@ -114,7 +116,7 @@ describe("the vitrine's catalogue", () => {
     expect(
       amounts.filter(
         ([, amount]) =>
-          !["24,90", "59,90", "94,90", "159,90", "130"].includes(amount),
+          !["24,90", "59,90", "94,90", "159,90", "14,75", "130"].includes(amount),
       ),
     ).toEqual([]);
   });
@@ -145,6 +147,11 @@ describe("the subscriptions on « Tarifs »", () => {
       { name: "Sérénité", duree: "6 mois", prix: "94,90 €" },
       { name: "Premium", duree: "12 mois", prix: "159,90 €" },
     ]);
+  });
+
+  it("names the one-night plan at 14,75 € (feedback round 2, JAM-304)", () => {
+    expect(surfaces.abonnements.uneNuit.prix).toBe("14,75 €");
+    expect(surfaces.tarifs.abonnements.paragraphs.join(" ")).toContain("14,75 €");
   });
 
   it("sets the night rate from 130 € and names no ceiling", () => {

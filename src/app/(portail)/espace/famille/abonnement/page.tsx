@@ -10,12 +10,12 @@ import { fill, words } from "@/content/locale";
 import { planWords, renewalDate } from "@/lib/abonnements/format";
 import { SUBSCRIPTION_PATH, SUBSCRIPTION_RETURN_PATH } from "@/lib/abonnements/paths";
 import { PLANS, subscriptionState } from "@/lib/abonnements/rules";
-import { liveSubscription, unpaidInvoiceUrl } from "@/lib/abonnements/subscriptions";
+import { familyNightPass, liveSubscription, unpaidInvoiceUrl } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES, withQuery } from "@/lib/auth/routing";
 import { isSessionId } from "@/lib/paiements/rules";
 
-import { openPortalAction, startSubscriptionAction } from "./actions";
+import { openPortalAction, startNightPassAction, startSubscriptionAction } from "./actions";
 
 const t = words(abonnements);
 
@@ -28,7 +28,7 @@ export const dynamic = "force-dynamic";
 
 type Notice = { retour?: string; session_id?: string };
 
-const NOTICES = ["active", "enCours", "abandonne", "dejaAbonnee", "erreur", "portail"] as const;
+const NOTICES = ["active", "enCours", "abandonne", "dejaAbonnee", "erreur", "portail", "nuitActive", "nuitOuverte"] as const;
 
 function noticeKey(retour: string | undefined): (typeof NOTICES)[number] | null {
   return (NOTICES as readonly string[]).includes(retour ?? "") ? (retour as (typeof NOTICES)[number]) : null;
@@ -41,7 +41,9 @@ function noticeKey(retour: string | undefined): (typeof NOTICES)[number] | null 
  * (abonnements-espace-echec-paiement). A failed renewal adds the warning,
  * with Stripe's page for the unpaid invoice while it is open. A first payment
  * still pending says so; otherwise the four plans of the devis, each opening
- * Stripe's Checkout. The notices come back from Stripe or from a refusal;
+ * Stripe's Checkout, and the one-night plan (JAM-304), a one-off payment;
+ * an open pass says so above the plans. Every Checkout takes a promotion
+ * code. The notices come back from Stripe or from a refusal;
  * « Actualiser la page » goes through the return page again with the session.
  */
 export default async function AbonnementPage({ searchParams }: { searchParams: Promise<Notice> }) {
@@ -54,6 +56,8 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
   const state = running ? subscriptionState(running, new Date()) : null;
   const unpaid = state === "grace" || state === "suspendue";
   const invoiceUrl = unpaid && running?.stripeSubscriptionId ? await unpaidInvoiceUrl(running.stripeSubscriptionId) : null;
+  const pass = running || pending ? null : await familyNightPass(user.id, new Date());
+  const uneNuit = words(abonnements).uneNuit;
 
   return (
     <SpaceShell user={user} title={t.espace.titre}>
@@ -118,6 +122,12 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
         </p>
       ) : (
         <>
+          {pass ? (
+            <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+              <h2 className="font-display text-h3 text-encre-sauge">{fill(t.espace.formule, { plan: uneNuit.name })}</h2>
+              <p className="text-corps text-encre-taupe">{pass.booked ? t.espace.uneNuit.reservee : t.espace.uneNuit.active}</p>
+            </section>
+          ) : null}
           <p className="max-w-2xl text-intro text-encre-taupe">{t.espace.intro}</p>
           <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
             {PLANS.map((plan) => {
@@ -135,7 +145,20 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
                 </li>
               );
             })}
+            {pass ? null : (
+              <li>
+                <article className="flex h-full flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+                  <h2 className="font-display text-h3 text-encre-sauge">{uneNuit.name}</h2>
+                  <p className="text-corps text-encre-taupe">{t.espace.uneNuit.texte}</p>
+                  <p className="text-corps font-semibold text-encre-taupe">{uneNuit.prix}</p>
+                  <form action={startNightPassAction} className="mt-auto">
+                    <Button type="submit">{fill(t.espace.choisir, { plan: uneNuit.name })}</Button>
+                  </form>
+                </article>
+              </li>
+            )}
           </ul>
+          <p className="max-w-2xl text-corps text-encre-taupe">{t.espace.codePromo}</p>
           <p className="max-w-2xl text-corps text-encre-taupe">{t.espace.paiement}</p>
           <p className="max-w-2xl text-corps text-encre-taupe">{t.espace.factures}</p>
         </>
