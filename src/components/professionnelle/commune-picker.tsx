@@ -1,6 +1,6 @@
 "use client"
 
-import { X } from "lucide-react"
+import { XIcon } from "@/components/icons"
 import * as React from "react"
 
 import { Input } from "@/components/ui/input"
@@ -84,7 +84,7 @@ function CommunePicker({
                   aria-label={fill(t.retirerCommune, { commune: name })}
                 >
                   {name}
-                  <X aria-hidden className="size-4" />
+                  <XIcon aria-hidden className="size-4" />
                 </button>
               </li>
             )

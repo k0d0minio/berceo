@@ -1,4 +1,4 @@
-import { Check } from "lucide-react"
+import { CheckIcon } from "@/components/icons"
 
 import { Progress } from "@/components/ui/progress"
 import { fill, words } from "@/content/locale"
@@ -7,7 +7,9 @@ import { cn } from "@/lib/utils"
 import type { Step } from "@/lib/professionnelle/rules"
 
 /*
- * The four numbered steps of D-21 with the guide's titles and a progress bar.
+ * The four steps of D-21 with the guide's titles and a progress bar. A step
+ * is marked by a capsule, filled with a check once done, never a number (no
+ * numbered badges, JAM-300).
  * Step 1, the account, is always done by the time she is here. A step already
  * complete says so; the one she is on is marked for screen readers
  * (aria-current). The steps are a list, not links: the pages themselves send
@@ -47,7 +49,7 @@ function StepsHeader({ current, done }: { current: Step; done: readonly Step[] }
                   isDone ? "border-sauge bg-sauge text-blanc" : "border-current",
                 )}
               >
-                {isDone && !isCurrent ? <Check aria-hidden className="size-4" /> : i + 1}
+                {isDone && !isCurrent ? <CheckIcon aria-hidden className="size-5" /> : null}
               </span>
               <span className="flex flex-col">
                 <span className={cn(isCurrent && "font-semibold")}>{t.titres[step]}</span>

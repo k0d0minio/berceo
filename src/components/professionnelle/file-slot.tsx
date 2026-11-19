@@ -1,6 +1,6 @@
 "use client"
 
-import { FileText } from "lucide-react"
+import { FileTextIcon } from "@/components/icons"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 
@@ -121,7 +121,7 @@ function FileSlot({
               key={file.id}
               className="flex flex-wrap items-center gap-3 rounded-carte bg-perle px-6 py-3 text-corps text-taupe"
             >
-              <FileText aria-hidden className="size-5 shrink-0" />
+              <FileTextIcon aria-hidden className="size-5 shrink-0" />
               <span className="min-w-0 flex-1 break-all">{file.fileName}</span>
               <a
                 href={`/api/fichiers/${file.id}`}

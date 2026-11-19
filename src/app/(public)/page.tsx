@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheckIcon } from "lucide-react";
+import { ShieldCheckIcon } from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import { StripedSection } from "@/components/ui/striped-section";

@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { Dialog as DialogPrimitive } from "radix-ui"
-import { MenuIcon, XIcon } from "lucide-react"
+import { MenuIcon, XIcon } from "@/components/icons"
 
 import { BerceoLogomark } from "@/components/berceo-logo"
 import { Button } from "@/components/ui/button"

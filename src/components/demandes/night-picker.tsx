@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { CaretLeftIcon, CaretRightIcon } from "@/components/icons"
 import { useEffect, useRef, useState, type KeyboardEvent } from "react"
 
 import { disponibilites } from "@/content/disponibilites"
@@ -156,7 +156,7 @@ function NightPicker({
           onClick={() => showMonth(addDays(`${month}-01`, -1).slice(0, 7))}
           className="flex size-11 items-center justify-center rounded-capsule text-sauge transition-colors duration-200 ease-out hover:bg-beurre disabled:pointer-events-none disabled:opacity-50"
         >
-          <ChevronLeft aria-hidden="true" className="size-6" />
+          <CaretLeftIcon aria-hidden="true" className="size-6" />
         </button>
         <p aria-live="polite" className="text-h3 font-bold text-sauge">
           {monthHeading(month)}
@@ -168,7 +168,7 @@ function NightPicker({
           onClick={() => showMonth(firstOfNextMonth(month).slice(0, 7))}
           className="flex size-11 items-center justify-center rounded-capsule text-sauge transition-colors duration-200 ease-out hover:bg-beurre disabled:pointer-events-none disabled:opacity-50"
         >
-          <ChevronRight aria-hidden="true" className="size-6" />
+          <CaretRightIcon aria-hidden="true" className="size-6" />
         </button>
       </div>
 

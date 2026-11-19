@@ -5,9 +5,9 @@ import type { Note } from "@/lib/avis/ratings"
 import { cn } from "@/lib/utils"
 
 /*
- * The stars (avis-etoiles, D-9, D-119): a filled star in the sage ink, an
- * empty one as its taupe-ink outline. No new colour, never red or green
- * (D-24), no shadow. `NoteDisplay` is a person's note wherever it shows, with
+ * The stars (avis-etoiles, D-9, D-119): filled and rounded, as every icon of
+ * the DA (JAM-300). A given star is sage, an empty one pearl. No outline, no
+ * new colour, never red or green, no shadow. `NoteDisplay` is a person's note wherever it shows, with
  * the value in text and the gardes count; `GivenRating` is the stars one side
  * gave on a garde, read-only, to that side only.
  */
@@ -21,11 +21,11 @@ function Star({ filled, className }: { filled: boolean; className?: string }) {
       viewBox="0 0 24 24"
       aria-hidden="true"
       focusable="false"
-      className={cn("size-5 shrink-0", filled ? "text-sauge" : "text-taupe", className)}
+      className={cn("size-5 shrink-0", filled ? "text-sauge" : "text-perle", className)}
     >
       <path
         d={STAR_PATH}
-        fill={filled ? "currentColor" : "none"}
+        fill="currentColor"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinejoin="round"
