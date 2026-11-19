@@ -366,13 +366,13 @@ describe("the answer and the booking e-mails", () => {
   });
 
   // Spec (demande-nuits-regulieres, D-71): regular nights sent in priority are one e-mail with every night.
-  it("sends regular nights in priority as one e-mail with every night, answered night by night", () => {
+  it("sends regular nights in priority as one e-mail with every night, answered once (JAM-302)", () => {
     const email = priorityRequestEmail({ siteUrl: SITE, prenom: "Julie", url: LIST, request: SERIE });
     expect(email.subject).toBe("Une famille vous envoie sa demande en priorité");
     expect(email.text).toContain(
       "Une famille de Ixelles vous a choisie pour 3 nuits régulières de 20h00 à 7h00 : 02/11/2026, 05/11/2026 et 09/11/2026. Un bébé de trois mois.",
     );
-    expect(email.text).toContain("Chaque nuit est une demande à part.");
+    expect(email.text).toContain("Vous répondez une seule fois, pour toutes les nuits de la demande.");
   });
 });
 

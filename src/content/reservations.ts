@@ -44,6 +44,11 @@ export const reservations = catalogue({
       repondu: "Vous avez répondu",
       /** @relecture Surya — retirer sa réponse (D-73). */
       retirer: "Retirer ma disponibilité",
+      /** @relecture Surya — répondre à une demande régulière, toutes les nuits à la fois (JAM-302). */
+      disponibleSerie: "Je suis disponible pour toutes les nuits",
+      /** @relecture Surya — une demande régulière qu'elle ne peut pas prendre en entier (JAM-302, Q5). */
+      serieIndisponible:
+        "Cette demande se prend pour toutes ses nuits. Vous avez déjà une garde confirmée une de ces nuits, vous ne pouvez donc pas y répondre.",
       /** @relecture Surya — après le retrait. */
       retiree: "Votre disponibilité est retirée.",
       /** @relecture Surya — marque d'une demande envoyée en priorité (D-71). */
@@ -94,6 +99,11 @@ export const reservations = catalogue({
       /** @relecture Surya — modification verrouillée par une réponse (D-76). */
       verrou:
         "Des professionnelles ont répondu à cette demande, elle ne peut donc plus être modifiée. Si aucune réponse ne vous convient, vous pouvez la republier.",
+      /** @relecture Surya — une demande régulière verrouillée par une réponse (JAM-302). */
+      verrouSerie:
+        "Une professionnelle a répondu à cette demande, elle ne peut donc plus être modifiée. Pour la changer, annulez-la et publiez une nouvelle demande.",
+      /** @relecture Surya — chaque réponse vaut pour toutes les nuits (JAM-302). */
+      reponsesSerie: "Chaque professionnelle ci-dessous a répondu pour toutes les nuits de votre demande.",
       /** @relecture Surya — lien d'une demande attribuée vers sa réservation. */
       voirReservation: "Voir ma réservation",
       /** @relecture Surya — photo d'une professionnelle. */
@@ -122,6 +132,10 @@ export const reservations = catalogue({
       /** @relecture Surya — les libellés des éléments que le guide demande d'afficher. */
       libelles: {
         date: "Date",
+        /** @relecture Surya — les nuits d'une demande régulière (JAM-302). */
+        dates: "Dates",
+        /** @relecture Surya — le nombre de nuits d'une demande régulière (JAM-302). */
+        nuits: "Nuits",
         heure: "Heure",
         duree: "Durée",
         professionnelle: "Professionnelle",

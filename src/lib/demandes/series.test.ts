@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { groupForDigest, groupForList } from "./series";
+import { groupForDigest, groupForList, groupForProfessional } from "./series";
 
 /**
  * Spec (demande-nuits-regulieres): « Mes demandes » shows regular nights as one
@@ -81,5 +81,39 @@ describe("the digest's lines", () => {
   it("orders the lines by their first night, a series among the one-off nights", () => {
     const lines = groupForDigest([row("b", "2026-11-10"), row("s1", "2026-11-12", "S"), row("a", "2026-11-04"), row("s0", "2026-11-06", "S")]);
     expect(ids(lines)).toEqual([["a"], ["s0", "s1"], ["b"]]);
+  });
+});
+
+/**
+ * Spec (JAM-302): her list shows a regular request answered as one once, with
+ * all its nights in date order. A night of a series published before JAM-302
+ * stays a night of its own (Q3).
+ */
+describe("groupForProfessional", () => {
+  const night = (id: string, seriesId: string | null, seriesWhole: boolean, nightDate: string) => ({
+    id,
+    seriesId,
+    seriesWhole,
+    nightDate,
+  });
+
+  it("shows a whole regular request once, in the place of its first night, its nights in order", () => {
+    const rows = [
+      night("a", "s1", true, "2026-12-03"),
+      night("b", null, false, "2026-12-01"),
+      night("c", "s1", true, "2026-12-02"),
+    ];
+    expect(groupForProfessional(rows)).toEqual([
+      { kind: "serie", seriesId: "s1", requests: [rows[2], rows[0]] },
+      { kind: "nuit", request: rows[1] },
+    ]);
+  });
+
+  it("keeps the nights of an older series apart", () => {
+    const rows = [night("a", "s0", false, "2026-12-01"), night("b", "s0", false, "2026-12-02")];
+    expect(groupForProfessional(rows)).toEqual([
+      { kind: "nuit", request: rows[0] },
+      { kind: "nuit", request: rows[1] },
+    ]);
   });
 });

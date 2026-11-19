@@ -80,14 +80,17 @@ export type RequestCard = {
 
 export type FamilyRequest = RequestCard & { status: RequestStatus };
 
-/** One of her requests in « Mes demandes », with the series it belongs to (demande-nuits-regulieres). */
-export type ListedRequest = FamilyRequest & { seriesId: string | null };
+/**
+ * One of her requests in « Mes demandes », with the series it belongs to
+ * (demande-nuits-regulieres), and whether that series is one request (JAM-302).
+ */
+export type ListedRequest = FamilyRequest & { seriesId: string | null; seriesWhole: boolean };
 
 /** A request the digest carries, with its series: a series is one line (demande-nuits-regulieres). */
 export type DigestRequest = RequestCard & { seriesId: string | null };
 
-/** One of her requests, with her optional reason (demande-motif-facultatif). */
-export type OwnRequest = FamilyRequest & { reason: string | null };
+/** One of her requests, with her optional reason (demande-motif-facultatif) and its series (JAM-302). */
+export type OwnRequest = FamilyRequest & { reason: string | null; seriesId: string | null; seriesWhole: boolean };
 
 /** The night has not started yet, in Brussels (`date + time` is a local timestamp). */
 export const nightAhead = sql`(${careRequests.nightDate} + ${careRequests.startTime}) > (now() AT TIME ZONE ${TIME_ZONE})`;
@@ -192,7 +195,9 @@ export type SeriesResult =
 /**
  * Publishes « Nuits régulières » (demande-nuits-regulieres): one normal request
  * per night, every one with the same details and one new series id, in one
- * INSERT, so the nights are published together or not at all. A night she
+ * INSERT, so the nights are published together or not at all. The series is
+ * one request (JAM-302): a professional answers all its nights or none, and the
+ * family books her for all of them with one fee. A night she
  * already holds refuses the whole series and is named: the unique index still
  * decides when a request for it was written meanwhile. Published from a
  * professional's profile, every night goes to her in priority (D-71).
@@ -218,6 +223,7 @@ export async function publishSeries(
         nights.map((nightDate) => ({
           ...requestRow(userId, { ...values, nightDate }, place, false, now, priorityProfileId),
           seriesId,
+          seriesWhole: true,
         })),
       )
       .returning({ id: careRequests.id, nightDate: careRequests.nightDate });
@@ -253,7 +259,7 @@ async function liveNightsAmong(userId: string, nights: string[]): Promise<string
  */
 export async function familyRequests(userId: string, now: Date): Promise<ListedRequest[]> {
   const rows = await db
-    .select({ ...familyColumns, seriesId: careRequests.seriesId })
+    .select({ ...familyColumns, seriesId: careRequests.seriesId, seriesWhole: careRequests.seriesWhole })
     .from(careRequests)
     .where(eq(careRequests.familyUserId, userId));
 
@@ -267,11 +273,45 @@ export async function familyRequests(userId: string, now: Date): Promise<ListedR
 export async function ownRequest(userId: string, id: string): Promise<OwnRequest | null> {
   if (!UUID.test(id)) return null;
   const [row] = await db
-    .select({ ...familyColumns, reason: careRequests.reason })
+    .select({
+      ...familyColumns,
+      reason: careRequests.reason,
+      seriesId: careRequests.seriesId,
+      seriesWhole: careRequests.seriesWhole,
+    })
     .from(careRequests)
     .where(and(eq(careRequests.id, id), eq(careRequests.familyUserId, userId)))
     .limit(1);
   return row ?? null;
+}
+
+/**
+ * Every night of her series, in night order (JAM-302): the page of a regular
+ * request shows them all. Another family's series reads empty.
+ */
+export async function ownSeriesNights(userId: string, seriesId: string): Promise<FamilyRequest[]> {
+  if (!UUID.test(seriesId)) return [];
+  const rows = await db
+    .select(familyColumns)
+    .from(careRequests)
+    .where(and(eq(careRequests.seriesId, seriesId), eq(careRequests.familyUserId, userId)));
+  return rows.sort((a, b) => a.nightDate.localeCompare(b.nightDate));
+}
+
+/**
+ * No professional ever answered the request (JAM-302, Q4: the lifecycle of
+ * every request). For a regular request, no professional ever answered any of
+ * its nights. A withdrawn or declined answer counts: to change a request that
+ * was answered, the family cancels it and publishes a new one.
+ */
+export function neverAnswered(id: string) {
+  return sql`not exists (
+    select 1 from care_request_applications a
+    join care_requests ar on ar.id = a.request_id
+    join care_requests self on self.id = ${id}
+    where ar.id = self.id
+       or (self.series_whole and ar.series_id = self.series_id)
+  )`;
 }
 
 /** Only her own open request whose night has not started changes. */
@@ -288,9 +328,10 @@ export type ChangeResult = "ok" | "nonModifiable" | "doublon";
 
 /**
  * Saves an edit: the night, the start, the children, the age, the feeding,
- * the reason, the night's address. Never the commune or the urgency, and never while a validated professional's answer
- * waits on it (D-76, D-85): the lock is held in the UPDATE itself, so an answer
- * given while the form was open still wins.
+ * the reason, the night's address. Never the commune or the urgency, and never
+ * once a professional answered it, or any night of its regular request
+ * (JAM-302, Q4; D-76 and D-85 superseded): the lock is held in the UPDATE
+ * itself, so an answer given while the form was open still wins.
  */
 export async function updateRequest(
   userId: string,
@@ -305,22 +346,7 @@ export async function updateRequest(
       .update(careRequests)
       .set({ ...values, ...requestAddressValues(address), updatedAt: now })
       .where(
-        and(
-          changeable(userId, id),
-          notExists(
-            db
-              .select({ id: careRequestApplications.id })
-              .from(careRequestApplications)
-              .innerJoin(professionalProfiles, eq(professionalProfiles.id, careRequestApplications.profileId))
-              .where(
-                and(
-                  eq(careRequestApplications.requestId, id),
-                  eq(careRequestApplications.status, "en_attente"),
-                  eq(professionalProfiles.status, "valide"),
-                ),
-              ),
-          ),
-        ),
+        and(changeable(userId, id), neverAnswered(id)),
       )
       .returning({ id: careRequests.id });
     return updated.length > 0 ? "ok" : "nonModifiable";
@@ -345,7 +371,8 @@ export async function cancelRequest(
     db
       .update(careRequests)
       .set({ status: "annulee", cancelledAt: now, updatedAt: now })
-      .where(changeable(userId, id))
+      // A regular request is cancelled with all its nights (JAM-302, cancelSeries).
+      .where(and(changeable(userId, id), eq(careRequests.seriesWhole, false)))
       .returning({ id: careRequests.id }),
     cancelDeclinesAnswers(userId, id, now),
   ]);
@@ -570,6 +597,8 @@ export function setPriorityStatement(userId: string, id: string, profileId: stri
       and(
         changeable(userId, id),
         isNull(careRequests.prioritySentAt),
+        // A regular request goes in priority only at its publication, all its nights at once (JAM-302).
+        sql`not ${careRequests.seriesWhole}`,
         exists(
           db
             .select({ id: professionalProfiles.id })
@@ -642,6 +671,7 @@ export function priorityCandidatesQuery(userId: string, profileId: string) {
         eq(careRequests.status, "ouverte"),
         nightAhead,
         isNull(careRequests.prioritySentAt),
+        sql`not ${careRequests.seriesWhole}`,
         reachableBy(profileId),
       ),
     )
@@ -662,6 +692,11 @@ export type ProfessionalRequest = RequestCard & {
   priority: boolean;
   answer: ApplicationStatus | null;
   family: Note;
+  seriesId: string | null;
+  /** The night belongs to a regular request answered as one (JAM-302). */
+  seriesWhole: boolean;
+  /** The open nights ahead of that regular request; 0 for any other night. */
+  seriesNights: number;
 };
 
 export type ProfessionalView =
@@ -745,7 +780,21 @@ export async function professionalRequest(
 export function herListQuery(profileId: string, requestId?: string) {
   const priority = sql<boolean>`coalesce(${careRequests.priorityProfileId} = ${profileId}, false)`;
   return db
-    .select({ ...cardColumns, status: careRequests.status, priority, answer: careRequestApplications.status })
+    .select({
+      ...cardColumns,
+      status: careRequests.status,
+      priority,
+      answer: careRequestApplications.status,
+      seriesId: careRequests.seriesId,
+      seriesWhole: careRequests.seriesWhole,
+      // The open nights ahead of its regular request (JAM-302): she answers when her list holds them all.
+      seriesNights: sql<number>`(
+        select count(*)::integer from care_requests sn
+        where ${careRequests.seriesWhole} and sn.series_id = ${careRequests.seriesId}
+          and sn.status = 'ouverte'
+          and (sn.night_date + sn.start_time) > (now() AT TIME ZONE ${TIME_ZONE})
+      )`,
+    })
     .from(careRequests)
     .leftJoin(
       careRequestApplications,

@@ -22,7 +22,10 @@ import { reservations } from "@/content/reservations"
  */
 
 export type Recap = {
+  /** One date, or every night of a regular request (JAM-302). */
   date: string
+  /** « 4 nuits »: a regular request booked at once (JAM-302); absent for one night. */
+  nuits?: string
   heures: string
   duree: string
   prenom: string
@@ -44,7 +47,8 @@ function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promi
   const l = t.recapitulatif.libelles
   const [pending, startTransition] = useTransition()
   const rows: [string, string][] = [
-    [l.date, recap.date],
+    [recap.nuits ? l.dates : l.date, recap.date],
+    ...(recap.nuits ? [[l.nuits, recap.nuits] as [string, string]] : []),
     [l.heure, recap.heures],
     [l.duree, recap.duree],
     [l.professionnelle, recap.prenom],

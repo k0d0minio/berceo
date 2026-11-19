@@ -10,9 +10,11 @@ import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { PROFESSIONAL_REQUESTS_PATH, professionalRequestPath } from "@/lib/demandes/paths";
 import { professionalRequests } from "@/lib/demandes/requests";
+import { groupForProfessional } from "@/lib/demandes/series";
 import { conversationsOfRequests } from "@/lib/messagerie/conversations";
 
 import { AnswerFooter, answerNotice, type AnswerNotice } from "./answer-footer";
+import { SeriesEntry } from "./series-entry";
 
 const t = words(demandes);
 const r = words(reservations).professionnelle;
@@ -60,27 +62,43 @@ export default async function DemandesProfessionnellePage({
             <p className="max-w-2xl text-corps text-encre-taupe">{t.professionnelle.vide}</p>
           ) : (
             <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
-              {view.requests.map((request) => (
-                <li key={request.id} id={`demande-${request.id}`} className="scroll-mt-24">
-                  <RequestCard
-                    request={request}
-                    href={professionalRequestPath(request.id)}
-                    showPublished
-                    priority={request.priority}
-                    rate={view.nightRateEur}
-                    extraHourRate={view.extraHourRateEur}
-                    note={request.answer === "en_attente" ? r.repondu : undefined}
-                    footer={
-                      <AnswerFooter
-                        request={request}
-                        conversationId={conversationIds.get(request.id)}
-                        from="liste"
-                        now={now}
-                      />
-                    }
-                  />
-                </li>
-              ))}
+              {groupForProfessional(view.requests).map((entry) =>
+                entry.kind === "serie" ? (
+                  // A regular request answered as one (JAM-302): one card, one answer for all its nights.
+                  <li key={entry.seriesId} id={`demande-${entry.requests[0].id}`} className="scroll-mt-24">
+                    <SeriesEntry
+                      nights={entry.requests}
+                      seriesId={entry.seriesId}
+                      nightRateEur={view.nightRateEur}
+                      extraHourRateEur={view.extraHourRateEur}
+                      conversationId={entry.requests
+                        .map((night) => conversationIds.get(night.id))
+                        .find((id) => id !== undefined)}
+                      from="liste"
+                    />
+                  </li>
+                ) : (
+                  <li key={entry.request.id} id={`demande-${entry.request.id}`} className="scroll-mt-24">
+                    <RequestCard
+                      request={entry.request}
+                      href={professionalRequestPath(entry.request.id)}
+                      showPublished
+                      priority={entry.request.priority}
+                      rate={view.nightRateEur}
+                      extraHourRate={view.extraHourRateEur}
+                      note={entry.request.answer === "en_attente" ? r.repondu : undefined}
+                      footer={
+                        <AnswerFooter
+                          request={entry.request}
+                          conversationId={conversationIds.get(entry.request.id)}
+                          from="liste"
+                          now={now}
+                        />
+                      }
+                    />
+                  </li>
+                ),
+              )}
             </ul>
           )}
         </>

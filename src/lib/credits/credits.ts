@@ -12,6 +12,8 @@ import {
   expiryOf,
   remainingCents,
   spendingPlan,
+  splitShare,
+  splitTakes,
   type CreditState,
   type Take,
 } from "./rules";
@@ -151,6 +153,18 @@ export async function planCreditPart(familyUserId: string, feeCents: number, now
 }
 
 /**
+ * One credit part cut over the fees of one Checkout (JAM-302): one part per
+ * fee, each paying its fee whole or leaving Stripe its minimum
+ * (`splitShare`), its takes cut in the plan's order (`splitTakes`). The parts
+ * are held in the order of `feesCents`, in one batch.
+ */
+export function splitCreditPart(part: CreditPart, feesCents: readonly number[]): CreditPart[] {
+  const amounts = splitShare(part.creditCents, feesCents);
+  const takes = splitTakes(part.takes, amounts);
+  return amounts.map((creditCents, i) => ({ creditCents, takes: takes[i] }));
+}
+
+/**
  * The statements that hold a credit part for the fee `paymentId`, for the
  * batch that writes the fee, after its insert. Each take adds its cents to
  * its credit, only if the credit is still as planned (spent amount, not
@@ -222,7 +236,7 @@ function releaseStatement(payment: SQL, now: Date): SQL {
   return sql`
     with fee as (
       select p.id from payments p
-      where p.id = ${payment} and p.status not in ('en_attente', 'payee')
+      where p.id in (${payment}) and p.status not in ('en_attente', 'payee')
     ), freed as (
       update credit_spends s
       set status = 'liberee', updated_at = ${at}::timestamptz
@@ -243,9 +257,9 @@ export function releaseHoldStatement(paymentId: string, now: Date): SQL {
   return releaseStatement(sql`${paymentId}::uuid`, now);
 }
 
-/** `releaseStatement` for the fee of the Checkout `sessionId`. */
+/** `releaseStatement` for the fees of the Checkout `sessionId`: one, or each night of a regular request (JAM-302). */
 export function releaseHoldOfSessionStatement(sessionId: string, now: Date): SQL {
-  return releaseStatement(sql`(select id from payments where stripe_session_id = ${sessionId})`, now);
+  return releaseStatement(sql`select id from payments where stripe_session_id = ${sessionId}`, now);
 }
 
 /**

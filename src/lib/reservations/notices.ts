@@ -1,7 +1,7 @@
 import "server-only";
 
 import { alias } from "drizzle-orm/pg-core";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 
 import {
   bookings,
@@ -99,6 +99,8 @@ export type ProfessionalNotice = {
   email: string;
   firstName: string;
   request: RequestCard;
+  /** The regular request the night belongs to, if any (JAM-302): its declined nights are told once. */
+  seriesId?: string | null;
 };
 
 /** Declined answers: to each professional, with the request's card and nothing about the family. */
@@ -110,6 +112,7 @@ export async function declinedNotices(applicationIds: string[]): Promise<Profess
       email: professionalUser.email,
       firstName: professionalUser.firstName,
       request: cardColumns,
+      seriesId: sql<string | null>`case when ${careRequests.seriesWhole} then ${careRequests.seriesId} end`,
     })
     .from(careRequestApplications)
     .innerJoin(careRequests, eq(careRequests.id, careRequestApplications.requestId))

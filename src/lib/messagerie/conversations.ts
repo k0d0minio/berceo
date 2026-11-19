@@ -118,13 +118,17 @@ export function withConversation(answerInsert: SQL, at: string): SQL {
  * answer without a conversation (none should remain after the migration)
  * gets one here. Nothing happens when this batch did not make the booking
  * (a second click finds the first one's booking, confirmed at another moment).
+ * A regular request (JAM-302) has one conversation, on its last night's
+ * answer: the other nights' bookings make none.
  */
 export function bonneGardeStatement(applicationId: string, at: string): SQL {
   return sql`
     with conversation as (
       insert into conversations (application_id, request_id, profile_id, family_user_id, last_message_at, created_at, updated_at)
       select b.application_id, b.request_id, b.profile_id, b.family_user_id, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
-      from bookings b where b.application_id = ${applicationId} and b.confirmed_at = ${at}::timestamptz
+      from bookings b join care_requests r on r.id = b.request_id
+      where b.application_id = ${applicationId} and b.confirmed_at = ${at}::timestamptz
+        and (not r.series_whole or exists (select 1 from conversations c where c.application_id = b.application_id))
       on conflict (application_id) do update
         set last_message_at = excluded.last_message_at, updated_at = excluded.updated_at
       returning id

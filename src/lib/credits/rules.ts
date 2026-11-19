@@ -110,6 +110,53 @@ export function creditShare(feeCents: number, balance: number): number {
   return Math.max(0, Math.min(balance, feeCents - STRIPE_MIN_CENTS));
 }
 
+/**
+ * How one credit share is split over the fees of one Checkout (JAM-302: the
+ * nights of a regular request share one Checkout, one fee per night). Each fee
+ * is paid whole by the credit, or leaves Stripe at least its minimum, as the
+ * `payments_credit_range` check asks of each row: the fees take the share in
+ * order, and a fee that would leave less than the minimum takes less. What no
+ * fee can take stays with her. One fee reads as `creditShare` alone.
+ */
+export function splitShare(shareCents: number, feesCents: readonly number[]): number[] {
+  let remaining = Math.max(0, shareCents);
+  return feesCents.map((fee) => {
+    let give = Math.min(remaining, fee);
+    if (give < fee && fee - give < STRIPE_MIN_CENTS) give = Math.max(0, fee - STRIPE_MIN_CENTS);
+    remaining -= give;
+    return give;
+  });
+}
+
+/** A planned take with the credit's spent amount it is guarded on. */
+export type GuardedTake = Take & { spentBefore: number };
+
+/**
+ * The takes of one share, cut into one list per fee by the amounts of
+ * `splitShare`, in the plan's order. A credit cut over two fees is guarded on
+ * its spent amount after the first piece, so each piece's update still finds
+ * the credit as planned when the pieces run in order in one batch.
+ */
+export function splitTakes(takes: readonly GuardedTake[], amounts: readonly number[]): GuardedTake[][] {
+  const queue = takes.map((take) => ({ ...take, used: 0 }));
+  let index = 0;
+  return amounts.map((amount) => {
+    const pieces: GuardedTake[] = [];
+    let left = amount;
+    while (left > 0 && index < queue.length) {
+      const take = queue[index];
+      const piece = Math.min(left, take.cents - take.used);
+      if (piece > 0) {
+        pieces.push({ id: take.id, cents: piece, spentBefore: take.spentBefore + take.used });
+        take.used += piece;
+        left -= piece;
+      }
+      if (take.used >= take.cents) index += 1;
+    }
+    return pieces;
+  });
+}
+
 /** The origins in the order the founders' table names them, then the founders' hand. */
 export const CREDIT_ORIGINS = [
   "annulation_famille",

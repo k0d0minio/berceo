@@ -1,5 +1,6 @@
 import { paiement } from "@/content/paiement";
 import { fill, words } from "@/content/locale";
+import { splitShare } from "@/lib/credits/rules";
 
 import { eurosFromCents, feeCents } from "./rules";
 
@@ -25,4 +26,21 @@ export function creditRecap(
   const share = shares.get(fee) ?? 0;
   if (share <= 0) return {};
   return { credit: euros(share), reste: share < fee ? euros(fee - share) : null };
+}
+
+/**
+ * The récapitulatif's fee lines for a regular request (JAM-302, Q1): one fee
+ * for all its nights, the sum of each night's 3 %, and the credit lines as the
+ * Checkout will cut her credit share (`splitShare`). `share` is
+ * `creditShare` of the total, from `creditShares`.
+ */
+export function seriesFeeRecap(
+  nightRatesEur: readonly number[],
+  share: number,
+): { frais: string; credit?: string; reste?: string | null } {
+  const fees = nightRatesEur.map((rate) => feeCents(rate));
+  const total = fees.reduce((sum, fee) => sum + fee, 0);
+  const credit = splitShare(share, fees).reduce((sum, part) => sum + part, 0);
+  if (credit <= 0) return { frais: euros(total) };
+  return { frais: euros(total), credit: euros(credit), reste: credit < total ? euros(total - credit) : null };
 }

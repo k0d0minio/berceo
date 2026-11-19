@@ -630,7 +630,7 @@ export function priorityRequestEmail(input: {
       siteUrl: input.siteUrl,
       prenom: input.prenom,
       paragraphs: isSeries(request)
-        ? [seriesLine(r.corpsSerie, request), r.nuitParNuit, r.suite]
+        ? [seriesLine(r.corpsSerie, request), r.toutesLesNuits, r.suite]
         : [fill(r.corps, request), r.suite],
       cta: { label: r.cta, href: input.url },
     }),

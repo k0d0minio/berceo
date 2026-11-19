@@ -58,11 +58,23 @@ export async function notifyNewAnswer(applicationId: string, answerCount: number
   }
 }
 
-/** « Not retained »: to each professional whose waiting answer was declined (D-70, D-76). */
+/**
+ * « Not retained »: to each professional whose waiting answer was declined
+ * (D-70, D-76). Her declined nights of one regular request are told once, with
+ * one of its nights (JAM-302): she answered them as one.
+ */
 export async function notifyDeclined(applicationIds: string[], siteUrl: string): Promise<void> {
   if (applicationIds.length === 0) return;
   try {
-    const notices = await declinedNotices(applicationIds);
+    const all = await declinedNotices(applicationIds);
+    const seen = new Set<string>();
+    const notices = all.filter((n) => {
+      if (!n.seriesId) return true;
+      const key = `${n.email}|${n.seriesId}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     const url = `${siteUrl}${PROFESSIONAL_REQUESTS_PATH}`;
     const results = await Promise.allSettled(
       notices.map((n) =>
@@ -132,6 +144,62 @@ export async function notifyBooking(
     }
   } catch (error) {
     logError("booking e-mails failed", { bookingId }, error);
+  }
+  await notifyDeclined(declined, siteUrl);
+}
+
+/**
+ * The booking of a regular request (JAM-302): one pair of confirmations for
+ * all its nights, keyed by the first night's booking, so a retry sends it
+ * once; then « not retained » to the others who waited, once each. The dates
+ * are every night booked, in order; the hour is the first night's.
+ */
+export async function notifySeriesBooking(
+  bookingIds: readonly string[],
+  declined: string[],
+  siteUrl: string,
+  fee?: { amountCents: number; creditCents: number },
+): Promise<void> {
+  const [firstId] = bookingIds;
+  if (!firstId) return;
+  try {
+    const notices = (await Promise.all(bookingIds.map((id) => bookingNotice(id)))).filter(
+      (n): n is NonNullable<typeof n> => n !== null,
+    );
+    const sorted = [...notices].sort((a, b) => a.nightDate.localeCompare(b.nightDate));
+    const [notice] = sorted;
+    if (notice) {
+      const date = sorted.map((n) => formatDate(n.nightDate)).join(", ");
+      const results = await Promise.allSettled([
+        sendEmail(
+          notice.family.email,
+          bookingFamilyEmail({
+            siteUrl,
+            prenom: notice.family.firstName,
+            professionnelle: notice.professional.firstName,
+            date,
+            heure: formatTime(notice.startTime),
+            url: `${siteUrl}${familyBookingPath(notice.id)}`,
+            credit: fee ? creditLine(fee) : undefined,
+          }),
+          `reservation-famille-${firstId}`,
+        ),
+        sendEmail(
+          notice.professional.email,
+          bookingProfessionalEmail({
+            siteUrl,
+            prenom: notice.professional.firstName,
+            prenomFamille: notice.family.firstName,
+            date,
+            url: `${siteUrl}${professionalBookingPath(notice.id)}`,
+          }),
+          `reservation-professionnelle-${firstId}`,
+        ),
+      ]);
+      logFailures("booking e-mail", results, [firstId, firstId]);
+    }
+  } catch (error) {
+    logError("booking e-mails failed", { bookingId: firstId }, error);
   }
   await notifyDeclined(declined, siteUrl);
 }

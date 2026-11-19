@@ -91,9 +91,9 @@ export const demandes = catalogue({
         date: "Une date entre le {min} et le {max}. Pour ce soir ou demain soir, publiez une demande urgente.",
         /** @relecture Surya — la fenêtre d'une demande urgente (D-60). */
         dateUrgente: "Ce soir ou demain soir.",
-        /** @relecture Surya — les nuits régulières : la fenêtre, le maximum, une demande par nuit. */
+        /** @relecture Surya — les nuits régulières : la fenêtre, le maximum, une seule demande (JAM-302). */
         nuits:
-          "Cochez chaque nuit souhaitée, entre le {min} et le {max}, {n} nuits au maximum. Chaque nuit devient une demande et les professionnelles répondent nuit par nuit.",
+          "Cochez chaque nuit souhaitée, entre le {min} et le {max}, {n} nuits au maximum. Votre demande est publiée une seule fois avec toutes ses nuits, et une seule professionnelle répond pour toutes les nuits.",
         /** @relecture Surya — l'âge en semaines puis en mois (D-64). */
         age: "En semaines jusqu'à 12 semaines, puis en mois jusqu'à 24 mois.",
         /** @relecture Surya — l'adresse reprise du profil, modifiable pour cette demande (demande-adresse-de-la-nuit). */
@@ -205,9 +205,9 @@ export const demandes = catalogue({
       modifiee: "Vos modifications sont enregistrées.",
       /** @relecture Surya — après une annulation. */
       annulee: "Votre demande est annulée.",
-      /** @relecture Surya — après la publication de nuits régulières. */
+      /** @relecture Surya — après la publication de nuits régulières, une seule demande (JAM-302). */
       publiees:
-        "Vos {n} demandes sont publiées, une par nuit. Les professionnelles de votre zone peuvent les consulter dès maintenant.",
+        "Votre demande de {n} nuits est publiée. Les professionnelles de votre zone peuvent la consulter dès maintenant.",
       /** @relecture Surya — après l'annulation des nuits ouvertes d'une série. */
       annulees: "Les nuits encore ouvertes de votre demande sont annulées.",
     },

@@ -35,7 +35,14 @@ import { acceptRefusal, type AcceptRefusal } from "./rules";
  */
 
 export type AcceptCheck =
-  | { ok: true; nightDate: string; startTime: string; nightRateEur: number }
+  | {
+      ok: true;
+      nightDate: string;
+      startTime: string;
+      nightRateEur: number;
+      /** A night of a regular request answered as one (JAM-302): it is booked with all its nights. */
+      seriesWhole: boolean;
+    }
   | { ok: false; reason: AcceptRefusal | "introuvable" };
 
 /**
@@ -57,6 +64,7 @@ export async function acceptCheck(
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
       priorityProfileId: careRequests.priorityProfileId,
+      seriesWhole: careRequests.seriesWhole,
       answerStatus: careRequestApplications.status,
       nightRateEur: careRequestApplications.nightRateEur,
       profileStatus: professionalProfiles.status,
@@ -85,7 +93,77 @@ export async function acceptCheck(
     now,
   );
   if (refusal) return { ok: false, reason: refusal };
-  return { ok: true, nightDate: facts.nightDate, startTime: facts.startTime, nightRateEur: facts.nightRateEur };
+  return {
+    ok: true,
+    nightDate: facts.nightDate,
+    startTime: facts.startTime,
+    nightRateEur: facts.nightRateEur,
+    seriesWhole: facts.seriesWhole,
+  };
+}
+
+export type SeriesNight = {
+  requestId: string;
+  applicationId: string;
+  nightDate: string;
+  startTime: string;
+  nightRateEur: number;
+};
+
+export type SeriesAcceptCheck =
+  | { ok: true; nights: SeriesNight[] }
+  | { ok: false; reason: AcceptRefusal | "introuvable" };
+
+/**
+ * Whether the family may book this professional for her regular request now
+ * (JAM-302): every open night ahead of the series must hold this
+ * professional's waiting answer, and each night must pass `acceptCheck`. The
+ * nights come back in night order, with the rate each answer froze, for the
+ * one Checkout of all the nights.
+ */
+export async function acceptSeriesCheck(
+  userId: string,
+  seriesId: string,
+  profileId: string,
+  now: Date,
+): Promise<SeriesAcceptCheck> {
+  if (!UUID.test(seriesId) || !UUID.test(profileId)) return { ok: false, reason: "introuvable" };
+  const rows = await db
+    .select({ requestId: careRequests.id, applicationId: careRequestApplications.id })
+    .from(careRequests)
+    .leftJoin(
+      careRequestApplications,
+      and(
+        eq(careRequestApplications.requestId, careRequests.id),
+        eq(careRequestApplications.profileId, profileId),
+      ),
+    )
+    .where(
+      and(
+        eq(careRequests.seriesId, seriesId),
+        eq(careRequests.seriesWhole, true),
+        eq(careRequests.familyUserId, userId),
+        eq(careRequests.status, "ouverte"),
+        nightAhead,
+      ),
+    );
+  if (rows.length === 0) return { ok: false, reason: "introuvable" };
+
+  const nights: SeriesNight[] = [];
+  for (const row of rows) {
+    // A night she never answered, or answered no more: she does not cover them all (Q5).
+    if (!row.applicationId) return { ok: false, reason: "indisponible" };
+    const check = await acceptCheck(userId, row.requestId, row.applicationId, now);
+    if (!check.ok) return check;
+    nights.push({
+      requestId: row.requestId,
+      applicationId: row.applicationId,
+      nightDate: check.nightDate,
+      startTime: check.startTime,
+      nightRateEur: check.nightRateEur,
+    });
+  }
+  return { ok: true, nights: nights.sort((a, b) => a.nightDate.localeCompare(b.nightDate)) };
 }
 
 export type AcceptResult =
