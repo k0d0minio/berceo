@@ -5,7 +5,7 @@ import { SpaceShell } from "@/components/shell/space-shell"
 import { admin } from "@/content/admin"
 import { words } from "@/content/locale"
 import type { User } from "@/db"
-import { ADMIN_SUBSCRIPTIONS_PATH } from "@/lib/abonnements/paths"
+import { ADMIN_PROMO_CODES_PATH, ADMIN_SUBSCRIPTIONS_PATH } from "@/lib/abonnements/paths"
 import {
   ADMIN_BOOKINGS_PATH,
   ADMIN_FILES_PATH,
@@ -29,6 +29,7 @@ export type AdminSection =
   | "signalements"
   | "paiements"
   | "abonnements"
+  | "codesPromo"
   | "avis"
   | "journal"
 
@@ -41,13 +42,14 @@ const SECTIONS: readonly [AdminSection, string][] = [
   ["signalements", ADMIN_REPORTS_PATH],
   ["paiements", ADMIN_PAYMENTS_PATH],
   ["abonnements", ADMIN_SUBSCRIPTIONS_PATH],
+  ["codesPromo", ADMIN_PROMO_CODES_PATH],
   ["avis", ADMIN_RATINGS_PATH],
   ["journal", ADMIN_JOURNAL_PATH],
 ]
 
 /*
  * Every back-office page: the admin's space with the back-office navigation
- * above the page (D-132). Ten capsules wrap on a phone rather than scroll;
+ * above the page (D-132). Eleven capsules wrap on a phone rather than scroll;
  * the current one reads as the current page and carries the butter fill.
  */
 async function AdminShell({
