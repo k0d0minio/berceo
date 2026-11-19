@@ -5,5 +5,5 @@
 - link: https://linear.app/jamienisbet/issue/JAM-301/berceo-round-2-wording-and-interface-fixes-zone-conversation-title
 - branch: contact/jam-301-berceo-round-2-wording-and-interface-fixes
 - lane: tweak
-- pr: pending
+- pr: #130
 - started: 2026-11-19
