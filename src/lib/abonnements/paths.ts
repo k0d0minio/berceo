@@ -18,3 +18,6 @@ export const SUBSCRIPTION_PORTAL_RETURN_PATH = `${SUBSCRIPTION_PATH}/portail`;
 
 /** The founders' list of subscriptions (abonnements-back-office). */
 export const ADMIN_SUBSCRIPTIONS_PATH = `${SPACES.admin}/abonnements`;
+
+/** « Codes promo »: the founders make and deactivate the promotion codes (JAM-304). */
+export const ADMIN_PROMO_CODES_PATH = `${SPACES.admin}/codes-promo`;

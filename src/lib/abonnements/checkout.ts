@@ -6,7 +6,7 @@ import type { SubscriptionPlan, User } from "@/db";
 import { siteOrigin } from "@/lib/site-origin";
 
 import { SUBSCRIPTION_PATH } from "./paths";
-import { startSubscription, type StartResult } from "./subscriptions";
+import { startNightPass, startSubscription, type NightPassStartResult, type StartResult } from "./subscriptions";
 
 /**
  * Opens the plan's Checkout and sends the family there, or back to « Votre
@@ -20,6 +20,26 @@ export async function redirectToCheckout(user: User, plan: SubscriptionPlan): Pr
     result = await startSubscription({ user, plan, siteUrl: await siteOrigin(), now: new Date() });
   } catch (error) {
     console.error("[abonnements] checkout not opened", {
+      userId: user.id,
+      error: error instanceof Error ? error.name : typeof error,
+    });
+    redirect(`${SUBSCRIPTION_PATH}?retour=erreur`);
+  }
+
+  if (result.kind === "stripe") redirect(result.url);
+  redirect(`${SUBSCRIPTION_PATH}?retour=${result.kind}`);
+}
+
+/**
+ * Opens the one-night plan's Checkout (JAM-304) and sends the family there, or
+ * back to « Votre abonnement » with the notice of a refusal. Never returns.
+ */
+export async function redirectToNightPassCheckout(user: User): Promise<never> {
+  let result: NightPassStartResult;
+  try {
+    result = await startNightPass({ user, siteUrl: await siteOrigin(), now: new Date() });
+  } catch (error) {
+    console.error("[abonnements] pass checkout not opened", {
       userId: user.id,
       error: error instanceof Error ? error.name : typeof error,
     });

@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { FilterLinks, listHref, Pager } from "@/components/admin/list-controls";
-import { SubscriptionsTable } from "@/components/admin/subscriptions-table";
+import { NightPassesTable, SubscriptionsTable } from "@/components/admin/subscriptions-table";
 import { admin } from "@/content/admin";
 import { words } from "@/content/locale";
 import { ADMIN_SUBSCRIPTIONS_PATH } from "@/lib/abonnements/paths";
 import { ACTIVE_FILTER, isActiveFilter } from "@/lib/abonnements/rules";
-import { readSubscriptions } from "@/lib/abonnements/subscriptions";
+import { readNightPasses, readSubscriptions } from "@/lib/abonnements/subscriptions";
 import { journalPage } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 
@@ -24,24 +24,31 @@ export const dynamic = "force-dynamic";
  * « Abonnements des familles » (abonnements-back-office): every subscription
  * Stripe created, newest first, 50 per page like the journal. `?statut=actifs`
  * keeps those `hasActiveSubscription` counts: the overview's « Abonnements
- * actifs » counts exactly those (D-133). Read-only: Stripe changes a
- * subscription. A 404 to anyone but an admin (D-33).
+ * actifs » counts exactly those (D-133). Below, the one-night plans paid
+ * (JAM-304), with their own pages (`?nuits=`). Each row names the promotion
+ * code of its first payment. Read-only: Stripe changes a subscription. A 404 to anyone but an admin (D-33).
  */
 export default async function AbonnementsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; statut?: string }>;
+  searchParams: Promise<{ page?: string; statut?: string; nuits?: string }>;
 }) {
   const user = await requireAccess(ADMIN_SUBSCRIPTIONS_PATH);
   const params = await searchParams;
   const page = journalPage(params.page);
   const active = isActiveFilter(params.statut);
-  const { rows, pages } = await readSubscriptions(page, active, new Date());
+  const nightsPage = journalPage(params.nuits);
+  const now = new Date();
+  const [{ rows, pages }, nights] = await Promise.all([
+    readSubscriptions(page, active, now),
+    readNightPasses(nightsPage, now),
+  ]);
   const t = a.abonnements;
-  const href = (n: number, actives = active) =>
+  const href = (n: number, actives = active, nightsN = nightsPage) =>
     listHref(ADMIN_SUBSCRIPTIONS_PATH, {
       statut: actives ? ACTIVE_FILTER : null,
       page: n > 1 ? String(n) : null,
+      nuits: nightsN > 1 ? String(nightsN) : null,
     });
 
   return (
@@ -59,6 +66,13 @@ export default async function AbonnementsPage({
         <SubscriptionsTable rows={rows} />
       )}
       <Pager page={page} pages={pages} href={(n) => href(n)} />
+      <h2 className="font-display text-h3 text-sauge">{t.nuits.titre}</h2>
+      {nights.rows.length === 0 ? (
+        <p className="text-corps text-taupe">{t.nuits.vide}</p>
+      ) : (
+        <NightPassesTable rows={nights.rows} />
+      )}
+      <Pager page={nightsPage} pages={nights.pages} href={(n) => href(page, active, n)} />
     </AdminShell>
   );
 }

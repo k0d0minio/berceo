@@ -5,7 +5,7 @@ import { SpaceShell } from "@/components/shell/space-shell"
 import { admin } from "@/content/admin"
 import { words } from "@/content/locale"
 import type { User } from "@/db"
-import { ADMIN_SUBSCRIPTIONS_PATH } from "@/lib/abonnements/paths"
+import { ADMIN_PROMO_CODES_PATH, ADMIN_SUBSCRIPTIONS_PATH } from "@/lib/abonnements/paths"
 import {
   ADMIN_BOOKINGS_PATH,
   ADMIN_FILES_PATH,
@@ -31,6 +31,7 @@ export type AdminSection =
   | "paiements"
   | "creditsBerceo"
   | "abonnements"
+  | "codesPromo"
   | "avis"
   | "journal"
 
@@ -44,6 +45,7 @@ const SECTIONS: readonly [AdminSection, string][] = [
   ["paiements", ADMIN_PAYMENTS_PATH],
   ["creditsBerceo", ADMIN_CREDITS_PATH],
   ["abonnements", ADMIN_SUBSCRIPTIONS_PATH],
+  ["codesPromo", ADMIN_PROMO_CODES_PATH],
   ["avis", ADMIN_RATINGS_PATH],
   ["journal", ADMIN_JOURNAL_PATH],
 ]
