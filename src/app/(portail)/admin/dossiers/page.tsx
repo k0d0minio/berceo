@@ -63,9 +63,9 @@ export default async function DossiersPage() {
 
   return (
     <AdminShell user={user} title={a.dossiers.titre} current="dossiers">
-      <h2 className="font-display text-h2 text-encre-sauge">{a.file.titre}</h2>
+      <h2 className="font-display text-h2 text-sauge">{a.file.titre}</h2>
       <QueueTable rows={queue} studentsAdmitted={setting.value} />
-      <h2 className="font-display text-h2 text-encre-sauge">{a.reglages.titre}</h2>
+      <h2 className="font-display text-h2 text-sauge">{a.reglages.titre}</h2>
       <StudentsSwitch value={setting.value} changed={changed} />
       <CancellationDelay value={delay.value} changed={delayChanged} />
     </AdminShell>

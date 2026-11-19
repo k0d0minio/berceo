@@ -18,7 +18,7 @@ function AccountsTable({ rows }: { rows: AccountRow[] }) {
 
   return (
     <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
-      <Table className="text-corps text-encre-taupe">
+      <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>
             <TableHead>{t.colonnes.nom}</TableHead>
@@ -35,7 +35,7 @@ function AccountsTable({ rows }: { rows: AccountRow[] }) {
               <TableCell>
                 <Link
                   href={adminUserPath(row.id)}
-                  className="font-semibold text-encre-sauge underline underline-offset-4"
+                  className="font-semibold text-sauge underline underline-offset-4"
                 >
                   {`${row.firstName} ${row.lastName}`.trim()}
                 </Link>

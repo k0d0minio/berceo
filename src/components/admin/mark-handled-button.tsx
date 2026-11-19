@@ -41,7 +41,7 @@ function MarkHandledButton({ bookingId }: { bookingId: string }) {
         cancel={{ label: t.confirmation.non, tone: "sensible" }}
       />
       {error ? (
-        <p role="status" className="max-w-xs text-legende text-encre-taupe">
+        <p role="status" className="max-w-xs text-legende text-taupe">
           {t.erreur}
         </p>
       ) : null}

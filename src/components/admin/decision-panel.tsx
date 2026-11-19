@@ -10,7 +10,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { admin } from "@/content/admin"
 import { fill, words } from "@/content/locale"
 import type { ProfileStatus } from "@/db/schema"
-import { REASON_MAX, checkReason, isReviewable, type Decision } from "@/lib/admin/rules"
+import { REASON_MAX, checkReason, isReviewable, type Decision, type ReasonError } from "@/lib/admin/rules"
 
 /*
  * The three decisions on a file (the guide, "L'outil de vérification"), each
@@ -52,10 +52,10 @@ function DecisionPanel({
     <div className="flex flex-col gap-4">
       {message ? <FormMessage>{message}</FormMessage> : null}
       {!isReviewable(status) ? (
-        <p className="text-corps text-encre-taupe">{t.dossier.sansDecision}</p>
+        <p className="text-corps text-taupe">{t.dossier.sansDecision}</p>
       ) : (
         <>
-          {held ? <p className="max-w-2xl text-corps text-encre-taupe">{t.dossier.etudiantesRetenue}</p> : null}
+          {held ? <p className="max-w-2xl text-corps text-taupe">{t.dossier.etudiantesRetenue}</p> : null}
           <div className="flex flex-wrap gap-4">
             <ConfirmDialog
               trigger={
@@ -81,7 +81,7 @@ function DecisionPanel({
             />
             <ReasonDialog
               trigger={
-                <Button type="button" variant="raye" disabled={pending}>
+                <Button type="button" variant="rouge" disabled={pending}>
                   {d.refuser}
                 </Button>
               }
@@ -100,7 +100,11 @@ function DecisionPanel({
 /** The dialog's own words, where they are not the decisions' (the fee's refund). */
 type ReasonLabels = { oui: string; non: string; motif: string; motifAide: string }
 
-/** A confirmation that asks for the reason first, and stays open until it is valid. */
+/**
+ * A confirmation that asks for the reason first, and stays open until it is
+ * valid. `max` and `errors` set a shorter limit and its words (the founders'
+ * notes of annulations-back-office: 500 characters).
+ */
 function ReasonDialog({
   trigger,
   title,
@@ -108,14 +112,18 @@ function ReasonDialog({
   tone,
   onConfirm,
   labels,
+  max = REASON_MAX,
+  errors,
 }: {
   trigger: React.ReactElement
   title: string
   description: string
-  /** The confirming answer's colour: green to ask, red to refuse (D-24). */
+  /** The confirming answer's colour: green to ask, red to refuse (JAM-300). */
   tone: "confirmation" | "sensible"
   onConfirm: (reason: string) => void
   labels?: ReasonLabels
+  max?: number
+  errors?: Record<ReasonError, string>
 }) {
   const d = words(admin).decisions
   const l = labels ?? d.confirmation
@@ -135,10 +143,10 @@ function ReasonDialog({
         label: l.oui,
         tone,
         onSelect: (event) => {
-          const checked = checkReason(reason)
+          const checked = checkReason(reason, max)
           if (!checked.ok) {
             event.preventDefault()
-            setError(d.erreurs[checked.error])
+            setError((errors ?? d.erreurs)[checked.error])
             return
           }
           onConfirm(checked.value)
@@ -148,20 +156,20 @@ function ReasonDialog({
       cancel={{ label: l.non, tone: tone === "sensible" ? "confirmation" : "sensible" }}
     >
       <div className="flex flex-col gap-2">
-        <label htmlFor={`${id}-motif`} className="text-corps font-semibold text-encre-taupe">
+        <label htmlFor={`${id}-motif`} className="text-corps font-semibold text-taupe">
           {l.motif}
         </label>
         <textarea
           id={`${id}-motif`}
           rows={4}
-          maxLength={REASON_MAX}
+          maxLength={max}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={[`${id}-aide`, error ? `${id}-erreur` : ""].filter(Boolean).join(" ")}
-          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge aria-invalid:border-destructive"
+          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge aria-invalid:border-destructive"
         />
-        <p id={`${id}-aide`} className="px-6 text-legende text-encre-taupe">
+        <p id={`${id}-aide`} className="px-6 text-legende text-taupe">
           {l.motifAide}
         </p>
         {error ? (

@@ -72,9 +72,9 @@ function CardFrame({
 function Identity({ firstName, profession }: { firstName: string; profession: Profession | null }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <p className="font-display text-h3 break-words text-encre-sauge uppercase">{firstName}</p>
-      <p className="text-corps text-encre-taupe">{professionLabel(profession)}</p>
-      <p className="text-legende font-semibold text-encre-taupe">{t.verifie}</p>
+      <p className="text-h3 font-bold break-words text-sauge">{firstName}</p>
+      <p className="text-corps text-taupe">{professionLabel(profession)}</p>
+      <p className="text-legende font-semibold text-taupe">{t.verifie}</p>
     </div>
   )
 }
@@ -84,8 +84,8 @@ function Zone({ zone, reach }: Pick<CardProps, "zone" | "reach">) {
   const line = reachLine(reach)
   return (
     <div className="flex flex-col gap-1">
-      <p className="text-corps break-words text-encre-taupe">{zoneLine(zone)}</p>
-      {line ? <p className="text-corps break-words text-encre-taupe">{line}</p> : null}
+      <p className="text-corps break-words text-taupe">{zoneLine(zone)}</p>
+      {line ? <p className="text-corps break-words text-taupe">{line}</p> : null}
     </div>
   )
 }
@@ -106,13 +106,13 @@ function ProfessionalCard({
       <Zone zone={props.zone} reach={props.reach} />
       <NoteDisplay note={props.note} />
       <div className="flex flex-col gap-1">
-        <p className="text-legende font-semibold text-encre-taupe">{t.prochaines}</p>
+        <p className="text-legende font-semibold text-taupe">{t.prochaines}</p>
         {nights.length === 0 ? (
-          <p className="text-corps text-encre-taupe">{t.aucuneNuit}</p>
+          <p className="text-corps text-taupe">{t.aucuneNuit}</p>
         ) : (
           <ul className="flex flex-col gap-1">
             {nights.slice(0, 3).map((night) => (
-              <li key={night} className="text-corps text-encre-taupe">
+              <li key={night} className="text-corps text-taupe">
                 {nightName(night)}
               </li>
             ))}

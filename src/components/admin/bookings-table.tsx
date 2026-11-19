@@ -9,10 +9,14 @@ import { adminUserPath } from "@/lib/admin/paths"
 import { formatDate, formatTime } from "@/lib/demandes/format"
 import { eurosFromCents } from "@/lib/paiements/rules"
 
+import { BerceoCancelButton } from "./berceo-cancel-button"
+
 /*
  * Every booking (back-office-admin): the night, the family and the
  * professional (opening their accounts, « Suspendu » beside a suspended one),
- * the rate, the fee and its status, and the garde's state by the clock.
+ * the rate, the fee and its status, the garde's state by the clock, and
+ * « Annuler la garde » for Berceo on a garde to come or under way
+ * (annulations-back-office).
  */
 function BookingsTable({ rows }: { rows: AdminBookingRow[] }) {
   const a = words(admin)
@@ -22,7 +26,7 @@ function BookingsTable({ rows }: { rows: AdminBookingRow[] }) {
 
   const person = (who: AdminBookingRow["family"]) => (
     <>
-      <Link href={adminUserPath(who.id)} className="text-encre-sauge underline underline-offset-4">
+      <Link href={adminUserPath(who.id)} className="text-sauge underline underline-offset-4">
         {who.name}
       </Link>
       {who.suspended ? <span className="block text-legende font-semibold">{t.suspendu}</span> : null}
@@ -31,7 +35,7 @@ function BookingsTable({ rows }: { rows: AdminBookingRow[] }) {
 
   return (
     <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
-      <Table className="text-corps text-encre-taupe">
+      <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>
             <TableHead>{t.colonnes.nuit}</TableHead>
@@ -40,6 +44,7 @@ function BookingsTable({ rows }: { rows: AdminBookingRow[] }) {
             <TableHead>{t.colonnes.tarif}</TableHead>
             <TableHead>{t.colonnes.frais}</TableHead>
             <TableHead>{t.colonnes.etat}</TableHead>
+            <TableHead>{t.action}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -62,6 +67,16 @@ function BookingsTable({ rows }: { rows: AdminBookingRow[] }) {
                 )}
               </TableCell>
               <TableCell>{etats[row.state]}</TableCell>
+              <TableCell>
+                {row.state === "a_venir" || row.state === "en_cours" ? (
+                  <BerceoCancelButton
+                    bookingId={row.id}
+                    date={formatDate(row.nightDate)}
+                    family={row.family.name}
+                    professional={row.professional.name}
+                  />
+                ) : null}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

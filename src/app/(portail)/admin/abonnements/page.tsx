@@ -54,7 +54,7 @@ export default async function AbonnementsPage({
         ]}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{active ? t.videActifs : t.vide}</p>
+        <p className="text-corps text-taupe">{active ? t.videActifs : t.vide}</p>
       ) : (
         <SubscriptionsTable rows={rows} />
       )}

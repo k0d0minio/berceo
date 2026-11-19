@@ -14,7 +14,7 @@ function GardeStateMark({ state, className }: { state: GardeState; className?: s
   return (
     <span
       className={cn(
-        "inline-flex w-fit items-center rounded-capsule border border-solid border-taupe px-3 py-1 text-legende font-semibold text-encre-taupe",
+        "inline-flex w-fit items-center rounded-capsule border border-solid border-taupe px-3 py-1 text-legende font-semibold text-taupe",
         state === "en_cours" ? "bg-beurre" : "bg-blanc",
         className
       )}

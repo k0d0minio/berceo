@@ -37,7 +37,7 @@ function CreditList({ items }: { items: FamilyCredit[] }) {
   return (
     <ul className="flex flex-col gap-2">
       {items.map((credit) => (
-        <li key={credit.id} className="flex flex-col text-corps text-encre-taupe">
+        <li key={credit.id} className="flex flex-col text-corps text-taupe">
           <span className="font-semibold">{creditLine(credit)}</span>
           <span>{t.origines[credit.origin]}</span>
         </li>
@@ -51,19 +51,19 @@ function CreditsBlock({ list, balanceCents }: { list: FamilyCredit[]; balanceCen
   const past = list.filter((credit) => credit.state !== "disponible");
   return (
     <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-      <h2 className="font-display text-h3 text-encre-sauge">{t.titre}</h2>
-      <p className="text-corps text-encre-taupe">{t.intro}</p>
+      <h2 className="text-h3 font-bold text-sauge">{t.titre}</h2>
+      <p className="text-corps text-taupe">{t.intro}</p>
       {list.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{t.vide}</p>
+        <p className="text-corps text-taupe">{t.vide}</p>
       ) : (
         <>
-          <p className="text-corps font-semibold text-encre-sauge">
+          <p className="text-corps font-semibold text-sauge">
             {fill(t.solde, { montant: eurosFromCents(balanceCents) })}
           </p>
           {usable.length > 0 ? <CreditList items={usable} /> : null}
           {past.length > 0 ? (
             <>
-              <h3 className="text-corps font-semibold text-encre-sauge">{t.passes}</h3>
+              <h3 className="text-corps font-semibold text-sauge">{t.passes}</h3>
               <CreditList items={past} />
             </>
           ) : null}

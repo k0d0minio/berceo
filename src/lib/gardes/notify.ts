@@ -2,15 +2,18 @@ import "server-only";
 
 import { gardeCredits } from "@/lib/credits/credits";
 import { formatDate, formatTime } from "@/lib/demandes/format";
+import { hasNightStarted } from "@/lib/demandes/rules";
 import { sendEmail } from "@/lib/email/send";
 import {
   absenceReportedEmail,
+  gardeCancelledByBerceoFamilyEmail,
+  gardeCancelledByBerceoProfessionalEmail,
   gardeCancelledByFamilyEmail,
   gardeCancelledByProfessionalEmail,
   reminderFamilyEmail,
   reminderProfessionalEmail,
 } from "@/lib/email/templates";
-import { bookingNotice } from "@/lib/reservations/notices";
+import { bookingNotice, type BookingNotice } from "@/lib/reservations/notices";
 import { familyBookingPath, PROFESSIONAL_BOOKINGS_PATH, professionalBookingPath } from "@/lib/reservations/paths";
 
 import { claimReminder, logError, pendingReminders, releaseReminder } from "./gardes";
@@ -23,14 +26,19 @@ import { claimReminder, logError, pendingReminders, releaseReminder } from "./ga
  * deployment that sent them.
  */
 
-/** A cancellation (D-105): one e-mail to the other side of the one recorded. */
+/**
+ * A cancellation (D-105): one e-mail to the other side of the one recorded.
+ * A cancellation by Berceo (annulations-back-office) goes to both sides.
+ */
 export async function notifyCancellation(bookingId: string, siteUrl: string): Promise<void> {
   try {
     const notice = await bookingNotice(bookingId);
     if (!notice || notice.cancellationKind !== "annulation") return;
     const date = formatDate(notice.nightDate);
     const key = `garde-annulee-${bookingId}`;
-    if (notice.cancelledBy === "famille") {
+    if (notice.cancelledBy === "berceo") {
+      await notifyBerceoCancellation(bookingId, notice, date, siteUrl);
+    } else if (notice.cancelledBy === "famille") {
       await sendEmail(
         notice.professional.email,
         gardeCancelledByFamilyEmail({
@@ -60,6 +68,51 @@ export async function notifyCancellation(bookingId: string, siteUrl: string): Pr
     }
   } catch (error) {
     logError("cancellation e-mail not sent", { bookingId }, error);
+  }
+}
+
+/**
+ * Both e-mails of a cancellation by Berceo: the family's names her credit and,
+ * while the night has not started, the way to republish (D-107); the
+ * professional's says she is no longer expected. One failed send does not stop
+ * the other; each is logged with ids only.
+ */
+async function notifyBerceoCancellation(
+  bookingId: string,
+  notice: BookingNotice,
+  date: string,
+  siteUrl: string,
+): Promise<void> {
+  const credited = (await gardeCredits([bookingId])).has(bookingId);
+  const republish = !hasNightStarted(notice.nightDate, notice.startTime, new Date());
+  const results = await Promise.allSettled([
+    sendEmail(
+      notice.family.email,
+      gardeCancelledByBerceoFamilyEmail({
+        siteUrl,
+        prenom: notice.family.firstName,
+        professionnelle: notice.professional.firstName,
+        date,
+        credited,
+        republish,
+        url: `${siteUrl}${familyBookingPath(bookingId)}`,
+      }),
+      `garde-annulee-${bookingId}-famille`,
+    ),
+    sendEmail(
+      notice.professional.email,
+      gardeCancelledByBerceoProfessionalEmail({
+        siteUrl,
+        prenom: notice.professional.firstName,
+        prenomFamille: notice.family.firstName,
+        date,
+        url: `${siteUrl}${PROFESSIONAL_BOOKINGS_PATH}`,
+      }),
+      `garde-annulee-${bookingId}-professionnelle`,
+    ),
+  ]);
+  for (const result of results) {
+    if (result.status === "rejected") logError("cancellation e-mail not sent", { bookingId }, result.reason);
   }
 }
 

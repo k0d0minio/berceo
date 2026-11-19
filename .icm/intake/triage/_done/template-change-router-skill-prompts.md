@@ -27,12 +27,12 @@ ignored it and carried on with Release.
 
 Template change request — from berceo · 2026-09-25
 
-In the icm-board repo (`~/Apps`), change the canonical `.claude/` asset
+In the repo of the old desk (`~/Apps`), change the canonical `.claude/` asset
 `_system/template/claude*/hooks/route-request.sh` (in every pipeline repo:
 `.claude/hooks/route-request.sh`, a canonical hook without a MANIFEST line). Read
 `_system/contracts/PIPELINE.md` → File-level ownership first.
 
-What it does today (berceo's copy, `.icm/template-version`: icm-board e7a99bb): after its layer-1
+What it does today (berceo's copy, `.icm/template-version`: the old desk, e7a99bb): after its layer-1
 stage forms and the investigation bail, it emits
 
 > emit "[pipeline-router] Route: /pipeline scope \"<the story>\" (multi-feature dump — nothing in .icm/runs/ or .icm/intake/ matches it; …)"

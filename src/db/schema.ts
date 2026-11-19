@@ -703,8 +703,12 @@ export const careRequestApplications = pgTable(
  */
 export const bookingStatusEnum = pgEnum("booking_status", ["confirmee", "annulee"]);
 
-/** One side of a garde: the side a cancellation is recorded against (D-105, D-106). */
-export const bookingSideEnum = pgEnum("booking_side", ["famille", "professionnelle"]);
+/**
+ * Who a cancellation is recorded against (D-105, D-106): one side of the
+ * garde, or `berceo` when a founder cancelled it for Berceo
+ * (annulations-back-office). `BookingSide` below is the two sides only.
+ */
+export const bookingSideEnum = pgEnum("booking_side", ["famille", "professionnelle", "berceo"]);
 
 /** How a garde ended early: cancelled before its start, or an absence reported after it (D-106). */
 export const cancellationKindEnum = pgEnum("cancellation_kind", ["annulation", "absence"]);
@@ -734,7 +738,10 @@ export const cancellationReasonEnum = pgEnum("cancellation_reason", [
  * responsible (the absent one for an absence), `cancelled_by_user_id` who
  * clicked (D-105, D-106), and `cancellation_reason` the reason that side chose
  * when it cancelled; an absence has none, and neither has a garde cancelled
- * before annulations-delai-et-motif. `disputed_at` marks an absence the side
+ * before annulations-delai-et-motif. A founder's cancellation for Berceo
+ * (annulations-back-office) is recorded against `berceo`, with the founder as
+ * `cancelled_by_user_id`, no reason, and her note in `cancellation_note`,
+ * which only the founders read. `disputed_at` marks an absence the side
  * reported absent contested: the garde is in « litige », and the founders
  * decide its fee (annulations-table, the answers [9.3]).
  */
@@ -768,6 +775,8 @@ export const bookings = pgTable(
     cancelledByUserId: uuid("cancelled_by_user_id").references(() => users.id, { onDelete: "set null" }),
     cancellationKind: cancellationKindEnum("cancellation_kind"),
     cancellationReason: cancellationReasonEnum("cancellation_reason"),
+    /** The founders' note on a cancellation for Berceo (annulations-back-office); null otherwise. */
+    cancellationNote: text("cancellation_note"),
     /** When the reminder of the day before claimed it (D-108); null until then. */
     reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
     /**
@@ -816,6 +825,10 @@ export const bookings = pgTable(
     check(
       "bookings_cancellation_reason",
       sql`${table.cancellationReason} IS NULL OR ${table.cancellationKind} = 'annulation'`,
+    ),
+    check(
+      "bookings_cancellation_note",
+      sql`${table.cancellationNote} IS NULL OR ${table.cancellationKind} = 'annulation'`,
     ),
   ],
 );
@@ -1300,6 +1313,9 @@ export const adminActionEnum = pgEnum("admin_action", [
   "signalement_traite",
   // annulations-delai-et-motif
   "reglage_delai_annulation",
+  // annulations-back-office
+  "credit_accorde",
+  "garde_annulee_berceo",
 ]);
 
 /**
@@ -1354,7 +1370,10 @@ export type CareRequestApplication = typeof careRequestApplications.$inferSelect
 export type ApplicationStatus = (typeof applicationStatusEnum.enumValues)[number];
 export type Booking = typeof bookings.$inferSelect;
 export type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
-export type BookingSide = (typeof bookingSideEnum.enumValues)[number];
+/** Who a cancellation is recorded against: a side, or Berceo (annulations-back-office). */
+export type CancellationAuthor = (typeof bookingSideEnum.enumValues)[number];
+/** One side of a garde: the family or the professional. */
+export type BookingSide = Exclude<CancellationAuthor, "berceo">;
 export type CancellationKind = (typeof cancellationKindEnum.enumValues)[number];
 export type CancellationReason = (typeof cancellationReasonEnum.enumValues)[number];
 export type Conversation = typeof conversations.$inferSelect;

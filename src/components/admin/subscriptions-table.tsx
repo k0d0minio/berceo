@@ -8,7 +8,7 @@ import type { AdminSubscription } from "@/lib/abonnements/subscriptions"
 import { adminUserPath } from "@/lib/admin/paths"
 
 const date = new Intl.DateTimeFormat("fr-BE", { dateStyle: "short", timeZone: "Europe/Brussels" })
-const link = "font-semibold text-encre-sauge underline underline-offset-4"
+const link = "font-semibold text-sauge underline underline-offset-4"
 
 /*
  * Every subscription, newest first (abonnements-back-office): the family,
@@ -22,7 +22,7 @@ function SubscriptionsTable({ rows }: { rows: AdminSubscription[] }) {
 
   return (
     <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
-      <Table className="text-corps text-encre-taupe">
+      <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>
             <TableHead>{t.colonnes.famille}</TableHead>

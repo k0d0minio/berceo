@@ -44,11 +44,11 @@ export default function PortalShellPage() {
       actions={<SignOutDialog />}
     >
       <div className="flex flex-col gap-4">
-        <h1 className="font-display text-h1 text-encre-sauge">{t.title}</h1>
+        <h1 className="font-display text-h1 text-sauge">{t.title}</h1>
         <p className="max-w-2xl text-intro">{t.text}</p>
       </div>
       <section className="mt-12 flex flex-col gap-4">
-        <h2 className="font-display text-h2 text-encre-sauge">{t.disponibilites.title}</h2>
+        <h2 className="font-display text-h2 text-sauge">{t.disponibilites.title}</h2>
         <p className="max-w-2xl text-corps">{t.disponibilites.text}</p>
         <div className="grid max-w-4xl gap-6 md:grid-cols-2">
           <ProchainesDisponibilites nights={SAMPLE_NIGHTS} />
@@ -56,7 +56,7 @@ export default function PortalShellPage() {
         </div>
       </section>
       <section className="mt-12 flex flex-col gap-4">
-        <h2 className="font-display text-h2 text-encre-sauge">{t.avis.title}</h2>
+        <h2 className="font-display text-h2 text-sauge">{t.avis.title}</h2>
         <p className="max-w-2xl text-corps">{t.avis.text}</p>
         <div className="flex max-w-2xl flex-col gap-6 rounded-carte bg-perle px-6 py-6 md:px-8">
           <NoteDisplay note={{ note: 4.6, gardes: 12 }} />
@@ -65,7 +65,7 @@ export default function PortalShellPage() {
         </div>
       </section>
       <section className="mt-12 flex flex-col gap-4">
-        <h2 className="font-display text-h2 text-encre-sauge">{t.recherche.title}</h2>
+        <h2 className="font-display text-h2 text-sauge">{t.recherche.title}</h2>
         <p className="max-w-2xl text-corps">{t.recherche.text}</p>
         <div className="grid max-w-4xl gap-6 rounded-carte bg-perle px-6 py-6 md:grid-cols-2 md:px-8">
           <ProfessionalCard

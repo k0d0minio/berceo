@@ -28,7 +28,7 @@ function Mark({ children, className }: { children: React.ReactNode; className?: 
   return (
     <span
       className={cn(
-        "inline-flex w-fit items-center rounded-capsule px-3 py-1 text-legende font-semibold text-encre-taupe",
+        "inline-flex w-fit items-center rounded-capsule px-3 py-1 text-legende font-semibold text-taupe",
         className
       )}
     >
@@ -87,31 +87,31 @@ function RequestCard({
           <Mark className="border border-solid border-taupe bg-blanc">{t.statuts[status]}</Mark>
         ) : null}
       </div>
-      <h2 className="font-display text-h3 text-encre-sauge uppercase">
+      <h2 className="text-h3 font-bold text-sauge">
         {cardTitle(request.communeIns, request.locality)}
       </h2>
-      <p className="text-corps text-encre-taupe">{placeLine(request.postcode, request.locality)}</p>
-      <p className="text-corps font-semibold text-encre-taupe">
+      <p className="text-corps text-taupe">{placeLine(request.postcode, request.locality)}</p>
+      <p className="text-corps font-semibold text-taupe">
         {nightLine(request.nightDate, request.startTime, request.extraHours)}
       </p>
-      <p className="text-corps text-encre-taupe">
+      <p className="text-corps text-taupe">
         {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
       </p>
       {/* A request published before the field has no feeding. */}
-      {request.feeding ? <p className="text-corps text-encre-taupe">{feedingLine(request.feeding)}</p> : null}
-      {rate && rateLabel ? <p className="text-legende text-encre-taupe">{rateLabel}</p> : null}
-      {rate ? <p className="text-corps font-semibold text-encre-sauge">{rateLine(rate)}</p> : null}
+      {request.feeding ? <p className="text-corps text-taupe">{feedingLine(request.feeding)}</p> : null}
+      {rate && rateLabel ? <p className="text-legende text-taupe">{rateLabel}</p> : null}
+      {rate ? <p className="text-corps font-semibold text-sauge">{rateLine(rate)}</p> : null}
       {extraHourRate ? (
-        <p className="text-corps font-semibold text-encre-sauge">{extraHourLine(extraHourRate)}</p>
+        <p className="text-corps font-semibold text-sauge">{extraHourLine(extraHourRate)}</p>
       ) : null}
       {showPublished ? (
-        <p className="text-legende text-encre-taupe">{fill(t.carte.publiee, { date: published })}</p>
+        <p className="text-legende text-taupe">{fill(t.carte.publiee, { date: published })}</p>
       ) : null}
-      {note ? <p className="text-corps font-semibold text-encre-taupe">{note}</p> : null}
+      {note ? <p className="text-corps font-semibold text-taupe">{note}</p> : null}
       {href ? (
         <Link
           href={href}
-          className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+          className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
         >
           {t.boutons.voir}
         </Link>
