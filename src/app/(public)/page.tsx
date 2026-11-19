@@ -41,7 +41,7 @@ export default function AccueilPage() {
           className="absolute inset-0 -z-10 h-full rounded-none object-[30%_50%]"
         />
         <div className="mx-auto max-w-6xl px-4 py-16 max-[22.5rem]:px-3 md:px-8 md:py-28">
-          <TranslucentBlock className="max-w-2xl gap-6">
+          <TranslucentBlock className="max-w-4xl gap-6">
             <h1 className="font-display text-h1 text-balance max-[22.5rem]:text-[2.375rem]">
               {t.hero.title}
             </h1>
