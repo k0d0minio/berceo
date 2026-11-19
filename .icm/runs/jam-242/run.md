@@ -5,5 +5,5 @@
 - link: https://linear.app/jamienisbet/issue/JAM-242/berceo-project-rules-and-the-small-leftovers-of-the-old-pipeline
 - branch: contact/jam-242-berceo-project-rules-and-the-small-leftovers
 - lane: chore
-- pr: pending
+- pr: #129
 - started: 2026-11-19
