@@ -2,7 +2,7 @@
 
 ## Next action
 
-Jamie answers Q1 to Q8 on the HUD card or in the body of pull request #135, then says `new JAM-248`. That session runs `questions.sh JAM-248`, puts the answers in `spec.md`, and runs `new-run.sh JAM-248 --refresh-body`. Then Jamie ticks Spec approved and says `build JAM-248`.
+Q1 to Q8 have answers (Jamie, 2026-11-19), recorded in `spec.md`. Q4, Q5 and Q8 differ from the default. Jamie ticks Spec approved on pull request #135, then says `build JAM-248`.
 
 ## How to test
 
@@ -10,7 +10,7 @@ On the preview, sign in as a founder. Open « Signalements », filter « Litige 
 
 ## Blockers
 
-- Q1 to Q8 wait for answers. Do not use a default while a question waits.
+- none
 
 ## Do not touch
 
