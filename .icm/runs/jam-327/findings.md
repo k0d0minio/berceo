@@ -9,3 +9,5 @@ Faits vus pendant le Build, hors du ticket. Jamie les trie.
 5. **`SeriesEntry` (espace professionnelle)** montre « en priorité » et le tarif en lignes simples, pas en marque jaune ni en ligne à icône comme `RequestCard`.
 6. **La banque d'images n'a que quatre photos.** Les photos des diapositives 20 et 29 (mains qui tiennent des pieds, mère et bébé) n'y sont pas. Le site utilise `mains-pieds` et `ours-berceau` à leur place.
 7. **Le deck n'a pas d'icône de menu.** Le bouton de menu mobile garde l'icône Phosphor.
+8. **Une inscription avec une adresse déjà présente dans `users` laisse un compte Neon Auth orphelin.** Vu en local sur la base UAT avec `test@jamienisbet.com` : Neon Auth crée le compte, l'insertion dans `users` échoue sur `users_email_unique`, et la page dit « Une erreur est survenue ». Le compte d'authentification reste. Proposition : un ticket pour lire `users` avant l'appel à Neon Auth, ou pour supprimer le compte créé quand l'insertion échoue.
+9. **La base UAT a un compte `test@jamienisbet.com` d'un test antérieur.** Son mot de passe n'est pas connu de la session.

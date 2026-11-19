@@ -55,10 +55,13 @@ function FieldError({ className, ...props }: React.ComponentProps<"p">) {
   return <p className={cn("px-6 text-legende font-semibold text-destructive", className)} {...props} />
 }
 
-/** A message for the whole form, read out when it appears. */
+/**
+ * A message for the whole form, read out when it appears. White with a taupe
+ * outline, so it shows on a white card and on the pearl page alike (JAM-327).
+ */
 function FormMessage({ children }: { children: React.ReactNode }) {
   return (
-    <p role="alert" className="rounded-carte bg-perle px-6 py-4 text-corps text-taupe">
+    <p role="alert" className="rounded-carte border border-solid border-taupe bg-blanc px-6 py-4 text-corps text-taupe">
       {children}
     </p>
   )

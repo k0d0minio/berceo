@@ -22,13 +22,32 @@ Vérifiés par la session sur la prévisualisation, sans connexion :
 - À 375 px, aucune page publique ou de compte ne défile en largeur. Le titre de la charte débordait : corrigé.
 - `/design-system` montre les diapositives 8, 10, 15, 19, 20, 21, 22, 25, 26, 27 et 29.
 
+Vérifiés par la session sur le serveur local (`npm run dev`, base UAT confirmée par Jamie, 2026-11-19), à 532 px de large et à 375 px :
+
+- L'inscription famille, le mail de vérification, la connexion : de bout en bout avec `test+famille327@jamienisbet.com`.
+- L'inscription professionnelle, le mail, la connexion : de bout en bout avec `test+pro327@jamienisbet.com`.
+- Les pages de compte `/connexion`, `/inscription-famille`, `/inscription-professionnelle`, `/verification-email` : logotype, fond sauge, carte blanche, champs en capsule.
+- Espace famille, sans abonnement : `/espace/famille`, `abonnement`, `charte`, `demandes` (vide), `demandes/nouvelle` (porte d'abonnement), `messages`, `professionnelles`, `profil`, `recherche`, `recherche` avec un résultat, `reservations` (vide). Aucune erreur, aucun défilement en largeur, un H1 par page. La carte de profil de la recherche correspond à la diapositive 25 : zone sauge, carte blanche, étiquette taupe, lignes à icône, capsule.
+- Le dialogue de déconnexion dans l'espace : contour taupe, « Oui, me déconnecter » en rouge, « Non, rester connecté » en vert, empilés. La déconnexion marche.
+- Espace professionnelle, profil non validé : `inscription/profil` (étapes et formulaire en cartes blanches), `demandes`, `disponibilites`, `gardes`, `messages` (messages d'attente). Les autres adresses renvoient à l'étape du profil.
+- Corrigé pendant ce test : un message de formulaire était perle sur perle. Il est blanc avec un contour taupe.
+
 Non vérifié :
 
-- **Toutes les pages connectées** (famille, professionnelle, admin). Aucune n'a été affichée. Trois sous-agents les ont modifiées, et CI (lint, types, tests, build) est vert.
-- L'inscription, la vérification de l'e-mail et la connexion avec `test@jamienisbet.com`. L'envoi d'un message de contact.
-- Le dialogue de déconnexion dans un espace, et les confirmations de l'administration.
-- La comparaison à 1440 px contre le deck : la fenêtre du navigateur de la session fait 638 px de large.
-- Raison : la session n'a pas pu prouver quelle base lit l'environnement local. La lecture des fichiers `.env*` lui est refusée, et la spec demande cette preuve avant le premier lancement. Aucun serveur local n'a été lancé.
+- **L'administration** (15 pages). Un compte admin demande un changement à la main dans la base.
+- **Les pages qui demandent un abonnement ou des données** : le formulaire de demande, une demande et ses réponses, le profil complet d'une professionnelle, la demande en priorité, une réservation et son avis, une conversation. Stripe ne s'ouvre pas en local, donc le compte de test n'a pas d'abonnement.
+- **Les pages d'une professionnelle validée** : les étapes justificatifs et déclarations, son profil, une demande, une garde et son avis, le calendrier.
+- `/mot-de-passe-oublie`, `/nouveau-mot-de-passe`, `/connexion/code` : affichées sur la prévisualisation seulement, pas utilisées.
+- L'envoi d'un message de contact : aucun `CONTACT_EMAIL` en local ni sur la prévisualisation.
+- La comparaison à 1440 px contre le deck : la fenêtre du navigateur de la session fait 532 à 638 px.
+
+Traces laissées par le test :
+
+- Deux comptes de test dans la base UAT : `test+famille327@jamienisbet.com` (famille, formule Découverte choisie, non payée) et `test+pro327@jamienisbet.com` (professionnelle, profil non rempli). Leur mot de passe n'est dans aucun fichier du dépôt.
+- Un compte Neon Auth orphelin pour `test@jamienisbet.com` : cette adresse a déjà une ligne `users` en UAT, donc la première inscription a créé le compte d'authentification puis a échoué. Voir `findings.md`.
+- Deux mails de vérification dans la boîte `contact@jamienisbet.com`. Aucun mail envoyé par la session.
+- Dans le worktree, hors de git : `.env.local` (copié par Jamie), `node_modules/`, `.claude/launch.json`.
+- Le serveur local est arrêté.
 
 ## Écarts par rapport à la spec
 
@@ -60,7 +79,8 @@ Non vérifié :
 
 - Jamie : tester, puis cocher **Ready to merge** sur la pull request #136.
 - Jamie : poser `CONTACT_EMAIL` dans Vercel (`.icm/setup/contact-email.md`).
-- Jamie : dire comment vérifier les pages connectées. Soit il les teste lui-même sur la prévisualisation, soit il confirme quelle base lit `.env.local` et la session lance le serveur local.
+- Jamie : tester lui-même l'administration et les pages qui demandent un abonnement ou un profil validé, sur la prévisualisation ou sur UAT.
+- La case **Ready to merge** était cochée avant les deux derniers commits de produit (`fix(da)` du titre de bandeau et du message de formulaire). Jamie décide si la coche tient.
 
 ## Do not touch
 
