@@ -67,7 +67,7 @@ export default async function MesDemandesPage({ searchParams }: { searchParams: 
   return (
     <SpaceShell user={user} title={t.famille.titre}>
       {notice ? <FormMessage>{notice}</FormMessage> : null}
-      <p className="max-w-2xl text-intro text-encre-taupe">{t.famille.intro}</p>
+      <p className="max-w-2xl text-intro text-taupe">{t.famille.intro}</p>
       <div className="flex flex-wrap gap-3">
         <Button asChild>
           <Link href={NEW_REQUEST_PATH}>{t.boutons.publier}</Link>
@@ -77,7 +77,7 @@ export default async function MesDemandesPage({ searchParams }: { searchParams: 
         </Button>
       </div>
       {requests.length === 0 ? (
-        <p className="max-w-2xl text-corps text-encre-taupe">{t.famille.vide}</p>
+        <p className="max-w-2xl text-corps text-taupe">{t.famille.vide}</p>
       ) : (
         <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
           {groupForList(requests).map((entry) =>

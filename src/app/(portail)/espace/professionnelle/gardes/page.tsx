@@ -39,7 +39,7 @@ function List({
   if (items.length === 0) return null;
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-display text-h2 text-encre-sauge">{title}</h2>
+      <h2 className="font-display text-h2 text-sauge">{title}</h2>
       <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
         {items.map((booking) => (
           <li key={booking.id}>
@@ -54,14 +54,14 @@ function List({
                   />
                   <Link
                     href={professionalBookingPath(booking.id)}
-                    className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+                    className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
                   >
                     {t.gardes.voir}
                   </Link>
                   {canRate({ ...booking.request, status: booking.garde.status }, rated.has(booking.id), now) ? (
                     <Link
                       href={professionalRatingPath(booking.id)}
-                      className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+                      className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
                     >
                       {words(avis).lien}
                     </Link>
@@ -94,8 +94,8 @@ export default async function GardesPage() {
 
   return (
     <SpaceShell user={user} title={t.gardes.titre}>
-      <p className="max-w-2xl text-intro text-encre-taupe">{t.gardes.intro}</p>
-      {all.length === 0 ? <p className="max-w-2xl text-corps text-encre-taupe">{t.gardes.vide}</p> : null}
+      <p className="max-w-2xl text-intro text-taupe">{t.gardes.intro}</p>
+      {all.length === 0 ? <p className="max-w-2xl text-corps text-taupe">{t.gardes.vide}</p> : null}
       <List title={t.gardes.aVenir} items={coming} rated={rated} now={now} />
       <List title={t.gardes.passees} items={past} rated={rated} now={now} />
     </SpaceShell>

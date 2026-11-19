@@ -52,7 +52,7 @@ function SignUpForm({
           className="flex flex-col gap-3"
           aria-describedby={["champ-formule-aide", e.formule ? "champ-formule-erreur" : ""].filter(Boolean).join(" ")}
         >
-          <legend className="mb-3 font-display text-h3 text-encre-sauge">{plans.legende}</legend>
+          <legend className="mb-3 text-h3 font-bold text-sauge">{plans.legende}</legend>
           {/* The key re-applies the checked plan after a refused form (React resets it). */}
           <div key={`formule-${v?.formule ?? ""}`} className="grid gap-4 md:grid-cols-2">
             {plans.choices.map((plan) => (
@@ -70,16 +70,16 @@ function SignUpForm({
                   className="mt-1.5 size-5 shrink-0 accent-sauge"
                 />
                 <span className="flex flex-col gap-1">
-                  <span className="font-display text-h3 text-encre-sauge">{plan.name}</span>
-                  <span className="text-corps text-encre-taupe">{plan.duree}</span>
-                  <span className="text-corps font-semibold text-encre-taupe">{plan.prix}</span>
+                  <span className="text-h3 font-bold text-sauge">{plan.name}</span>
+                  <span className="text-corps text-taupe">{plan.duree}</span>
+                  <span className="text-corps font-semibold text-taupe">{plan.prix}</span>
                 </span>
               </label>
             ))}
           </div>
           <div id="champ-formule-aide" className="flex flex-col gap-2">
             {plans.lignes.map((ligne) => (
-              <p key={ligne} className="text-corps text-encre-taupe">
+              <p key={ligne} className="text-corps text-taupe">
                 {ligne}
               </p>
             ))}
@@ -149,7 +149,7 @@ function SignUpForm({
       />
 
       <div className="flex flex-col gap-2">
-        <label className="flex items-start gap-3 text-corps text-encre-taupe">
+        <label className="flex items-start gap-3 text-corps text-taupe">
           <input
             type="checkbox"
             name="consentement"
@@ -160,11 +160,11 @@ function SignUpForm({
           />
           <span>
             {t.inscription.consentement.avant}
-            <Link href={pages.conditionsGenerales.href} className="text-encre-sauge underline">
+            <Link href={pages.conditionsGenerales.href} className="text-sauge underline">
               {t.inscription.consentement.cgu}
             </Link>
             {t.inscription.consentement.entre}
-            <Link href={pages.confidentialite.href} className="text-encre-sauge underline">
+            <Link href={pages.confidentialite.href} className="text-sauge underline">
               {t.inscription.consentement.confidentialite}
             </Link>
             {t.inscription.consentement.apres}
@@ -181,9 +181,9 @@ function SignUpForm({
         {pending ? t.inscription.enCours : t.inscription.bouton}
       </Button>
 
-      <p className="text-corps text-encre-taupe">
+      <p className="text-corps text-taupe">
         {t.inscription.dejaInscrit}{" "}
-        <Link href={signInHref} className="text-encre-sauge underline">
+        <Link href={signInHref} className="text-sauge underline">
           {t.inscription.seConnecter}
         </Link>
       </p>

@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import { BerceoLogomark } from "@/components/berceo-logo"
+import { BerceoWordmark } from "@/components/berceo-logo"
 import { common } from "@/content/common"
 import { words } from "@/content/locale"
 
@@ -24,10 +24,10 @@ function PublicFooter() {
   ]
 
   return (
-    <footer className="bg-encre-sauge text-blanc [--ring:var(--blanc)]">
+    <footer className="bg-sauge text-blanc [--ring:var(--blanc)]">
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 md:flex-row md:items-start md:justify-between md:px-8 md:py-16">
         <div className="flex max-w-sm flex-col gap-4">
-          <BerceoLogomark className="h-16 w-auto self-start" />
+          <BerceoWordmark aria-hidden className="w-40 self-start" />
           <p className="text-corps">{t.footer.tagline}</p>
         </div>
         <nav aria-label={t.footer.navLabel}>

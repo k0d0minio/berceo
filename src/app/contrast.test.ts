@@ -3,6 +3,15 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+/*
+ * SKIPPED by JAM-300 (Jamie, 2026-11-18). The client's palette replaces
+ * finition-accueil D-1, D-2 and D-24 until after launch: text uses the
+ * charter's sage and taupe as Surya's DA shows them, below AA, and the two
+ * inks no longer exist. Accessibility is reviewed after launch. The decision
+ * note is in .icm/intake/README.md. Do not delete this test: un-skip it and
+ * update its pairs when the review comes.
+ */
+
 /**
  * Every text and surface pair the platform declares, held to WCAG 2.1 AA
  * (finition-accueil, spec encres-contraste): 4.5:1 for body text, 3:1 for
@@ -150,7 +159,7 @@ const pairs: Pair[] = [
   ["selected night outline on the sage ink", "beurre", "encre-sauge", "boundary"],
 ];
 
-describe("contrast: every declared pair reaches WCAG AA", () => {
+describe.skip("contrast: every declared pair reaches WCAG AA", () => {
   it.each(pairs)("%s: %s on %s (%s)", (_where, text, surface, kind, backdrop) => {
     const under = paint(surface, rgb(hex(backdrop ?? "blanc")));
     const value = ratio(paint(text, under), under);
@@ -160,7 +169,7 @@ describe("contrast: every declared pair reaches WCAG AA", () => {
   });
 });
 
-describe("contrast: the tokens", () => {
+describe.skip("contrast: the tokens", () => {
   it("keeps the DA's five colours as the DA wrote them", () => {
     expect({
       blanc: hex("blanc"),
@@ -191,7 +200,7 @@ function sourceFiles(): string[] {
     .filter((file) => file !== fileURLToPath(import.meta.url));
 }
 
-describe("contrast: the DA's light colours never paint text", () => {
+describe.skip("contrast: the DA's light colours never paint text", () => {
   // `text-sauge`, `hover:text-taupe`, `placeholder:text-taupe/70`… but not
   // `text-encre-sauge` or a longer token name.
   const lightText = /(^|[^\w-])text-(sauge|taupe)(?![\w-])/;

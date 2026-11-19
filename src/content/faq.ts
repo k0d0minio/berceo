@@ -68,8 +68,9 @@ export const faq = catalogue({
           },
           {
             question: "Faut-il créer un compte ?",
+            /** @relecture Surya — l'abonnement ouvre les profils complets, le contact et les demandes (JAM-249). */
             answer:
-              "Oui. La création d'un compte famille est gratuite et vous donne accès aux profils complets des professionnelles.",
+              "Oui. Vous créez votre compte famille avec un abonnement. L'abonnement vous donne accès aux profils complets des professionnelles, à leur contact et à la publication de vos demandes.",
             link: { label: "Créer un compte famille", page: "inscriptionFamille" },
           },
           {

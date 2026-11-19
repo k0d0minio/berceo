@@ -1,4 +1,4 @@
-import { Check } from "lucide-react"
+import { CheckIcon } from "@/components/icons"
 
 import { Progress } from "@/components/ui/progress"
 import { fill, words } from "@/content/locale"
@@ -7,7 +7,9 @@ import { cn } from "@/lib/utils"
 import type { Step } from "@/lib/professionnelle/rules"
 
 /*
- * The four numbered steps of D-21 with the guide's titles and a progress bar.
+ * The four steps of D-21 with the guide's titles and a progress bar. A step
+ * is marked by a capsule, filled with a check once done, never a number (no
+ * numbered badges, JAM-300).
  * Step 1, the account, is always done by the time she is here. A step already
  * complete says so; the one she is on is marked for screen readers
  * (aria-current). The steps are a list, not links: the pages themselves send
@@ -22,7 +24,7 @@ function StepsHeader({ current, done }: { current: Step; done: readonly Step[] }
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-legende font-semibold text-encre-taupe">{fill(t.position, { n: String(index + 1) })}</p>
+      <p className="text-legende font-semibold text-taupe">{fill(t.position, { n: String(index + 1) })}</p>
       <Progress
         value={(completed / ORDER.length) * 100}
         aria-label={t.progression}
@@ -38,16 +40,16 @@ function StepsHeader({ current, done }: { current: Step; done: readonly Step[] }
               aria-current={isCurrent ? "step" : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-carte border border-solid px-4 py-3 text-corps",
-                isCurrent ? "border-encre-sauge bg-blanc text-encre-sauge" : "border-perle bg-blanc text-encre-taupe",
+                isCurrent ? "border-sauge bg-blanc text-sauge" : "border-perle bg-blanc text-taupe",
               )}
             >
               <span
                 className={cn(
                   "flex size-8 shrink-0 items-center justify-center rounded-capsule border border-solid font-semibold",
-                  isDone ? "border-encre-sauge bg-encre-sauge text-blanc" : "border-current",
+                  isDone ? "border-sauge bg-sauge text-blanc" : "border-current",
                 )}
               >
-                {isDone && !isCurrent ? <Check aria-hidden className="size-4" /> : i + 1}
+                {isDone && !isCurrent ? <CheckIcon aria-hidden className="size-5" /> : null}
               </span>
               <span className="flex flex-col">
                 <span className={cn(isCurrent && "font-semibold")}>{t.titres[step]}</span>

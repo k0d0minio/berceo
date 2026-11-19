@@ -5,15 +5,14 @@ import { cn } from "@/lib/utils"
 /*
  * The DA's card (Cartes et blocs de contenu): 32 px corners, generous
  * spacing, flat colour, no shadow and no outline. `tone` is the card's own
- * surface: white on sage or pearl, and the two inks where a card carries
- * white text (testimonials, portal zones). White text never sits on the DA's
- * light sage or taupe (finition-accueil D-2); on an ink card the focus ring
- * turns white so it stays visible.
+ * surface: white on sage or pearl, and sage or taupe where a card carries
+ * white text (testimonials, portal zones), as the DA shows (JAM-300). On a
+ * coloured card the focus ring turns white so it stays visible.
  */
 const cardTones = {
-  blanc: "bg-blanc text-encre-taupe",
-  taupe: "bg-encre-taupe text-blanc [--ring:var(--blanc)]",
-  sauge: "bg-encre-sauge text-blanc [--ring:var(--blanc)]",
+  blanc: "bg-blanc text-taupe",
+  taupe: "bg-taupe text-blanc [--ring:var(--blanc)]",
+  sauge: "bg-sauge text-blanc [--ring:var(--blanc)]",
 } as const
 
 function Card({

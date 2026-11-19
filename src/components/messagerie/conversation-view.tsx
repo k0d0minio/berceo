@@ -56,9 +56,9 @@ function ConversationView({ side, thread, locked = false }: { side: Side; thread
     <>
       <div className="flex flex-col gap-1">
         {thread.profession ? (
-          <p className="text-corps text-encre-taupe">{professionLabel(thread.profession)}</p>
+          <p className="text-corps text-taupe">{professionLabel(thread.profession)}</p>
         ) : null}
-        <p className="text-corps font-semibold text-encre-taupe">
+        <p className="text-corps font-semibold text-taupe">
           {conversationNight(thread.nightDate, thread.startTime, thread.extraHours)}
         </p>
       </div>
@@ -83,7 +83,7 @@ function ConversationView({ side, thread, locked = false }: { side: Side; thread
         ) : open ? (
           <Composer action={sendMessageAction.bind(null, side, thread.id)} />
         ) : (
-          <p className="rounded-carte bg-perle px-6 py-4 text-corps text-encre-taupe">{t.conversation.fermee}</p>
+          <p className="rounded-carte bg-perle px-6 py-4 text-corps text-taupe">{t.conversation.fermee}</p>
         )}
       </div>
     </>
