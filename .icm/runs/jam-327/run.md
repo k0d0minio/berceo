@@ -5,5 +5,5 @@
 - link: https://linear.app/jamienisbet/issue/JAM-327/berceo-match-the-screens-of-suryas-da-deck-home-header-and-hero
 - branch: contact/jam-327-berceo-match-the-screens-of-suryas-da-deck
 - lane: spine
-- pr: pending
+- pr: #136
 - started: 2026-11-19
