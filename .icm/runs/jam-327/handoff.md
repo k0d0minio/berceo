@@ -2,7 +2,7 @@
 
 ## Next action
 
-Jamie répond aux sept questions de la pull request #136 (carte du HUD ou GitHub), puis dit `new JAM-327`. La session lance alors `questions.sh JAM-327`, met les réponses dans `spec.md`, pousse, et lance `new-run.sh JAM-327 --refresh-body`. Ensuite Jamie coche **Spec approved** et dit `build JAM-327`.
+Jamie lit la spec dans la pull request #136, coche **Spec approved**, puis dit `build JAM-327`. Les sept questions ont une réponse (2026-11-19, dans le chat, recopiées dans le corps de la pull request).
 
 ## How to test
 
@@ -16,12 +16,14 @@ Rien à tester : Define n'écrit pas de code. Lisez la spec dans la pull request
 - La banque d'images : le dossier `Banque d_image` à côté du deck.
 - Décisions de Jamie du 2026-11-19 : tout le contenu suit le deck, pour toute l'application. Fredoka (500 à 600, interlettrage proche de 0,08em) remplace Fraunces jusqu'à Comodo (JAM-308).
 - Permission de Jamie pour Build, dans la spec : serveur de développement local, compte `test@jamienisbet.com`, courrier lu dans la boîte `contact@jamienisbet.com` avec l'outil Google Workspace. Build prouve d'abord que le local ne lit pas la base de production (`.icm/local/database.md`). `build`, `lint`, `typecheck` et `test` restent à CI.
-- Si Q1 garde son défaut, ce run fait le lot A seulement. Jamie crée les tickets des lots B et C.
+- Q1 : une seule pull request pour toute l'application. Ordre de Build : socle, pages publiques et de compte, espace famille, espace professionnelle, administration. Pousser à la fin de chaque étape.
+- Q2 : une page `/contact` avec un formulaire, vers l'adresse de la variable `CONTACT_EMAIL`. Le nom de la variable, la limite de 2 000 caractères, le champ piège et le 404 sans la variable sont des choix de Define.
+- Q7 : le héros du deck, plus le lien « Se connecter » du retour 2 sous le premier bloc.
 
 ## Blockers
 
-- Jamie : répondre aux questions Q1 à Q7 dans la pull request #136.
-- Jamie : cocher **Spec approved** après les réponses.
+- Jamie : cocher **Spec approved** sur la pull request #136.
+- Jamie : poser `CONTACT_EMAIL` dans Vercel (UAT et production) avant le test de la page Contact. Sans elle, la page n'existe pas.
 
 ## Do not touch
 

@@ -1,7 +1,7 @@
 # Spec: berceo · match the screens of Surya's DA deck (home header and hero, section blocks, cards, icons)
 
 - ticket: JAM-327
-- touches: src/app/fonts.ts, src/app/globals.css, src/components/icons.tsx, src/components/ui/, src/components/shell/, src/components/vitrine/, src/components/recherche/, src/components/demandes/, src/components/reservations/, src/components/avis/, src/content/ (accueil.ts, common.ts, qui-sommes-nous.ts, comment-ca-marche.ts, design-system.ts, photos.ts, vitrine.test.ts), src/app/(public)/, src/app/(auth)/, src/app/(portail)/, public/icones/, CLAUDE.md, README.md, .icm/intake/README.md
+- touches: src/app/fonts.ts, src/app/globals.css, src/components/icons.tsx, src/components/ui/, src/components/shell/, src/components/vitrine/, src/components/recherche/, src/components/demandes/, src/components/reservations/, src/components/avis/, src/content/ (accueil.ts, common.ts, qui-sommes-nous.ts, comment-ca-marche.ts, design-system.ts, photos.ts, contact.ts, vitrine.test.ts), src/app/(public)/ (dont contact/), src/lib/contact/, src/lib/email/, src/app/sitemap.ts, .icm/setup/, src/app/(auth)/, src/app/(portail)/, public/icones/, CLAUDE.md, README.md, .icm/intake/README.md
 - complexity: complex
 
 ## Problem
@@ -35,22 +35,23 @@ Les numéros de diapositive sont les numéros de page du PDF, comme dans le tick
 | 8, 9 | La collection d'icônes pleines et arrondies (18 dessins), et les tailles : 20 à 24 px pour un champ ou un bouton, 24 à 32 px dans une carte, 40 à 56 px pour un service, 64 à 96 px pour une illustration. | icônes |
 | 23, 24 | Les boutons par fond (blanc, rayures, sauge, taupe) et leur survol. Déjà faits par JAM-300. | boutons |
 
-### Le socle (lot A)
+### Le socle
 
 - **Police.** `src/app/fonts.ts` lie `--font-titre` à Fredoka (graisses 500 et 600, SIL OFL) à la place de Fraunces. Les titres H1, H2 et la navigation sont en capitales, avec un interlettrage proche de 0,08em dans `globals.css`. Quand les fichiers Comodo arrivent (JAM-308), cette seule liaison change.
 - **Icônes.** Les 18 dessins de Surya (dossier Drive « Logo pack Berceo », `SVG/icones`) entrent dans le dépôt comme icônes en `currentColor`. Les icônes fonctionnelles sont blanches, sauge ou taupe. Les icônes illustratives sont jaune beurre, de 64 à 96 px, deux au plus par bloc.
 - **Composants.** Un composant pour chaque ligne de la table ci-dessus. `/design-system` montre chaque composant à côté du numéro de sa diapositive, pour que Surya l'examine.
 - **En-tête public.** Sur l'accueil : transparent sur la photo, comme la diapositive 19. Sur une autre page publique : le même en-tête (logomark, liens en capitales, icône de compte) sur un bandeau sauge, comme la diapositive 10. Les deux boutons d'inscription quittent l'en-tête. L'icône de compte ouvre `/connexion`, ou l'espace de la personne si elle est connectée. Le menu mobile garde son fonctionnement et prend le même style.
-- **Navigation.** Les libellés du deck, selon Q2 et Q5.
+- **Navigation.** Les quatre libellés du deck : « Accueil » (`/`), « Histoire » (`/qui-sommes-nous`), « Nos gardes de nuit » (`/comment-ca-marche`), « Contact » (`/contact`). « Tarifs » et « FAQ » sont au pied de page.
 
 ### Chaque page et ce qu'elle suit
 
-Pages publiques (lot A) :
+Pages publiques :
 
 | Page | Suit |
 |---|---|
-| `/` | La diapositive 19 pour l'en-tête, le héros et le premier bloc, avec le texte du deck. Puis, dans l'ordre : le bloc « Les Gardiennes de la nuit » de la diapositive 15 avec son texte, la carte transparente de la diapositive 20 avec son texte sur une photo, les étapes « Comment ça marche » et « Pourquoi Berceo ? » du site en cartes de 32 px avec les icônes de Surya. Le texte d'une section que le deck ne montre pas reste celui du site. |
-| `/qui-sommes-nous` | La diapositive 26. Le texte selon Q3. |
+| `/` | La diapositive 19 pour l'en-tête, le héros et le premier bloc, avec le texte du deck. Sous le premier bloc, la question et le lien « Se connecter » du retour 2 (JAM-301), vers `/connexion`. Puis, dans l'ordre : le bloc « Les Gardiennes de la nuit » de la diapositive 15 avec son texte, la carte transparente de la diapositive 20 avec son texte sur une photo, les étapes « Comment ça marche » et « Pourquoi Berceo ? » du site en cartes de 32 px avec les icônes de Surya. Le texte d'une section que le deck ne montre pas reste celui du site. |
+| `/qui-sommes-nous` | La diapositive 26. Le texte est celui du retour 2 (JAM-301), complet. Le H1 est « Notre histoire ». |
+| `/contact` (nouvelle) | Le bandeau de la diapositive 10, puis une carte blanche de 32 px avec le formulaire : champs en capsule (diapositive 21), boutons de la diapositive 23. Voir « La page Contact ». |
 | `/comment-ca-marche`, `/comment-ca-marche/parents`, `/comment-ca-marche/professionnelles` | Le bandeau de la diapositive 10 pour le titre, des blocs taupe sur rayures (diapositives 10 et 15) pour les sections, des icônes de 40 à 56 px pour les étapes. |
 | `/tarifs` | Le bandeau de la diapositive 10. Les quatre formules et la formule d'une nuit en cartes blanches de 32 px, comme les cartes de la diapositive 25. |
 | `/faq` | Le bandeau de la diapositive 10. Les questions sur fond blanc, sans bloc transparent. |
@@ -60,9 +61,9 @@ Pages publiques (lot A) :
 | `/garde-de-nuit/[commune]` | Le bandeau de la diapositive 10, le champ de recherche de la diapositive 21, les cartes de profil de la diapositive 25. |
 | `/design-system`, `/design-system/portail` | Chaque composant du lot, avec le numéro de sa diapositive. |
 
-Pages de compte (lot A) : `/connexion`, `/connexion/code`, `/inscription-famille`, `/inscription-professionnelle`, `/mot-de-passe-oublie`, `/nouveau-mot-de-passe`, `/verification-email`. Le deck ne montre aucun formulaire. Chaque page a le logotype (diapositive 4 : écrans de connexion et d'inscription), une carte blanche de 32 px sur sauge, des champs blancs en capsule (diapositive 21) et les boutons de la diapositive 23.
+Pages de compte : `/connexion`, `/connexion/code`, `/inscription-famille`, `/inscription-professionnelle`, `/mot-de-passe-oublie`, `/nouveau-mot-de-passe`, `/verification-email`. Le deck ne montre aucun formulaire. Chaque page a le logotype (diapositive 4 : écrans de connexion et d'inscription), une carte blanche de 32 px sur sauge, des champs blancs en capsule (diapositive 21) et les boutons de la diapositive 23.
 
-Espace famille (lot B) : `/espace/famille`, `abonnement`, `charte`, `demandes`, `demandes/[id]`, `demandes/[id]/modifier`, `demandes/nouvelle`, `messages`, `messages/[id]`, `professionnelles`, `professionnelles/[id]`, `professionnelles/[id]/priorite`, `profil`, `recherche`, `reservations`, `reservations/[id]`, `reservations/[id]/avis`.
+Espace famille : `/espace/famille`, `abonnement`, `charte`, `demandes`, `demandes/[id]`, `demandes/[id]/modifier`, `demandes/nouvelle`, `messages`, `messages/[id]`, `professionnelles`, `professionnelles/[id]`, `professionnelles/[id]/priorite`, `profil`, `recherche`, `reservations`, `reservations/[id]`, `reservations/[id]/avis`.
 
 | Élément | Suit |
 |---|---|
@@ -74,40 +75,53 @@ Espace famille (lot B) : `/espace/famille`, `abonnement`, `charte`, `demandes`, 
 | Une note | Les étoiles jaunes de la diapositive 27. |
 | Un formulaire, une conversation, un état vide | Une carte blanche de 32 px, des champs en capsule, une icône illustrative jaune pour l'état vide. |
 
-Espace professionnelle (lot B) : `/espace/professionnelle`, `declarations`, `demandes`, `demandes/[id]`, `disponibilites`, `gardes`, `gardes/[id]`, `gardes/[id]/avis`, `inscription`, `inscription/declarations`, `inscription/justificatifs`, `inscription/profil`, `messages`, `messages/[id]`, `profil`. Les mêmes éléments que l'espace famille. Une demande que la professionnelle lit suit la carte de demande de la diapositive 25, avec le bouton sauge plein « Je suis disponible pour cette garde » quand elle peut répondre.
+Espace professionnelle : `/espace/professionnelle`, `declarations`, `demandes`, `demandes/[id]`, `disponibilites`, `gardes`, `gardes/[id]`, `gardes/[id]/avis`, `inscription`, `inscription/declarations`, `inscription/justificatifs`, `inscription/profil`, `messages`, `messages/[id]`, `profil`. Les mêmes éléments que l'espace famille. Une demande que la professionnelle lit suit la carte de demande de la diapositive 25, avec le bouton sauge plein « Je suis disponible pour cette garde » quand elle peut répondre.
 
-Administration (lot C) : `/admin`, `abonnements`, `absences`, `avis`, `codes-promo`, `credits`, `demandes`, `dossiers`, `dossiers/[id]`, `journal`, `paiements`, `reservations`, `signalements`, `utilisateurs`, `utilisateurs/[id]`. Le deck ne montre aucun tableau. Chaque page a l'en-tête au logomark, les titres en capitales, les tableaux dans une carte blanche de 32 px, les filtres en capsule, les icônes de Surya, et le dialogue de la diapositive 22 pour suspendre, supprimer, refuser et annuler.
+Administration : `/admin`, `abonnements`, `absences`, `avis`, `codes-promo`, `credits`, `demandes`, `dossiers`, `dossiers/[id]`, `journal`, `paiements`, `reservations`, `signalements`, `utilisateurs`, `utilisateurs/[id]`. Le deck ne montre aucun tableau. Chaque page a l'en-tête au logomark, les titres en capitales, les tableaux dans une carte blanche de 32 px, les filtres en capsule, les icônes de Surya, et le dialogue de la diapositive 22 pour suspendre, supprimer, refuser et annuler.
 
-### Les lots
+### La page Contact
 
-Le travail est trop grand pour une pull request sûre : environ 70 pages. La proposition de découpe est la question Q1. Par défaut, ce run fait le lot A. Les composants du lot A (cartes, dialogue, boutons, icônes, police, en-tête) sont partagés, donc les pages des lots B et C les reçoivent dès ce run. La revue page par page des lots B et C demande un ticket chacun. Jamie les crée. Ce run ne les crée pas.
+Réponse de Jamie à Q2 : une page Contact avec un formulaire simple, qui envoie le message à une adresse gardée dans une variable d'environnement.
 
-### Défauts des questions
+- La page `/contact` a trois champs obligatoires : le nom, l'adresse e-mail et le message. Elle a un bouton d'envoi.
+- L'envoi part par Resend (`src/lib/email/`) vers l'adresse de la variable `CONTACT_EMAIL`. L'adresse de la personne est en `Reply-To`. La page ne montre jamais l'adresse de destination, et le code source de la page ne la contient pas.
+- Après l'envoi, la page montre une confirmation. Si l'envoi échoue, elle montre une erreur et garde le texte saisi. Un champ vide ou une adresse mal formée bloque le formulaire, avec le rouge des erreurs de champ.
+- Un champ piège caché écarte les robots. Un message a 2 000 caractères au plus.
+- Si `CONTACT_EMAIL` est vide dans un environnement, le lien « Contact » et la page n'existent pas dans cet environnement (404), et la navigation a trois liens.
+- La page est dans le sitemap quand elle existe. Elle a un titre et une description `meta` dans son fichier de catalogue.
+- Les mots de la page ne viennent ni du deck ni du guide. Ils portent `@relecture`.
+- Aucun message n'est gardé dans la base. Aucun schéma ne change.
+- Build écrit `.icm/setup/contact-email.md` : l'acte de Jamie qui pose `CONTACT_EMAIL` dans Vercel pour UAT et pour la production. La valeur n'entre jamais dans git.
 
-| Question | Défaut écrit dans cette spec |
+### Une seule pull request
+
+Réponse de Jamie à Q1 : une seule pull request pour toute l'application, environ 70 pages. Build travaille dans cet ordre : le socle, les pages publiques et de compte, l'espace famille, l'espace professionnelle, l'administration. Build pousse à la fin de chaque étape, pour que CI et la prévisualisation suivent.
+
+### Réponses de Jamie (2026-11-19)
+
+| Question | Réponse |
 |---|---|
-| Q1 | Ce run fait le lot A. |
-| Q2 | Pas de lien « Contact ». Trois liens. |
-| Q3 | Le texte du retour 2 dans la mise en page de la diapositive 26. H1 « Notre histoire ». |
-| Q4 | La carte de témoignage est sur `/design-system` seulement, avec le texte du deck marqué « exemple ». |
-| Q5 | « Histoire » ouvre `/qui-sommes-nous`. « Nos gardes de nuit » ouvre `/comment-ca-marche`. « Tarifs » et « FAQ » sont au pied de page. |
-| Q6 | Le texte du deck avec « diplômées », deux fautes corrigées. |
-| Q7 | Le héros du deck : logotype seul. Le H1 est le titre du premier bloc. |
+| Q1 | Une seule pull request pour les trois lots. |
+| Q2 | Une page Contact avec un formulaire simple. L'adresse de destination est dans une variable d'environnement. Réponse hors des options. |
+| Q3 | Le défaut : le texte du retour 2 dans la mise en page de la diapositive 26. H1 « Notre histoire ». |
+| Q4 | Le défaut : la carte de témoignage est sur `/design-system` seulement, avec le texte du deck marqué « exemple ». |
+| Q5 | Le défaut : « Histoire » ouvre `/qui-sommes-nous`. « Nos gardes de nuit » ouvre `/comment-ca-marche`. « Tarifs » et « FAQ » sont au pied de page. |
+| Q6 | Le défaut : le texte du deck avec « diplômées », deux fautes corrigées. |
+| Q7 | Le héros du deck, plus le lien « Se connecter » du retour 2 sous le premier bloc. |
 
 ### Règles du dépôt que ce ticket écarte
 
 | Règle | Où | Ce qui la remplace |
 |---|---|---|
 | Fraunces remplace Comodo jusqu'à la livraison | `CLAUDE.md`, `src/app/fonts.ts`, JAM-308 | Fredoka remplace Comodo (décision 3). Build corrige la phrase de `CLAUDE.md`. |
-| D-7 : pas de « diplômées » général | `CLAUDE.md`, `.icm/intake/README.md` | Écartée pour les textes cités du deck (décision 2), si Q6 garde son défaut. Risque : la diapositive 25 montre une étudiante sage-femme, donc « toutes diplômées » peut être faux. |
+| D-7 : pas de « diplômées » général | `CLAUDE.md`, `.icm/intake/README.md` | Écartée pour les textes cités du deck (décision 2, réponse à Q6). Risque : la diapositive 25 montre une étudiante sage-femme, donc « toutes diplômées » peut être faux. |
 | Chaque mot suit le guide éditorial (D-19), `@relecture` sur le reste | `CLAUDE.md`, `src/content/` | Un texte cité du deck est un texte de Surya. Il porte un commentaire « deck, diapositive N » et pas de `@relecture`. |
-| Le H1 et le message du guide sur l'accueil | `src/content/accueil.ts`, `vitrine.test.ts` | Le texte de la diapositive 19 (décision 2, Q7). Les titres et descriptions `meta` ne changent pas. |
-| Le lien « Se connecter » sous les boutons de l'accueil (retour 2, JAM-301, critère 4) | `src/content/accueil.ts` | L'icône de compte de l'en-tête, si Q7 garde son défaut. C'est une demande du client qui change de forme. |
+| Le H1 et le message du guide sur l'accueil | `src/content/accueil.ts`, `vitrine.test.ts` | Le texte de la diapositive 19 (décision 2, réponse à Q7). Les titres et descriptions `meta` ne changent pas. |
+| Les deux boutons d'inscription du héros et de l'en-tête | `src/content/accueil.ts`, `src/components/shell/public-header.tsx` | Le bouton « Je cherche une garde de nuit » du premier bloc, les deux boutons de « Notre histoire » et le pied de page (réponse à Q7). Le lien « Se connecter » du retour 2 reste, sous le premier bloc. |
+| « La vitrine ne montre aucun contact » | `CLAUDE.md` | Une page Contact avec un formulaire (réponse à Q2). Aucune adresse n'est publiée : cette partie de la règle reste. Build corrige la phrase de `CLAUDE.md`. |
 | « Pas d'illustration naïve » | `CLAUDE.md` | Les icônes illustratives jaunes de Surya sont permises, avec parcimonie (diapositive 9). Aucune autre illustration. |
 | « Pas d'animation gadget » | `CLAUDE.md` | Le carrousel de la diapositive 27 est permis pour les témoignages seulement. Il respecte `prefers-reduced-motion`. |
 | CI est la vérité : jamais de `dev` local | `CLAUDE.md`, `ROUTER.md` règle 5 | Permission de Jamie pour le Build de ce ticket, ci-dessous. `build`, `lint`, `typecheck` et `test` restent à CI. |
-
-Une règle n'est pas écartée par défaut : « la vitrine ne montre aucun contact ». Elle tient tant que Q2 garde son défaut.
 
 ### Permission de Jamie pour le Build
 
@@ -125,9 +139,12 @@ Limites. La permission vaut pour ce ticket seulement. L'environnement local ne l
 - [ ] Sur chaque page, un titre H1 ou H2 et la navigation sont en Fredoka, en capitales, sans empattement. `src/app/fonts.ts` ne nomme plus Fraunces. (verify: agent)
 - [ ] `/design-system` montre un composant pour chaque diapositive 10, 15, 19, 20, 21, 22, 25, 26, 27 et 29, avec le numéro de la diapositive, et les 18 icônes de Surya. (verify: operator)
 - [ ] À 1440 px, le haut de `/` correspond à la diapositive 19 : en-tête transparent sur la photo, logomark blanc, liens blancs en capitales, icône de compte, logotype blanc au centre, puis le bloc taupe sur rayures avec le titre « Dormez. Votre bébé est entre de bonnes mains. », son texte, le bouton « Je cherche une garde de nuit » et les cœurs jaunes. (verify: operator)
-- [ ] L'en-tête public a les liens « Accueil », « Histoire » et « Nos gardes de nuit », et aucun lien « Contact ». Chaque lien ouvre la page du défaut de Q5. « Tarifs » et « FAQ » sont au pied de page. (verify: agent)
+- [ ] L'en-tête public a les liens « Accueil », « Histoire », « Nos gardes de nuit » et « Contact ». Ils ouvrent `/`, `/qui-sommes-nous`, `/comment-ca-marche` et `/contact`. « Tarifs » et « FAQ » sont au pied de page. (verify: agent)
+- [ ] Sur `/contact`, un message envoyé avec `test@jamienisbet.com` arrive à l'adresse de `CONTACT_EMAIL`, avec l'adresse de la personne en `Reply-To`, et la page montre la confirmation. (verify: agent)
+- [ ] Sur `/contact`, un champ vide ou une adresse mal formée bloque l'envoi avec une erreur rouge. Aucune adresse de Berceo n'est visible sur la page ni dans son code source. (verify: agent)
+- [ ] Sans `CONTACT_EMAIL`, `/contact` répond 404 et l'en-tête n'a pas de lien « Contact ». (verify: CI)
 - [ ] L'icône de compte ouvre `/connexion` pour un visiteur, et l'espace de la personne pour un compte connecté. (verify: agent)
-- [ ] `/` a une seule balise H1. Le bouton « Je cherche une garde de nuit » ouvre `/inscription-famille`. (verify: agent)
+- [ ] `/` a une seule balise H1. Le bouton « Je cherche une garde de nuit » ouvre `/inscription-famille`. Sous le premier bloc, le lien « Se connecter » ouvre `/connexion`. (verify: agent)
 - [ ] `/` montre le bloc « Les Gardiennes de la nuit » de la diapositive 15 et la carte transparente de la diapositive 20, chacun avec le texte du deck. (verify: operator)
 - [ ] `/qui-sommes-nous` correspond à la diapositive 26 à 1440 px : rayures, bloc taupe, titre « Notre histoire » avec l'icône jaune, deux boutons, l'icône des pieds. Le texte est celui du retour 2, complet. (verify: operator)
 - [ ] Le bouton « Rejoindre le réseau de professionnelles » ouvre `/inscription-professionnelle`. Le bouton « Trouver une Gardienne de la nuit » ouvre `/inscription-famille`. (verify: agent)
@@ -137,19 +154,23 @@ Limites. La permission vaut pour ce ticket seulement. L'environnement local ne l
 - [ ] La déconnexion ouvre le dialogue de la diapositive 22 : « Oui, me déconnecter » en rouge, « Non, rester connecté » en vert, empilés. (verify: agent)
 - [ ] Une carte de professionnelle correspond à la carte de profil de la diapositive 25, et une carte de demande à sa carte de demande, sur `/design-system` et sur une page réelle de chaque sorte. (verify: operator)
 - [ ] Aucune page publique ne montre de témoignage. La carte de témoignage est sur `/design-system` avec le mot « exemple ». (verify: agent)
-- [ ] À 375 px, chaque page du lot A se lit sans défilement horizontal, et le menu mobile ouvre les mêmes liens que l'en-tête. (verify: agent)
+- [ ] Dans l'espace famille et dans l'espace professionnelle, chaque page de la liste suit la table des éléments : en-tête au logomark, cartes de la diapositive 25 dans les listes, champ de la diapositive 21 pour la recherche, étoiles jaunes pour une note, cartes blanches de 32 px pour les formulaires. (verify: operator)
+- [ ] Chaque confirmation des espaces et de l'administration (annuler, refuser, suspendre, supprimer) ouvre le dialogue de la diapositive 22, rouge et vert. (verify: agent)
+- [ ] Chaque page de l'administration a l'en-tête au logomark, un titre en capitales, ses tableaux dans une carte blanche de 32 px et des filtres en capsule. (verify: operator)
+- [ ] Chaque page connectée fait après le changement ce qu'elle faisait avant : Build ouvre chaque page en local avec un compte famille, un compte professionnelle et un compte admin de test, et la pull request dit ce qu'il a vu. (verify: agent)
+- [ ] À 375 px, chaque page se lit sans défilement horizontal, et le menu mobile ouvre les mêmes liens que l'en-tête. (verify: agent)
 - [ ] Aucune couleur hors de `globals.css`, aucune police hors de `fonts.ts`, aucune ombre, aucun `!`, `…` ou `—` dans un texte. Les titres `meta` gardent 50 à 60 caractères et les descriptions 140 à 160. (verify: CI)
-- [ ] `CLAUDE.md` nomme Fredoka et la nouvelle navigation. `.icm/intake/README.md` porte les règles écartées de cette spec. `README.md` décrit les composants nouveaux. (verify: agent)
-- [ ] La pull request liste chaque page du lot A avec « conforme » ou l'écart qui reste, et chaque page des lots B et C que Build a ouverte en local avec ce qu'il a vu. (verify: operator)
+- [ ] `CLAUDE.md` nomme Fredoka, la nouvelle navigation et la page Contact. `.icm/intake/README.md` porte les règles écartées de cette spec. `README.md` décrit les composants nouveaux. (verify: agent)
+- [ ] La pull request liste chaque page de l'application avec « conforme » ou l'écart qui reste. (verify: operator)
 - [ ] Le run `ci` est vert, et le déploiement de prévisualisation Vercel répond. (verify: CI)
 
 ## Out of scope
 
 - Les fichiers Comodo et leur licence (JAM-308). Une correspondance exacte des titres n'est pas possible avant eux.
-- La revue page par page des espaces famille et professionnelle (lot B) et de l'administration (lot C), si Q1 garde son défaut. Jamie crée leurs tickets.
-- Une adresse ou une page de contact, si Q2 garde son défaut.
+- Une adresse de contact publiée. La valeur de `CONTACT_EMAIL` : Jamie la pose dans Vercel.
+- Un message de contact gardé dans la base, ou montré dans l'administration.
 - Un texte de témoignage. Aucun texte n'est inventé.
-- Un changement de comportement, de donnée, de schéma, de règle métier ou d'adresse de page. Ce ticket change l'apparence et les mots de la table.
+- Un changement de comportement, de donnée, de schéma, de règle métier ou d'adresse de page, hors la page `/contact`. Ce ticket change l'apparence et les mots de la table.
 - Les modèles d'e-mail.
 - Le contraste AA. Les encres sauge et taupe restent sous AA par la décision du client (JAM-300).
 - Une comparaison au pixel. La correspondance est jugée à l'œil à 1440 px, contre le deck.
@@ -158,7 +179,8 @@ Limites. La permission vaut pour ce ticket seulement. L'environnement local ne l
 
 ## Open questions
 
-- Les sept questions sont dans le corps de la pull request. Chacune a un défaut dans la table ci-dessus.
+- Les sept questions ont une réponse de Jamie, dans le corps de la pull request et dans la table « Réponses de Jamie ».
+- La limite de 2 000 caractères, le champ piège, le nom `CONTACT_EMAIL` et le 404 sans la variable sont des choix de Define, pas de Jamie.
 - Les fichiers `logo-13.svg` à `logo-30.svg` du dossier `SVG/icones` n'ont pas de nom parlant. Build les nomme d'après le dessin (lieu, calendrier, lune, biberon, ourson, cœurs, pieds).
 - Les photos des diapositives 19, 20 et 29 doivent venir de la banque d'images du « Pack web Berceo ». `public/photos/` en a quatre aujourd'hui. Build ajoute en WebP celles qui manquent, avec un texte alternatif dans `src/content/photos.ts`.
 - La diapositive 28 montre l'ancienne page d'attente sombre. Elle n'est pas un modèle.
