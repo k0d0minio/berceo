@@ -1,5 +1,5 @@
 # Status jam-304
 
 - phase: define
-- blocked: yes — waits for answers
+- blocked: no
 - updated: 2026-11-19
