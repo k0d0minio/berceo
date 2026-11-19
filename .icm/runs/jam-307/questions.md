@@ -2,4 +2,4 @@
 - type: single
 - options: No amount, her rates stay on her own profile | Her rates, with a label the founders approve
 - default: No amount, her rates stay on her own profile
-- answer: _waiting_
+- answer: Her rates, with a label the founders approve

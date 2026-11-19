@@ -16,8 +16,8 @@ import { cn } from "@/lib/utils"
  * pearl, no shadow. An urgent request carries a butter-yellow mark, never red
  * (D-24). The family's card adds its status, its answers and a link; a
  * professional's card shows when it was published, a request sent to her in
- * priority (butter yellow too, D-71), her rate as the DA's price line, and her
- * answer's buttons below. It never shows anything about the family (D-15): its
+ * priority (butter yellow too, D-71), her rate as the DA's price line under a
+ * label that says it is her own (JAM-307), and her answer's buttons below. It never shows anything about the family (D-15): its
  * props hold only the card columns.
  */
 
@@ -45,6 +45,7 @@ function RequestCard({
   priority = false,
   rate,
   extraHourRate,
+  rateLabel,
   note,
   footer,
 }: {
@@ -60,6 +61,11 @@ function RequestCard({
   rate?: number | null
   /** The professional's view: her rate for each extra hour, « 15 € par heure supplémentaire » (profil-tarifs). */
   extraHourRate?: number | null
+  /**
+   * The professional's view of a family's request: the line above her rates that
+   * says they are her own, shown to the family when she answers (JAM-307).
+   */
+  rateLabel?: string
   /** A short line under the card's facts: « 2 réponses », « Vous avez répondu ». */
   note?: string
   /** The professional's view: her answer's buttons. */
@@ -93,6 +99,7 @@ function RequestCard({
       </p>
       {/* A request published before the field has no feeding. */}
       {request.feeding ? <p className="text-corps text-encre-taupe">{feedingLine(request.feeding)}</p> : null}
+      {rate && rateLabel ? <p className="text-legende text-encre-taupe">{rateLabel}</p> : null}
       {rate ? <p className="text-corps font-semibold text-encre-sauge">{rateLine(rate)}</p> : null}
       {extraHourRate ? (
         <p className="text-corps font-semibold text-encre-sauge">{extraHourLine(extraHourRate)}</p>
