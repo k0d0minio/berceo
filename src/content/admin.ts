@@ -445,7 +445,8 @@ export const admin = catalogue({
         voirStripe: "Voir dans Stripe",
         /** @relecture Surya — liste vide. */
         vide: "Aucune formule Une nuit payée.",
-      },, les mots de « Votre abonnement » quand ils existent. */
+      },
+      /** @relecture Surya — l'état d'un abonnement, les mots de « Votre abonnement » quand ils existent. */
       etats: {
         en_attente: "Premier paiement en cours",
         active: "Actif",
