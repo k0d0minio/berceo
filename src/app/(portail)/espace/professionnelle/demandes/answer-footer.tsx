@@ -70,7 +70,10 @@ export function AnswerFooter({
         </>
       ) : (
         <form action={answerRequestAction.bind(null, request.id, from)}>
-          <Button type="submit">{r.disponible}</Button>
+          {/* The deck's filled sage capsule (slide 25, JAM-327). */}
+          <Button type="submit" variant="sauge">
+            {r.disponible}
+          </Button>
         </form>
       )}
     </>
@@ -117,7 +120,9 @@ export function SeriesAnswerFooter({
         </>
       ) : state === "repondre" ? (
         <form action={answerSeriesAction.bind(null, seriesId, request.id, from)}>
-          <Button type="submit">{r.disponibleSerie}</Button>
+          <Button type="submit" variant="sauge">
+            {r.disponibleSerie}
+          </Button>
         </form>
       ) : (
         <p className="w-full text-corps text-taupe">{r.serieIndisponible}</p>

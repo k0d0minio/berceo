@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type * as React from "react";
 
+import { BebeIcon, CalendrierIcon, LieuIcon, LuneIcon, type IconComponent } from "@/components/berceo-icons";
 import { CreditsBlock } from "@/components/credits/credits-block";
 import { GardeStateMark } from "@/components/gardes/garde-state";
+import { EuroIcon } from "@/components/icons";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { SpaceShell } from "@/components/shell/space-shell";
+import { Button } from "@/components/ui/button";
+import { CardField } from "@/components/ui/card-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { avis } from "@/content/avis";
 import { words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
@@ -13,11 +19,11 @@ import { familyRatingPath } from "@/lib/avis/paths";
 import { ratingsGiven } from "@/lib/avis/ratings";
 import { canRate } from "@/lib/avis/rules";
 import { familyCredits } from "@/lib/credits/credits";
-import { cardTitle, nightLine } from "@/lib/demandes/format";
+import { cardTitle, childrenLine, nightLine, placeLine } from "@/lib/demandes/format";
 import { hasNightStarted } from "@/lib/demandes/rules";
 import { gardeState } from "@/lib/gardes/rules";
 import { familyBookings, type FamilyBooking } from "@/lib/reservations/bookings";
-import { professionLabel } from "@/lib/reservations/format";
+import { professionLabel, rateLine } from "@/lib/reservations/format";
 import { FAMILY_BOOKINGS_PATH, familyBookingPath, priorityPath } from "@/lib/reservations/paths";
 
 const t = words(reservations);
@@ -31,6 +37,22 @@ export const dynamic = "force-dynamic";
 
 const link = "w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4";
 
+/** One fact of a booking card: an icon of 24 px in taupe, then its line, as the request card does. */
+function Fact({ icon: Icon, children }: { icon: IconComponent; children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-3 text-corps">
+      <Icon aria-hidden className="mt-0.5 size-6 shrink-0 text-taupe" />
+      <span className="min-w-0">{children}</span>
+    </li>
+  );
+}
+
+/*
+ * A booking in the list follows the deck's request card (slide 25; JAM-327):
+ * a white card on a sage zone, the title in taupe capitals, the facts as lines
+ * with one of Surya's icons, and one filled sage button. The professional and
+ * the two other ways out stay under the facts as they were.
+ */
 function List({
   title,
   items,
@@ -46,37 +68,52 @@ function List({
   return (
     <section className="flex flex-col gap-4">
       <h2 className="font-display text-h2 text-sauge">{title}</h2>
-      <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
-        {items.map(({ id, request, professional, garde }) => (
-          <li key={id}>
-            <article className="flex flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-              <GardeStateMark state={gardeState({ ...request, status: garde.status }, now)} />
-              <div className="flex items-center gap-4">
-                <ProfessionalPhoto photoId={professional.photoId} prenom={professional.firstName} className="size-14" />
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-h3 font-bold text-sauge">{professional.firstName}</h3>
-                  <p className="text-corps text-taupe">{professionLabel(professional.profession)}</p>
+      <CardField className="max-w-4xl">
+        <ul className="grid gap-6 md:grid-cols-2">
+          {items.map(({ id, request, professional, garde, nightRateEur }) => (
+            <li key={id}>
+              <article className="flex h-full flex-col gap-4 rounded-carte bg-blanc px-6 py-8 text-taupe md:px-10">
+                <GardeStateMark state={gardeState({ ...request, status: garde.status }, now)} />
+                <h3 className="font-display text-intro text-balance text-taupe">
+                  {cardTitle(request.communeIns, request.locality)}
+                </h3>
+                <div className="flex items-center gap-4">
+                  <ProfessionalPhoto photoId={professional.photoId} prenom={professional.firstName} className="size-14" />
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <p className="text-corps font-bold break-words text-sauge">{professional.firstName}</p>
+                    <p className="text-corps text-taupe">{professionLabel(professional.profession)}</p>
+                  </div>
                 </div>
-              </div>
-              <p className="text-corps text-taupe">{cardTitle(request.communeIns, request.locality)}</p>
-              <p className="text-corps font-semibold text-taupe">
-                {nightLine(request.nightDate, request.startTime, request.extraHours)}
-              </p>
-              <Link href={familyBookingPath(id)} className={link}>
-                {t.reservationsFamille.voir}
-              </Link>
-              {canRate({ ...request, status: garde.status }, rated.has(id), now) ? (
-                <Link href={familyRatingPath(id)} className={link}>
-                  {words(avis).lien}
+                <ul className="flex flex-col gap-3">
+                  <Fact icon={LieuIcon}>{placeLine(request.postcode, request.locality)}</Fact>
+                  <Fact icon={CalendrierIcon}>
+                    <span className="font-semibold">
+                      {nightLine(request.nightDate, request.startTime, request.extraHours)}
+                    </span>
+                  </Fact>
+                  <Fact icon={BebeIcon}>
+                    {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
+                  </Fact>
+                  <Fact icon={EuroIcon}>
+                    <span className="font-semibold text-sauge">{rateLine(nightRateEur)}</span>
+                  </Fact>
+                </ul>
+                {canRate({ ...request, status: garde.status }, rated.has(id), now) ? (
+                  <Link href={familyRatingPath(id)} className={link}>
+                    {words(avis).lien}
+                  </Link>
+                ) : null}
+                <Link href={priorityPath(professional.profileId)} className={link}>
+                  {t.reservationsFamille.recontacter}
                 </Link>
-              ) : null}
-              <Link href={priorityPath(professional.profileId)} className={link}>
-                {t.reservationsFamille.recontacter}
-              </Link>
-            </article>
-          </li>
-        ))}
-      </ul>
+                <Button asChild variant="sauge" className="mt-auto self-start">
+                  <Link href={familyBookingPath(id)}>{t.reservationsFamille.voir}</Link>
+                </Button>
+              </article>
+            </li>
+          ))}
+        </ul>
+      </CardField>
     </section>
   );
 }
@@ -102,7 +139,7 @@ export default async function ReservationsPage() {
     <SpaceShell user={user} title={t.reservationsFamille.titre}>
       <p className="max-w-2xl text-intro text-taupe">{t.reservationsFamille.intro}</p>
       <CreditsBlock list={wallet.list} balanceCents={wallet.balanceCents} />
-      {all.length === 0 ? <p className="max-w-2xl text-corps text-taupe">{t.reservationsFamille.vide}</p> : null}
+      {all.length === 0 ? <EmptyState icon={LuneIcon} text={t.reservationsFamille.vide} /> : null}
       <List title={t.reservationsFamille.aVenir} items={coming} rated={rated} now={now} />
       <List title={t.reservationsFamille.passees} items={past} rated={rated} now={now} />
     </SpaceShell>

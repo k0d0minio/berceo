@@ -24,6 +24,8 @@ import { familyBookingPath, professionalBookingPath } from "@/lib/reservations/p
  * are read, so the count in the header drops on this very page. `locked`: a
  * family without a subscription reads an open conversation she may not write
  * in, and the invitation line takes the field's place (abonnements-acces).
+ * The field and the lines that take its place are white cards on the pearl
+ * page (JAM-327).
  */
 
 const t = words(messagerie)
@@ -79,11 +81,11 @@ function ConversationView({ side, thread, locked = false }: { side: Side; thread
       />
       <div className="max-w-3xl">
         {open && locked ? (
-          <SubscriptionRequired className="rounded-carte bg-perle px-6 py-4" />
+          <SubscriptionRequired className="rounded-carte bg-blanc px-6 py-4" />
         ) : open ? (
           <Composer action={sendMessageAction.bind(null, side, thread.id)} />
         ) : (
-          <p className="rounded-carte bg-perle px-6 py-4 text-corps text-taupe">{t.conversation.fermee}</p>
+          <p className="rounded-carte bg-blanc px-6 py-4 text-corps text-taupe">{t.conversation.fermee}</p>
         )}
       </div>
     </>

@@ -78,7 +78,12 @@ function DeclarationsForm({
   }
 
   return (
-    <form action={submit} noValidate className="flex flex-col gap-6">
+    // A white card on the pearl page (JAM-327): the charter's pearl card stays pearl inside it.
+    <form
+      action={submit}
+      noValidate
+      className="flex max-w-2xl flex-col gap-6 rounded-carte bg-blanc px-6 py-8 md:px-10"
+    >
       {state.message && state.message !== "enregistre" ? (
         <FormMessage>{t.erreurs[state.message]}</FormMessage>
       ) : null}

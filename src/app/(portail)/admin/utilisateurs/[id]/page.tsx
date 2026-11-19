@@ -8,6 +8,8 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { BerceoCancelButton } from "@/components/admin/berceo-cancel-button";
 import { JournalTable } from "@/components/admin/journal-table";
 import { listHref } from "@/components/admin/list-controls";
+import { CalendrierIcon, DocumentIcon, type IconComponent } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { professionnelle } from "@/content/professionnelle";
@@ -33,6 +35,8 @@ export const dynamic = "force-dynamic";
 
 const date = new Intl.DateTimeFormat("fr-BE", { dateStyle: "long", timeZone: "Europe/Brussels" });
 const link = "text-corps font-semibold text-sauge underline underline-offset-4";
+/* A white card of 32 px on the pearl page (JAM-327). */
+const card = "rounded-carte bg-blanc p-6 md:p-8";
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -43,10 +47,14 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+/* A section of the account page. `icon` is one functional icon of Surya's set, where it fits (JAM-327). */
+function Section({ title, icon: Icon, children }: { title: string; icon?: IconComponent; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-display text-h2 text-sauge">{title}</h2>
+      <h2 className="flex items-center gap-3 font-display text-h2 text-sauge">
+        {Icon ? <Icon aria-hidden className="size-6 shrink-0 text-sauge" /> : null}
+        {title}
+      </h2>
       {children}
     </section>
   );
@@ -92,7 +100,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
   return (
     <AdminShell user={user} title={name} current="utilisateurs">
       <Section title={t.sections.identite}>
-        <dl className="flex flex-col gap-3 text-corps text-taupe">
+        <dl className={`${card} flex flex-col gap-3 text-corps text-taupe`}>
           <Row label={t.champs.role}>{u.roles[account.role]}</Row>
           <Row label={t.champs.email}>{account.deletedAt ? t.nonRenseigne : account.email}</Row>
           <Row label={t.champs.telephone}>{account.phone ?? t.nonRenseigne}</Row>
@@ -151,7 +159,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
       </Section>
 
       <Section title={t.sections.activite}>
-        <ul className="flex flex-col gap-2 text-corps text-taupe">
+        <ul className={`${card} flex flex-col gap-2 text-corps text-taupe`}>
           {account.role === "parent" ? (
             <li className="flex flex-wrap gap-x-4">
               {fill(t.compteurs.demandes, { n: String(view.counts.requests) })}
@@ -175,11 +183,11 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
       </Section>
 
       {account.role !== "admin" ? (
-        <Section title={t.sections.gardes}>
+        <Section title={t.sections.gardes} icon={CalendrierIcon}>
           {upcoming.length === 0 ? (
-            <p className="text-corps text-taupe">{t.aucuneGarde}</p>
+            <EmptyState icon={CalendrierIcon} text={t.aucuneGarde} />
           ) : (
-            <ul className="flex list-disc flex-col gap-3 pl-6 text-corps text-taupe">
+            <ul className={`${card} flex list-disc flex-col gap-3 pl-10 text-corps text-taupe md:pl-12`}>
               {view.upcoming.map((garde, index) => (
                 <li key={garde.bookingId} className="flex flex-col gap-2">
                   {upcoming[index]}
@@ -216,7 +224,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
 
       <Section title={t.sections.historique}>
         {view.journal.length === 0 ? (
-          <p className="text-corps text-taupe">{t.aucunHistorique}</p>
+          <EmptyState icon={DocumentIcon} text={t.aucunHistorique} />
         ) : (
           <JournalTable entries={view.journal} />
         )}

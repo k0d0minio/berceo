@@ -45,6 +45,7 @@ function noticeKey(retour: string | undefined): (typeof NOTICES)[number] | null 
  * an open pass says so above the plans. Every Checkout takes a promotion
  * code. The notices come back from Stripe or from a refusal;
  * « Actualiser la page » goes through the return page again with the session.
+ * Each block and each plan is a white card on the pearl page (JAM-327).
  */
 export default async function AbonnementPage({ searchParams }: { searchParams: Promise<Notice> }) {
   const query = await searchParams;
@@ -94,7 +95,7 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
               ) : null}
             </section>
           ) : null}
-          <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+          <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
             <h2 className="text-h3 font-bold text-sauge">
               {fill(t.espace.formule, { plan: planWords(running.plan).name })}
             </h2>
@@ -117,13 +118,13 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
           </section>
         </>
       ) : pending ? (
-        <p className="max-w-2xl rounded-carte bg-perle px-6 py-6 text-corps text-taupe md:px-8">
+        <p className="max-w-2xl rounded-carte bg-blanc px-6 py-6 text-corps text-taupe md:px-8">
           {t.espace.enAttente}
         </p>
       ) : (
         <>
           {pass ? (
-            <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+            <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
               <h2 className="font-display text-h3 text-sauge">{fill(t.espace.formule, { plan: uneNuit.name })}</h2>
               <p className="text-corps text-taupe">{pass.booked ? t.espace.uneNuit.reservee : t.espace.uneNuit.active}</p>
             </section>
@@ -134,7 +135,7 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
               const { name, duree, prix } = planWords(plan);
               return (
                 <li key={plan}>
-                  <article className="flex h-full flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+                  <article className="flex h-full flex-col gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
                     <h2 className="text-h3 font-bold text-sauge">{name}</h2>
                     <p className="text-corps text-taupe">{fill(t.espace.duree, { duree })}</p>
                     <p className="text-corps font-semibold text-taupe">{prix}</p>
@@ -147,7 +148,7 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
             })}
             {pass ? null : (
               <li>
-                <article className="flex h-full flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+                <article className="flex h-full flex-col gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
                   <h2 className="font-display text-h3 text-sauge">{uneNuit.name}</h2>
                   <p className="text-corps text-taupe">{t.espace.uneNuit.texte}</p>
                   <p className="text-corps font-semibold text-taupe">{uneNuit.prix}</p>

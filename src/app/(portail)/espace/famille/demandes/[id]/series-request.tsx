@@ -2,12 +2,16 @@ import Link from "next/link";
 
 import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
 import { NoteDisplay } from "@/components/avis/stars";
+import { MobileIcon } from "@/components/berceo-icons";
 import { CancelRequest } from "@/components/demandes/cancel-request";
 import { RequestReason } from "@/components/demandes/request-reason";
+import { EuroIcon } from "@/components/icons";
 import { SeriesCard } from "@/components/demandes/series-card";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { Button } from "@/components/ui/button";
+import { CardField } from "@/components/ui/card-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
@@ -43,6 +47,7 @@ const m = words(messagerie);
  * any night (Q4), « Annuler toutes les nuits » while a night is open. No
  * « Republier »: to change an answered request, she cancels it and publishes a
  * new one. Each booked night links to its garde, which lives on its own (Q2).
+ * The answers are white cards on a sage zone (slide 25; JAM-327).
  */
 export async function SeriesRequest({
   userId,
@@ -105,7 +110,7 @@ export async function SeriesRequest({
         <section className="flex max-w-4xl flex-col gap-4">
           <h2 className="font-display text-h2 text-sauge">{r.famille.reponsesTitre}</h2>
           {answers.length === 0 ? (
-            <p className="max-w-2xl text-corps text-taupe">{r.famille.aucuneReponse}</p>
+            <EmptyState icon={MobileIcon} text={r.famille.aucuneReponse} />
           ) : (
             <>
               <p className="max-w-2xl text-corps text-taupe">{r.famille.reponsesSerie}</p>
@@ -118,68 +123,73 @@ export async function SeriesRequest({
                   </Button>
                 </div>
               ) : null}
-              <ul className="grid gap-6 md:grid-cols-2">
-                {answers.map((answer) => {
-                  const total = answer.nights.reduce((sum, item) => sum + feeCents(item.nightRateEur), 0);
-                  const conversationId = answer.nights
-                    .map((item) => conversationIds.get(item.applicationId))
-                    .find((id) => id !== undefined);
-                  return (
-                    <li key={answer.profileId}>
-                      <article className="flex flex-col gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">
-                        <div className="flex items-center gap-4">
-                          <ProfessionalPhoto photoId={answer.photoId} prenom={answer.firstName} className="size-16" />
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-h3 font-bold text-sauge">{answer.firstName}</h3>
-                            <p className="text-corps text-taupe">{professionLabel(answer.profession)}</p>
+              <CardField>
+                <ul className="grid gap-6 md:grid-cols-2">
+                  {answers.map((answer) => {
+                    const total = answer.nights.reduce((sum, item) => sum + feeCents(item.nightRateEur), 0);
+                    const conversationId = answer.nights
+                      .map((item) => conversationIds.get(item.applicationId))
+                      .find((id) => id !== undefined);
+                    return (
+                      <li key={answer.profileId}>
+                        <article className="flex h-full flex-col gap-4 rounded-carte bg-blanc px-6 py-8 md:px-10">
+                          <div className="flex items-center gap-4">
+                            <ProfessionalPhoto photoId={answer.photoId} prenom={answer.firstName} className="size-16" />
+                            <div className="flex flex-col gap-1">
+                              <h3 className="text-h3 font-bold text-sauge">{answer.firstName}</h3>
+                              <p className="text-corps text-taupe">{professionLabel(answer.profession)}</p>
+                            </div>
                           </div>
-                        </div>
-                        <NoteDisplay note={answer.note} />
-                        <p className="text-corps font-semibold text-sauge">{rateLine(answer.nightRateEur)}</p>
-                        {answer.extraHourRateEur ? (
-                          <p className="text-corps font-semibold text-sauge">
-                            {extraHourLine(answer.extraHourRateEur)}
-                          </p>
-                        ) : null}
-                        <div className="flex flex-wrap items-center gap-3">
-                          {conversationId ? (
-                            <Link
-                              href={conversationPath("famille", conversationId)}
-                              prefetch={false}
-                              className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
-                            >
-                              {fill(m.liens.ecrire, { prenom: answer.firstName })}
-                            </Link>
-                          ) : null}
-                          {mayBook && hasAddress ? (
-                            <AcceptAnswer
-                              recap={{
-                                ...night,
-                                date: answer.nights.map((item) => formatDate(item.nightDate)).join(", "),
-                                nuits:
-                                  answer.nights.length === 1
-                                    ? t.serie.uneNuit
-                                    : fill(t.serie.nombre, { n: String(answer.nights.length) }),
-                                prenom: answer.firstName,
-                                profession: professionLabel(answer.profession),
-                                tarif: rateLine(answer.nightRateEur),
-                                tarifHeure: answer.extraHourRateEur
-                                  ? extraHourLine(answer.extraHourRateEur)
-                                  : undefined,
-                                ...seriesFeeRecap(
-                                  answer.nights.map((item) => item.nightRateEur),
-                                  shares.get(total) ?? 0,
-                                ),
-                              }}
-                              onAccept={acceptSeriesAction.bind(null, seriesId, request.id, answer.profileId)}
-                            />
-                          ) : null}
-                        </div>
-                      </article>
-                    </li>
-                  );
-                })}
-              </ul>
+                          <NoteDisplay note={answer.note} />
+                          <div className="flex items-start gap-3 text-corps">
+                            <EuroIcon aria-hidden className="mt-0.5 size-6 shrink-0 text-taupe" />
+                            <div className="flex min-w-0 flex-col">
+                              <p className="font-semibold text-sauge">{rateLine(answer.nightRateEur)}</p>
+                              {answer.extraHourRateEur ? (
+                                <p className="font-semibold text-sauge">{extraHourLine(answer.extraHourRateEur)}</p>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-3">
+                            {conversationId ? (
+                              <Link
+                                href={conversationPath("famille", conversationId)}
+                                prefetch={false}
+                                className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+                              >
+                                {fill(m.liens.ecrire, { prenom: answer.firstName })}
+                              </Link>
+                            ) : null}
+                            {mayBook && hasAddress ? (
+                              <AcceptAnswer
+                                recap={{
+                                  ...night,
+                                  date: answer.nights.map((item) => formatDate(item.nightDate)).join(", "),
+                                  nuits:
+                                    answer.nights.length === 1
+                                      ? t.serie.uneNuit
+                                      : fill(t.serie.nombre, { n: String(answer.nights.length) }),
+                                  prenom: answer.firstName,
+                                  profession: professionLabel(answer.profession),
+                                  tarif: rateLine(answer.nightRateEur),
+                                  tarifHeure: answer.extraHourRateEur
+                                    ? extraHourLine(answer.extraHourRateEur)
+                                    : undefined,
+                                  ...seriesFeeRecap(
+                                    answer.nights.map((item) => item.nightRateEur),
+                                    shares.get(total) ?? 0,
+                                  ),
+                                }}
+                                onAccept={acceptSeriesAction.bind(null, seriesId, request.id, answer.profileId)}
+                              />
+                            ) : null}
+                          </div>
+                        </article>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardField>
             </>
           )}
         </section>

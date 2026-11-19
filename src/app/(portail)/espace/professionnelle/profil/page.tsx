@@ -89,9 +89,10 @@ export default async function DossierPage() {
       ) : null}
 
       <h2 className="font-display text-h2 text-sauge">{t.declarations.acceptees}</h2>
-      <ul className="flex flex-col gap-3">
+      {/* White cards on the pearl page (JAM-327). */}
+      <ul className="flex max-w-2xl flex-col gap-3">
         {latest.map((d, i) => (
-          <li key={i} className="flex flex-col gap-1 rounded-carte bg-perle px-6 py-4 text-corps text-taupe">
+          <li key={i} className="flex flex-col gap-1 rounded-carte bg-blanc px-6 py-4 text-corps text-taupe">
             <span>{declarationText(d.declaration, d.version)}</span>
             <span className="text-legende">{fill(t.declarations.accepteeLe, { date: date.format(d.acceptedAt) })}</span>
           </li>

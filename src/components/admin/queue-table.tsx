@@ -1,5 +1,7 @@
 import Link from "next/link"
 
+import { DocumentIcon } from "@/components/berceo-icons"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { admin } from "@/content/admin"
 import { fill, words } from "@/content/locale"
@@ -20,10 +22,10 @@ function QueueTable({ rows, studentsAdmitted }: { rows: QueueRow[]; studentsAdmi
   const t = words(admin).file
   const p = words(professionnelle)
 
-  if (rows.length === 0) return <p className="text-corps text-taupe">{t.vide}</p>
+  if (rows.length === 0) return <EmptyState icon={DocumentIcon} text={t.vide} />
 
   return (
-    <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
+    <div className="rounded-carte bg-blanc p-4 md:p-6">
       <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>

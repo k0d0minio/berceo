@@ -76,7 +76,8 @@ function RatingForm({
     error === undefined ? null : error === "incomplet" || error === "generique" ? erreurs[error] : refus[error]
 
   return (
-    <form action={submit} className="flex max-w-2xl flex-col gap-8">
+    // A white card on the pearl page (JAM-327).
+    <form action={submit} className="flex max-w-2xl flex-col gap-8 rounded-carte bg-blanc px-6 py-8 md:px-10">
       {message ? <FormMessage>{message}</FormMessage> : null}
       <p className="text-corps text-taupe">{t.consigne}</p>
       {labels.map((label, i) => (

@@ -42,7 +42,8 @@ function Composer({ action }: { action: (state: SendState, form: FormData) => Pr
   const error = state.error ? t.erreurs[state.error] : null
 
   return (
-    <form action={send} noValidate className="flex flex-col gap-3">
+    // A white card on the pearl page (JAM-327).
+    <form action={send} noValidate className="flex flex-col gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
       {error ? <FormMessage>{error}</FormMessage> : null}
       <label htmlFor="champ-message" className="text-corps font-semibold text-taupe">
         {t.conversation.champ}

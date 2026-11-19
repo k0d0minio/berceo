@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { FilterLinks, listHref, Pager } from "@/components/admin/list-controls";
 import { PaymentsTable } from "@/components/admin/payments-table";
+import { DocumentIcon } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { words } from "@/content/locale";
 import { RECENT_PERIOD, journalPage, recentPaymentCutoff } from "@/lib/admin/rules";
@@ -74,7 +76,7 @@ export default async function PaiementsPage({
         ]}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-taupe">{empty}</p>
+        <EmptyState icon={DocumentIcon} text={empty} />
       ) : (
         <PaymentsTable rows={rows} now={now} />
       )}

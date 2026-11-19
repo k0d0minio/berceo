@@ -144,7 +144,8 @@ export default async function GardePage({
         {dispute ? <p className="text-corps font-semibold text-taupe">{dispute}</p> : null}
         {feeLine ? <p className="text-corps text-taupe">{feeLine}</p> : null}
       </div>
-      <section className="flex max-w-2xl flex-col gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">
+      {/* White cards on the pearl page (JAM-327). */}
+      <section className="flex max-w-2xl flex-col gap-4 rounded-carte bg-blanc px-6 py-6 md:px-8">
         <h2 className="text-h3 font-bold text-sauge">{t.gardes.famille}</h2>
         <dl className="flex flex-col gap-4">
           <Row label={t.gardes.nom}>{`${family.firstName} ${family.lastName}`}</Row>
@@ -181,7 +182,7 @@ export default async function GardePage({
           labels={criteriaLabels("professionnelle")}
           scores={myRating.scores}
           date={formatDate(brusselsNow(myRating.createdAt).date)}
-          className="max-w-2xl rounded-carte bg-perle px-6 py-6 md:px-8"
+          className="max-w-2xl rounded-carte bg-blanc px-6 py-6 md:px-8"
         />
       ) : null}
       <div className="flex flex-wrap gap-3">

@@ -113,6 +113,8 @@ export const dynamic = "force-dynamic";
  * phone, cancelling, the absence, the conversation and the rating. Only
  * « Republier ma demande » publishes, and the invitation line takes its
  * place. The profile and the priority links lead to pages that show the line.
+ *
+ * The récapitulatif and her rating are white cards on the pearl page (JAM-327).
  */
 export default async function ReservationPage({
   params,
@@ -184,7 +186,7 @@ export default async function ReservationPage({
   return (
     <SpaceShell user={user} title={t.recapitulatif.titre}>
       {notice ? <FormMessage>{notice}</FormMessage> : null}
-      <article className="flex max-w-2xl flex-col gap-6 rounded-carte bg-perle px-6 py-8 md:px-10">
+      <article className="flex max-w-2xl flex-col gap-6 rounded-carte bg-blanc px-6 py-8 md:px-10">
         <GardeStateMark state={state} />
         <div className="flex items-center gap-4">
           <ProfessionalPhoto photoId={professional.photoId} prenom={professional.firstName} className="size-16" />
@@ -223,7 +225,7 @@ export default async function ReservationPage({
           labels={criteriaLabels("famille")}
           scores={myRating.scores}
           date={formatDate(brusselsNow(myRating.createdAt).date)}
-          className="max-w-2xl rounded-carte bg-perle px-6 py-8 md:px-10"
+          className="max-w-2xl rounded-carte bg-blanc px-6 py-8 md:px-10"
         />
       ) : null}
       {republishable && !liveRequest && !mayRepublish ? <SubscriptionRequired /> : null}

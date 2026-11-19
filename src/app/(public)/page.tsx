@@ -56,12 +56,12 @@ export default function AccueilPage() {
         />
       </section>
 
-      {/* Slide 19: the first block. Below md the title sets at 26 px so it keeps to three lines in the block. */}
+      {/* Slide 19: the first block. Its title is the page's H1 at the deck's size, a little above the body text, so it keeps to two lines. */}
       <StripedSection
         blockClassName="max-w-4xl"
         ornament={<CoeursIcon />}
       >
-        <h1 className="font-display text-h2 text-balance max-md:text-[1.625rem]">
+        <h1 className="font-display text-h3 text-balance">
           {t.premier.title}
         </h1>
         <p className="max-w-2xl">{t.premier.text}</p>

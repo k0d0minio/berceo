@@ -8,6 +8,8 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { DecisionPanel } from "@/components/admin/decision-panel";
 import { DocumentView } from "@/components/admin/document-view";
 import { JournalTable } from "@/components/admin/journal-table";
+import { DocumentIcon } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { professionnelle } from "@/content/professionnelle";
@@ -89,7 +91,7 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
       </Link>
 
       <h2 className="font-display text-h2 text-sauge">{a.dossier.sections.identite}</h2>
-      <dl className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-8 text-corps text-taupe">
+      <dl className="flex flex-col gap-3 rounded-carte bg-blanc p-6 md:p-8 text-corps text-taupe">
         <Row label={a.dossier.champs.email}>{owner.email}</Row>
         <Row label={a.dossier.champs.telephone}>{owner.phone ?? unset}</Row>
         <Row label={a.dossier.champs.compteCree}>{dateTime.format(owner.createdAt)}</Row>
@@ -101,7 +103,7 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
       </dl>
 
       <h2 className="font-display text-h2 text-sauge">{a.dossier.sections.profil}</h2>
-      <dl className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-8 text-corps text-taupe">
+      <dl className="flex flex-col gap-3 rounded-carte bg-blanc p-6 md:p-8 text-corps text-taupe">
         <Row label={a.dossier.champs.profession}>
           {profile.profession ? p.professions[profile.profession] : unset}
         </Row>
@@ -140,9 +142,13 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         </div>
       ) : null}
 
-      <h2 className="font-display text-h2 text-sauge">{a.dossier.sections.justificatifs}</h2>
+      {/* One functional icon of Surya's set on the files' heading (JAM-327). */}
+      <h2 className="flex items-center gap-3 font-display text-h2 text-sauge">
+        <DocumentIcon aria-hidden className="size-6 shrink-0 text-sauge" />
+        {a.dossier.sections.justificatifs}
+      </h2>
       {qualifications.length === 0 ? (
-        <p className="text-corps text-taupe">{a.dossier.aucunDocument}</p>
+        <EmptyState icon={DocumentIcon} text={a.dossier.aucunDocument} />
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           {qualifications.map((doc) => (
@@ -161,9 +167,10 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
       {file.declarations.length === 0 ? (
         <p className="text-corps text-taupe">{a.dossier.aucune}</p>
       ) : (
+        // Each declaration is a white card on the pearl page (JAM-327).
         <ul className="flex flex-col gap-3">
           {file.declarations.map((d, i) => (
-            <li key={i} className="flex flex-col gap-1 rounded-carte bg-perle px-6 py-4 text-corps text-taupe">
+            <li key={i} className="flex flex-col gap-1 rounded-carte bg-blanc px-6 py-4 text-corps text-taupe">
               <span>{declarationText(d.declaration, d.version)}</span>
               <span className="text-legende">
                 {fill(a.dossier.accepteeLe, { date: dateTime.format(d.acceptedAt), version: d.version })}
@@ -175,7 +182,7 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
 
       <h2 className="font-display text-h2 text-sauge">{a.dossier.sections.historique}</h2>
       {history.length === 0 ? (
-        <p className="text-corps text-taupe">{a.dossier.aucunHistorique}</p>
+        <EmptyState icon={DocumentIcon} text={a.dossier.aucunHistorique} />
       ) : (
         <JournalTable entries={history} />
       )}

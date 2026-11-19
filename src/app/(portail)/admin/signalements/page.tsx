@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { FilterLinks, listHref, Pager } from "@/components/admin/list-controls";
 import { ReportsTable } from "@/components/admin/reports-table";
+import { DocumentIcon } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { words } from "@/content/locale";
 import { readReports } from "@/lib/admin/lists";
@@ -55,7 +57,7 @@ export default async function SignalementsPage({
         }))}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-taupe">{empty[filtre]}</p>
+        <EmptyState icon={DocumentIcon} text={empty[filtre]} />
       ) : (
         <ReportsTable rows={rows} />
       )}

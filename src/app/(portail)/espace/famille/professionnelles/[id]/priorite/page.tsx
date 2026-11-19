@@ -4,9 +4,12 @@ import { notFound, redirect } from "next/navigation";
 
 import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
 import { FormMessage } from "@/components/auth/field";
+import { LuneIcon } from "@/components/berceo-icons";
 import { RequestCard } from "@/components/demandes/request-card";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
+import { CardField } from "@/components/ui/card-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
@@ -39,6 +42,8 @@ export const dynamic = "force-dynamic";
  * the request stays on every serving professional's list. Without a commune in
  * her profile she is sent to complete it first, as the form does. Without a
  * subscription the invitation line takes the page's place (abonnements-acces).
+ * Her requests are the deck's request cards on a sage zone, each with one
+ * filled sage button (slide 25; JAM-327).
  */
 export default async function PrioritePage({
   params,
@@ -75,22 +80,26 @@ export default async function PrioritePage({
       <section className="flex max-w-4xl flex-col gap-4">
         <h2 className="font-display text-h2 text-sauge">{r.priorite.choisir}</h2>
         {candidates.length === 0 ? (
-          <p className="max-w-2xl text-corps text-taupe">{r.priorite.aucune}</p>
+          <EmptyState icon={LuneIcon} text={r.priorite.aucune} />
         ) : (
-          <ul className="grid gap-6 md:grid-cols-2">
-            {candidates.map((request) => (
-              <li key={request.id}>
-                <RequestCard
-                  request={request}
-                  footer={
-                    <form action={sendInPriorityAction.bind(null, profile.id, request.id)}>
-                      <Button type="submit">{r.priorite.envoyer}</Button>
-                    </form>
-                  }
-                />
-              </li>
-            ))}
-          </ul>
+          <CardField>
+            <ul className="grid gap-6 md:grid-cols-2">
+              {candidates.map((request) => (
+                <li key={request.id}>
+                  <RequestCard
+                    request={request}
+                    footer={
+                      <form action={sendInPriorityAction.bind(null, profile.id, request.id)}>
+                        <Button type="submit" variant="sauge">
+                          {r.priorite.envoyer}
+                        </Button>
+                      </form>
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
+          </CardField>
         )}
       </section>
 

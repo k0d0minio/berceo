@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { JournalTable } from "@/components/admin/journal-table";
+import { DocumentIcon } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { readJournal } from "@/lib/admin/journal";
@@ -39,7 +41,7 @@ export default async function JournalPage({
   return (
     <AdminShell user={user} title={a.journal.titre} current="journal">
       {entries.length === 0 ? (
-        <p className="text-corps text-taupe">{a.journal.vide}</p>
+        <EmptyState icon={DocumentIcon} text={a.journal.vide} />
       ) : (
         <JournalTable entries={entries} />
       )}

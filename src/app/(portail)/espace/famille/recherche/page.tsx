@@ -3,12 +3,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
+import { OursonIcon } from "@/components/berceo-icons";
 import { MarkButton } from "@/components/favoris/mark-button";
-import { NoResult } from "@/components/recherche/no-result";
 import { ProfessionalCard, TeaserCard } from "@/components/recherche/professional-card";
 import { SearchForm } from "@/components/recherche/search-form";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
+import { CardField } from "@/components/ui/card-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { fill, words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
 import { familyMay } from "@/lib/abonnements/rules";
@@ -49,7 +51,8 @@ function first(value: string | string[] | undefined): string | undefined {
  * her own commune when her profile has one. Without a subscription the page
  * stays open with the public teaser cards, each linking to the professional's
  * public page, under the invitation line (abonnements-acces). With one, each
- * card carries the mark « mes professionnelles » (favoris-marquer).
+ * card carries the mark « mes professionnelles » (favoris-marquer). The cards
+ * are white on a sage zone, and no result is the taupe empty state (JAM-327).
  */
 export default async function RecherchePage({
   searchParams,
@@ -120,57 +123,61 @@ export default async function RecherchePage({
           </div>
 
           {cards.length === 0 ? (
-            <NoResult text={t.aucune.texte}>
-              <Button asChild>
+            <EmptyState icon={OursonIcon} text={t.aucune.texte}>
+              <Button asChild variant="taupe">
                 <Link href={NEW_REQUEST_PATH}>{t.aucune.publier}</Link>
               </Button>
-            </NoResult>
+            </EmptyState>
           ) : full ? (
-            <ul className="grid gap-6 md:grid-cols-2">
-              {cards.map((card) => (
-                <li key={card.id} className="min-w-0">
-                  <ProfessionalCard
-                    href={professionalProfilePath(card.id)}
-                    firstName={card.firstName}
-                    profession={card.profession}
-                    zone={zoneNames(card.communes, communes)}
-                    reach={card}
-                    note={card.note}
-                    photoId={card.photoId}
-                    nights={card.nights}
-                    mark={
-                      mayMark ? (
-                        <MarkButton
-                          compact
-                          marked={marked.has(card.id)}
-                          prenom={card.firstName}
-                          onToggle={markAction.bind(null, card.id, !marked.has(card.id))}
-                        />
-                      ) : undefined
-                    }
-                    className="h-full"
-                  />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <>
-              <SubscriptionRequired />
+            <CardField>
               <ul className="grid gap-6 md:grid-cols-2">
                 {cards.map((card) => (
                   <li key={card.id} className="min-w-0">
-                    <TeaserCard
-                      href={publicProfessionalPath(card.firstName, card.id)}
+                    <ProfessionalCard
+                      href={professionalProfilePath(card.id)}
                       firstName={card.firstName}
                       profession={card.profession}
                       zone={zoneNames(card.communes, communes)}
                       reach={card}
                       note={card.note}
+                      photoId={card.photoId}
+                      nights={card.nights}
+                      mark={
+                        mayMark ? (
+                          <MarkButton
+                            compact
+                            marked={marked.has(card.id)}
+                            prenom={card.firstName}
+                            onToggle={markAction.bind(null, card.id, !marked.has(card.id))}
+                          />
+                        ) : undefined
+                      }
                       className="h-full"
                     />
                   </li>
                 ))}
               </ul>
+            </CardField>
+          ) : (
+            <>
+              <SubscriptionRequired />
+              <CardField>
+                <ul className="grid gap-6 md:grid-cols-2">
+                  {cards.map((card) => (
+                    <li key={card.id} className="min-w-0">
+                      <TeaserCard
+                        href={publicProfessionalPath(card.firstName, card.id)}
+                        firstName={card.firstName}
+                        profession={card.profession}
+                        zone={zoneNames(card.communes, communes)}
+                        reach={card}
+                        note={card.note}
+                        className="h-full"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </CardField>
             </>
           )}
         </section>

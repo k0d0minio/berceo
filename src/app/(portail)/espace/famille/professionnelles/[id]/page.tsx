@@ -58,7 +58,7 @@ export const dynamic = "force-dynamic";
  * subscription the invitation line takes the profile's place, from any link
  * (abonnements-acces). With one, « Ajouter à mes professionnelles » or
  * « Retirer de mes professionnelles » beside the priority request
- * (favoris-marquer).
+ * (favoris-marquer). The profile is a white card on the pearl page (JAM-327).
  */
 export default async function ProfilProfessionnellePage({
   params,
@@ -103,7 +103,7 @@ export default async function ProfilProfessionnellePage({
 
   return (
     <SpaceShell user={user} title={r.meta.profil}>
-      <article className="flex max-w-2xl flex-col gap-6 rounded-carte bg-perle px-6 py-8 md:px-10">
+      <article className="flex max-w-2xl flex-col gap-6 rounded-carte bg-blanc px-6 py-8 md:px-10">
         <div className="flex flex-wrap items-center gap-6">
           <ProfessionalPhoto photoId={profile.photoId} prenom={profile.firstName} className="size-28" />
           <div className="flex flex-col gap-1">

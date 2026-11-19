@@ -9,7 +9,8 @@ import { readReceiptIndex, reminderIndexes, type Side } from "@/lib/messagerie/r
 
 /*
  * The messages of a conversation, in the order they were sent, grouped by day
- * (Brussels). Berceo's two sit apart on pearl under « L'équipe Berceo »
+ * (Brussels). Berceo's two sit apart on white with a taupe border, since the
+ * page is pearl (JAM-327), under « L'équipe Berceo »
  * (D-87), rendered from the catalogue; the viewer's own on the right, the
  * other person's on the left. Plain text: React escapes it, line breaks are
  * kept, nothing becomes a link. « Lu » under the viewer's last message once
@@ -59,9 +60,9 @@ function Thread({
               <div
                 className={cn(
                   "flex flex-col gap-2 rounded-carte px-6 py-4 text-taupe",
-                  berceo && "bg-perle",
+                  berceo && "border border-solid border-taupe bg-blanc",
                   own && "bg-beurre",
-                  !berceo && !own && "border border-solid border-perle bg-blanc"
+                  !berceo && !own && "bg-blanc"
                 )}
               >
                 <p className={cn("text-legende font-semibold", berceo ? "text-sauge" : own && "sr-only")}>

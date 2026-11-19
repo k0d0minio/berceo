@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { FormMessage } from "@/components/auth/field";
+import { LuneIcon } from "@/components/berceo-icons";
 import { CancelRequest } from "@/components/demandes/cancel-request";
 import { RequestCard } from "@/components/demandes/request-card";
 import { SeriesCard } from "@/components/demandes/series-card";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
+import { CardField } from "@/components/ui/card-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
 import { fill, words } from "@/content/locale";
@@ -51,7 +54,8 @@ function message(notice: Notice): string | null {
  * booked, cancelled and past ones. An open request shows how many answers wait
  * on it (« 2 réponses »). Regular nights (demande-nuits-regulieres) read as one
  * card in the place of their first night, with each night's state, and
- * « Annuler toutes les nuits » while one of them is open.
+ * « Annuler toutes les nuits » while one of them is open. The cards sit on a
+ * sage zone, and an empty list is the taupe empty state (JAM-327).
  */
 export default async function MesDemandesPage({ searchParams }: { searchParams: Promise<Notice> }) {
   const query = await searchParams;
@@ -77,38 +81,40 @@ export default async function MesDemandesPage({ searchParams }: { searchParams: 
         </Button>
       </div>
       {requests.length === 0 ? (
-        <p className="max-w-2xl text-corps text-taupe">{t.famille.vide}</p>
+        <EmptyState icon={LuneIcon} text={t.famille.vide} />
       ) : (
-        <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
-          {groupForList(requests).map((entry) =>
-            entry.kind === "nuit" ? (
-              <li key={entry.request.id}>
-                <RequestCard
-                  request={entry.request}
-                  status={displayStatus(entry.request, now)}
-                  href={familyRequestPath(entry.request.id)}
-                  note={noteOf(entry.request)}
-                />
-              </li>
-            ) : (
-              <li key={entry.seriesId}>
-                <SeriesCard
-                  nights={entry.requests.map((request) => ({
-                    request,
-                    status: displayStatus(request, now),
-                    href: familyRequestPath(request.id),
-                    note: noteOf(request),
-                  }))}
-                  footer={
-                    entry.requests.some((request) => isChangeable(request, now)) ? (
-                      <CancelRequest serie onCancel={cancelSeriesAction.bind(null, entry.seriesId)} />
-                    ) : undefined
-                  }
-                />
-              </li>
-            ),
-          )}
-        </ul>
+        <CardField className="max-w-4xl">
+          <ul className="grid gap-6 md:grid-cols-2">
+            {groupForList(requests).map((entry) =>
+              entry.kind === "nuit" ? (
+                <li key={entry.request.id}>
+                  <RequestCard
+                    request={entry.request}
+                    status={displayStatus(entry.request, now)}
+                    href={familyRequestPath(entry.request.id)}
+                    note={noteOf(entry.request)}
+                  />
+                </li>
+              ) : (
+                <li key={entry.seriesId}>
+                  <SeriesCard
+                    nights={entry.requests.map((request) => ({
+                      request,
+                      status: displayStatus(request, now),
+                      href: familyRequestPath(request.id),
+                      note: noteOf(request),
+                    }))}
+                    footer={
+                      entry.requests.some((request) => isChangeable(request, now)) ? (
+                        <CancelRequest serie onCancel={cancelSeriesAction.bind(null, entry.seriesId)} />
+                      ) : undefined
+                    }
+                  />
+                </li>
+              ),
+            )}
+          </ul>
+        </CardField>
       )}
     </SpaceShell>
   );

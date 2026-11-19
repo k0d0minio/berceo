@@ -26,7 +26,8 @@ export default async function CharteFamillePage() {
   const user = await requireAccess(FAMILY_CHARTER_PATH);
   return (
     <SpaceShell user={user}>
-      <div className="max-w-2xl">
+      {/* A long text reads on white (DA, slide 14; JAM-327). */}
+      <div className="max-w-2xl rounded-carte bg-blanc px-6 py-8 md:px-10">
         <Charte level={2} />
       </div>
     </SpaceShell>

@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { FilterLinks, listHref, Pager } from "@/components/admin/list-controls";
 import { NightPassesTable, SubscriptionsTable } from "@/components/admin/subscriptions-table";
+import { CoeursIcon, LuneIcon } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { words } from "@/content/locale";
 import { ADMIN_SUBSCRIPTIONS_PATH } from "@/lib/abonnements/paths";
@@ -61,14 +63,14 @@ export default async function AbonnementsPage({
         ]}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-taupe">{active ? t.videActifs : t.vide}</p>
+        <EmptyState icon={CoeursIcon} text={active ? t.videActifs : t.vide} />
       ) : (
         <SubscriptionsTable rows={rows} />
       )}
       <Pager page={page} pages={pages} href={(n) => href(n)} />
       <h2 className="font-display text-h3 text-sauge">{t.nuits.titre}</h2>
       {nights.rows.length === 0 ? (
-        <p className="text-corps text-taupe">{t.nuits.vide}</p>
+        <EmptyState icon={LuneIcon} text={t.nuits.vide} />
       ) : (
         <NightPassesTable rows={nights.rows} />
       )}

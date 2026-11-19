@@ -50,7 +50,7 @@ function PromoCodeForm() {
   const fieldError = (key: "code" | "remise" | "fin" | "utilisations") => (error === key ? t.erreurs[key] : undefined)
 
   return (
-    <section className="flex flex-col gap-4 rounded-carte border border-solid border-perle bg-blanc p-8">
+    <section className="flex flex-col gap-4 rounded-carte bg-blanc p-6 md:p-8">
       <h2 className="font-display text-h3 text-sauge">{f.titre}</h2>
       {message ? <FormMessage>{message}</FormMessage> : null}
       <form ref={formRef} onSubmit={submit} className="flex max-w-md flex-col gap-4" noValidate>

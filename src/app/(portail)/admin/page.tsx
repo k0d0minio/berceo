@@ -71,7 +71,7 @@ export default async function AdminPage() {
         {blocks.map((block) => (
           <li
             key={block.key}
-            className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-8"
+            className="flex flex-col gap-3 rounded-carte bg-blanc p-6 md:p-8"
           >
             <h2 className="text-h3 font-bold text-sauge">{a.vueEnsemble.blocs[block.key]}</h2>
             <p className="font-display text-h1 text-sauge">{block.n}</p>

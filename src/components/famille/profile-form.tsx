@@ -20,7 +20,8 @@ import { characterCount, type ProfileError } from "@/lib/famille/validation"
  * commune and optional address, and an optional line about the family. The
  * same form serves the first completion and every edit. Validation is the
  * server's; a refused form keeps what was typed, marks each blocking field in
- * red, counts them above the button and moves to the first one.
+ * red, counts them above the button and moves to the first one. The form is
+ * a white card of 32 px on the pearl page (JAM-327).
  */
 
 export type ProfileDefaults = {
@@ -66,7 +67,7 @@ function ProfileForm({
   useFocusFirstBlocking(form, state, blocking)
 
   return (
-    <form ref={form} action={submit} noValidate className="flex max-w-2xl flex-col gap-10">
+    <form ref={form} action={submit} noValidate className="flex max-w-2xl flex-col gap-10 rounded-carte bg-blanc px-6 py-8 md:px-10">
       {state.message ? <FormMessage>{c.erreurs[state.message]}</FormMessage> : null}
       {state.saved ? <FormMessage>{t.enregistre}</FormMessage> : null}
 

@@ -54,7 +54,8 @@ export const dynamic = "force-dynamic";
  * she picked at sign-up gets one call to finish it instead
  * (abonnements-inscription-famille). An outlined button opens the charter the
  * professionals accept (charte-cote-parents). A welcome
- * e-mail that failed to send is tried again after the page (D-165).
+ * e-mail that failed to send is tried again after the page (D-165). The
+ * blocks are white cards: the page behind them is pearl (JAM-327).
  */
 export default async function EspaceFamillePage() {
   const user = await requireAccess(SPACES.parent);
@@ -76,7 +77,7 @@ export default async function EspaceFamillePage() {
   return (
     <SpaceShell user={user}>
       {commune ? null : (
-        <section className="flex max-w-2xl flex-col items-start gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">
+        <section className="flex max-w-2xl flex-col items-start gap-4 rounded-carte bg-blanc px-6 py-6 md:px-8">
           <h2 className="text-h3 font-bold text-sauge">{f.completer.titre}</h2>
           <p className="text-corps text-taupe">{f.completer.texte}</p>
           <Button asChild>
@@ -84,7 +85,7 @@ export default async function EspaceFamillePage() {
           </Button>
         </section>
       )}
-      <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+      <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
         <h2 className="text-h3 font-bold text-sauge">{a.accueil.titre}</h2>
         {running ? (
           <>
