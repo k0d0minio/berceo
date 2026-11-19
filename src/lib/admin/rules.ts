@@ -7,7 +7,15 @@
  *
  * Errors and labels are catalogue keys (`admin`), never sentences.
  */
-import type { AdminAction, Profession, ProfileStatus } from "@/db/schema";
+import type {
+  AdminAction,
+  CancellationAuthor,
+  CancellationKind,
+  CreditOrigin,
+  PaymentStatus,
+  Profession,
+  ProfileStatus,
+} from "@/db/schema";
 import { isStudent } from "@/lib/professionnelle/rules";
 
 // ---------------------------------------------------------------------------
@@ -104,11 +112,21 @@ export const REASON_MAX = 1000;
 
 export type ReasonError = "motifRequis" | "motifLong";
 
-/** A reason is plain text, trimmed, 1 to 1,000 characters. */
-export function checkReason(raw: unknown): { ok: true; value: string } | { ok: false; error: ReasonError } {
+/**
+ * The founders' note on a credit they grant or on a garde they cancel for
+ * Berceo (annulations-back-office): required, 500 characters at most, read by
+ * the founders only.
+ */
+export const NOTE_MAX = 500;
+
+/** A reason is plain text, trimmed, 1 to `max` characters (1,000 unless said). */
+export function checkReason(
+  raw: unknown,
+  max: number = REASON_MAX,
+): { ok: true; value: string } | { ok: false; error: ReasonError } {
   const value = typeof raw === "string" ? raw.trim() : "";
   if (value.length === 0) return { ok: false, error: "motifRequis" };
-  if (value.length > REASON_MAX) return { ok: false, error: "motifLong" };
+  if (value.length > max) return { ok: false, error: "motifLong" };
   return { ok: true, value };
 }
 
@@ -186,11 +204,73 @@ export function requestFilter(raw: string | undefined): RequestFilter | null {
   return (REQUEST_FILTERS as readonly string[]).includes(raw ?? "") ? (raw as RequestFilter) : null;
 }
 
-/** « Signalements »: « À traiter » by default, or all of them (D-139). */
-export type ReportFilter = "a-traiter" | "tous";
+/**
+ * « Signalements »: « À traiter » by default, all of them (D-139), or every
+ * garde in litige, handled or not (annulations-back-office).
+ */
+export const REPORT_FILTERS = ["a-traiter", "litige", "tous"] as const;
+export type ReportFilter = (typeof REPORT_FILTERS)[number];
 
 export function reportFilter(raw: string | undefined): ReportFilter {
-  return raw === "tous" ? "tous" : "a-traiter";
+  return raw === "tous" || raw === "litige" ? raw : "a-traiter";
+}
+
+/** What a report row knows of its fee and its credit (annulations-back-office). */
+export type ReportFacts = {
+  side: CancellationAuthor;
+  kind: CancellationKind;
+  disputed: boolean;
+  /** The fee's status, or null for a garde booked before the fee existed. */
+  fee: PaymentStatus | null;
+  /** The origin of the garde's live credit, or null when it has none. */
+  creditOrigin: CreditOrigin | null;
+};
+
+/** Where the delay stood for a cancellation: « dans le délai » (a credit) or « hors délai » (the fee kept). */
+export type DelayVerdict = "dansLeDelai" | "horsDelai";
+
+/**
+ * The line of the founders' table a cancellation fell on (annulations-back-office,
+ * Q1), read from what was written then and not from today's setting: only the
+ * family's cancellation has a delay. Her credit of origin `annulation_famille`
+ * means she cancelled before it; a fee left at Berceo (or one the founders
+ * later turned into a credit by hand) means she cancelled within it. Null when
+ * the delay did not apply or nothing says which side of it she was.
+ */
+export function delayVerdict(facts: ReportFacts): DelayVerdict | null {
+  if (facts.kind !== "annulation" || facts.side !== "famille") return null;
+  if (facts.creditOrigin === "annulation_famille") return "dansLeDelai";
+  if (facts.creditOrigin === "geste_berceo") return "horsDelai";
+  return facts.fee === "payee" || facts.fee === "remboursement_echoue" ? "horsDelai" : null;
+}
+
+/** What became of the fee, as the founders read it on « Signalements ». */
+export type ReportOutcome = "litige" | "credit" | "geste" | "conserves" | "rembourses" | "aRembourser" | "aucun";
+
+/**
+ * The fee's outcome on a report (annulations-back-office): a litige until the
+ * founders grant a credit; a credit of the table, or one they granted by hand;
+ * a refund; a fee kept at Berceo; a professional's cancellation made before
+ * the table, still to refund (D-162); or nothing, with no paid fee.
+ */
+export function reportOutcome(facts: ReportFacts): ReportOutcome {
+  if (facts.disputed && !facts.creditOrigin) return "litige";
+  if (facts.creditOrigin) return facts.creditOrigin === "geste_berceo" ? "geste" : "credit";
+  if (facts.fee === "remboursee") return "rembourses";
+  if (facts.fee !== "payee" && facts.fee !== "remboursement_echoue") return "aucun";
+  if (facts.side === "professionnelle" && facts.kind === "annulation") return "aRembourser";
+  return "conserves";
+}
+
+/**
+ * Whether a founder may grant a credit of the fee (annulations-back-office):
+ * on a garde in litige, or whose fee the family's own cancellation or absence
+ * left at Berceo, while the fee is paid and the garde has no live credit.
+ * `grantCreditStatement` holds the same rule in its SQL.
+ */
+export function canGrantCredit(facts: ReportFacts): boolean {
+  if (facts.fee !== "payee" || facts.creditOrigin) return false;
+  return facts.disputed || facts.side === "famille";
 }
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

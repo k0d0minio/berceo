@@ -1,8 +1,10 @@
 import "server-only";
 
-import { and, asc, eq, gt, inArray, isNull, ne, sql, type AnyColumn, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, inArray, isNull, ne, sql, type AnyColumn, type SQL } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
-import { credits, creditSpends, db, type CreditOrigin } from "@/db";
+import { bookings, credits, creditSpends, db, users, type CreditOrigin } from "@/db";
+import { LIST_PAGE_SIZE } from "@/lib/admin/rules";
 import { UUID } from "@/lib/demandes/requests";
 
 import {
@@ -21,7 +23,9 @@ import {
  * from the session (the caller's `requireAccess`), never from a form. The end
  * of a garde issues and voids its credit through the statements below, inside
  * its own batch (annulations-table, `src/lib/gardes/gardes.ts`);
- * `annulations-back-office` calls `issueCredit`. The fee
+ * The founders (annulations-back-office) grant a credit of a fee with
+ * `grantCreditStatement` inside their own batch, and read every credit with
+ * `adminCredits` and `liveCreditSummary`. The fee
  * (`src/lib/paiements/payments.ts`, credits-au-paiement) plans a credit part
  * with `planCreditPart`, holds it with `holdStatements` in the batch that
  * writes the fee, confirms it once paid, and releases it when the Checkout
@@ -350,4 +354,167 @@ export async function gardeCredits(bookingIds: string[]): Promise<Map<string, Ga
  */
 export function feeHasLiveCredit(paymentId: AnyColumn | string): SQL<boolean> {
   return sql<boolean>`exists (select 1 from credits lc where lc.payment_id = ${paymentId} and lc.voided_at is null)`;
+}
+
+// ---------------------------------------------------------------------------
+// The founders' credits (annulations-back-office)
+// ---------------------------------------------------------------------------
+
+/**
+ * A founder grants the family a credit of a cancelled garde's fee, as one
+ * statement for the batch that also writes its journal entry
+ * (`src/lib/admin/lists.ts`): the fee's amount, origin `geste_berceo`, the
+ * founder and her note, from `now` for `CREDIT_MONTHS`. Only on a garde in
+ * litige, or whose fee the family's own cancellation or absence left at
+ * Berceo, while the fee is `payee` and the garde has no live credit: a second
+ * click, a second founder, or a refunded fee writes nothing
+ * (`credits_booking_live_key`).
+ */
+export function grantCreditStatement(bookingId: string, adminId: string, note: string, now: Date): SQL {
+  const at = now.toISOString();
+  return sql`
+    insert into credits (family_user_id, amount_cents, origin, payment_id, booking_id, granted_by_user_id, note,
+                         issued_at, expires_at, created_at, updated_at)
+    select b.family_user_id, p.amount_cents, 'geste_berceo'::credit_origin, p.id, b.id, ${adminId}::uuid, ${note},
+           ${at}::timestamptz, ${expiryOf(now).toISOString()}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
+    from bookings b
+    join payments p on p.booking_id = b.id
+    where b.id = ${bookingId}
+      and b.status = 'annulee'
+      and p.status = 'payee'
+      and (b.disputed_at is not null or b.cancelled_by = 'famille')
+    on conflict (booking_id) where booking_id is not null and voided_at is null do nothing
+    returning id
+  `;
+}
+
+/** Whether the batch's `grantCreditStatement` wrote the credit: the condition of the statements that follow it. */
+export function grantedHere(bookingId: string, adminId: string, now: Date): SQL<boolean> {
+  return sql<boolean>`exists (
+    select 1 from credits gc
+    where gc.booking_id = ${bookingId} and gc.origin = 'geste_berceo'
+      and gc.granted_by_user_id = ${adminId}::uuid and gc.issued_at = ${now.toISOString()}::timestamptz
+  )`;
+}
+
+/**
+ * A credit that can still pay at `now`, in SQL, as `creditState` reads
+ * « disponible »: not spent to the last cent, not voided, not expired. The
+ * overview's block and the list's summary read this one condition (D-133).
+ */
+function liveAt(now: Date): SQL {
+  const at = now.toISOString();
+  return sql`(${credits.spentCents} < ${credits.amountCents}
+    and (${credits.voidedAt} is null or ${credits.voidedAt} > ${at}::timestamptz)
+    and ${credits.expiresAt} > ${at}::timestamptz)`;
+}
+
+/** How many credits can still pay at `now`, and what they can pay in all: the overview's block. */
+export async function liveCreditSummary(now: Date): Promise<{ count: number; remainingCents: number }> {
+  const [row] = await db
+    .select({
+      n: count(),
+      cents: sql<string>`coalesce(sum(${credits.amountCents} - ${credits.spentCents}), 0)`,
+    })
+    .from(credits)
+    .where(liveAt(now));
+  return { count: row?.n ?? 0, remainingCents: Number(row?.cents ?? 0) };
+}
+
+export type AdminCredit = FamilyCredit & {
+  family: { id: string; name: string } | null;
+  /** The night of the garde it comes from, when one does. */
+  nightDate: string | null;
+  /** The founder who granted it (`geste_berceo`), and her note. */
+  grantedBy: string | null;
+  note: string | null;
+};
+
+const creditFamily = alias(users, "credit_family");
+const creditGranter = alias(users, "credit_granter");
+
+function personName(first: string | null, last: string | null): string | null {
+  return first === null ? null : `${first} ${last ?? ""}`.trim();
+}
+
+/** One page of every credit, the newest first, 50 a page, for the founders. */
+export async function adminCredits(page: number, now: Date): Promise<{ rows: AdminCredit[]; pages: number }> {
+  const [rows, [total]] = await Promise.all([
+    db
+      .select({
+        id: credits.id,
+        amountCents: credits.amountCents,
+        spentCents: credits.spentCents,
+        origin: credits.origin,
+        issuedAt: credits.issuedAt,
+        expiresAt: credits.expiresAt,
+        voidedAt: credits.voidedAt,
+        note: credits.note,
+        familyId: creditFamily.id,
+        familyFirst: creditFamily.firstName,
+        familyLast: creditFamily.lastName,
+        granterFirst: creditGranter.firstName,
+        granterLast: creditGranter.lastName,
+        nightDate: bookings.nightDate,
+      })
+      .from(credits)
+      .leftJoin(creditFamily, eq(creditFamily.id, credits.familyUserId))
+      .leftJoin(creditGranter, eq(creditGranter.id, credits.grantedByUserId))
+      .leftJoin(bookings, eq(bookings.id, credits.bookingId))
+      .orderBy(desc(credits.issuedAt), desc(credits.id))
+      .limit(LIST_PAGE_SIZE)
+      .offset((page - 1) * LIST_PAGE_SIZE),
+    db.select({ n: count() }).from(credits),
+  ]);
+  return {
+    rows: rows.map((row) => {
+      const name = personName(row.familyFirst, row.familyLast);
+      return {
+        id: row.id,
+        amountCents: row.amountCents,
+        spentCents: row.spentCents,
+        origin: row.origin,
+        issuedAt: row.issuedAt,
+        expiresAt: row.expiresAt,
+        voidedAt: row.voidedAt,
+        state: creditState(row, now),
+        remainingCents: remainingCents(row, now),
+        family: row.familyId && name !== null ? { id: row.familyId, name } : null,
+        nightDate: row.nightDate,
+        grantedBy: personName(row.granterFirst, row.granterLast),
+        note: row.note,
+      };
+    }),
+    pages: Math.max(1, Math.ceil(total.n / LIST_PAGE_SIZE)),
+  };
+}
+
+export type GrantedCreditNotice = {
+  id: string;
+  amountCents: number;
+  expiresAt: Date;
+  nightDate: string | null;
+  family: { email: string; firstName: string };
+};
+
+/** The live credit a founder granted on a garde, and the family it went to: what its e-mail reads. */
+export async function grantedCreditNotice(bookingId: string): Promise<GrantedCreditNotice | null> {
+  if (!UUID.test(bookingId)) return null;
+  const [row] = await db
+    .select({
+      id: credits.id,
+      amountCents: credits.amountCents,
+      expiresAt: credits.expiresAt,
+      nightDate: bookings.nightDate,
+      email: creditFamily.email,
+      firstName: creditFamily.firstName,
+    })
+    .from(credits)
+    .innerJoin(creditFamily, eq(creditFamily.id, credits.familyUserId))
+    .leftJoin(bookings, eq(bookings.id, credits.bookingId))
+    .where(and(eq(credits.bookingId, bookingId), eq(credits.origin, "geste_berceo"), isNull(credits.voidedAt)))
+    .limit(1);
+  if (!row) return null;
+  const { email, firstName, ...credit } = row;
+  return { ...credit, family: { email, firstName } };
 }

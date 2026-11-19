@@ -6,6 +6,7 @@ import {
   CANCELLATION_DELAY_HOURS,
   CANCELLATION_REASONS,
   canCancel,
+  canCancelForBerceo,
   canContest,
   canReportAbsence,
   canRepublish,
@@ -13,6 +14,7 @@ import {
   creditOriginOf,
   feeLine,
   gardeState,
+  hoursBeforeStart,
   isAddressVisible,
   isCancellationDelay,
   isLateCancellation,
@@ -391,5 +393,58 @@ describe("the reasons of a cancellation", () => {
     expect(isReasonOf("famille", "malade")).toBe(false);
     expect(isReasonOf("professionnelle", "plus_besoin")).toBe(false);
     for (const value of ["", "inconnu", null, undefined, 1]) expect(isReasonOf("famille", value)).toBe(false);
+  });
+});
+
+/**
+ * Spec (annulations-back-office): a founder cancels a confirmed garde for
+ * Berceo until the end of its night (Q5), and « Signalements » shows the whole
+ * hours from a cancellation to the start hour, in Brussels wall-clock time (Q1).
+ * A litige the founders closed with a credit of the fee reads as that credit.
+ */
+describe("a cancellation for Berceo (annulations-back-office)", () => {
+  it("is open before the start and while the night is under way, never after its end", () => {
+    expect(canCancelForBerceo(confirmed, BEFORE_START)).toBe(true);
+    expect(canCancelForBerceo(confirmed, AT_START)).toBe(true);
+    expect(canCancelForBerceo(confirmed, BEFORE_END)).toBe(true);
+    expect(canCancelForBerceo(confirmed, AT_END)).toBe(false);
+  });
+
+  it("never cancels a garde twice", () => {
+    for (const now of [BEFORE_START, AT_START]) expect(canCancelForBerceo(cancelled, now)).toBe(false);
+  });
+
+  it("credits the family's fee with the origin annulation_berceo", () => {
+    expect(creditOriginOf("berceo", "annulation")).toBe("annulation_berceo");
+  });
+});
+
+describe("hoursBeforeStart", () => {
+  it("counts the whole hours to the start hour, rounded down", () => {
+    expect(hoursBeforeStart("2026-09-30", "20:00:00", new Date("2026-09-29T18:00:00Z"))).toBe(24);
+    expect(hoursBeforeStart("2026-09-30", "20:00:00", new Date("2026-09-29T18:30:00Z"))).toBe(23);
+    expect(hoursBeforeStart("2026-09-30", "20:00:00", BEFORE_START)).toBe(0);
+    expect(hoursBeforeStart("2026-09-30", "20:00:00", AT_START)).toBe(0);
+  });
+
+  it("is negative once the night has started", () => {
+    expect(hoursBeforeStart("2026-09-30", "20:00:00", new Date("2026-09-30T19:00:00Z"))).toBe(-1);
+  });
+
+  it("reads Brussels wall-clock time across the change to winter time", () => {
+    // 24 October 2026 at 20:00 (CEST) to 25 October 2026 at 20:00 (CET): 24 hours on the wall clock.
+    expect(hoursBeforeStart("2026-10-25", "20:00:00", new Date("2026-10-24T18:00:00Z"))).toBe(24);
+  });
+});
+
+describe("feeLine after the founders' credit (annulations-back-office)", () => {
+  it("names the credit on a litige the founders closed with one", () => {
+    expect(feeLine({ by: "famille", kind: "absence" }, true, "payee", true)).toBe("credit");
+    expect(feeLine({ by: "professionnelle", kind: "absence" }, true, "payee", true)).toBe("credit");
+  });
+
+  it("names the credit of a cancellation by Berceo, and nothing without one", () => {
+    expect(feeLine({ by: "berceo", kind: "annulation" }, false, "payee", true)).toBe("credit");
+    expect(feeLine({ by: "berceo", kind: "annulation" }, false, null, false)).toBeNull();
   });
 });

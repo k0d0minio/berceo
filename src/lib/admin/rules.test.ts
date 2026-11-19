@@ -3,9 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   DECISION_ACTION,
   DECISION_STATUS,
+  NOTE_MAX,
   REASON_MAX,
   byOldestSubmission,
+  canGrantCredit,
   checkReason,
+  delayVerdict,
   isHeldStudent,
   isPurgeDue,
   isReviewable,
@@ -14,6 +17,9 @@ import {
   purgeCutoff,
   queueStatus,
   refuseDecision,
+  reportFilter,
+  reportOutcome,
+  type ReportFacts,
   type ReviewFile,
 } from "./rules";
 
@@ -152,5 +158,74 @@ describe("the journal's pages", () => {
   it("reads a page number, anything else as the first page", () => {
     expect(journalPage("3")).toBe(3);
     for (const raw of [undefined, "", "0", "-1", "2.5", "abc"]) expect(journalPage(raw)).toBe(1);
+  });
+});
+
+/*
+ * Spec (annulations-back-office): « Signalements » filters the litiges, shows
+ * the line of the table each cancellation fell on, read from what was written
+ * then (Q1), and what became of the fee; a founder grants a credit of the fee
+ * on a litige or a fee the family's own cancellation or absence left at
+ * Berceo, once, with a note of 500 characters at most (Q3).
+ */
+describe("the founders' reports and credits (annulations-back-office)", () => {
+  const familyLate: ReportFacts = { side: "famille", kind: "annulation", disputed: false, fee: "payee", creditOrigin: null };
+  const familyEarly: ReportFacts = { ...familyLate, creditOrigin: "annulation_famille" };
+  const professional: ReportFacts = { ...familyLate, side: "professionnelle", creditOrigin: "annulation_professionnelle" };
+  const berceo: ReportFacts = { ...familyLate, side: "berceo", creditOrigin: "annulation_berceo" };
+  const familyAbsent: ReportFacts = { ...familyLate, kind: "absence" };
+  const contested: ReportFacts = { ...familyLate, side: "professionnelle", kind: "absence", disputed: true };
+
+  it("reads the litige filter, « À traiter » by default", () => {
+    expect(reportFilter("litige")).toBe("litige");
+    expect(reportFilter("tous")).toBe("tous");
+    expect(reportFilter(undefined)).toBe("a-traiter");
+    expect(reportFilter("autre")).toBe("a-traiter");
+  });
+
+  it("puts the family's cancellation in or out of the delay by what was written, not by today's setting", () => {
+    expect(delayVerdict(familyEarly)).toBe("dansLeDelai");
+    expect(delayVerdict(familyLate)).toBe("horsDelai");
+    expect(delayVerdict({ ...familyLate, creditOrigin: "geste_berceo" })).toBe("horsDelai");
+    expect(delayVerdict({ ...familyLate, fee: null })).toBeNull();
+  });
+
+  it("gives no delay where it does not apply", () => {
+    for (const facts of [professional, berceo, familyAbsent, contested]) expect(delayVerdict(facts)).toBeNull();
+  });
+
+  it("says what became of the fee", () => {
+    expect(reportOutcome(familyEarly)).toBe("credit");
+    expect(reportOutcome(familyLate)).toBe("conserves");
+    expect(reportOutcome(berceo)).toBe("credit");
+    expect(reportOutcome(familyAbsent)).toBe("conserves");
+    expect(reportOutcome(contested)).toBe("litige");
+    expect(reportOutcome({ ...contested, creditOrigin: "geste_berceo" })).toBe("geste");
+    expect(reportOutcome({ ...familyLate, fee: "remboursee" })).toBe("rembourses");
+    expect(reportOutcome({ ...professional, creditOrigin: null })).toBe("aRembourser");
+    expect(reportOutcome({ ...familyLate, fee: null })).toBe("aucun");
+  });
+
+  it("offers a credit on a litige or a fee the family left at Berceo, paid, with no live credit", () => {
+    expect(canGrantCredit(familyLate)).toBe(true);
+    expect(canGrantCredit(familyAbsent)).toBe(true);
+    expect(canGrantCredit(contested)).toBe(true);
+    expect(canGrantCredit({ ...contested, side: "famille" })).toBe(true);
+  });
+
+  it("offers no credit twice, on a refunded fee, without a fee, or on the professional's or Berceo's side", () => {
+    expect(canGrantCredit(familyEarly)).toBe(false);
+    expect(canGrantCredit({ ...contested, creditOrigin: "geste_berceo" })).toBe(false);
+    expect(canGrantCredit({ ...familyLate, fee: "remboursee" })).toBe(false);
+    expect(canGrantCredit({ ...familyLate, fee: null })).toBe(false);
+    expect(canGrantCredit({ ...professional, creditOrigin: null })).toBe(false);
+    expect(canGrantCredit({ ...berceo, creditOrigin: null })).toBe(false);
+  });
+
+  it("holds the founders' note to 1 to 500 characters", () => {
+    expect(NOTE_MAX).toBe(500);
+    expect(checkReason("", NOTE_MAX)).toEqual({ ok: false, error: "motifRequis" });
+    expect(checkReason("x".repeat(NOTE_MAX), NOTE_MAX)).toEqual({ ok: true, value: "x".repeat(500) });
+    expect(checkReason("x".repeat(NOTE_MAX + 1), NOTE_MAX)).toEqual({ ok: false, error: "motifLong" });
   });
 });

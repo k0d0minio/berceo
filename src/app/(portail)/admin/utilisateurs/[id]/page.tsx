@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { AccountActions } from "@/components/admin/account-actions";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { BerceoCancelButton } from "@/components/admin/berceo-cancel-button";
 import { JournalTable } from "@/components/admin/journal-table";
 import { listHref } from "@/components/admin/list-controls";
 import { admin } from "@/content/admin";
@@ -56,7 +57,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
  * account is and since when, a family's commune but never her address (D-15),
  * a family's subscription line (abonnements-back-office), a professional's
  * file, communes, rate and note, what she did on Berceo with
- * links to the lists filtered on her, her gardes still standing, the actions,
+ * links to the lists filtered on her, her gardes still standing with
+ * « Annuler la garde » for Berceo on each (annulations-back-office), the actions,
  * and every journal entry about her. An admin account shows no action. A 404
  * to anyone but an admin (D-33), and for an id that names no account.
  */
@@ -177,9 +179,18 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
           {upcoming.length === 0 ? (
             <p className="text-corps text-encre-taupe">{t.aucuneGarde}</p>
           ) : (
-            <ul className="flex list-disc flex-col gap-1 pl-6 text-corps text-encre-taupe">
-              {upcoming.map((line) => (
-                <li key={line}>{line}</li>
+            <ul className="flex list-disc flex-col gap-3 pl-6 text-corps text-encre-taupe">
+              {view.upcoming.map((garde, index) => (
+                <li key={garde.bookingId} className="flex flex-col gap-2">
+                  {upcoming[index]}
+                  {/* « Annuler la garde » for Berceo (annulations-back-office): the account is one side, the line names the other. */}
+                  <BerceoCancelButton
+                    bookingId={garde.bookingId}
+                    date={formatDate(garde.nightDate)}
+                    family={account.role === "parent" ? name : garde.other.name}
+                    professional={account.role === "parent" ? garde.other.name : name}
+                  />
+                </li>
               ))}
             </ul>
           )}
