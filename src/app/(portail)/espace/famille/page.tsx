@@ -16,7 +16,7 @@ import { recherche } from "@/content/recherche";
 import { planWords, renewalDate } from "@/lib/abonnements/format";
 import { SUBSCRIPTION_PATH } from "@/lib/abonnements/paths";
 import { planToFinish, subscriptionState } from "@/lib/abonnements/rules";
-import { hasCompletedCheckout, liveSubscription } from "@/lib/abonnements/subscriptions";
+import { familyNightPass, hasCompletedCheckout, liveSubscription } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
@@ -72,6 +72,8 @@ export default async function EspaceFamillePage() {
   const running = live && (live.status === "active" || live.status === "impayee") ? live : null;
   const state = running ? subscriptionState(running, now) : null;
   const toFinish = planToFinish(user.signupPlan, completed);
+  // An open one-night pass (JAM-304) takes the place of the call to choose a plan.
+  const pass = running ? null : await familyNightPass(user.id, now);
 
   return (
     <SpaceShell user={user}>
@@ -101,6 +103,16 @@ export default async function EspaceFamillePage() {
                 {fill(a.espace.renouvellement, { date: renewalDate(running.currentPeriodEnd) })}
               </p>
             ) : null}
+            <Link
+              href={SUBSCRIPTION_PATH}
+              className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+            >
+              {a.accueil.gerer}
+            </Link>
+          </>
+        ) : pass ? (
+          <>
+            <p className="text-corps text-encre-taupe">{pass.booked ? a.espace.uneNuit.reservee : a.espace.uneNuit.active}</p>
             <Link
               href={SUBSCRIPTION_PATH}
               className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
