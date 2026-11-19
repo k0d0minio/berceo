@@ -5,5 +5,5 @@
 - link: https://linear.app/jamienisbet/issue/JAM-307/berceo-a-professional-sees-her-own-rates-on-a-familys-request
 - branch: contact/jam-307-berceo-a-professional-sees-her-own-rates-on
 - lane: bug
-- pr: pending
+- pr: #131
 - started: 2026-11-19
