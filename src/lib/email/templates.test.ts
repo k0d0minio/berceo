@@ -6,7 +6,10 @@ import {
   bookingProfessionalEmail,
   complementRequestedEmail,
   contactEmail,
+  creditGrantedEmail,
   escapeHtml,
+  gardeCancelledByBerceoFamilyEmail,
+  gardeCancelledByBerceoProfessionalEmail,
   gardeCancelledByFamilyEmail,
   gardeCancelledByProfessionalEmail,
   gracePeriodEmail,
@@ -116,6 +119,33 @@ const all: [string, RenderedEmail][] = [
       date: "30/09/2026",
       credited: true,
       url: `${SITE}/b`,
+    }),
+  ],
+  [
+    "garde cancelled by Berceo (family)",
+    gardeCancelledByBerceoFamilyEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      professionnelle: "Emma",
+      date: "30/09/2026",
+      credited: true,
+      republish: true,
+      url: `${SITE}/b`,
+    }),
+  ],
+  [
+    "garde cancelled by Berceo (professional)",
+    gardeCancelledByBerceoProfessionalEmail({ siteUrl: SITE, prenom: "Julie", prenomFamille: "Sophie", date: "30/09/2026", url: `${SITE}/g` }),
+  ],
+  [
+    "credit granted",
+    creditGrantedEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      montant: "4,50 €",
+      date: "30/09/2026",
+      expiration: "19/11/2028",
+      url: `${SITE}/espace/famille`,
     }),
   ],
   ["absence reported", absenceReportedEmail({ siteUrl: SITE, prenom: "Julie", auteur: "Emma", date: "30/09/2026", url: `${SITE}/b` })],
@@ -592,5 +622,58 @@ describe("the failed renewal (abonnements-espace-echec-paiement)", () => {
     const email = gracePeriodEmail({ ...input, invoiceUrl: null });
     expect(email.text).toContain(`Voir mon abonnement : ${SITE}/espace/famille/abonnement`);
     expect(email.text).not.toContain("Régler maintenant");
+  });
+});
+
+describe("the founders' cancellation and credit e-mails (annulations-back-office)", () => {
+  const family = {
+    siteUrl: SITE,
+    prenom: "Julie",
+    professionnelle: "Emma",
+    date: "30/09/2026",
+    url: `${SITE}/b`,
+  };
+
+  it("tells the family Berceo cancelled, names her credit, and leads to her booking", () => {
+    const email = gardeCancelledByBerceoFamilyEmail({ ...family, credited: true, republish: true });
+    expect(email.subject).toBe("Votre garde du 30/09/2026 est annulée");
+    expect(email.text).toContain("L'équipe Berceo a annulé votre garde du 30/09/2026 avec Emma.");
+    expect(email.text).toContain("sont devenus un crédit Berceo, valable 24 mois");
+    expect(email.text).toContain("republier votre demande");
+    expect(email.text).toContain(`Voir ma réservation : ${SITE}/b`);
+  });
+
+  it("names no credit without one, and no republishing once the night has started", () => {
+    const email = gardeCancelledByBerceoFamilyEmail({ ...family, credited: false, republish: false });
+    expect(email.text).not.toMatch(/crédit|republier|rembours/);
+  });
+
+  it("tells the professional Berceo cancelled and she is no longer expected", () => {
+    const email = gardeCancelledByBerceoProfessionalEmail({
+      siteUrl: SITE,
+      prenom: "Emma",
+      prenomFamille: "Julie",
+      date: "30/09/2026",
+      url: `${SITE}/g`,
+    });
+    expect(email.subject).toBe("Votre garde du 30/09/2026 est annulée");
+    expect(email.text).toContain("L'équipe Berceo a annulé la garde du 30/09/2026 chez Julie.");
+    expect(email.text).toContain("Vous n'êtes plus attendue cette nuit-là.");
+    expect(email.text).not.toMatch(/crédit/);
+  });
+
+  it("offers the family her credit: the amount, the night, the expiry and a link to her credits", () => {
+    const email = creditGrantedEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      montant: "4,50 €",
+      date: "30/09/2026",
+      expiration: "19/11/2028",
+      url: `${SITE}/espace/famille`,
+    });
+    expect(email.subject).toBe("Un crédit Berceo vous est offert");
+    expect(email.text).toContain("L'équipe Berceo vous offre un crédit de 4,50 € pour votre garde du 30/09/2026.");
+    expect(email.text).toContain("valable jusqu'au 19/11/2028");
+    expect(email.text).toContain(`Voir mes crédits : ${SITE}/espace/famille`);
   });
 });

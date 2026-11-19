@@ -16,6 +16,7 @@
 import type {
   BookingSide,
   BookingStatus,
+  CancellationAuthor,
   CancellationKind,
   CancellationReason,
   CreditOrigin,
@@ -74,6 +75,15 @@ export function canCancel(garde: GardeFacts, now: Date): boolean {
   return gardeState(garde, now) === "a_venir";
 }
 
+/**
+ * A founder cancels a confirmed garde for Berceo (annulations-back-office)
+ * until the end of its night: before its start, or while it is under way.
+ */
+export function canCancelForBerceo(garde: GardeFacts, now: Date): boolean {
+  const state = gardeState(garde, now);
+  return state === "a_venir" || state === "en_cours";
+}
+
 /** Whether `value` is a delay the founders may set: a whole number of hours from 1 to 168. */
 export function isCancellationDelay(value: unknown): value is number {
   return (
@@ -93,6 +103,17 @@ export function lateCancellationFrom(nightDate: string, startTime: string, delay
   const [hour, minute] = toHourMinute(startTime).split(":").map(Number);
   const at = new Date(Date.UTC(y, m - 1, d, hour - delayHours, minute));
   return at.toISOString().slice(0, 16);
+}
+
+/**
+ * The whole hours from the moment `at` to the start hour, in Brussels wall-clock
+ * time, rounded down: what the founders read on « Signalements »
+ * (annulations-back-office). Negative once the night has started.
+ */
+export function hoursBeforeStart(nightDate: string, startTime: string, at: Date): number {
+  const start = Date.parse(`${stamp(nightDate, startTime)}:00Z`);
+  const moment = Date.parse(`${nowStamp(at)}:00Z`);
+  return Math.floor((start - moment) / 3_600_000);
 }
 
 /** Whether the moment `at` falls `delayHours` or fewer before the start hour, or after it. */
@@ -151,7 +172,7 @@ export function reminderNight(now: Date): string {
   return addDays(brusselsNow(now).date, 1);
 }
 
-export type Cancellation = { by: BookingSide; kind: CancellationKind };
+export type Cancellation = { by: CancellationAuthor; kind: CancellationKind };
 
 /** What the founders' table does with a garde's fee (the answers [9.2, 9.3]). */
 export type FeeOutcome = "credit" | "conserve" | "litige" | "rien";
@@ -159,7 +180,7 @@ export type FeeOutcome = "credit" | "conserve" | "litige" | "rien";
 /** One end of a garde, as the table reads it. */
 export type TableFacts = {
   /** The side responsible (who cancelled, or who was absent), or Berceo. */
-  by: BookingSide | "berceo";
+  by: CancellationAuthor;
   kind: CancellationKind;
   nightDate: string;
   startTime: string;
@@ -195,7 +216,7 @@ export function outcomeOf(facts: TableFacts, delayHours: number): FeeOutcome {
 }
 
 /** Why the credit of a table line exists: its `credit_origin`. */
-export function creditOriginOf(by: BookingSide | "berceo", kind: CancellationKind): CreditOrigin {
+export function creditOriginOf(by: CancellationAuthor, kind: CancellationKind): CreditOrigin {
   if (by === "berceo") return "annulation_berceo";
   if (by === "famille") return "annulation_famille";
   return kind === "absence" ? "absence_professionnelle" : "annulation_professionnelle";
@@ -205,7 +226,7 @@ export function creditOriginOf(by: BookingSide | "berceo", kind: CancellationKin
 export type ContestFacts = {
   status: BookingStatus;
   cancellationKind: CancellationKind | null;
-  cancelledBy: BookingSide | null;
+  cancelledBy: CancellationAuthor | null;
   cancelledAt: Date | null;
   disputedAt: Date | null;
 };
@@ -226,7 +247,8 @@ export type FeeLine = "credit" | "conserves" | "litige" | "rembourses";
 
 /**
  * What each side reads about the 3 % once a garde ends early (D-2,
- * annulations-table): a litige says the founders decide; a refunded fee says
+ * annulations-table): a litige says the founders decide, until they grant a
+ * credit of the fee (annulations-back-office); a refunded fee says
  * so whoever refunded it; a live credit of the garde names the credit; a fee
  * the family's own cancellation or absence left at Berceo says it stays. A
  * professional's cancellation made before the table has no credit: nothing,
@@ -240,7 +262,8 @@ export function feeLine(
   credited: boolean,
 ): FeeLine | null {
   if (!cancellation) return null;
-  if (disputed) return "litige";
+  // A litige the founders closed with a credit of the fee reads as that credit (annulations-back-office).
+  if (disputed && !credited) return "litige";
   if (!payment) return null;
   if (payment === "remboursee") return "rembourses";
   if (credited) return "credit";

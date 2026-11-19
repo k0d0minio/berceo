@@ -10,7 +10,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { admin } from "@/content/admin"
 import { fill, words } from "@/content/locale"
 import type { ProfileStatus } from "@/db/schema"
-import { REASON_MAX, checkReason, isReviewable, type Decision } from "@/lib/admin/rules"
+import { REASON_MAX, checkReason, isReviewable, type Decision, type ReasonError } from "@/lib/admin/rules"
 
 /*
  * The three decisions on a file (the guide, "L'outil de vérification"), each
@@ -100,7 +100,11 @@ function DecisionPanel({
 /** The dialog's own words, where they are not the decisions' (the fee's refund). */
 type ReasonLabels = { oui: string; non: string; motif: string; motifAide: string }
 
-/** A confirmation that asks for the reason first, and stays open until it is valid. */
+/**
+ * A confirmation that asks for the reason first, and stays open until it is
+ * valid. `max` and `errors` set a shorter limit and its words (the founders'
+ * notes of annulations-back-office: 500 characters).
+ */
 function ReasonDialog({
   trigger,
   title,
@@ -108,6 +112,8 @@ function ReasonDialog({
   tone,
   onConfirm,
   labels,
+  max = REASON_MAX,
+  errors,
 }: {
   trigger: React.ReactElement
   title: string
@@ -116,6 +122,8 @@ function ReasonDialog({
   tone: "confirmation" | "sensible"
   onConfirm: (reason: string) => void
   labels?: ReasonLabels
+  max?: number
+  errors?: Record<ReasonError, string>
 }) {
   const d = words(admin).decisions
   const l = labels ?? d.confirmation
@@ -135,10 +143,10 @@ function ReasonDialog({
         label: l.oui,
         tone,
         onSelect: (event) => {
-          const checked = checkReason(reason)
+          const checked = checkReason(reason, max)
           if (!checked.ok) {
             event.preventDefault()
-            setError(d.erreurs[checked.error])
+            setError((errors ?? d.erreurs)[checked.error])
             return
           }
           onConfirm(checked.value)
@@ -154,7 +162,7 @@ function ReasonDialog({
         <textarea
           id={`${id}-motif`}
           rows={4}
-          maxLength={REASON_MAX}
+          maxLength={max}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           aria-invalid={error ? true : undefined}

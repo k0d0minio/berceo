@@ -10,7 +10,7 @@ import {
   db,
   professionalProfiles,
   users,
-  type BookingSide,
+  type CancellationAuthor,
   type CancellationKind,
   type Profession,
 } from "@/db";
@@ -61,7 +61,7 @@ export type BookingNotice = {
   id: string;
   nightDate: string;
   startTime: string;
-  cancelledBy: BookingSide | null;
+  cancelledBy: CancellationAuthor | null;
   cancellationKind: CancellationKind | null;
   family: { email: string; firstName: string };
   professional: { email: string; firstName: string };

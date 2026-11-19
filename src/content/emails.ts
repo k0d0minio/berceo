@@ -181,6 +181,32 @@ export const emails = catalogue({
       cta: "Voir ma réservation",
     },
 
+    /**
+     * @relecture Surya — l'équipe Berceo a annulé la garde (annulations-back-office) : aux deux
+     * parties, sans le motif, qui reste interne. La famille lit son crédit Berceo, et la
+     * republication tant que la nuit n'a pas commencé.
+     */
+    annulationParBerceo: {
+      objet: "Votre garde du {date} est annulée",
+      famille: "L'équipe Berceo a annulé votre garde du {date} avec {prenom}.",
+      professionnelle: "L'équipe Berceo a annulé la garde du {date} chez {prenomFamille}. Vous n'êtes plus attendue cette nuit-là.",
+      credit: "Vos frais de service de 3 % sont devenus un crédit Berceo, valable 24 mois pour une prochaine réservation.",
+      suite: "Vous pouvez republier votre demande depuis votre réservation pour trouver une autre professionnelle.",
+      ctaFamille: "Voir ma réservation",
+      ctaProfessionnelle: "Voir mes gardes",
+    },
+
+    /**
+     * @relecture Surya — l'équipe Berceo offre un crédit des frais de service (annulations-back-office),
+     * sans la note des fondatrices.
+     */
+    creditOffert: {
+      objet: "Un crédit Berceo vous est offert",
+      corps: "L'équipe Berceo vous offre un crédit de {montant} pour votre garde du {date}.",
+      validite: "Il est valable jusqu'au {expiration} et règle vos frais de service lors d'une prochaine réservation.",
+      cta: "Voir mes crédits",
+    },
+
     /** Une absence signalée : à la partie déclarée absente (D-106). */
     absence: {
       /** @relecture Surya — objet. */
