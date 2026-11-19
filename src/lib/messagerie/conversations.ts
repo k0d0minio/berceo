@@ -113,6 +113,36 @@ export function withConversation(answerInsert: SQL, at: string): SQL {
 }
 
 /**
+ * `withConversation` for the answer to a regular request (JAM-302): the
+ * INSERT returns one answer per night (`id`, `answer_count`, `request_id`,
+ * `profile_id`), and one conversation is made, on the last night's answer, so
+ * it stays open until the last night ends (D-89), with Berceo's amorce (D-87).
+ * The statement returns every answer with its night, in night order.
+ */
+export function withSeriesConversation(answerInsert: SQL, at: string): SQL {
+  return sql`
+    with answer as (${answerInsert}),
+    dated as (
+      select a.id, a.answer_count, a.request_id, a.profile_id, r.night_date, r.family_user_id
+      from answer a join care_requests r on r.id = a.request_id
+    ),
+    conversation as (
+      insert into conversations (application_id, request_id, profile_id, family_user_id, last_message_at, created_at, updated_at)
+      select d.id, d.request_id, d.profile_id, d.family_user_id, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
+      from (select * from dated order by night_date desc limit 1) d
+      on conflict (application_id) do nothing
+      returning id
+    ),
+    amorce as (
+      insert into messages (conversation_id, author, berceo_key, created_at)
+      select id, 'berceo', 'amorce', ${at}::timestamptz from conversation
+      on conflict do nothing
+    )
+    select id, answer_count, night_date::text as night_date from dated order by night_date
+  `;
+}
+
+/**
  * For the booking's batch, after the booking is made: Berceo's « excellente
  * garde » in the booked answer's conversation, and in no other (D-87). An
  * answer without a conversation (none should remain after the migration)

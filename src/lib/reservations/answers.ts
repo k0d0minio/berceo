@@ -16,7 +16,7 @@ import { notSuspended, suspendedAtExactly } from "@/lib/auth/suspension";
 import { notesOfProfiles, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { nightAhead, professionalProfileOf, UUID } from "@/lib/demandes/requests";
 import { TIME_ZONE } from "@/lib/demandes/rules";
-import { withConversation } from "@/lib/messagerie/conversations";
+import { withConversation, withSeriesConversation } from "@/lib/messagerie/conversations";
 
 import { answerRefusal, type AnswerRefusal, type ApplicationStatus } from "./rules";
 
@@ -147,7 +147,7 @@ export type SeriesAnswerResult =
   | { ok: true; applicationId: string; answerCount: number }
   | { ok: false; reason: AnswerRefusal | "introuvable" };
 
-/** The open nights ahead of a regular request answered as one (JAM-302), in SQL, as `r`. */
+/** The open nights ahead of a regular request answered as one (JAM-302), as a subquery. */
 function openSeriesNights(seriesId: string): SQL {
   return sql`
     select r.id, r.night_date, r.start_time, r.commune_ins, r.priority_profile_id
@@ -213,59 +213,47 @@ export async function answerSeries(userId: string, seriesId: string, now: Date):
   }
 
   const at = now.toISOString();
-  const written = await db.execute<{ id: string; answer_count: number; night_date: string }>(sql`
-    with nights as (${openSeriesNights(seriesId)}),
-    ok as (
-      select n.id, n.night_date from nights n, professional_profiles p
-      where p.id = ${profile.id}
-        and p.status = 'valide'
-        and ${notSuspended(sql`p.user_id`)}
-        and p.night_rate_eur is not null
-        and (n.priority_profile_id = p.id or ${reachesCommune(sql`p.id`, sql`n.commune_ins`)})
-        and not exists (
-          select 1 from bookings b
-          where b.profile_id = p.id and b.night_date = n.night_date and b.status = 'confirmee'
-        )
-        and not exists (
-          select 1 from care_request_applications x
-          where x.request_id = n.id and x.profile_id = p.id and x.status <> 'retiree'
-        )
+  const open = openSeriesNights(seriesId);
+  // The nights she may answer: the same rules as `answerRequest`'s INSERT, night by night.
+  const answerable = sql`
+    select n.id from (${open}) n, professional_profiles p
+    where p.id = ${profile.id}
+      and p.status = 'valide'
+      and ${notSuspended(sql`p.user_id`)}
+      and p.night_rate_eur is not null
+      and (n.priority_profile_id = p.id or ${reachesCommune(sql`p.id`, sql`n.commune_ins`)})
+      and not exists (
+        select 1 from bookings b
+        where b.profile_id = p.id and b.night_date = n.night_date and b.status = 'confirmee'
+      )
+      and not exists (
+        select 1 from care_request_applications x
+        where x.request_id = n.id and x.profile_id = p.id and x.status <> 'retiree'
+      )
+  `;
+  // Every night or none: the INSERT writes only when she may answer each open night.
+  const written = await db.execute<{ id: string; answer_count: number; night_date: string }>(
+    withSeriesConversation(
+      sql`
+        insert into care_request_applications
+          (request_id, profile_id, night_rate_eur, extra_hour_rate_eur, answered_at, created_at, updated_at)
+        select ok.id, p.id, p.night_rate_eur, p.extra_hour_rate_eur, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
+        from (${answerable}) ok, professional_profiles p
+        where p.id = ${profile.id}
+          and (select count(*) from (${answerable}) a) = (select count(*) from (${open}) n)
+        on conflict (request_id, profile_id) do update
+          set status = 'en_attente',
+              night_rate_eur = excluded.night_rate_eur,
+              extra_hour_rate_eur = excluded.extra_hour_rate_eur,
+              answered_at = excluded.answered_at,
+              answer_count = care_request_applications.answer_count + 1,
+              updated_at = excluded.updated_at
+          where care_request_applications.status = 'retiree'
+        returning id, answer_count, request_id, profile_id
+      `,
+      at,
     ),
-    answer as (
-      insert into care_request_applications
-        (request_id, profile_id, night_rate_eur, extra_hour_rate_eur, answered_at, created_at, updated_at)
-      select ok.id, p.id, p.night_rate_eur, p.extra_hour_rate_eur, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
-      from ok, professional_profiles p
-      where p.id = ${profile.id}
-        and (select count(*) from ok) = (select count(*) from nights)
-      on conflict (request_id, profile_id) do update
-        set status = 'en_attente',
-            night_rate_eur = excluded.night_rate_eur,
-            extra_hour_rate_eur = excluded.extra_hour_rate_eur,
-            answered_at = excluded.answered_at,
-            answer_count = care_request_applications.answer_count + 1,
-            updated_at = excluded.updated_at
-        where care_request_applications.status = 'retiree'
-      returning id, answer_count, request_id, profile_id
-    ),
-    dated as (
-      select a.id, a.answer_count, a.request_id, a.profile_id, r.night_date, r.family_user_id
-      from answer a join care_requests r on r.id = a.request_id
-    ),
-    conversation as (
-      insert into conversations (application_id, request_id, profile_id, family_user_id, last_message_at, created_at, updated_at)
-      select d.id, d.request_id, d.profile_id, d.family_user_id, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
-      from (select * from dated order by night_date desc limit 1) d
-      on conflict (application_id) do nothing
-      returning id
-    ),
-    amorce as (
-      insert into messages (conversation_id, author, berceo_key, created_at)
-      select id, 'berceo', 'amorce', ${at}::timestamptz from conversation
-      on conflict do nothing
-    )
-    select id, answer_count, night_date::text as night_date from dated order by night_date
-  `);
+  );
   const [first] = written.rows;
   // A night moved between the read and the write: booked, cancelled, answered.
   if (!first) return { ok: false, reason: "fermee" };
