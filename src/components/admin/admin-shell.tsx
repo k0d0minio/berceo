@@ -16,6 +16,7 @@ import {
   ADMIN_USERS_PATH,
 } from "@/lib/admin/paths"
 import { ADMIN_RATINGS_PATH } from "@/lib/avis/paths"
+import { ADMIN_CREDITS_PATH } from "@/lib/credits/paths"
 import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths"
 import { cn } from "@/lib/utils"
 
@@ -28,6 +29,7 @@ export type AdminSection =
   | "reservations"
   | "signalements"
   | "paiements"
+  | "creditsBerceo"
   | "abonnements"
   | "avis"
   | "journal"
@@ -40,6 +42,7 @@ const SECTIONS: readonly [AdminSection, string][] = [
   ["reservations", ADMIN_BOOKINGS_PATH],
   ["signalements", ADMIN_REPORTS_PATH],
   ["paiements", ADMIN_PAYMENTS_PATH],
+  ["creditsBerceo", ADMIN_CREDITS_PATH],
   ["abonnements", ADMIN_SUBSCRIPTIONS_PATH],
   ["avis", ADMIN_RATINGS_PATH],
   ["journal", ADMIN_JOURNAL_PATH],
@@ -47,7 +50,7 @@ const SECTIONS: readonly [AdminSection, string][] = [
 
 /*
  * Every back-office page: the admin's space with the back-office navigation
- * above the page (D-132). Ten capsules wrap on a phone rather than scroll;
+ * above the page (D-132). Eleven capsules wrap on a phone rather than scroll;
  * the current one reads as the current page and carries the butter fill.
  */
 async function AdminShell({

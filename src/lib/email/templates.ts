@@ -543,7 +543,7 @@ export function gardeCancelledByBerceoProfessionalEmail(input: {
 
 /**
  * A founder granted the family a credit of a garde's fee (annulations-back-office):
- * the amount, the night, the expiry, and the way to her credits. Never the
+ * the amount, the night, the expiry, and the way to « Mes crédits ». Never the
  * founders' note.
  */
 export function creditGrantedEmail(input: {
