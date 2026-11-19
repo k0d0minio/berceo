@@ -297,12 +297,30 @@ export const demandes = catalogue({
       ],
     },
 
+    /**
+     * Les conditions d'annulation, en petits caractères sur la page de la
+     * demande (retour 2, JAM-301). Reprises du questionnaire des fondatrices
+     * (`.icm/docs/berceo-answers.pdf`, section 9, question 2), côté famille.
+     * @relecture Surya — résumé des conditions d'annulation.
+     */
+    conditionsAnnulation: {
+      titre: "Conditions d'annulation",
+      lignes: [
+        "Les deux parties peuvent annuler une réservation avant le début de la garde.",
+        "Si vous annulez plus de 24 heures avant le début de la garde, vos frais de service deviennent un crédit Berceo, valable 24 mois pour une prochaine réservation.",
+        "Si vous annulez moins de 24 heures avant le début de la garde, ou si la garde ne peut pas avoir lieu de votre fait, vos frais de service restent acquis à Berceo. Une éventuelle indemnisation de la professionnelle se règle directement entre vous et elle.",
+        "Si la professionnelle annule ou ne se présente pas, vos frais de service deviennent un crédit Berceo.",
+        "Une annulation d'un commun accord suit la même règle des 24 heures.",
+        "En cas de force majeure ou de litige, l'équipe Berceo examine la situation au cas par cas, conformément aux conditions générales.",
+      ],
+    },
+
     famille: {
       /** @relecture Surya — titre de la liste. */
       titre: "Mes demandes",
-      /** @relecture Surya — introduction de la liste (D-76 : plus de modification après une réponse). */
+      /** @relecture Surya — introduction de la liste (D-76 : plus de modification après une réponse ; retour 2, JAM-301 : l'annulation tant qu'aucune réservation n'est confirmée). */
       intro:
-        "Vos demandes de garde de nuit. Tant qu'une demande est ouverte, vous pouvez l'annuler, et la modifier tant qu'aucune professionnelle n'y a répondu.",
+        "Vos demandes de garde de nuit. Tant qu'aucune réservation n'est confirmée, vous pouvez annuler une demande, et la modifier tant qu'aucune professionnelle n'y a répondu.",
       /** @relecture Surya — aucune demande encore. */
       vide: "Vous n'avez pas encore publié de demande.",
       /** @relecture Surya — accueil de l'espace famille, au-dessus des deux boutons. */

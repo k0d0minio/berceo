@@ -100,6 +100,7 @@ export default async function DemandeProfessionnellePage({
           priority={request.priority}
           rate={view.nightRateEur}
           extraHourRate={view.extraHourRateEur}
+          rateLabel={r.votreTarif}
           note={request.answer === "en_attente" ? r.repondu : undefined}
         />
       </div>

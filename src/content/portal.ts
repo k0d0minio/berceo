@@ -20,6 +20,11 @@ export const portal = catalogue({
       homeLabel: "Berceo, retour à mon espace",
     },
 
+    footer: {
+      /** @relecture Surya — libellé d'accessibilité des liens du bas de l'espace (retour 2, JAM-301). */
+      navLabel: "Informations légales",
+    },
+
     /** The DA's confirmation example, verbatim. */
     signOut: {
       /** @relecture Surya — déclencheur de la déconnexion. */

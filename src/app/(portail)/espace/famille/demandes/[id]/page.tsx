@@ -299,6 +299,16 @@ export default async function DemandePage({
           <Link href={FAMILY_REQUESTS_PATH}>{t.boutons.retour}</Link>
         </Button>
       </div>
+
+      {/* The cancellation conditions, in small print (round 2, JAM-301). */}
+      <section aria-labelledby="conditions-annulation" className="flex max-w-2xl flex-col gap-1 text-legende text-taupe">
+        <h2 id="conditions-annulation" className="font-semibold">
+          {t.conditionsAnnulation.titre}
+        </h2>
+        {t.conditionsAnnulation.lignes.map((ligne) => (
+          <p key={ligne}>{ligne}</p>
+        ))}
+      </section>
     </SpaceShell>
   );
 }

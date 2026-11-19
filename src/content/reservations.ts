@@ -53,6 +53,12 @@ export const reservations = catalogue({
       retiree: "Votre disponibilité est retirée.",
       /** @relecture Surya — marque d'une demande envoyée en priorité (D-71). */
       prioritaire: "Demande prioritaire",
+      /**
+       * @relecture Surya et les fondatrices — au-dessus de son tarif sur une
+       * demande : ce sont ses propres tarifs, que la famille voit sur sa réponse
+       * (JAM-307, le libellé à approuver).
+       */
+      votreTarif: "Votre tarif, indiqué à la famille si vous répondez",
       /** @relecture Surya — lien de l'accueil vers ses gardes. */
       lienGardes: "Voir mes gardes",
       erreurs: {

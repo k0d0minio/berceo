@@ -45,6 +45,8 @@ export function SeriesEntry({
           {first.priority ? (
             <p className="text-corps font-semibold text-taupe">{r.prioritaire}</p>
           ) : null}
+          {/* Her own rate, labelled as JAM-307 labels it on a one-night card. */}
+          {nightRateEur ? <p className="text-legende text-taupe">{r.votreTarif}</p> : null}
           {nightRateEur ? <p className="text-corps font-semibold text-sauge">{rateLine(nightRateEur)}</p> : null}
           {extraHourRateEur ? (
             <p className="text-corps font-semibold text-sauge">{extraHourLine(extraHourRateEur)}</p>

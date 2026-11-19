@@ -29,7 +29,8 @@ export const dynamic = "force-dynamic";
 /*
  * Her list (D-10, D-11): the open requests in the communes she serves, and
  * those sent to her « en priorité » wherever they are (D-71), priority first,
- * then urgent, then newest. Each card carries her rate (the DA's price line),
+ * then urgent, then newest. Each card carries her rate (the DA's price line,
+ * under a label that says it is her own, JAM-307),
  * « Voir la demande » to the request's page, which alone shows the family's
  * optional reason (demande-motif-facultatif), and « Je suis disponible pour
  * cette garde », or, once she answered, « Vous avez répondu » and « Retirer ma
@@ -86,6 +87,7 @@ export default async function DemandesProfessionnellePage({
                       priority={entry.request.priority}
                       rate={view.nightRateEur}
                       extraHourRate={view.extraHourRateEur}
+                      rateLabel={r.votreTarif}
                       note={entry.request.answer === "en_attente" ? r.repondu : undefined}
                       footer={
                         <AnswerFooter

@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 
 import { ConversationView, loadConversation } from "@/components/messagerie/conversation-view";
 import { SpaceShell } from "@/components/shell/space-shell";
-import { fill, words } from "@/content/locale";
+import { words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { requireAccess } from "@/lib/auth/guard";
+import { conversationTitle } from "@/lib/messagerie/format";
 import { conversationPath } from "@/lib/messagerie/paths";
 
 const t = words(messagerie);
@@ -22,7 +23,7 @@ export default async function ConversationProfessionnellePage({ params }: { para
   const user = await requireAccess(conversationPath("professionnelle", id));
   const thread = await loadConversation(user.id, "professionnelle", id);
   return (
-    <SpaceShell user={user} title={fill(t.conversation.titre, { prenom: thread.firstName })}>
+    <SpaceShell user={user} title={conversationTitle(thread)}>
       <ConversationView side="professionnelle" thread={thread} />
     </SpaceShell>
   );

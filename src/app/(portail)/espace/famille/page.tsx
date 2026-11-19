@@ -6,7 +6,6 @@ import { CreditsBlock } from "@/components/credits/credits-block";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { abonnements } from "@/content/abonnements";
-import { common } from "@/content/common";
 import { comptes } from "@/content/comptes";
 import { demandes } from "@/content/demandes";
 import { famille } from "@/content/famille";
@@ -23,7 +22,7 @@ import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
 import { noteOfUser } from "@/lib/avis/ratings";
 import { familyCredits } from "@/lib/credits/credits";
 import { FAMILY_REQUESTS_PATH, NEW_REQUEST_PATH, NEW_URGENT_REQUEST_PATH } from "@/lib/demandes/paths";
-import { PROFILE_PATH } from "@/lib/famille/paths";
+import { FAMILY_CHARTER_PATH, PROFILE_PATH } from "@/lib/famille/paths";
 import { familyCommune } from "@/lib/famille/profile";
 import { SEARCH_PATH } from "@/lib/recherche/slugs";
 import { FAMILY_PROFESSIONALS_PATH } from "@/lib/reservations/paths";
@@ -35,7 +34,6 @@ const t = words(comptes);
 const f = words(famille).accueil;
 const d = words(demandes);
 const a = words(abonnements);
-const c = words(common);
 
 export const metadata: Metadata = {
   title: t.meta.espace,
@@ -161,7 +159,7 @@ export default async function EspaceFamillePage() {
         {d.famille.titre}
       </Link>
       <Button asChild variant="blanc" className="self-start">
-        <Link href={c.pages.charte.href}>{f.charte}</Link>
+        <Link href={FAMILY_CHARTER_PATH}>{f.charte}</Link>
       </Button>
       <OwnNote note={note} />
     </SpaceShell>
