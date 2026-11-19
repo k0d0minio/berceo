@@ -51,14 +51,14 @@ function PromoCodeForm() {
 
   return (
     <section className="flex flex-col gap-4 rounded-carte border border-solid border-perle bg-blanc p-8">
-      <h2 className="font-display text-h3 text-encre-sauge">{f.titre}</h2>
+      <h2 className="font-display text-h3 text-sauge">{f.titre}</h2>
       {message ? <FormMessage>{message}</FormMessage> : null}
       <form ref={formRef} onSubmit={submit} className="flex max-w-md flex-col gap-4" noValidate>
         <Field name="code" label={f.code} help={f.codeAide} error={fieldError("code")} autoComplete="off" required />
         <fieldset className="flex flex-col gap-2">
-          <legend className="text-corps font-semibold text-encre-taupe">{f.type}</legend>
+          <legend className="text-corps font-semibold text-taupe">{f.type}</legend>
           {PROMO_KINDS.map((option) => (
-            <label key={option} className="flex items-center gap-2 text-corps text-encre-taupe">
+            <label key={option} className="flex items-center gap-2 text-corps text-taupe">
               <input
                 type="radio"
                 name="type"

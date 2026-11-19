@@ -42,7 +42,7 @@ function RatingScreen({
 
   return (
     <>
-      <p className="text-corps text-encre-taupe">{fill(f.nuit, { date: formatDate(target.nightDate) })}</p>
+      <p className="text-corps text-taupe">{fill(f.nuit, { date: formatDate(target.nightDate) })}</p>
       {thanked && target.given ? <FormMessage>{f.merci}</FormMessage> : null}
       {target.given ? (
         <GivenRating
@@ -52,15 +52,15 @@ function RatingScreen({
           className="max-w-2xl rounded-carte bg-perle px-6 py-8 md:px-10"
         />
       ) : refusal ? (
-        <p className="max-w-2xl text-corps text-encre-taupe">{t.refus[refusal]}</p>
+        <p className="max-w-2xl text-corps text-taupe">{t.refus[refusal]}</p>
       ) : (
         <>
-          <p className="max-w-2xl text-corps text-encre-taupe">{fill(f.publication, { prenom })}</p>
-          <p className="max-w-2xl text-corps text-encre-taupe">{f.definitif}</p>
+          <p className="max-w-2xl text-corps text-taupe">{fill(f.publication, { prenom })}</p>
+          <p className="max-w-2xl text-corps text-taupe">{f.definitif}</p>
           <RatingForm action={action} labels={labels} />
         </>
       )}
-      <Link href={backHref} className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4">
+      <Link href={backHref} className="self-start text-corps font-semibold text-sauge underline underline-offset-4">
         {f.retour}
       </Link>
     </>

@@ -20,7 +20,7 @@ export default function QuiSommesNousPage() {
   const [intro, ...paragraphs] = t.paragraphs;
   return (
     <article className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-16 md:px-8 md:py-24">
-      <h1 className="font-display text-h1 text-balance text-encre-sauge">
+      <h1 className="font-display text-h1 text-balance text-sauge">
         {t.title}
       </h1>
       <p className="text-intro">{intro}</p>

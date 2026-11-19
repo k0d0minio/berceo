@@ -233,7 +233,7 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
 - **The page:** `/espace/famille/profil` (`src/app/(portail)/espace/famille/profil/`), linked
   as "Mon profil" in a parent's portal navigation. Prénom, nom and téléphone are saved on
   `users`; the e-mail is shown and cannot be changed, because Neon Auth does not support an
-  e-mail change yet (parked: `.icm/intake/triage/famille-changement-email.md`). The commune is
+  e-mail change yet (parked: the stub `famille-changement-email` left the backlog in #73, commit `5119934`, and git history keeps its text). The commune is
   required, the address (rue, numéro, boîte) optional until a booking, the context line at most
   300 characters. `/espace/famille` asks the family to complete her profile until a commune is
   saved. Words in `src/content/famille.ts`.
@@ -416,8 +416,8 @@ in `src/lib/reservations/bookings.ts`.
   returns the line that applies, and `rules.test.ts` holds one test per line. The family cancels
   more than the delay before the start: a credit. Within the delay: the fee stays at Berceo. The
   professional cancels, at any delay: a credit. The professional is reported absent: a credit.
-  The family is reported absent: the fee stays. A cancellation by Berceo: a credit (the rule and
-  its origin only, the founders' button comes with `annulations-back-office`). A garde with no
+  The family is reported absent: the fee stays. A cancellation by Berceo: a credit
+  (`cancelGardeForBerceo`, annulations-back-office). A garde with no
   paid fee: nothing. `cancelGarde` and `reportAbsence` hold the same lines in SQL. The credit is
   one statement of their batch (`gardeCreditStatement` in `src/lib/credits/`), guarded on the end
   this batch wrote and on a `payee` fee. A garde holds one live credit at most
@@ -825,7 +825,8 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
   `src/lib/credits/rules.ts`, a constant and not a founders' setting. The amount is the fee's,
   in cents, never a night rate. The end of a garde issues the table's lines
   (`gardeCreditStatement`, inside the batch of `src/lib/gardes/gardes.ts`, annulations-table).
-  `annulations-back-office` writes the founders' hand through `issueCredit`.
+  The founders' hand (annulations-back-office) is `grantCreditStatement`, inside the batch of
+  `grantFeeCredit` in `src/lib/admin/lists.ts`.
 - **The table:** `credits`, one row per credit: the family, `amount_cents`, `spent_cents`, the
   origin (`annulation_famille`, `annulation_professionnelle`, `absence_professionnelle`,
   `annulation_berceo`, `geste_berceo`), the payment and the booking it comes from or the founder
@@ -861,6 +862,18 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
   each usable credit with what it can still pay and « valable jusqu'au » its expiry, then the
   spent, voided and expired ones under « Crédits utilisés, annulés ou expirés », each with its origin. With no
   credit, one line. Words in `src/content/credits.ts`, every one `@relecture`.
+- **The founders' hand (annulations-back-office):** on « Signalements », « Accorder un crédit »
+  on a garde in litige, or whose fee the family's own cancellation or absence left at Berceo
+  (`canGrantCredit` in `src/lib/admin/rules.ts`). The founder writes a note, 1 to 500
+  characters (`NOTE_MAX`), which only the founders read. One batch writes the credit of the
+  fee's amount, origin `geste_berceo`, with the founder and the note (`grantCreditStatement`, the
+  rule again in SQL: a `payee` fee, no live credit), marks a litige handled, and writes the
+  journal entry `credit_accorde`. The family gets one e-mail (`notifyCreditGranted` in
+  `src/lib/credits/notify.ts`), without the note.
+- **The founders' list:** `/admin/credits` (`ADMIN_CREDITS_PATH` in `src/lib/credits/paths.ts`),
+  every credit, newest first, 50 a page (`adminCredits`), under a line that counts the credits
+  that can still pay and what they can pay in all (`liveCreditSummary`). The overview's block
+  « Crédits disponibles » reads the same function (D-133). Read-only.
 - **Hers alone:** only `src/lib/credits/` and the schema name the tables `credits` and
   `credit_spends`. `src/lib/credits/isolation.test.ts` holds that.
 
@@ -971,14 +984,15 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
 
 - **Navigation (D-132):** every `/admin` page goes through `AdminShell`
   (`src/components/admin/admin-shell.tsx`): « Vue d'ensemble », Dossiers, Utilisateurs, Demandes,
-  Réservations, Signalements, Paiements, Abonnements, Avis, Journal. All 404 to anyone but an
+  Réservations, Signalements, Paiements, Crédits, Abonnements, Avis, Journal. All 404 to anyone but an
   admin (D-33).
   `/admin/absences` redirects permanently to `/admin/signalements`.
 - **« Vue d'ensemble » (D-133):** `/admin`, the guide's four blocks and a fifth, each a number
   and a link: the verification queue, `/admin/reservations?etat=en-cours` (confirmed gardes not
   ended), `/admin/signalements` (cancelled gardes and absences not marked handled),
   `/admin/paiements?periode=7j` (fees paid in the last 7 days) and
-  `/admin/abonnements?statut=actifs` (the active subscriptions, abonnements-back-office). Each
+  `/admin/abonnements?statut=actifs` (the active subscriptions, abonnements-back-office), and a
+  sixth, `/admin/credits` (the credits that can still pay, and their total, annulations-back-office). Each
   number is counted with the same exported condition its list filters on
   (`src/lib/admin/lists.ts`, `paymentCountSince` in `src/lib/paiements/payments.ts`,
   `subscriptionListCondition` in `src/lib/abonnements/subscriptions.ts`). The payments block adds
@@ -1014,6 +1028,21 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
 - **Lists:** `/admin/demandes` and `/admin/reservations` (filters by state and by account),
   `/admin/signalements` with « Marquer comme traité » (one statement: the marker and the journal
   entry, D-139).
+- **Signalements (annulations-back-office):** three filters, « À traiter », « Litige » (every
+  garde in litige, handled or not) and « Tous ». Each row shows the reason, or the founders' note
+  on a cancellation by Berceo, the delay (the whole hours from the cancellation to the start,
+  `hoursBeforeStart`, and « dans le délai » or « hors délai » for the family's cancellation,
+  read from the credit that was written then and never from today's setting, `delayVerdict`),
+  and what became of the fee (`reportOutcome`), with « Accorder un crédit » where it applies.
+- **Cancelling a garde for Berceo (annulations-back-office):** « Annuler la garde » on
+  `/admin/reservations` and on an account's gardes, on a confirmed garde until the end of its
+  night (`canCancelForBerceo`). The founder writes a note, 1 to 500 characters, which only the
+  founders read. One batch (`cancelGardeForBerceo` in `src/lib/gardes/gardes.ts`) records the
+  garde against `berceo` (a value of `booking_side`; `BookingSide` stays the two sides), with
+  the founder and `cancellation_note`, cancels its request, turns the paid fee into a credit of
+  origin `annulation_berceo`, and writes the journal entry `garde_annulee_berceo`. Both sides
+  read « Annulée par Berceo » and get one e-mail each, without the note. The family can
+  republish while the night has not started.
 - **Words:** `src/content/admin.ts` (the guide's « Le backoffice » lines verbatim), the suspended
   message in `src/content/comptes.ts`, the contact frame in `src/content/emails.ts`.
 

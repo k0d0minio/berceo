@@ -171,6 +171,9 @@ export const admin = catalogue({
         utilisateur_contacte: "Utilisateur contacté",
         signalement_traite: "Signalement traité",
         reglage_delai_annulation: "Réglage : délai d'annulation",
+        /** @relecture Surya — les actions des fondatrices sur une garde et ses frais (annulations-back-office). */
+        credit_accorde: "Crédit Berceo accordé",
+        garde_annulee_berceo: "Garde annulée par Berceo",
         /** @relecture Surya — les codes promo (JAM-304). */
         code_promo_cree: "Code promo créé",
         code_promo_desactive: "Code promo désactivé",
@@ -541,6 +544,8 @@ export const admin = catalogue({
       reservations: "Réservations",
       signalements: "Signalements",
       paiements: "Paiements",
+      /** @relecture Surya — la liste des crédits Berceo (annulations-back-office). */
+      creditsBerceo: "Crédits",
       abonnements: "Abonnements",
       codesPromo: "Codes promo",
       avis: "Avis",
@@ -557,6 +562,8 @@ export const admin = catalogue({
         paiements: "Paiements récents",
         /** @relecture Surya — le bloc des abonnements (abonnements-back-office). */
         abonnements: "Abonnements actifs",
+        /** @relecture Surya — le bloc des crédits Berceo (annulations-back-office). */
+        creditsBerceo: "Crédits disponibles",
       },
       /** @relecture Surya — ce que chaque chiffre compte (D-133). */
       precisions: {
@@ -565,7 +572,10 @@ export const admin = catalogue({
         signalements: "Gardes annulées et absences signalées, pas encore traitées",
         paiements: "Frais de service payés ces 7 derniers jours",
         abonnements: "Abonnements en cours, période de grâce comprise",
+        creditsBerceo: "Crédits Berceo ni utilisés, ni annulés, ni expirés",
       },
+      /** @relecture Surya — ce que les crédits disponibles peuvent encore régler (annulations-back-office). */
+      resteCredits: "{montant} € à utiliser en tout",
       /** @relecture Surya — le lien de chaque bloc. */
       voir: "Voir la liste complète",
       /** @relecture Surya — les frais encore dus, dans le bloc des paiements (D-164). */
@@ -803,6 +813,31 @@ export const admin = catalogue({
       toutesLesReservations: "Voir toutes les réservations",
       /** @relecture Surya — liste vide. */
       vide: "Aucune réservation.",
+      /** @relecture Surya — la colonne et le bouton de l'annulation par Berceo (annulations-back-office). */
+      action: "Action",
+      annuler: "Annuler la garde",
+      /** @relecture Surya — la confirmation (D-24) : la note reste interne, les deux parties reçoivent un e-mail. */
+      annulation: {
+        titre: "Annuler la garde du {date} pour Berceo",
+        description:
+          "La garde entre {famille} et {professionnelle} est annulée. Les frais de service payés deviennent un crédit Berceo de la famille. Les deux parties reçoivent un e-mail, sans votre note. L'action est inscrite au journal et ne peut pas être annulée.",
+        motif: "Note",
+        motifAide: "500 caractères au plus. La note reste interne à Berceo.",
+        oui: "Oui, annuler la garde",
+        non: "Non, ne rien changer",
+      },
+      /** @relecture Surya — résultats de l'annulation par Berceo. */
+      annulationResultats: {
+        ok: "La garde est annulée. Les deux parties sont prévenues.",
+        refuse: "Cette garde ne peut plus être annulée. Rechargez la page.",
+        generique: "Une erreur est survenue. Réessayez dans un instant.",
+      },
+    },
+
+    /** @relecture Surya — la note d'une fondatrice, 500 caractères au plus (annulations-back-office). */
+    note: {
+      motifRequis: "Écrivez une note.",
+      motifLong: "La note dépasse 500 caractères.",
     },
 
     /** Les signalements : gardes annulées et absences signalées (D-139). */
@@ -811,7 +846,7 @@ export const admin = catalogue({
       titre: "Signalements",
       /** @relecture Surya — ce que la page montre, le litige (annulations-table), et où rembourser. */
       intro:
-        "Chaque garde annulée par une famille ou une professionnelle, et chaque absence signalée, la plus récente en premier. Une absence contestée est un litige : aucun crédit n'est accordé, l'équipe Berceo décide. Les frais ne sont jamais remboursés d'office : le remboursement se fait depuis la page des paiements.",
+        "Chaque garde annulée par une famille, une professionnelle ou Berceo, et chaque absence signalée, la plus récente en premier. Une absence contestée est un litige : aucun crédit n'est accordé d'office, l'équipe Berceo décide. Sur un litige, ou sur des frais conservés par Berceo, vous pouvez accorder un crédit des frais. Les frais ne sont jamais remboursés d'office : le remboursement se fait depuis la page des paiements.",
       /** @relecture Surya — colonnes. */
       colonnes: {
         date: "Signalé le",
@@ -820,12 +855,15 @@ export const admin = catalogue({
         professionnelle: "Professionnelle",
         signalement: "Signalement",
         motif: "Motif",
+        /** @relecture Surya — le délai qui s'est appliqué (annulations-back-office). */
+        delai: "Délai",
         frais: "Frais",
         suivi: "Suivi",
       },
-      /** @relecture Surya — filtres. */
+      /** @relecture Surya — filtres ; « Litige » montre les litiges traités ou non (annulations-back-office). */
       filtres: {
         "a-traiter": "À traiter",
+        litige: "Litige",
         tous: "Tous",
       },
       /** @relecture Surya — ce qui s'est passé. */
@@ -833,6 +871,8 @@ export const admin = catalogue({
         annulation: {
           famille: "Annulée par la famille",
           professionnelle: "Annulée par la professionnelle",
+          /** @relecture Surya — annulée par une fondatrice (annulations-back-office). */
+          berceo: "Annulée par Berceo",
         },
         absence: {
           famille: "Absence de la famille signalée",
@@ -841,6 +881,43 @@ export const admin = catalogue({
       },
       /** @relecture Surya — une absence, ou une garde annulée avant les motifs (annulations-delai-et-motif). */
       sansMotif: "Aucun motif",
+      /** @relecture Surya — la note interne d'une annulation par Berceo (annulations-back-office). */
+      note: "Note : {note}",
+      /** @relecture Surya — le délai : les heures avant le début, et la ligne du tableau (annulations-back-office, Q1). */
+      heuresAvant: "{n} h avant le début",
+      apresDebut: "Après le début",
+      verdicts: {
+        dansLeDelai: "Dans le délai",
+        horsDelai: "Hors délai",
+      },
+      sansDelai: "Sans objet",
+      /** @relecture Surya — ce que sont devenus les frais (annulations-back-office). */
+      resultats: {
+        litige: "Litige : l'équipe Berceo décide",
+        credit: "Devenus un crédit Berceo",
+        geste: "Crédit offert par Berceo",
+        conserves: "Conservés par Berceo",
+        rembourses: "Remboursés",
+        aRembourser: "À rembourser",
+        aucun: "Aucuns frais",
+      },
+      /** @relecture Surya — accorder un crédit des frais (annulations-back-office), et sa confirmation (D-24). */
+      accorder: "Accorder un crédit",
+      accord: {
+        titre: "Accorder un crédit à {nom}",
+        description:
+          "Un crédit Berceo de {montant}, valable 24 mois, est ajouté au compte de la famille. Elle reçoit un e-mail, sans votre note. Sur un litige, le signalement est marqué comme traité. L'action est inscrite au journal et ne peut pas être annulée.",
+        motif: "Note",
+        motifAide: "500 caractères au plus. La note reste interne à Berceo.",
+        oui: "Oui, accorder le crédit",
+        non: "Non, ne rien changer",
+      },
+      /** @relecture Surya — résultats du bouton. */
+      accordResultats: {
+        ok: "Le crédit est accordé. La famille est prévenue.",
+        refuse: "Ce crédit ne peut plus être accordé. Rechargez la page.",
+        generique: "Une erreur est survenue. Réessayez dans un instant.",
+      },
       /** @relecture Surya — l'absence a été contestée : la garde est en litige (annulations-table). */
       litige: "Litige : signalement contesté le {date}",
       /** @relecture Surya — le suivi. */
@@ -860,6 +937,43 @@ export const admin = catalogue({
       /** @relecture Surya — listes vides. */
       vide: "Aucun signalement à traiter.",
       videTous: "Aucun signalement.",
+      /** @relecture Surya — aucun litige (annulations-back-office). */
+      videLitige: "Aucun litige.",
+    },
+
+    /** @relecture Surya — la liste des crédits Berceo (annulations-back-office). */
+    creditsBerceo: {
+      titre: "Crédits",
+      intro:
+        "Chaque crédit Berceo, le plus récent en premier : né d'une annulation ou d'une absence selon le tableau, ou offert par l'équipe Berceo. Un crédit dure 24 mois et règle les frais de service d'une prochaine réservation.",
+      resume: "{n} crédits disponibles, {montant} € à utiliser en tout.",
+      colonnes: {
+        date: "Émis le",
+        famille: "Famille",
+        montant: "Montant",
+        origine: "Origine",
+        garde: "Garde",
+        expiration: "Expire le",
+        utilise: "Utilisé",
+        etat: "État",
+      },
+      etats: {
+        disponible: "Disponible",
+        utilise: "Utilisé",
+        annule: "Annulé",
+        expire: "Expiré",
+      },
+      origines: {
+        annulation_famille: "Garde annulée par la famille",
+        annulation_professionnelle: "Garde annulée par la professionnelle",
+        absence_professionnelle: "Absence de la professionnelle",
+        annulation_berceo: "Garde annulée par Berceo",
+        geste_berceo: "Offert par Berceo",
+      },
+      offertPar: "Par {nom} : {note}",
+      sansGarde: "Aucune",
+      compteSupprime: "Compte supprimé",
+      vide: "Aucun crédit n'existe encore.",
     },
 
     /** La pagination des listes de l'administration. */

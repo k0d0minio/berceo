@@ -5,9 +5,9 @@ import type { Note } from "@/lib/avis/ratings"
 import { cn } from "@/lib/utils"
 
 /*
- * The stars (avis-etoiles, D-9, D-119): a filled star in the sage ink, an
- * empty one as its taupe-ink outline. No new colour, never red or green
- * (D-24), no shadow. `NoteDisplay` is a person's note wherever it shows, with
+ * The stars (avis-etoiles, D-9, D-119): filled and rounded, as every icon of
+ * the DA (JAM-300). A given star is sage, an empty one pearl. No outline, no
+ * new colour, never red or green, no shadow. `NoteDisplay` is a person's note wherever it shows, with
  * the value in text and the gardes count; `GivenRating` is the stars one side
  * gave on a garde, read-only, to that side only.
  */
@@ -21,11 +21,11 @@ function Star({ filled, className }: { filled: boolean; className?: string }) {
       viewBox="0 0 24 24"
       aria-hidden="true"
       focusable="false"
-      className={cn("size-5 shrink-0", filled ? "text-encre-sauge" : "text-encre-taupe", className)}
+      className={cn("size-5 shrink-0", filled ? "text-sauge" : "text-perle", className)}
     >
       <path
         d={STAR_PATH}
-        fill={filled ? "currentColor" : "none"}
+        fill="currentColor"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinejoin="round"
@@ -64,7 +64,7 @@ function NoteDisplay({ note, label, className }: { note: Note; label?: string; c
   const t = words(avis).note
   const gardes = gardesLine(note.gardes)
   return (
-    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-corps text-encre-taupe", className)}>
+    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-corps text-taupe", className)}>
       {label ? <span className="font-semibold">{label}</span> : null}
       {note.note === null ? (
         <span>{t.aucune}</span>
@@ -102,12 +102,12 @@ function GivenRating({
   const t = words(avis).donne
   return (
     <section className={cn("flex flex-col gap-3", className)}>
-      <h2 className="font-display text-h3 text-encre-sauge">{t.titre}</h2>
-      <p className="text-legende text-encre-taupe">{fill(t.date, { date })}</p>
+      <h2 className="text-h3 font-bold text-sauge">{t.titre}</h2>
+      <p className="text-legende text-taupe">{fill(t.date, { date })}</p>
       <dl className="flex flex-col gap-2">
         {labels.map((label, i) => (
           <div key={label} className="flex flex-wrap items-center justify-between gap-x-4">
-            <dt className="text-corps font-semibold text-encre-taupe">{label}</dt>
+            <dt className="text-corps font-semibold text-taupe">{label}</dt>
             <dd role="img" aria-label={starsText(scores[i])}>
               <StarRow value={scores[i]} />
             </dd>
@@ -123,9 +123,9 @@ function OwnNote({ note, className }: { note: Note; className?: string }) {
   const t = words(avis).note
   return (
     <section className={cn("flex max-w-2xl flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8", className)}>
-      <h2 className="font-display text-h3 text-encre-sauge">{t.vous}</h2>
+      <h2 className="text-h3 font-bold text-sauge">{t.vous}</h2>
       <NoteDisplay note={note} />
-      <p className="text-legende text-encre-taupe">{t.explication}</p>
+      <p className="text-legende text-taupe">{t.explication}</p>
     </section>
   )
 }

@@ -54,9 +54,9 @@ const f = words(famille).profil
 
 // The DA's field construction for a native select: same capsule as the input.
 const selectClasses =
-  "flex min-h-12 w-full min-w-0 appearance-none rounded-capsule border border-solid border-input bg-blanc px-6 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge focus-visible:outline-none aria-invalid:border-destructive"
-const legend = "text-corps font-semibold text-encre-taupe"
-const helpText = "px-6 text-legende text-encre-taupe"
+  "flex min-h-12 w-full min-w-0 appearance-none rounded-capsule border border-solid border-input bg-blanc px-6 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge focus-visible:outline-none aria-invalid:border-destructive"
+const legend = "text-corps font-semibold text-taupe"
+const helpText = "px-6 text-legende text-taupe"
 const errorClasses = "px-6 text-legende font-semibold text-destructive"
 
 /** The optional reason, with its live count, the way the profile counts its context line. */
@@ -81,7 +81,7 @@ function ReasonField({ defaultValue, error }: { defaultValue: string; error?: st
         aria-describedby={["champ-motif-aide", "champ-motif-avertissement", error ? "champ-motif-erreur" : ""]
           .filter(Boolean)
           .join(" ")}
-        className="w-full min-w-0 rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge focus-visible:outline-none aria-invalid:border-destructive"
+        className="w-full min-w-0 rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge focus-visible:outline-none aria-invalid:border-destructive"
       />
       <p id="champ-motif-avertissement" className={helpText}>
         {t.formulaire.aides.motifAvertissement}{" "}
@@ -175,7 +175,7 @@ function RequestForm({
       {priority ? (
         <>
           <input type="hidden" name="priorite" value={priority.profileId} />
-          <p className="text-corps font-semibold text-encre-taupe">{priority.note}</p>
+          <p className="text-corps font-semibold text-taupe">{priority.note}</p>
         </>
       ) : null}
 
@@ -184,7 +184,7 @@ function RequestForm({
           <legend className={cn(legend, "mb-3")}>{t.formulaire.champs.nature}</legend>
           <div className="flex flex-wrap gap-6 px-2">
             {REQUEST_KINDS.map((key) => (
-              <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-encre-taupe">
+              <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-taupe">
                 <input
                   type="radio"
                   name="nature"
@@ -324,7 +324,7 @@ function RequestForm({
         <legend className={cn(legend, "mb-3")}>{t.formulaire.champs.enfants}</legend>
         <div key={`enfants-${v?.enfants ?? ""}`} className="flex flex-wrap gap-6 px-2">
           {CHILDREN.map((key) => (
-            <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-encre-taupe">
+            <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-taupe">
               <input
                 type="radio"
                 name="enfants"
@@ -393,7 +393,7 @@ function RequestForm({
         <legend className={cn(legend, "mb-3")}>{t.formulaire.champs.alimentation}</legend>
         <div key={`alimentation-${v?.alimentation ?? ""}`} className="flex flex-wrap gap-6 px-2">
           {FEEDINGS.map((key) => (
-            <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-encre-taupe">
+            <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-taupe">
               <input
                 type="radio"
                 name="alimentation"
@@ -415,7 +415,7 @@ function RequestForm({
 
       <fieldset className="flex flex-col gap-6" aria-describedby="champ-adresse-aide">
         <legend className={cn(legend, "mb-2")}>{t.formulaire.champs.adresse}</legend>
-        <p id="champ-adresse-aide" className="text-corps text-encre-taupe">
+        <p id="champ-adresse-aide" className="text-corps text-taupe">
           {mode === "modification" ? t.formulaire.aides.adresseModification : t.formulaire.aides.adresse}
         </p>
         {mode === "modification" ? (
@@ -484,7 +484,7 @@ function RequestForm({
 
       {mode === "modification" ? null : (
         <div className="flex flex-col gap-2">
-          <label className="flex items-start gap-3 text-corps text-encre-taupe">
+          <label className="flex items-start gap-3 text-corps text-taupe">
             <input
               type="checkbox"
               name="confirmation"

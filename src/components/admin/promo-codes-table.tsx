@@ -13,7 +13,7 @@ import type { PromoCodeRow } from "@/lib/abonnements/promo-codes"
 import { eurosFromCents } from "@/lib/paiements/rules"
 
 const date = new Intl.DateTimeFormat("fr-BE", { dateStyle: "short", timeZone: "Europe/Brussels" })
-const link = "font-semibold text-encre-sauge underline underline-offset-4"
+const link = "font-semibold text-sauge underline underline-offset-4"
 
 /*
  * The codes read from Stripe (JAM-304): the code, linked to Stripe, the
@@ -47,7 +47,7 @@ function DeactivateButton({ id, code }: { id: string; code: string }) {
         cancel={{ label: t.annuler, tone: "confirmation" }}
       />
       {failed ? (
-        <p role="status" className="max-w-xs text-legende text-encre-taupe">
+        <p role="status" className="max-w-xs text-legende text-taupe">
           {t.erreurDesactivation}
         </p>
       ) : null}
@@ -60,7 +60,7 @@ function PromoCodesTable({ rows }: { rows: PromoCodeRow[] }) {
 
   return (
     <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
-      <Table className="text-corps text-encre-taupe">
+      <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>
             <TableHead>{t.colonnes.code}</TableHead>

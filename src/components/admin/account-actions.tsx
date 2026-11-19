@@ -25,7 +25,7 @@ import {
 } from "@/lib/admin/rules"
 
 const field =
-  "w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge aria-invalid:border-destructive"
+  "w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge aria-invalid:border-destructive"
 
 /*
  * The guide's actions on an account (« Contacter l'utilisateur », « Suspendre
@@ -104,7 +104,7 @@ function AccountActions({
             cancel={{ label: c.non, tone: "confirmation" }}
           >
             {upcoming.length > 0 ? (
-              <div className="flex flex-col gap-2 text-corps text-encre-taupe">
+              <div className="flex flex-col gap-2 text-corps text-taupe">
                 <p className="font-semibold">{c.suspendreGardes}</p>
                 <ul className="flex list-disc flex-col gap-1 pl-6">
                   {upcoming.map((line) => (
@@ -121,7 +121,7 @@ function AccountActions({
             <Button type="button" variant="raye" disabled aria-describedby={`${userId}-suppression`}>
               {t.supprimer}
             </Button>
-            <p id={`${userId}-suppression`} className="px-2 text-legende text-encre-taupe">
+            <p id={`${userId}-suppression`} className="px-2 text-legende text-taupe">
               {t.indisponible[deleteBlocked]}
             </p>
           </div>
@@ -186,7 +186,7 @@ function DeleteDialog({
       cancel={{ label: c.non, tone: "confirmation" }}
     >
       <div className="flex flex-col gap-2">
-        <label htmlFor={`${id}-nom`} className="text-corps font-semibold text-encre-taupe">
+        <label htmlFor={`${id}-nom`} className="text-corps font-semibold text-taupe">
           {fill(c.nom, { nom: lastName })}
         </label>
         <Input
@@ -280,7 +280,7 @@ function ContactDialog({
       <div className="flex flex-col gap-4">
         {failure ? <FormMessage>{failure}</FormMessage> : null}
         <div className="flex flex-col gap-2">
-          <label htmlFor={`${id}-objet`} className="text-corps font-semibold text-encre-taupe">
+          <label htmlFor={`${id}-objet`} className="text-corps font-semibold text-taupe">
             {k.objet}
           </label>
           <Input
@@ -298,7 +298,7 @@ function ContactDialog({
           ) : null}
         </div>
         <div className="flex flex-col gap-2">
-          <label htmlFor={`${id}-message`} className="text-corps font-semibold text-encre-taupe">
+          <label htmlFor={`${id}-message`} className="text-corps font-semibold text-taupe">
             {k.message}
           </label>
           <textarea
@@ -311,7 +311,7 @@ function ContactDialog({
             aria-describedby={[`${id}-aide`, errors.message ? `${id}-message-erreur` : ""].filter(Boolean).join(" ")}
             className={field}
           />
-          <p id={`${id}-aide`} className="px-6 text-legende text-encre-taupe">
+          <p id={`${id}-aide`} className="px-6 text-legende text-taupe">
             {k.messageAide}
           </p>
           {errors.message ? (

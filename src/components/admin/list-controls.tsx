@@ -4,7 +4,7 @@ import { admin } from "@/content/admin"
 import { fill, words } from "@/content/locale"
 import { cn } from "@/lib/utils"
 
-const link = "text-corps font-semibold text-encre-sauge underline underline-offset-4"
+const link = "text-corps font-semibold text-sauge underline underline-offset-4"
 
 /** A list's address with these parameters, empty ones left out. */
 export function listHref(path: string, params: Record<string, string | null | undefined>): string {
@@ -35,7 +35,7 @@ function FilterLinks({
               href={option.href}
               aria-current={option.current ? "true" : undefined}
               className={cn(
-                "inline-flex min-h-12 items-center rounded-capsule border border-solid border-encre-taupe px-5 text-corps text-encre-taupe transition-colors duration-200 ease-out hover:bg-beurre",
+                "inline-flex min-h-12 items-center rounded-capsule border border-solid border-taupe px-5 text-corps text-taupe transition-colors duration-200 ease-out hover:bg-beurre",
                 option.current && "border-beurre bg-beurre font-semibold",
               )}
             >
@@ -53,7 +53,7 @@ function Pager({ page, pages, href }: { page: number; pages: number; href: (page
   const t = words(admin).pages
   if (pages <= 1) return null
   return (
-    <nav className="flex flex-wrap items-center gap-6 text-corps text-encre-taupe">
+    <nav className="flex flex-wrap items-center gap-6 text-corps text-taupe">
       {page > 1 ? (
         <Link href={href(page - 1)} className={link}>
           {t.precedente}

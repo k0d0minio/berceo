@@ -188,20 +188,20 @@ export default async function ReservationPage({
         <GardeStateMark state={state} />
         <div className="flex items-center gap-4">
           <ProfessionalPhoto photoId={professional.photoId} prenom={professional.firstName} className="size-16" />
-          <h2 className="font-display text-h3 text-encre-sauge uppercase">
+          <h2 className="text-h3 font-bold text-sauge">
             {cardTitle(request.communeIns, request.locality)}
           </h2>
         </div>
         <dl className="flex flex-col gap-3">
           {[...rows, ...feeRows].map(([label, value]) => (
             <div key={label} className="flex flex-wrap justify-between gap-x-4">
-              <dt className="text-corps font-semibold text-encre-taupe">{label}</dt>
-              <dd className="text-corps text-encre-taupe">{value}</dd>
+              <dt className="text-corps font-semibold text-taupe">{label}</dt>
+              <dd className="text-corps text-taupe">{value}</dd>
             </div>
           ))}
           <div className="flex flex-wrap justify-between gap-x-4">
-            <dt className="text-corps font-semibold text-encre-taupe">{l.telephone}</dt>
-            <dd className="text-corps text-encre-taupe">
+            <dt className="text-corps font-semibold text-taupe">{l.telephone}</dt>
+            <dd className="text-corps text-taupe">
               {booking.phone ? (
                 <a href={`tel:${booking.phone}`} className="underline underline-offset-4">
                   {booking.phone}
@@ -212,11 +212,11 @@ export default async function ReservationPage({
             </dd>
           </div>
         </dl>
-        <p className="text-corps text-encre-taupe">{t.recapitulatif.paiement}</p>
-        {cancelled ? <p className="text-corps font-semibold text-encre-taupe">{cancelled}</p> : null}
-        {reason ? <p className="text-corps text-encre-taupe">{reason}</p> : null}
-        {dispute ? <p className="text-corps font-semibold text-encre-taupe">{dispute}</p> : null}
-        {feeLine ? <p className="text-corps text-encre-taupe">{feeLine}</p> : null}
+        <p className="text-corps text-taupe">{t.recapitulatif.paiement}</p>
+        {cancelled ? <p className="text-corps font-semibold text-taupe">{cancelled}</p> : null}
+        {reason ? <p className="text-corps text-taupe">{reason}</p> : null}
+        {dispute ? <p className="text-corps font-semibold text-taupe">{dispute}</p> : null}
+        {feeLine ? <p className="text-corps text-taupe">{feeLine}</p> : null}
       </article>
       {myRating ? (
         <GivenRating

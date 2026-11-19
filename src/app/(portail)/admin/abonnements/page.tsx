@@ -61,14 +61,14 @@ export default async function AbonnementsPage({
         ]}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{active ? t.videActifs : t.vide}</p>
+        <p className="text-corps text-taupe">{active ? t.videActifs : t.vide}</p>
       ) : (
         <SubscriptionsTable rows={rows} />
       )}
       <Pager page={page} pages={pages} href={(n) => href(n)} />
-      <h2 className="font-display text-h3 text-encre-sauge">{t.nuits.titre}</h2>
+      <h2 className="font-display text-h3 text-sauge">{t.nuits.titre}</h2>
       {nights.rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{t.nuits.vide}</p>
+        <p className="text-corps text-taupe">{t.nuits.vide}</p>
       ) : (
         <NightPassesTable rows={nights.rows} />
       )}

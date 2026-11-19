@@ -40,7 +40,7 @@ export default function TarifsPage() {
       />
 
       <VitrineSection title={t.abonnements.title} tone="perle">
-        <div className="flex max-w-3xl flex-col gap-4 text-encre-taupe">
+        <div className="flex max-w-3xl flex-col gap-4 text-taupe">
           {t.abonnements.paragraphs.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
@@ -50,13 +50,13 @@ export default function TarifsPage() {
             <li key={plan.name}>
               <Card className="h-full">
                 <CardHeader>
-                  <h3 className="font-display text-h3 text-encre-sauge">
+                  <h3 className="text-h3 font-bold text-sauge">
                     {plan.name}
                   </h3>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                   <p>{plan.duree}</p>
-                  <p className="font-display text-h2 text-encre-sauge">
+                  <p className="font-display text-h2 text-sauge">
                     {plan.prix}
                   </p>
                 </CardContent>
@@ -69,7 +69,7 @@ export default function TarifsPage() {
           {blocks.map((block) => (
             <Card key={block.title}>
               <CardHeader>
-                <h2 className="font-display text-h3 text-encre-sauge">
+                <h2 className="text-h3 font-bold text-sauge">
                   {block.title}
                 </h2>
               </CardHeader>
@@ -89,7 +89,7 @@ export default function TarifsPage() {
           </Button>
           <Link
             href={c.pages.faq.href}
-            className="font-semibold text-encre-sauge underline underline-offset-4"
+            className="font-semibold text-sauge underline underline-offset-4"
           >
             {t.faq}
           </Link>

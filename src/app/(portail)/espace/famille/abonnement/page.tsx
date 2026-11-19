@@ -69,7 +69,7 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
               {" "}
               <a
                 href={`${SUBSCRIPTION_RETURN_PATH}?session_id=${encodeURIComponent(query.session_id)}`}
-                className="font-semibold text-encre-sauge underline underline-offset-4"
+                className="font-semibold text-sauge underline underline-offset-4"
               >
                 {t.retour.actualiser}
               </a>
@@ -82,7 +82,7 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
         <>
           {unpaid ? (
             <section role="alert" className="flex max-w-2xl flex-col items-start gap-4 rounded-carte bg-beurre px-6 py-6 md:px-8">
-              <p className="text-corps text-encre-taupe">
+              <p className="text-corps text-taupe">
                 {state === "grace" && running.graceEndsAt
                   ? fill(t.espace.alerte.grace, { date: renewalDate(running.graceEndsAt) })
                   : t.espace.alerte.suspendue}
@@ -95,49 +95,49 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
             </section>
           ) : null}
           <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-            <h2 className="font-display text-h3 text-encre-sauge">
+            <h2 className="text-h3 font-bold text-sauge">
               {fill(t.espace.formule, { plan: planWords(running.plan).name })}
             </h2>
-            <p className="text-corps text-encre-taupe">
+            <p className="text-corps text-taupe">
               {fill(t.espace.prix, { prix: planWords(running.plan).prix, duree: planWords(running.plan).duree })}
             </p>
             {state === "resiliee" && running.cancelsAt ? (
-              <p className="text-corps text-encre-taupe">{fill(t.espace.finLe, { date: renewalDate(running.cancelsAt) })}</p>
+              <p className="text-corps text-taupe">{fill(t.espace.finLe, { date: renewalDate(running.cancelsAt) })}</p>
             ) : running.currentPeriodEnd ? (
-              <p className="text-corps text-encre-taupe">
+              <p className="text-corps text-taupe">
                 {fill(t.espace.renouvellement, { date: renewalDate(running.currentPeriodEnd) })}
               </p>
             ) : null}
-            <p className="text-corps font-semibold text-encre-taupe">{t.espace.statut[state]}</p>
-            <p className="text-corps text-encre-taupe">{t.espace.gererAide}</p>
+            <p className="text-corps font-semibold text-taupe">{t.espace.statut[state]}</p>
+            <p className="text-corps text-taupe">{t.espace.gererAide}</p>
             <form action={openPortalAction}>
               <Button type="submit">{t.espace.gerer}</Button>
             </form>
-            <p className="text-corps text-encre-taupe">{t.espace.factures}</p>
+            <p className="text-corps text-taupe">{t.espace.factures}</p>
           </section>
         </>
       ) : pending ? (
-        <p className="max-w-2xl rounded-carte bg-perle px-6 py-6 text-corps text-encre-taupe md:px-8">
+        <p className="max-w-2xl rounded-carte bg-perle px-6 py-6 text-corps text-taupe md:px-8">
           {t.espace.enAttente}
         </p>
       ) : (
         <>
           {pass ? (
             <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-              <h2 className="font-display text-h3 text-encre-sauge">{fill(t.espace.formule, { plan: uneNuit.name })}</h2>
-              <p className="text-corps text-encre-taupe">{pass.booked ? t.espace.uneNuit.reservee : t.espace.uneNuit.active}</p>
+              <h2 className="font-display text-h3 text-sauge">{fill(t.espace.formule, { plan: uneNuit.name })}</h2>
+              <p className="text-corps text-taupe">{pass.booked ? t.espace.uneNuit.reservee : t.espace.uneNuit.active}</p>
             </section>
           ) : null}
-          <p className="max-w-2xl text-intro text-encre-taupe">{t.espace.intro}</p>
+          <p className="max-w-2xl text-intro text-taupe">{t.espace.intro}</p>
           <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
             {PLANS.map((plan) => {
               const { name, duree, prix } = planWords(plan);
               return (
                 <li key={plan}>
                   <article className="flex h-full flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-                    <h2 className="font-display text-h3 text-encre-sauge">{name}</h2>
-                    <p className="text-corps text-encre-taupe">{fill(t.espace.duree, { duree })}</p>
-                    <p className="text-corps font-semibold text-encre-taupe">{prix}</p>
+                    <h2 className="text-h3 font-bold text-sauge">{name}</h2>
+                    <p className="text-corps text-taupe">{fill(t.espace.duree, { duree })}</p>
+                    <p className="text-corps font-semibold text-taupe">{prix}</p>
                     <form action={startSubscriptionAction.bind(null, plan)} className="mt-auto">
                       <Button type="submit">{fill(t.espace.choisir, { plan: name })}</Button>
                     </form>
@@ -148,9 +148,9 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
             {pass ? null : (
               <li>
                 <article className="flex h-full flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-                  <h2 className="font-display text-h3 text-encre-sauge">{uneNuit.name}</h2>
-                  <p className="text-corps text-encre-taupe">{t.espace.uneNuit.texte}</p>
-                  <p className="text-corps font-semibold text-encre-taupe">{uneNuit.prix}</p>
+                  <h2 className="font-display text-h3 text-sauge">{uneNuit.name}</h2>
+                  <p className="text-corps text-taupe">{t.espace.uneNuit.texte}</p>
+                  <p className="text-corps font-semibold text-taupe">{uneNuit.prix}</p>
                   <form action={startNightPassAction} className="mt-auto">
                     <Button type="submit">{fill(t.espace.choisir, { plan: uneNuit.name })}</Button>
                   </form>
@@ -158,13 +158,13 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
               </li>
             )}
           </ul>
-          <p className="max-w-2xl text-corps text-encre-taupe">{t.espace.codePromo}</p>
-          <p className="max-w-2xl text-corps text-encre-taupe">{t.espace.paiement}</p>
-          <p className="max-w-2xl text-corps text-encre-taupe">{t.espace.factures}</p>
+          <p className="max-w-2xl text-corps text-taupe">{t.espace.codePromo}</p>
+          <p className="max-w-2xl text-corps text-taupe">{t.espace.paiement}</p>
+          <p className="max-w-2xl text-corps text-taupe">{t.espace.factures}</p>
         </>
       )}
 
-      <Link href={SPACES.parent} className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4">
+      <Link href={SPACES.parent} className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4">
         {words(comptes).espaces.navAccueil}
       </Link>
     </SpaceShell>

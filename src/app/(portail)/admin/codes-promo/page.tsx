@@ -31,12 +31,12 @@ export default async function CodesPromoPage() {
 
   return (
     <AdminShell user={user} title={t.titre} current="codesPromo">
-      <p className="max-w-2xl text-corps text-encre-taupe">{t.intro}</p>
+      <p className="max-w-2xl text-corps text-taupe">{t.intro}</p>
       <PromoCodeForm />
       {rows === null ? (
-        <p role="status" className="text-corps text-encre-taupe">{t.illisible}</p>
+        <p role="status" className="text-corps text-taupe">{t.illisible}</p>
       ) : rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{t.vide}</p>
+        <p className="text-corps text-taupe">{t.vide}</p>
       ) : (
         <PromoCodesTable rows={rows} />
       )}

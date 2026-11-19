@@ -15,9 +15,9 @@ const t = words(abonnements).requis
 
 function SubscriptionRequired({ className }: { className?: string }) {
   return (
-    <p className={cn("max-w-2xl text-corps text-encre-taupe", className)}>
+    <p className={cn("max-w-2xl text-corps text-taupe", className)}>
       {t.texte}{" "}
-      <Link href={SUBSCRIPTION_PATH} className="font-semibold text-encre-sauge underline underline-offset-4">
+      <Link href={SUBSCRIPTION_PATH} className="font-semibold text-sauge underline underline-offset-4">
         {t.lien}
       </Link>
     </p>

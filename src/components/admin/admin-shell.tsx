@@ -16,6 +16,7 @@ import {
   ADMIN_USERS_PATH,
 } from "@/lib/admin/paths"
 import { ADMIN_RATINGS_PATH } from "@/lib/avis/paths"
+import { ADMIN_CREDITS_PATH } from "@/lib/credits/paths"
 import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths"
 import { cn } from "@/lib/utils"
 
@@ -28,6 +29,7 @@ export type AdminSection =
   | "reservations"
   | "signalements"
   | "paiements"
+  | "creditsBerceo"
   | "abonnements"
   | "codesPromo"
   | "avis"
@@ -41,6 +43,7 @@ const SECTIONS: readonly [AdminSection, string][] = [
   ["reservations", ADMIN_BOOKINGS_PATH],
   ["signalements", ADMIN_REPORTS_PATH],
   ["paiements", ADMIN_PAYMENTS_PATH],
+  ["creditsBerceo", ADMIN_CREDITS_PATH],
   ["abonnements", ADMIN_SUBSCRIPTIONS_PATH],
   ["codesPromo", ADMIN_PROMO_CODES_PATH],
   ["avis", ADMIN_RATINGS_PATH],
@@ -75,7 +78,7 @@ async function AdminShell({
                 href={href}
                 aria-current={section === current ? "page" : undefined}
                 className={cn(
-                  "inline-flex min-h-12 items-center rounded-capsule border border-solid border-encre-sauge px-5 text-corps font-semibold text-encre-sauge transition-colors duration-200 ease-out hover:bg-beurre",
+                  "inline-flex min-h-12 items-center rounded-capsule border border-solid border-sauge px-5 text-corps font-semibold text-sauge transition-colors duration-200 ease-out hover:bg-beurre",
                   section === current && "border-beurre bg-beurre",
                 )}
               >

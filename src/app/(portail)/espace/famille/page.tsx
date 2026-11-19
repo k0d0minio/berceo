@@ -79,50 +79,50 @@ export default async function EspaceFamillePage() {
     <SpaceShell user={user}>
       {commune ? null : (
         <section className="flex max-w-2xl flex-col items-start gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">
-          <h2 className="font-display text-h3 text-encre-sauge">{f.completer.titre}</h2>
-          <p className="text-corps text-encre-taupe">{f.completer.texte}</p>
+          <h2 className="text-h3 font-bold text-sauge">{f.completer.titre}</h2>
+          <p className="text-corps text-taupe">{f.completer.texte}</p>
           <Button asChild>
             <Link href={PROFILE_PATH}>{f.completer.lien}</Link>
           </Button>
         </section>
       )}
       <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-        <h2 className="font-display text-h3 text-encre-sauge">{a.accueil.titre}</h2>
+        <h2 className="text-h3 font-bold text-sauge">{a.accueil.titre}</h2>
         {running ? (
           <>
             {state === "grace" || state === "suspendue" ? (
-              <p role="alert" className="rounded-carte bg-beurre px-4 py-3 text-corps text-encre-taupe">
+              <p role="alert" className="rounded-carte bg-beurre px-4 py-3 text-corps text-taupe">
                 {a.accueil.alerte}
               </p>
             ) : null}
-            <p className="text-corps text-encre-taupe">{fill(a.espace.formule, { plan: planWords(running.plan).name })}</p>
+            <p className="text-corps text-taupe">{fill(a.espace.formule, { plan: planWords(running.plan).name })}</p>
             {state === "resiliee" && running.cancelsAt ? (
-              <p className="text-corps text-encre-taupe">{fill(a.espace.finLe, { date: renewalDate(running.cancelsAt) })}</p>
+              <p className="text-corps text-taupe">{fill(a.espace.finLe, { date: renewalDate(running.cancelsAt) })}</p>
             ) : running.currentPeriodEnd ? (
-              <p className="text-corps text-encre-taupe">
+              <p className="text-corps text-taupe">
                 {fill(a.espace.renouvellement, { date: renewalDate(running.currentPeriodEnd) })}
               </p>
             ) : null}
             <Link
               href={SUBSCRIPTION_PATH}
-              className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+              className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
             >
               {a.accueil.gerer}
             </Link>
           </>
         ) : pass ? (
           <>
-            <p className="text-corps text-encre-taupe">{pass.booked ? a.espace.uneNuit.reservee : a.espace.uneNuit.active}</p>
+            <p className="text-corps text-taupe">{pass.booked ? a.espace.uneNuit.reservee : a.espace.uneNuit.active}</p>
             <Link
               href={SUBSCRIPTION_PATH}
-              className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+              className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
             >
               {a.accueil.gerer}
             </Link>
           </>
         ) : toFinish ? (
           <>
-            <p className="text-corps text-encre-taupe">
+            <p className="text-corps text-taupe">
               {fill(a.accueil.finaliserTexte, { plan: planWords(toFinish).name })}
             </p>
             <form action={startSubscriptionAction.bind(null, toFinish)}>
@@ -130,14 +130,14 @@ export default async function EspaceFamillePage() {
             </form>
             <Link
               href={SUBSCRIPTION_PATH}
-              className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+              className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
             >
               {a.accueil.autreFormule}
             </Link>
           </>
         ) : (
           <>
-            <p className="text-corps text-encre-taupe">{a.accueil.choisir}</p>
+            <p className="text-corps text-taupe">{a.accueil.choisir}</p>
             <Button asChild>
               <Link href={SUBSCRIPTION_PATH}>{a.accueil.voir}</Link>
             </Button>
@@ -145,7 +145,7 @@ export default async function EspaceFamillePage() {
         )}
       </section>
       <CreditsBlock list={wallet.list} balanceCents={wallet.balanceCents} />
-      <p className="max-w-2xl text-intro text-encre-taupe">{d.famille.accueil}</p>
+      <p className="max-w-2xl text-intro text-taupe">{d.famille.accueil}</p>
       <div className="flex flex-wrap gap-3">
         <Button asChild>
           <Link href={NEW_REQUEST_PATH}>{d.boutons.publier}</Link>
@@ -156,19 +156,19 @@ export default async function EspaceFamillePage() {
       </div>
       <Link
         href={SEARCH_PATH}
-        className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+        className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
       >
         {words(recherche).nav}
       </Link>
       <Link
         href={FAMILY_PROFESSIONALS_PATH}
-        className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+        className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
       >
         {words(favoris).nav}
       </Link>
       <Link
         href={FAMILY_REQUESTS_PATH}
-        className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+        className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
       >
         {d.famille.titre}
       </Link>

@@ -21,11 +21,14 @@ const moment = new Intl.DateTimeFormat("fr-BE", {
 /**
  * The line under a cancelled garde, for the side `viewer` reading it: who
  * cancelled or who was reported absent, and when (D-105, D-106). `other` is
- * the other side's first name, never a surname. Null on a confirmed garde.
+ * the other side's first name, never a surname. A cancellation by Berceo reads
+ * the same for both sides. Null on a confirmed garde.
  */
 export function cancelledLine(garde: GardeRecord, viewer: BookingSide, other: string): string | null {
   if (garde.status !== "annulee" || !garde.cancelledAt || !garde.cancelledBy) return null;
   const date = moment.format(garde.cancelledAt);
+  // A founder cancelled it for Berceo (annulations-back-office): both sides read the same line, never her note.
+  if (garde.cancelledBy === "berceo") return fill(t.annulee.parBerceo, { date });
   const mine = garde.cancelledBy === viewer;
   if (garde.cancellationKind === "absence") {
     return mine ? fill(t.annulee.absenceVous, { date }) : fill(t.annulee.absenceAutre, { prenom: other, date });

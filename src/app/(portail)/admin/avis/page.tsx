@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const link = "self-start text-corps font-semibold text-encre-sauge underline underline-offset-4";
+const link = "self-start text-corps font-semibold text-sauge underline underline-offset-4";
 
 /*
  * « Avis après les gardes » (avis-etoiles, G-03, D-118): every rating, published
@@ -37,9 +37,9 @@ export default async function AvisPage({ searchParams }: { searchParams: Promise
 
   return (
     <AdminShell user={user} title={a.avis.titre} current="avis">
-      <p className="max-w-3xl text-corps text-encre-taupe">{a.avis.intro}</p>
+      <p className="max-w-3xl text-corps text-taupe">{a.avis.intro}</p>
       {rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{a.avis.vide}</p>
+        <p className="text-corps text-taupe">{a.avis.vide}</p>
       ) : (
         <RatingsTable rows={rows} />
       )}
@@ -50,7 +50,7 @@ export default async function AvisPage({ searchParams }: { searchParams: Promise
               {a.avis.pages.precedente}
             </Link>
           ) : null}
-          <span className="text-corps text-encre-taupe">{fill(a.avis.pages.position, { page: String(page) })}</span>
+          <span className="text-corps text-taupe">{fill(a.avis.pages.position, { page: String(page) })}</span>
           {page < pages ? (
             <Link href={`${ADMIN_RATINGS_PATH}?page=${page + 1}`} className={link}>
               {a.avis.pages.suivante}

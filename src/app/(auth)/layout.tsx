@@ -10,7 +10,7 @@ import { PublicHeader } from "@/components/shell/public-header";
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <PublicHeader />
+      <PublicHeader fullLogo />
       <main className="flex-1">{children}</main>
       <PublicFooter />
     </div>

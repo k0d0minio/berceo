@@ -9,15 +9,14 @@ import { cn } from "@/lib/utils"
  *
  * `fillHeight` is the first screen's mode (premier-ecran): from lg the frame
  * stretches to its grid row, the text block beside it, and the picture is
- * cropped to cover it; below lg it keeps its 16:9. Cropped to the row's
- * height, the picture is drawn wider than its 22rem column, hence the sizes.
+ * cropped to cover it; below lg it keeps its 16:9.
  */
 function Photo({
   photo,
   preload = false,
   fillHeight = false,
   sizes = fillHeight
-    ? "(min-width: 64rem) 72rem, 100vw"
+    ? "(min-width: 64rem) 50vw, 100vw"
     : "(min-width: 48rem) 50vw, 100vw",
   className,
 }: {
