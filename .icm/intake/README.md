@@ -47,3 +47,21 @@ Decisions of record (Jamie, 2026-10-29): D-8 is superseded for the fee sentence 
 which names the insurance as the founders wrote it (`triage/tarifs-frais-assurance`). The phone
 verification by SMS and the « type de professionnelle recherchée » on the request wait for a
 later round. The students switch is on in UAT.
+
+## Decisions of record since 2026-11-18
+
+### JAM-300: the client's palette replaces the inks and the contrast test (Jamie, 2026-11-18)
+
+Surya's web DA (`Direction artistique web.pdf`, Drive « Pack web Berceo ») wins over the repo
+rules until after launch. The client's requests win over the repo conventions, and the ticket
+names each rule that it overrides.
+
+- finition-accueil D-1 and D-2 are replaced. The two inks `--encre-sauge` and `--encre-taupe`
+  no longer exist. Text, filled buttons and outlines use the charter's sage #8BAF9F and taupe
+  #BAB9AD, as the DA shows them. The client accepts that this is below WCAG AA.
+- finition-accueil D-24 and D-11 are replaced. The confirmation colours are the DA's red #ED5957
+  and green #B6D3C6, with no darkening. The red is the one red token: the confirmation dialogs,
+  the admin « refuser » button and a field that blocks a form.
+- `src/app/contrast.test.ts` is skipped, not deleted. Accessibility is reviewed after launch
+  (Chloé Sanfilipo's recap mail of 12 Nov). Then un-skip the test and update its pairs.
+- No DA change without written approval from Surya.

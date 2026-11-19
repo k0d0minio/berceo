@@ -67,7 +67,7 @@ The router has the commands, the stages and the lanes. A ticket is a Linear key 
 | A family's Berceo credits: the ledger, a credit's state and remainder by the clock, her balance, and the block « Mes crédits » on her home and on « Mes réservations » | [`src/lib/credits/`](src/lib/credits/) (`credits.ts`: the only reads and writes of `credits`; `rules.ts`: the expiry, the state, the balance and the spending plan; `isolation.test.ts`), [`src/components/credits/`](src/components/credits/); words in `src/content/credits.ts`; README → The credits |
 | The professional's onboarding and documents | [`src/lib/professionnelle/`](src/lib/professionnelle/) (rules, `uploads.ts`: the only insert of a file, under the profile's lock; `removals.ts`: her removals, object before row), [`src/lib/documents/`](src/lib/documents/) (private bucket, `/api/fichiers/[id]`); pages in `src/app/(portail)/espace/professionnelle/`; README → The professional's onboarding |
 | A schema change | edit the schema, `npm run db:generate -- --name <what>`, commit `drizzle/` |
-| shadcn components | [`src/components/ui/`](src/components/ui/) — retuned to the DA; red and green only in `confirm-dialog.tsx` (D-24), and red for form errors through `destructive` (`src/components/auth/field.tsx`: `FieldError`, `BlockingCount`, `useFocusFirstBlocking`) |
+| shadcn components | [`src/components/ui/`](src/components/ui/) — retuned to the DA; red and green for confirm, cancel and refuse (JAM-300), and red for form errors through `destructive` (`src/components/auth/field.tsx`: `FieldError`, `BlockingCount`, `useFocusFirstBlocking`) |
 | The research behind the engagement | [`.icm/docs/`](.icm/docs/) — `REPORT.md`, `cahier-des-charges.md`, `QUESTIONS.md` |
 
 
@@ -95,12 +95,16 @@ The router has the commands, the stages and the lanes. A ticket is a Linear key 
 - Never invent a commercial term. Rates, scope, launch dates and contact addresses come from
   Jamie or from `.icm/docs/`. Berceo has no published email or domain yet; a blank is the
   correct state until it does. The vitrine deliberately shows no contact for exactly this reason.
-- The platform is light, per Surya's art direction (D-9). White base, sage, taupe, pearl,
-  butter yellow, the stripes; text in the two inks `encre-sauge` and `encre-taupe`, never the
-  light sage or taupe, held to AA by `src/app/contrast.test.ts` (finition-accueil D-1); Comodo
-  (Fraunces until delivered) and Nunito; capsule buttons, 32 px cards. No shadow, no gendered
-  pink or blue, no naïve illustration, no gadget animation; red and green only in confirmation
-  dialogs (D-24), and red for a field that blocks a form (onboarding-retour-1). There is no dark theme and no toggle.
+- The platform is light, per Surya's web DA (`Direction artistique web.pdf`). Only the charter
+  palette: white, sage, taupe, pearl, butter yellow, the stripes; text in the charter's sage and
+  taupe, below AA by the client's decision until after launch (JAM-300, which replaces
+  finition-accueil D-1 and skips `src/app/contrast.test.ts`; `.icm/intake/README.md`). Comodo
+  in capitals for H1, H2 and the navigation (Fraunces until delivered, JAM-308), Nunito for the
+  rest; capsule buttons, 32 px cards, filled rounded icons, no numbered badges. No shadow, no
+  gendered pink or blue, no naïve illustration, no gadget animation; the DA's red #ED5957 and
+  green #B6D3C6 only for confirm, cancel and refuse, and red for a field that blocks a form
+  (JAM-300 replaces D-24). No DA change without Surya's written approval. There is no dark
+  theme and no toggle.
 - Every word follows Surya's guide (D-19). Vouvoiement; no `!`, `…` or `—`; no insurance
   wording (D-8; the one exception is the fee sentence on « Tarifs », Jamie, 2026-10-29), no Facebook group (D-23), no price but the four subscriptions, 130 € and 3 % (feedback round 1), no blanket
   « diplômées » (D-7); `@relecture` on anything not quoted from the guide.
