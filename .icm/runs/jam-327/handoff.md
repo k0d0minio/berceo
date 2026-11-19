@@ -51,7 +51,7 @@ Non vérifié :
 
 Traces laissées par le test :
 
-- Trois comptes de test dans la base UAT : `test+famille327@jamienisbet.com` (famille, abonnement de test actif, commune Ixelles), `test+pro327@jamienisbet.com` (professionnelle validée, sans photo ni justificatif, visible dans la recherche et sur sa page publique en UAT), `test+admin327@jamienisbet.com` (**admin**). Leur mot de passe n'est dans aucun fichier du dépôt. À supprimer ou à suspendre depuis `/admin/utilisateurs` quand Jamie n'en a plus besoin.
+- Trois comptes de test dans la base UAT : `test+famille327@jamienisbet.com` (famille, abonnement de test actif, commune Ixelles), `test+pro327@jamienisbet.com` (professionnelle validée, sans photo ni justificatif, visible dans la recherche et sur sa page publique en UAT), `test+admin327@jamienisbet.com` (**admin**). Leur mot de passe n'est dans aucun fichier du dépôt. Jamie garde les trois comptes (décision du 2026-11-19).
 - Une demande de test annulée (Ixelles, nuit du 25/11/2026), une réponse et une conversation entre les deux comptes de test. Deux lignes du journal admin (validation du dossier).
 - Un compte Neon Auth orphelin pour `test@jamienisbet.com` (voir `findings.md`, point 8).
 - Des mails de l'application dans la boîte `contact@jamienisbet.com` : trois vérifications, un code de connexion, la validation du profil, et les notifications de réponse. Aucun mail envoyé par la session.
@@ -89,7 +89,6 @@ Traces laissées par le test :
 - Jamie : tester, puis cocher **Ready to merge** sur la pull request #136.
 - Jamie : poser `CONTACT_EMAIL` dans Vercel (`.icm/setup/contact-email.md`).
 - Jamie : tester sur UAT ce que le local ne peut pas ouvrir : une réservation payée, les avis, le dépôt d'un fichier.
-- Jamie : supprimer ou garder les trois comptes de test en UAT, dont un admin.
 - La case **Ready to merge** était cochée avant les trois derniers commits de produit (`fix(da)` : titre de bandeau, message de formulaire, boutons longs à 375 px). Jamie décide si la coche tient.
 
 ## Do not touch
