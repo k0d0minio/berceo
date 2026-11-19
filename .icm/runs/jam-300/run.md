@@ -5,5 +5,5 @@
 - link: https://linear.app/jamienisbet/issue/JAM-300/berceo-apply-suryas-web-da-to-the-platform-colours-fonts-logo-photos
 - branch: contact/jam-300-berceo-apply-suryas-web-da-to-the-platform
 - lane: spine
-- pr: pending
+- pr: #133
 - started: 2026-11-19
