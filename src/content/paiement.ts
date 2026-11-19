@@ -46,6 +46,10 @@ export const paiement = catalogue({
       description: "Garde de nuit du {date}",
       /** @relecture Surya — la nuit concernée et le crédit déjà déduit (credits-au-paiement). */
       descriptionCredit: "Garde de nuit du {date}, crédit Berceo de {montant} déduit",
+      /** @relecture Surya — les nuits d'une demande régulière, un seul paiement (JAM-302). */
+      descriptionSerie: "Gardes de nuit du {dates}",
+      /** @relecture Surya — les nuits d'une demande régulière et le crédit déjà déduit (JAM-302). */
+      descriptionSerieCredit: "Gardes de nuit du {dates}, crédit Berceo de {montant} déduit",
     },
 
     /** Au retour de la page de Stripe, sur la page de la demande. */

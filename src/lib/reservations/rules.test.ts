@@ -6,6 +6,7 @@ import {
   canRepublish,
   canWithdraw,
   hasAddress,
+  seriesAnswerState,
   type AnswerFacts,
   type RequestFacts,
 } from "./rules";
@@ -118,5 +119,32 @@ describe("republishing (D-70)", () => {
     expect(canRepublish(request, 0, NOON)).toBe(false);
     expect(canRepublish({ ...request, status: "attribuee" }, 2, NOON)).toBe(false);
     expect(canRepublish({ ...request, nightDate: "2026-09-24" }, 2, NOON)).toBe(false);
+  });
+});
+
+/**
+ * Spec (JAM-302, Q5): a professional answers a regular request once, for all
+ * its open nights ahead, or not at all. A night she is booked or was declined
+ * on leaves her list, and then she sees no answer button.
+ */
+describe("the answer to a regular request (JAM-302)", () => {
+  it("offers the answer when her list holds every open night and she never answered", () => {
+    expect(seriesAnswerState([{ answer: null }, { answer: null }, { answer: null }], 3)).toBe("repondre");
+  });
+
+  it("offers it again after she withdrew", () => {
+    expect(seriesAnswerState([{ answer: "retiree" }, { answer: "retiree" }], 2)).toBe("repondre");
+  });
+
+  it("reads as answered once every night holds her waiting answer", () => {
+    expect(seriesAnswerState([{ answer: "en_attente" }, { answer: "en_attente" }], 2)).toBe("repondu");
+  });
+
+  it("offers nothing when a night is missing from her list (booked that night, Q5)", () => {
+    expect(seriesAnswerState([{ answer: null }, { answer: null }], 3)).toBe("aucun");
+  });
+
+  it("offers nothing on an empty list", () => {
+    expect(seriesAnswerState([], 0)).toBe("aucun");
   });
 });

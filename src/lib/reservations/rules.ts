@@ -107,3 +107,25 @@ export function hasAddress(address: { street: string | null; houseNumber: string
 export function canRepublish(request: RequestFacts, pendingAnswers: number, now: Date): boolean {
   return isChangeable(request, now) && pendingAnswers > 0;
 }
+
+/** What she can do on a regular request answered as one (JAM-302). */
+export type SeriesAnswerState = "repondre" | "repondu" | "aucun";
+
+/**
+ * Her answer on a regular request (JAM-302): she answers all its open nights
+ * ahead or none. `nights` are the nights her list holds, `openNights` the
+ * request's open nights ahead. She may answer when her list holds them all and
+ * she never answered any, or withdrew. Once each night holds her waiting
+ * answer, she has answered. Otherwise nothing is offered: a night she is
+ * booked, or was declined on, is not on her list (Q5).
+ */
+export function seriesAnswerState(
+  nights: readonly { answer: ApplicationStatus | null }[],
+  openNights: number,
+): SeriesAnswerState {
+  if (nights.length === 0) return "aucun";
+  if (nights.every((night) => night.answer === "en_attente")) return "repondu";
+  const complete = nights.length === openNights;
+  if (complete && nights.every((night) => night.answer === null || night.answer === "retiree")) return "repondre";
+  return "aucun";
+}

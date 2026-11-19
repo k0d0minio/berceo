@@ -68,3 +68,36 @@ export function groupForDigest<T extends DigestRow>(rows: readonly T[]): T[][] {
   });
   return [...lines.values()];
 }
+
+/** One entry of her list (JAM-302): a night, or the nights of a regular request answered as one. */
+export type ProfessionalEntry<T> =
+  | { kind: "nuit"; request: T }
+  | { kind: "serie"; seriesId: string; requests: T[] };
+
+/**
+ * Groups her list: the nights of a regular request answered as one (JAM-302)
+ * take the place of their first night in `rows`, in date order. A night of a
+ * series published before JAM-302 stays a night of its own.
+ */
+export function groupForProfessional<T extends { seriesId: string | null; seriesWhole: boolean; nightDate: string }>(
+  rows: readonly T[],
+): ProfessionalEntry<T>[] {
+  const entries: ProfessionalEntry<T>[] = [];
+  const series = new Map<string, T[]>();
+  for (const row of rows) {
+    if (!row.seriesWhole || row.seriesId === null) {
+      entries.push({ kind: "nuit", request: row });
+      continue;
+    }
+    const nights = series.get(row.seriesId);
+    if (nights) {
+      nights.push(row);
+      continue;
+    }
+    const first = [row];
+    series.set(row.seriesId, first);
+    entries.push({ kind: "serie", seriesId: row.seriesId, requests: first });
+  }
+  for (const nights of series.values()) nights.sort((a, b) => a.nightDate.localeCompare(b.nightDate));
+  return entries;
+}

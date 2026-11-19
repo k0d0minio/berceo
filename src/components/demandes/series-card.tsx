@@ -13,7 +13,9 @@ import type { DisplayStatus } from "@/lib/demandes/rules"
  * shadow). The commune, the place, the count of nights, the children and their
  * feeding are the first night's: the series was published with one set of
  * details. Then one line per night, in date order, with its own hours, its
- * status, its answers and its link: each night is a request of its own. The
+ * status, its answers and its link: each night of an older series is a
+ * request of its own. A regular request answered as one (JAM-302) shows its
+ * nights without a link of their own, or with the link to a night's garde. The
  * page passes « Annuler toutes les nuits » as the footer while a night is open.
  */
 
@@ -21,13 +23,26 @@ const t = words(demandes)
 
 type Night = {
   request: RequestCard
-  status: DisplayStatus
-  href: string
+  /** Absent on a professional's view (JAM-302): every night she reads is open. */
+  status?: DisplayStatus
+  /** Absent when the night has no page of its own: a regular request answered as one (JAM-302). */
+  href?: string
+  /** The link's words, « Voir la nuit » by default. */
+  linkLabel?: string
   /** « 2 réponses ». */
   note?: string
 }
 
-function SeriesCard({ nights, footer }: { nights: readonly Night[]; footer?: React.ReactNode }) {
+function SeriesCard({
+  nights,
+  footer,
+  aside,
+}: {
+  nights: readonly Night[]
+  footer?: React.ReactNode
+  /** Under the details, before the nights: a professional's rate line (JAM-302). */
+  aside?: React.ReactNode
+}) {
   const first = nights[0].request
   const count = nights.length === 1 ? t.serie.uneNuit : fill(t.serie.nombre, { n: String(nights.length) })
 
@@ -43,8 +58,9 @@ function SeriesCard({ nights, footer }: { nights: readonly Night[]; footer?: Rea
         {childrenLine(first.children, first.babyAgeValue, first.babyAgeUnit)}
       </p>
       {first.feeding ? <p className="text-corps text-taupe">{feedingLine(first.feeding)}</p> : null}
+      {aside}
       <ul aria-label={t.serie.nuits} className="flex flex-col gap-3 pt-2">
-        {nights.map(({ request, status, href, note }) => (
+        {nights.map(({ request, status, href, linkLabel, note }) => (
           <li
             key={request.id}
             className="flex flex-col gap-1 border-t border-solid border-taupe pt-3 first:border-t-0 first:pt-0"
@@ -53,17 +69,21 @@ function SeriesCard({ nights, footer }: { nights: readonly Night[]; footer?: Rea
               <span className="text-corps font-semibold text-taupe">
                 {nightLine(request.nightDate, request.startTime, request.extraHours)}
               </span>
-              <span className="inline-flex w-fit items-center rounded-capsule border border-solid border-taupe bg-blanc px-3 py-1 text-legende font-semibold text-taupe">
-                {t.statuts[status]}
-              </span>
+              {status ? (
+                <span className="inline-flex w-fit items-center rounded-capsule border border-solid border-taupe bg-blanc px-3 py-1 text-legende font-semibold text-taupe">
+                  {t.statuts[status]}
+                </span>
+              ) : null}
             </div>
             {note ? <p className="text-corps text-taupe">{note}</p> : null}
-            <Link
-              href={href}
-              className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
-            >
-              {t.serie.voir}
-            </Link>
+            {href ? (
+              <Link
+                href={href}
+                className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+              >
+                {linkLabel ?? t.serie.voir}
+              </Link>
+            ) : null}
           </li>
         ))}
       </ul>

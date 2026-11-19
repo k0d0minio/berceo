@@ -26,10 +26,10 @@ import {
   type SeriesResult,
 } from "@/lib/demandes/requests";
 import { isEditable } from "@/lib/demandes/rules";
-import { pendingCounts, republishRequest, type RepublishResult } from "@/lib/reservations/answers";
+import { answersEver, republishRequest, type RepublishResult } from "@/lib/reservations/answers";
 import { PAYMENT_RETURN_PATH } from "@/lib/paiements/paths";
 import { paymentDestination } from "@/lib/paiements/destination";
-import { startCheckout, type StartResult } from "@/lib/paiements/payments";
+import { startCheckout, startSeriesCheckout, type StartResult } from "@/lib/paiements/payments";
 import { notifyDeclined, notifyPriority, notifySeriesPriority } from "@/lib/reservations/notify";
 import { priorityPath } from "@/lib/reservations/paths";
 import { publicProfile } from "@/lib/reservations/profiles";
@@ -177,9 +177,9 @@ export async function updateRequestAction(
   const now = new Date();
   if (!(await familyMayNow(user.id, "modifier", now))) redirect(familyRequestPath(existing.id));
   const input = readRequestForm(form);
-  // An answer waiting on it locks it (D-76).
-  const pending = (await pendingCounts(user.id)).get(existing.id) ?? 0;
-  if (!isEditable(existing, pending, now)) return { message: "nonModifiable", values: input };
+  // One answer ever, on it or on any night of its regular request, locks it (JAM-302, Q4).
+  const answered = await answersEver(user.id, existing.id);
+  if (!isEditable(existing, answered, now)) return { message: "nonModifiable", values: input };
 
   // The urgency is the stored one: an edit never turns one kind into the other.
   // The stored night may stay as it is; a new one must be in today's window.
@@ -301,6 +301,46 @@ export async function acceptAnswerAction(requestId: string, applicationId: strin
     redirect(`${PAYMENT_RETURN_PATH}?session_id=${encodeURIComponent(result.sessionId)}`);
   }
   // Its own key: « nonModifiable » here is about booking, not about editing.
+  if (result.kind === "refus") redirect(`${familyRequestPath(id)}?refus=${result.reason}`);
+  redirect(`${familyRequestPath(id)}?paiement=erreur`);
+}
+
+/**
+ * « Accepter et réserver » on a regular request (JAM-302, Q1): one Checkout
+ * for the fees of all its open nights with this professional. A credit that
+ * covers them books at once. The payment books every night, through the
+ * webhook or the return page. `requestId` is the night whose page she is on,
+ * for the way back; every id is only a lookup key.
+ */
+export async function acceptSeriesAction(seriesId: string, requestId: string, profileId: string): Promise<void> {
+  const user = await requireAccess(FAMILY_REQUESTS_PATH);
+  const series = String(seriesId);
+  const id = String(requestId);
+  if (!UUID.test(series) || !UUID.test(id)) notFound();
+  if (!(await familyMayNow(user.id, "reserver", new Date()))) redirect(familyRequestPath(id));
+
+  let result: StartResult;
+  try {
+    result = await startSeriesCheckout({
+      user: { id: user.id, email: user.email },
+      seriesId: series,
+      profileId: String(profileId),
+      siteUrl: await siteOrigin(),
+      now: new Date(),
+    });
+  } catch (error) {
+    logWriteError("series checkout not opened", { userId: user.id, seriesId: series }, error);
+    redirect(`${familyRequestPath(id)}?paiement=erreur`);
+  }
+
+  if (result.kind === "stripe") redirect(result.url);
+  if (result.kind === "credit") {
+    revalidatePath(SPACES.parent, "layout");
+    redirect(paymentDestination(result.result, null));
+  }
+  if (result.kind === "dejaPaye") {
+    redirect(`${PAYMENT_RETURN_PATH}?session_id=${encodeURIComponent(result.sessionId)}`);
+  }
   if (result.kind === "refus") redirect(`${familyRequestPath(id)}?refus=${result.reason}`);
   redirect(`${familyRequestPath(id)}?paiement=erreur`);
 }

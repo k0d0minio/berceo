@@ -9,9 +9,9 @@ import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import type { ProfessionalRequest } from "@/lib/demandes/requests";
 import { conversationPath } from "@/lib/messagerie/paths";
-import { canWithdraw } from "@/lib/reservations/rules";
+import { canWithdraw, type SeriesAnswerState } from "@/lib/reservations/rules";
 
-import { answerRequestAction, withdrawAnswerAction } from "./actions";
+import { answerRequestAction, answerSeriesAction, withdrawAnswerAction, withdrawSeriesAction } from "./actions";
 
 /*
  * What her list and a request's page share (demande-motif-facultatif): the
@@ -72,6 +72,55 @@ export function AnswerFooter({
         <form action={answerRequestAction.bind(null, request.id, from)}>
           <Button type="submit">{r.disponible}</Button>
         </form>
+      )}
+    </>
+  );
+}
+
+/**
+ * The footer of a regular request answered as one (JAM-302): the family's
+ * note, then « Je suis disponible pour toutes les nuits », or, once she
+ * answered, the conversation and « Retirer ma disponibilité ». When she cannot
+ * take every night (Q5), a line says why, and there is no button.
+ */
+export function SeriesAnswerFooter({
+  request,
+  seriesId,
+  state,
+  conversationId,
+  from,
+}: {
+  /** The first night: the family's note and the way back. */
+  request: ProfessionalRequest;
+  seriesId: string;
+  state: SeriesAnswerState;
+  conversationId: string | undefined;
+  from: "liste" | "demande";
+}) {
+  return (
+    <>
+      <NoteDisplay note={request.family} label={words(avis).note.famille} className="w-full" />
+      {state === "repondu" ? (
+        <>
+          {conversationId ? (
+            <Button asChild>
+              <Link href={conversationPath("professionnelle", conversationId)} prefetch={false}>
+                {m.liens.voir}
+              </Link>
+            </Button>
+          ) : null}
+          <form action={withdrawSeriesAction.bind(null, seriesId, request.id, from)}>
+            <Button type="submit" variant="raye">
+              {r.retirer}
+            </Button>
+          </form>
+        </>
+      ) : state === "repondre" ? (
+        <form action={answerSeriesAction.bind(null, seriesId, request.id, from)}>
+          <Button type="submit">{r.disponibleSerie}</Button>
+        </form>
+      ) : (
+        <p className="w-full text-corps text-taupe">{r.serieIndisponible}</p>
       )}
     </>
   );

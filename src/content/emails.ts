@@ -283,8 +283,8 @@ export const emails = catalogue({
       corps: "Une famille de {commune} vous a choisie pour la nuit du {nuit}. {enfants}.",
       /** @relecture Surya — corps pour des nuits régulières (demande-nuits-regulieres). */
       corpsSerie: "Une famille de {commune} vous a choisie pour {n} nuits régulières {horaire} : {dates}. {enfants}.",
-      /** @relecture Surya — chaque nuit est une demande à part (demande-nuits-regulieres). */
-      nuitParNuit: "Chaque nuit est une demande à part. Vous pouvez répondre pour une nuit, pour plusieurs ou pour toutes.",
+      /** @relecture Surya — une seule réponse pour toutes les nuits (JAM-302). */
+      toutesLesNuits: "Vous répondez une seule fois, pour toutes les nuits de la demande.",
       /** @relecture Surya — la demande reste visible des autres (le guide, « La mise en relation »). */
       suite:
         "Sa demande reste visible des autres professionnelles de sa zone jusqu'à ce qu'elle confirme une réservation.",
