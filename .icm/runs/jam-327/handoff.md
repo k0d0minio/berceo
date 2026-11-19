@@ -2,11 +2,47 @@
 
 ## Next action
 
-Jamie lit la spec dans la pull request #136, coche **Spec approved**, puis dit `build JAM-327`. Les sept questions ont une réponse (2026-11-19, dans le chat, recopiées dans le corps de la pull request).
+Jamie teste la prévisualisation de la pull request #136, coche **Ready to merge**, puis dit `release JAM-327`. Avant le test de la page Contact : poser `CONTACT_EMAIL` dans Vercel (`.icm/setup/contact-email.md`). Les pages connectées n'ont pas été ouvertes par la session : voir « Non vérifié ».
 
 ## How to test
 
-Rien à tester : Define n'écrit pas de code. Lisez la spec dans la pull request #136 : la table « Chaque page et ce qu'elle suit », les lots, et la table des règles écartées.
+Ouvrez l'accueil à 1440 px et comparez le haut de la page à la diapositive 19 : en-tête blanc sur la photo, logotype seul, bloc taupe sur rayures. Ouvrez « Histoire » et comparez à la diapositive 26. Ouvrez `/design-system`, section « Les écrans du deck », et comparez chaque exemple à sa diapositive. Puis connectez-vous en famille, en professionnelle et en admin : chaque liste montre des cartes blanches sur une zone sauge, et « Se déconnecter » ouvre le dialogue rouge et vert.
+
+## Critères
+
+Vérifiés par CI (run `ci` vert, déploiement Vercel prêt) : les règles de `vitrine.test.ts` (ponctuation, longueurs `meta`, page Contact comprise), les règles du formulaire de contact et le 404 sans `CONTACT_EMAIL` (`src/lib/contact/rules.test.ts`).
+
+Vérifiés par la session sur la prévisualisation, sans connexion :
+
+- Fredoka sur les titres, interlettrage 0,08em. Plus de Fraunces.
+- Une seule balise H1 sur chaque page publique et de compte. Le H1 de l'accueil est « Dormez. Votre bébé est entre de bonnes mains. ».
+- L'en-tête a « Accueil », « Histoire », « Nos gardes de nuit » vers `/`, `/qui-sommes-nous`, `/comment-ca-marche`. « Contact » est absent et `/contact` répond 404, car la prévisualisation n'a pas `CONTACT_EMAIL`.
+- `/conditions-generales` et `/confidentialite` suivent la diapositive 29 et restent `noindex`.
+- Aucun témoignage sur une page publique. La carte est sur `/design-system` avec « Exemple ».
+- À 375 px, aucune page publique ou de compte ne défile en largeur. Le titre de la charte débordait : corrigé.
+- `/design-system` montre les diapositives 8, 10, 15, 19, 20, 21, 22, 25, 26, 27 et 29.
+
+Non vérifié :
+
+- **Toutes les pages connectées** (famille, professionnelle, admin). Aucune n'a été affichée. Trois sous-agents les ont modifiées, et CI (lint, types, tests, build) est vert.
+- L'inscription, la vérification de l'e-mail et la connexion avec `test@jamienisbet.com`. L'envoi d'un message de contact.
+- Le dialogue de déconnexion dans un espace, et les confirmations de l'administration.
+- La comparaison à 1440 px contre le deck : la fenêtre du navigateur de la session fait 638 px de large.
+- Raison : la session n'a pas pu prouver quelle base lit l'environnement local. La lecture des fichiers `.env*` lui est refusée, et la spec demande cette preuve avant le premier lancement. Aucun serveur local n'a été lancé.
+
+## Écarts par rapport à la spec
+
+- Les étoiles restent sauge sur une carte blanche. Les étoiles jaunes ne se voient pas sur blanc : elles sont sur sauge seulement (carte de témoignage).
+- Une icône illustrative jaune n'est jamais sur blanc ou perle. Un état vide est un bloc taupe.
+- La carte de profil n'a pas le bouton « Envoyer une demande » : ce serait un nouveau parcours. La carte publique n'a pas de photo (D-126).
+- La page d'une commune n'a pas de champ de recherche : la recherche publique n'existe pas.
+- La recherche de l'espace famille est une carte blanche sur perle, pas la capsule perle sur sauge de la diapositive 21 : ses libellés taupe ne se lisent pas sur sauge.
+- Le texte de la diapositive 15 perd ses points de suspension (D-19).
+- « Découvrir leur profil » ouvre `/comment-ca-marche` : aucune page publique ne liste les profils.
+- Le fond des espaces connectés est perle, et les cartes sont blanches. Les listes de cartes sont sur une zone sauge.
+- La carte d'une réservation (espace famille) montre trois faits de plus : la localité, les enfants, le tarif. La page de détail les montrait déjà.
+- Les en-têtes des pages publiques n'ont plus de photo : le bandeau de la diapositive 10 n'en a pas.
+- La navigation des espaces passe dans le menu sous 1280 px : sept entrées en capitales ne tiennent pas avant.
 
 ## Pour la session suivante
 
@@ -22,8 +58,9 @@ Rien à tester : Define n'écrit pas de code. Lisez la spec dans la pull request
 
 ## Blockers
 
-- Jamie : cocher **Spec approved** sur la pull request #136.
-- Jamie : poser `CONTACT_EMAIL` dans Vercel (UAT et production) avant le test de la page Contact. Sans elle, la page n'existe pas.
+- Jamie : tester, puis cocher **Ready to merge** sur la pull request #136.
+- Jamie : poser `CONTACT_EMAIL` dans Vercel (`.icm/setup/contact-email.md`).
+- Jamie : dire comment vérifier les pages connectées. Soit il les teste lui-même sur la prévisualisation, soit il confirme quelle base lit `.env.local` et la session lance le serveur local.
 
 ## Do not touch
 
