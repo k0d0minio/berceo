@@ -30,16 +30,16 @@ Source : le stub `.icm/intake/annulations-credits/annulations-back-office.md` (�
 
 ## Acceptance criteria
 
-- [ ] Sur `/admin/signalements`, chaque annulation montre son motif, les heures avant le début avec « dans le délai » ou « hors délai », et le résultat des frais chaque absence montre le résultat des frais. (verify: operator)
+- [ ] Sur `/admin/signalements`, chaque annulation montre son motif, les heures avant le début avec « dans le délai » ou « hors délai », et le résultat des frais. Chaque absence montre le résultat des frais. (verify: operator)
 - [ ] Le filtre « Litige » de `/admin/signalements` montre seulement les gardes en litige, traitées ou non. (verify: CI)
 - [ ] `/admin/credits` liste tous les crédits, les plus récents d'abord, 50 par page, avec la famille, le montant, l'origine, l'expiration, le montant utilisé et l'état. (verify: operator)
 - [ ] Le bloc « Crédits » de « Vue d'ensemble » montre le même nombre de crédits disponibles que la liste. (verify: CI)
-- [ ] Une fondatrice accorde un crédit du montant des frais sur une garde en litige ou aux frais conservés, après une confirmation et un motif une entrée `credit_accorde` est au journal. (verify: operator)
+- [ ] Une fondatrice accorde un crédit du montant des frais sur une garde en litige ou aux frais conservés, après une confirmation et un motif. Une entrée `credit_accorde` est au journal. (verify: operator)
 - [ ] Un second crédit sur la même garde est refusé, et le bouton n'est pas proposé sur des frais remboursés ou sur une garde sans frais. (verify: CI)
 - [ ] Le crédit accordé se lit dans « Mes crédits » de la famille avec l'origine « Offert par Berceo ». (verify: operator)
-- [ ] Une fondatrice annule une garde confirmée pas encore commencée, après une confirmation et un motif la garde est « annulée par Berceo », une entrée `garde_annulee_berceo` est au journal, et les frais payés deviennent un crédit d'origine `annulation_berceo`. (verify: operator)
+- [ ] Une fondatrice annule une garde confirmée pas encore commencée, après une confirmation et un motif. La garde est « annulée par Berceo », une entrée `garde_annulee_berceo` est au journal, et les frais payés deviennent un crédit d'origine `annulation_berceo`. (verify: operator)
 - [ ] Une garde déjà commencée ou déjà annulée ne peut pas être annulée pour Berceo. (verify: CI)
-- [ ] Seul un compte admin atteint `/admin/credits` et les deux actions un autre compte reçoit une 404 (D-33). (verify: CI)
+- [ ] Seul un compte admin atteint `/admin/credits` et les deux actions. Un autre compte reçoit une 404 (D-33). (verify: CI)
 - [ ] Le stub `annulations-back-office.md` est dans `.icm/intake/annulations-credits/_done/`. (verify: agent)
 
 ## Out of scope
