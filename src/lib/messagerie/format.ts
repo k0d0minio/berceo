@@ -2,7 +2,8 @@ import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { formatDate, formatTime } from "@/lib/demandes/format";
 import { brusselsNow } from "@/lib/demandes/rules";
-import { recapNight } from "@/lib/reservations/format";
+import type { Profession } from "@/db/schema";
+import { professionLabel, recapNight } from "@/lib/reservations/format";
 
 import type { LastMessage } from "./conversations";
 
@@ -14,6 +15,21 @@ import type { LastMessage } from "./conversations";
  */
 
 const t = words(messagerie);
+
+/**
+ * The page's title: « Conversation avec ALIX, SAGE-FEMME » for the family,
+ * « Conversation avec CAMILLE » for the professional. The name and the
+ * profession are in capitals (round 2, JAM-301).
+ */
+export function conversationTitle(other: { firstName: string; profession: Profession | null }): string {
+  const caps = (text: string) => text.toLocaleUpperCase("fr-BE");
+  return other.profession
+    ? fill(t.conversation.titreProfession, {
+        prenom: caps(other.firstName),
+        profession: caps(professionLabel(other.profession)),
+      })
+    : fill(t.conversation.titre, { prenom: caps(other.firstName) });
+}
 
 /** « Garde du 30/09/2026 », in the list. */
 export function listNight(nightDate: string): string {

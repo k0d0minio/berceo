@@ -50,8 +50,13 @@ export const messagerie = catalogue({
     },
 
     conversation: {
-      /** @relecture Surya — titre de la page, avec le prénom de l'autre personne. */
+      /**
+       * @relecture Surya — titre de la page, avec le prénom de l'autre personne.
+       * Le prénom et la profession s'écrivent en capitales (retour 2, JAM-301).
+       */
       titre: "Conversation avec {prenom}",
+      /** @relecture Surya — idem, côté famille : le prénom et la profession de la professionnelle. */
+      titreProfession: "Conversation avec {prenom}, {profession}",
       /** @relecture Surya — la nuit de la conversation. */
       garde: "Garde du {date}, {heures}",
       /** @relecture Surya — retour vers la demande (famille). */

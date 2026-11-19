@@ -55,8 +55,8 @@ export const professionnelle = catalogue({
       formations: "Facultatif. Citez les formations que vous avez suivies, avec vos mots.",
       /** @relecture Surya — compteur sous le champ. */
       formationsRestant: "{n} caractères restants",
-      /** @relecture Surya — la recherche de communes (D-11). */
-      zone: "Tapez le nom d'une commune ou son code postal, puis choisissez-la dans la liste.",
+      /** @relecture Surya — la recherche de communes (D-11), au pluriel : elle peut en choisir plusieurs (retour 2, JAM-301). */
+      zone: "Tapez le nom ou le code postal de vos communes, puis choisissez-les dans la liste. Vous pouvez en ajouter plusieurs.",
       /** @relecture Surya — la distance à vol d'oiseau, entre les centres des communes (profil-zone-rayon-saisie). */
       rayon: "La distance se mesure à vol d'oiseau, du centre de chaque commune.",
       /** @relecture Surya — un plancher sans plafond, sans tarif suggéré (profil-tarifs). */

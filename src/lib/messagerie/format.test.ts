@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { conversationNight, listNight, messageDay, messageTime, preview, unreadLabel } from "./format";
+import { conversationNight, conversationTitle, listNight, messageDay, messageTime, preview, unreadLabel } from "./format";
 
 /**
  * Spec (messagerie): the night as the conversation names it, a message's day
@@ -9,6 +9,13 @@ import { conversationNight, listNight, messageDay, messageTime, preview, unreadL
  */
 
 describe("how a conversation reads", () => {
+  it("names the other person in capitals (round 2, JAM-301)", () => {
+    expect(conversationTitle({ firstName: "Alix", profession: "sage_femme" })).toBe(
+      "Conversation avec ALIX, SAGE-FEMME",
+    );
+    expect(conversationTitle({ firstName: "Élodie", profession: null })).toBe("Conversation avec ÉLODIE");
+  });
+
   it("names the night", () => {
     expect(listNight("2026-09-30")).toBe("Garde du 30/09/2026");
     expect(conversationNight("2026-09-30", "20:00:00", 0)).toBe("Garde du 30/09/2026, de 20h00 à 7h00");

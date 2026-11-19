@@ -12,18 +12,22 @@ import { words } from "@/content/locale"
  * beside one when it has one), and the page
  * on white below. On desktop the navigation sits in the header; below md it
  * opens from the menu button. `actions` is the header's right-hand slot
- * (sign-out, later the account).
+ * (sign-out, later the account). `legal` is the footer's links at the bottom
+ * of the screen: the general conditions and the privacy policy (round 2,
+ * JAM-301).
  */
 function PortalShell({
   nav,
   home,
   actions,
+  legal,
   children,
 }: {
   nav: readonly MenuLink[]
   /** Where the logomark leads: the portal's own home, never the public site. */
   home: string
   actions?: React.ReactNode
+  legal?: readonly { label: string; href: string }[]
   children: React.ReactNode
 }) {
   const t = words(portal)
@@ -77,6 +81,24 @@ function PortalShell({
       </main>
       {actions ? (
         <div className="border-t px-4 py-6 md:hidden">{actions}</div>
+      ) : null}
+      {legal && legal.length > 0 ? (
+        <footer className="border-t">
+          <nav aria-label={t.footer.navLabel} className="mx-auto max-w-6xl px-4 py-6 md:px-8">
+            <ul className="flex flex-wrap gap-x-8 gap-y-2">
+              {legal.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="rounded-md text-legende text-encre-taupe underline-offset-4 hover:underline"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </footer>
       ) : null}
     </div>
   )

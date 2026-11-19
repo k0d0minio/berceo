@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 
 import { ConversationView, loadConversation } from "@/components/messagerie/conversation-view";
 import { SpaceShell } from "@/components/shell/space-shell";
-import { fill, words } from "@/content/locale";
+import { words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { familyMay } from "@/lib/abonnements/rules";
 import { isSubscribed } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
+import { conversationTitle } from "@/lib/messagerie/format";
 import { conversationPath } from "@/lib/messagerie/paths";
 
 const t = words(messagerie);
@@ -29,7 +30,7 @@ export default async function ConversationFamillePage({ params }: { params: Prom
   const thread = await loadConversation(user.id, "famille", id);
   const subscribed = await isSubscribed(user.id, new Date());
   return (
-    <SpaceShell user={user} title={fill(t.conversation.titre, { prenom: thread.firstName })}>
+    <SpaceShell user={user} title={conversationTitle(thread)}>
       <ConversationView
         side="famille"
         thread={thread}
