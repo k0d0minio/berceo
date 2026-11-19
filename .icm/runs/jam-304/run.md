@@ -5,5 +5,5 @@
 - link: https://linear.app/jamienisbet/issue/JAM-304/berceo-one-night-plan-at-1475-eur-and-promo-codes-on-subscriptions
 - branch: contact/jam-304-berceo-one-night-plan-at-1475-eur-and-promo
 - lane: spine
-- pr: pending
+- pr: #132
 - started: 2026-11-19
