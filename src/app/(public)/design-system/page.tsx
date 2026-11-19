@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import {
+  CheckIcon,
+  FileTextIcon,
+  HeartIcon,
+  MenuIcon,
+  ShieldCheckIcon,
+} from "@/components/icons";
 import { SignOutDialog } from "@/components/shell/sign-out-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,8 +44,8 @@ const swatchClass: Record<string, string> = {
   taupe: "bg-taupe",
   perle: "bg-perle",
   beurre: "bg-beurre",
-  "sauge": "bg-sauge",
-  "taupe": "bg-taupe",
+  "rouge-confirmation": "bg-rouge-confirmation",
+  "vert-confirmation": "bg-vert-confirmation",
 };
 
 const levelClass: Record<string, string> = {
@@ -71,10 +78,15 @@ const backgrounds = [
     hover: "border-beurre bg-beurre text-sauge [transform:scale(1.03)]",
   },
   {
-    /* The taupe row now sits in the white block on the stripes (finition-accueil D-2). */
     variant: "taupe",
-    band: "bg-blanc border border-perle",
+    band: "bg-taupe",
     hover: "border-beurre bg-beurre text-taupe [transform:scale(1.03)]",
+  },
+  {
+    /* The founders' « refuser » (JAM-300). */
+    variant: "rouge",
+    band: "bg-blanc border border-perle",
+    hover: "[transform:scale(1.03)]",
   },
 ] as const;
 
@@ -214,6 +226,17 @@ export default function DesignSystemPage() {
             </label>
             <Button>{c.cta.trouverProfessionnelle}</Button>
           </TranslucentBlock>
+        </div>
+      </Section>
+
+      <Section title={t.icons.title}>
+        <p className="max-w-2xl text-corps">{t.icons.text}</p>
+        <div className="flex flex-wrap items-end gap-8 text-sauge">
+          <MenuIcon aria-hidden className="size-6" />
+          <CheckIcon aria-hidden className="size-6" />
+          <HeartIcon aria-hidden className="size-8" />
+          <FileTextIcon aria-hidden className="size-8" />
+          <ShieldCheckIcon aria-hidden className="size-14" />
         </div>
       </Section>
 

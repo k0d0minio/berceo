@@ -212,9 +212,13 @@
   /*
    * The display face (Comodo, Fraunces until JAM-308) is set in capitals
    * only: H1, H2, the navigation and short taglines (DA, Typographie).
+   * Capitals are wider: a long word such as « PROFESSIONNELLES » breaks with
+   * a French hyphen on a phone rather than overflow the screen.
    */
   .font-display {
     text-transform: uppercase;
+    hyphens: auto;
+    overflow-wrap: break-word;
   }
   /* One focus treatment for the whole system: an outline, never a shadow. */
   :focus-visible {
