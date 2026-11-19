@@ -7,11 +7,13 @@ import { portal } from "@/content/portal"
 import { words } from "@/content/locale"
 
 /*
- * The signed-in portal's frame: the logomark in the header, the portal's
- * navigation (passed in — each feature brings its own entries, a count
- * beside one when it has one), and the page
- * on white below. On desktop the navigation sits in the header; below md it
- * opens from the menu button. `actions` is the header's right-hand slot
+ * The signed-in portal's frame (JAM-327): the header of the DA's slide 19 on
+ * a sage band, with the white logomark (slide 5: the portals) and the
+ * portal's navigation in white capitals (passed in — each feature brings its
+ * own entries, a count beside one when it has one), and the page on pearl
+ * below, where its white cards of 32 px show. From xl the navigation sits in
+ * the header; below xl it opens from the menu button, because seven entries
+ * in capitals need the full width. `actions` is the header's right-hand slot
  * (sign-out, later the account). `legal` is the footer's links at the bottom
  * of the screen: the general conditions and the privacy policy (round 2,
  * JAM-301).
@@ -33,24 +35,24 @@ function PortalShell({
   const t = words(portal)
 
   return (
-    <div className="flex min-h-dvh flex-col bg-blanc">
-      <header className="bg-perle">
+    <div className="flex min-h-dvh flex-col bg-perle">
+      <header className="bg-sauge text-blanc [--ring:var(--blanc)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-3 md:px-8">
           <Link
             href={home}
             aria-label={t.header.homeLabel}
-            className="shrink-0 rounded-md text-sauge"
+            className="shrink-0 rounded-md"
           >
             <BerceoLogomark className="h-12 w-auto" />
           </Link>
 
-          <nav aria-label={t.header.navLabel} className="hidden md:block">
-            <ul className="flex items-center gap-2">
+          <nav aria-label={t.header.navLabel} className="hidden xl:block">
+            <ul className="flex items-center gap-1">
               {nav.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex items-center gap-2 rounded-capsule px-4 py-2 font-display text-nav text-sauge transition-colors duration-200 ease-out hover:bg-beurre"
+                    className="flex items-center gap-2 rounded-capsule px-3 py-2 font-display text-nav whitespace-nowrap transition-colors duration-200 ease-out hover:bg-beurre hover:text-sauge"
                   >
                     {item.label}
                     {item.badge && item.badge.count > 0 ? <Badge {...item.badge} /> : null}
@@ -61,9 +63,10 @@ function PortalShell({
           </nav>
 
           <div className="flex items-center gap-3">
-            {actions ? <div className="hidden md:block">{actions}</div> : null}
-            <div className="md:hidden">
+            {actions ? <div className="hidden xl:block">{actions}</div> : null}
+            <div className="xl:hidden">
               <MobileMenu
+                variant="sauge"
                 links={nav}
                 labels={{
                   open: t.header.openMenu,
@@ -80,10 +83,10 @@ function PortalShell({
         {children}
       </main>
       {actions ? (
-        <div className="border-t px-4 py-6 md:hidden">{actions}</div>
+        <div className="border-t border-blanc px-4 py-6 xl:hidden">{actions}</div>
       ) : null}
       {legal && legal.length > 0 ? (
-        <footer className="border-t">
+        <footer className="border-t border-blanc">
           <nav aria-label={t.footer.navLabel} className="mx-auto max-w-6xl px-4 py-6 md:px-8">
             <ul className="flex flex-wrap gap-x-8 gap-y-2">
               {legal.map((link) => (
