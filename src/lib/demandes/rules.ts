@@ -248,14 +248,15 @@ export function isChangeable(
 }
 
 /**
- * Editing needs more: no answer may be waiting on it, or what the
- * professionals said yes to would move under them (D-76). Republishing
- * declines the waiting answers and opens editing again.
+ * Editing needs more: no professional may ever have answered it, or, for a
+ * regular request, any of its nights (JAM-302, Q4; D-76 superseded). A
+ * withdrawn or declined answer counts too: to change an answered request, the
+ * family cancels it and publishes a new one.
  */
 export function isEditable(
   request: { status: RequestStatus; nightDate: string; startTime: string },
-  pendingAnswers: number,
+  answersEver: number,
   now: Date,
 ): boolean {
-  return isChangeable(request, now) && pendingAnswers === 0;
+  return isChangeable(request, now) && answersEver === 0;
 }

@@ -7,7 +7,14 @@ import { after } from "next/server";
 import { PROFESSIONAL_REQUESTS_PATH, professionalRequestPath } from "@/lib/demandes/paths";
 import { logWriteError, UUID } from "@/lib/demandes/requests";
 import { requireAccess } from "@/lib/auth/guard";
-import { answerRequest, withdrawAnswer, type AnswerResult } from "@/lib/reservations/answers";
+import {
+  answerRequest,
+  answerSeries,
+  withdrawAnswer,
+  withdrawSeries,
+  type AnswerResult,
+  type SeriesAnswerResult,
+} from "@/lib/reservations/answers";
 import { notifyNewAnswer } from "@/lib/reservations/notify";
 import { siteOrigin } from "@/lib/site-origin";
 
@@ -61,6 +68,55 @@ export async function withdrawAnswerAction(requestId: string, from: string = "li
     withdrawn = await withdrawAnswer(user.id, id, new Date());
   } catch (error) {
     logWriteError("answer not withdrawn", { userId: user.id, requestId: id }, error);
+    redirect(back(id, origin, "erreur=generique"));
+  }
+
+  revalidatePath(PROFESSIONAL_REQUESTS_PATH, "layout");
+  redirect(back(id, origin, withdrawn ? "retiree=1" : "erreur=retrait"));
+}
+
+/**
+ * « Je suis disponible pour toutes les nuits » on a regular request (JAM-302):
+ * one answer for all its open nights. `requestId` is the night her card or page
+ * stands for, for the way back.
+ */
+export async function answerSeriesAction(seriesId: string, requestId: string, from: string = "liste"): Promise<void> {
+  const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);
+  const series = String(seriesId);
+  const id = String(requestId);
+  const origin = String(from);
+
+  let result: SeriesAnswerResult;
+  try {
+    result = await answerSeries(user.id, series, new Date());
+  } catch (error) {
+    logWriteError("series answer not recorded", { userId: user.id, seriesId: series }, error);
+    redirect(back(id, origin, "erreur=generique"));
+  }
+
+  if (!result.ok) redirect(back(id, origin, `erreur=${result.reason}`));
+
+  const site = await siteOrigin();
+  const { applicationId, answerCount } = result;
+  // One e-mail to the family, for the first night's answer: she reads the request whole.
+  after(() => notifyNewAnswer(applicationId, answerCount, site));
+
+  revalidatePath(PROFESSIONAL_REQUESTS_PATH, "layout");
+  redirect(back(id, origin, "repondu=1"));
+}
+
+/** « Retirer ma disponibilité » on a regular request (JAM-302): every night at once. */
+export async function withdrawSeriesAction(seriesId: string, requestId: string, from: string = "liste"): Promise<void> {
+  const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);
+  const series = String(seriesId);
+  const id = String(requestId);
+  const origin = String(from);
+
+  let withdrawn: boolean;
+  try {
+    withdrawn = await withdrawSeries(user.id, series, new Date());
+  } catch (error) {
+    logWriteError("series answer not withdrawn", { userId: user.id, seriesId: series }, error);
     redirect(back(id, origin, "erreur=generique"));
   }
 

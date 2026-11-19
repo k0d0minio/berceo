@@ -16,7 +16,7 @@ import { notSuspended, suspendedAtExactly } from "@/lib/auth/suspension";
 import { notesOfProfiles, NO_NOTE, type Note } from "@/lib/avis/ratings";
 import { nightAhead, professionalProfileOf, UUID } from "@/lib/demandes/requests";
 import { TIME_ZONE } from "@/lib/demandes/rules";
-import { withConversation } from "@/lib/messagerie/conversations";
+import { withConversation, withSeriesConversation } from "@/lib/messagerie/conversations";
 
 import { answerRefusal, type AnswerRefusal, type ApplicationStatus } from "./rules";
 
@@ -116,6 +116,8 @@ export async function answerRequest(userId: string, requestId: string, now: Date
       and ${notSuspended(sql`p.user_id`)}
       and p.night_rate_eur is not null
       and r.status = 'ouverte'
+      -- A night of a regular request is answered with all its nights (JAM-302, answerSeries).
+      and not r.series_whole
       and (r.night_date + r.start_time) > (now() at time zone ${TIME_ZONE})
       and (
         r.priority_profile_id = p.id
@@ -141,6 +143,158 @@ export async function answerRequest(userId: string, requestId: string, now: Date
   return { ok: true, applicationId: answer.id, answerCount: Number(answer.answer_count) };
 }
 
+export type SeriesAnswerResult =
+  | { ok: true; applicationId: string; answerCount: number }
+  | { ok: false; reason: AnswerRefusal | "introuvable" };
+
+/** The open nights ahead of a regular request answered as one (JAM-302), as a subquery. */
+function openSeriesNights(seriesId: string): SQL {
+  return sql`
+    select r.id, r.night_date, r.start_time, r.commune_ins, r.priority_profile_id
+    from care_requests r
+    where r.series_id = ${seriesId} and r.series_whole
+      and r.status = 'ouverte'
+      and (r.night_date + r.start_time) > (now() at time zone ${TIME_ZONE})
+  `;
+}
+
+/**
+ * Her answer to a regular request (JAM-302): all its open nights ahead, or
+ * none. Each night is read with `answerRefusal`, the first refusal is hers. The
+ * INSERT holds the rules again and writes every night or no night: a night
+ * booked, cancelled or answered a moment earlier refuses the whole answer
+ * (Q5: a night she is booked keeps her from answering). One conversation is
+ * made, on the last night's answer, so it stays open until the last night ends
+ * (messagerie, D-87). The returned answer is the first night's: the family's
+ * e-mail names it.
+ */
+export async function answerSeries(userId: string, seriesId: string, now: Date): Promise<SeriesAnswerResult> {
+  if (!UUID.test(seriesId)) return { ok: false, reason: "introuvable" };
+  const profile = await professionalProfileOf(userId);
+  if (!profile) return { ok: false, reason: "nonValide" };
+
+  const nights = await db
+    .select({
+      status: careRequests.status,
+      nightDate: careRequests.nightDate,
+      startTime: careRequests.startTime,
+      priorityProfileId: careRequests.priorityProfileId,
+      servesCommune: reachesCommune(profile.id, careRequests.communeIns),
+      bookedThatNight: sql<boolean>`exists (
+        select 1 from ${bookings}
+        where ${bookings.profileId} = ${profile.id} and ${bookings.nightDate} = ${careRequests.nightDate}
+          and ${bookings.status} = 'confirmee'
+      )`,
+      answer: careRequestApplications.status,
+    })
+    .from(careRequests)
+    .leftJoin(
+      careRequestApplications,
+      and(
+        eq(careRequestApplications.requestId, careRequests.id),
+        eq(careRequestApplications.profileId, profile.id),
+      ),
+    )
+    .where(and(eq(careRequests.seriesId, seriesId), eq(careRequests.seriesWhole, true), eq(careRequests.status, "ouverte"), nightAhead));
+  if (nights.length === 0) return { ok: false, reason: "introuvable" };
+
+  for (const night of nights) {
+    const refusal = answerRefusal(
+      {
+        profile,
+        request: night,
+        servesCommune: night.servesCommune,
+        answer: night.answer,
+        bookedThatNight: night.bookedThatNight,
+      },
+      now,
+    );
+    if (refusal) return { ok: false, reason: refusal };
+  }
+
+  const at = now.toISOString();
+  const open = openSeriesNights(seriesId);
+  // The nights she may answer: the same rules as `answerRequest`'s INSERT, night by night.
+  const answerable = sql`
+    select n.id from (${open}) n, professional_profiles p
+    where p.id = ${profile.id}
+      and p.status = 'valide'
+      and ${notSuspended(sql`p.user_id`)}
+      and p.night_rate_eur is not null
+      and (n.priority_profile_id = p.id or ${reachesCommune(sql`p.id`, sql`n.commune_ins`)})
+      and not exists (
+        select 1 from bookings b
+        where b.profile_id = p.id and b.night_date = n.night_date and b.status = 'confirmee'
+      )
+      and not exists (
+        select 1 from care_request_applications x
+        where x.request_id = n.id and x.profile_id = p.id and x.status <> 'retiree'
+      )
+  `;
+  // Every night or none: the INSERT writes only when she may answer each open night.
+  const written = await db.execute<{ id: string; answer_count: number; night_date: string }>(
+    withSeriesConversation(
+      sql`
+        insert into care_request_applications
+          (request_id, profile_id, night_rate_eur, extra_hour_rate_eur, answered_at, created_at, updated_at)
+        select ok.id, p.id, p.night_rate_eur, p.extra_hour_rate_eur, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
+        from (${answerable}) ok, professional_profiles p
+        where p.id = ${profile.id}
+          and (select count(*) from (${answerable}) a) = (select count(*) from (${open}) n)
+        on conflict (request_id, profile_id) do update
+          set status = 'en_attente',
+              night_rate_eur = excluded.night_rate_eur,
+              extra_hour_rate_eur = excluded.extra_hour_rate_eur,
+              answered_at = excluded.answered_at,
+              answer_count = care_request_applications.answer_count + 1,
+              updated_at = excluded.updated_at
+          where care_request_applications.status = 'retiree'
+        returning id, answer_count, request_id, profile_id
+      `,
+      at,
+    ),
+  );
+  const [first] = written.rows;
+  // A night moved between the read and the write: booked, cancelled, answered.
+  if (!first) return { ok: false, reason: "fermee" };
+  return { ok: true, applicationId: first.id, answerCount: Number(first.answer_count) };
+}
+
+/**
+ * Withdraws her waiting answer on every open night ahead of a regular request
+ * (JAM-302), while the request is open: she answered all its nights at once.
+ */
+export async function withdrawSeries(userId: string, seriesId: string, now: Date): Promise<boolean> {
+  if (!UUID.test(seriesId)) return false;
+  const profile = await professionalProfileOf(userId);
+  if (!profile) return false;
+  const updated = await db
+    .update(careRequestApplications)
+    .set({ status: "retiree", updatedAt: now })
+    .where(
+      and(
+        eq(careRequestApplications.profileId, profile.id),
+        eq(careRequestApplications.status, "en_attente"),
+        inArray(
+          careRequestApplications.requestId,
+          db
+            .select({ id: careRequests.id })
+            .from(careRequests)
+            .where(
+              and(
+                eq(careRequests.seriesId, seriesId),
+                eq(careRequests.seriesWhole, true),
+                eq(careRequests.status, "ouverte"),
+                nightAhead,
+              ),
+            ),
+        ),
+      ),
+    )
+    .returning({ id: careRequestApplications.id });
+  return updated.length > 0;
+}
+
 /**
  * Withdraws her waiting answer while the request is open and ahead (D-73). No
  * e-mail; she leaves the family's list at once.
@@ -161,7 +315,15 @@ export async function withdrawAnswer(userId: string, requestId: string, now: Dat
           db
             .select({ id: careRequests.id })
             .from(careRequests)
-            .where(and(eq(careRequests.id, requestId), eq(careRequests.status, "ouverte"), nightAhead)),
+            .where(
+              and(
+                eq(careRequests.id, requestId),
+                eq(careRequests.status, "ouverte"),
+                nightAhead,
+                // Her answer on a regular request is withdrawn for all its nights (JAM-302, withdrawSeries).
+                eq(careRequests.seriesWhole, false),
+              ),
+            ),
         ),
       ),
     )
@@ -275,6 +437,98 @@ export async function familyAnswers(userId: string, requestId: string): Promise<
   return rows.map((row) => ({ ...row, note: notes.get(row.profileId) ?? NO_NOTE }));
 }
 
+/** An answer to a regular request (JAM-302): one professional for all its open nights ahead. */
+export type SeriesApplicant = Applicant & {
+  /** Her answer on each open night ahead, in night order. */
+  nights: { requestId: string; applicationId: string; nightDate: string; nightRateEur: number }[];
+};
+
+/**
+ * « Les professionnelles qui ont répondu à votre demande » for a regular
+ * request (JAM-302): the professionals whose answer waits on every one of its
+ * open nights ahead, earliest first. One who no longer covers every night (she
+ * was booked elsewhere one of them, Q5) is not offered.
+ */
+export async function familySeriesAnswers(userId: string, seriesId: string): Promise<SeriesApplicant[]> {
+  if (!UUID.test(seriesId)) return [];
+  const open = and(
+    eq(careRequests.seriesId, seriesId),
+    eq(careRequests.seriesWhole, true),
+    eq(careRequests.status, "ouverte"),
+    nightAhead,
+  );
+  const [nights, rows] = await Promise.all([
+    db.select({ id: careRequests.id }).from(careRequests).where(and(open, eq(careRequests.familyUserId, userId))),
+    db
+      .select({
+        applicationId: careRequestApplications.id,
+        requestId: careRequests.id,
+        nightDate: careRequests.nightDate,
+        profileId: professionalProfiles.id,
+        firstName: users.firstName,
+        profession: professionalProfiles.profession,
+        nightRateEur: careRequestApplications.nightRateEur,
+        extraHourRateEur: careRequestApplications.extraHourRateEur,
+        photoId,
+        answeredAt: careRequestApplications.answeredAt,
+      })
+      .from(careRequestApplications)
+      .innerJoin(careRequests, eq(careRequests.id, careRequestApplications.requestId))
+      .innerJoin(professionalProfiles, eq(professionalProfiles.id, careRequestApplications.profileId))
+      .innerJoin(users, eq(users.id, professionalProfiles.userId))
+      .where(and(open, waitingOnHers(userId)))
+      .orderBy(asc(careRequestApplications.answeredAt)),
+  ]);
+  if (nights.length === 0) return [];
+
+  const byProfile = new Map<string, typeof rows>();
+  for (const row of rows) {
+    const list = byProfile.get(row.profileId);
+    if (list) list.push(row);
+    else byProfile.set(row.profileId, [row]);
+  }
+  const complete = [...byProfile.values()].filter((list) => list.length === nights.length);
+  const notes = await notesOfProfiles(complete.map((list) => list[0].profileId));
+  return complete.map((list) => {
+    const sorted = [...list].sort((a, b) => a.nightDate.localeCompare(b.nightDate));
+    const [first] = sorted;
+    return {
+      applicationId: first.applicationId,
+      profileId: first.profileId,
+      firstName: first.firstName,
+      profession: first.profession,
+      nightRateEur: first.nightRateEur,
+      extraHourRateEur: first.extraHourRateEur,
+      photoId: first.photoId,
+      answeredAt: first.answeredAt,
+      note: notes.get(first.profileId) ?? NO_NOTE,
+      nights: sorted.map((row) => ({
+        requestId: row.requestId,
+        applicationId: row.applicationId,
+        nightDate: row.nightDate,
+        nightRateEur: row.nightRateEur,
+      })),
+    };
+  });
+}
+
+/**
+ * How many answers professionals ever gave on her request, whatever their
+ * state, and on every night of it when it is a regular request (JAM-302, Q4):
+ * one answer locks editing.
+ */
+export async function answersEver(userId: string, requestId: string): Promise<number> {
+  if (!UUID.test(requestId)) return 0;
+  const result = await db.execute<{ n: number }>(sql`
+    select count(*)::integer as n
+    from care_request_applications a
+    join care_requests ar on ar.id = a.request_id
+    join care_requests self on self.id = ${requestId} and self.family_user_id = ${userId}
+    where ar.id = self.id or (self.series_whole and ar.series_id = self.series_id)
+  `);
+  return Number(result.rows[0]?.n ?? 0);
+}
+
 /** How many answers wait on each of her requests (« 2 réponses »), by request id. */
 export async function pendingCounts(userId: string): Promise<Map<string, number>> {
   const rows = await db
@@ -317,6 +571,8 @@ export async function waitingAnswerOf(
         eq(careRequestApplications.requestId, requestId),
         eq(careRequestApplications.profileId, profileId),
         waitingOnHers(userId),
+        // A regular request is booked for all its nights, from its own page (JAM-302).
+        eq(careRequests.seriesWhole, false),
       ),
     )
     .limit(1);
@@ -361,6 +617,8 @@ export async function republishRequest(userId: string, requestId: string, now: D
           eq(careRequests.familyUserId, userId),
           eq(careRequests.status, "ouverte"),
           nightAhead,
+          // A regular request is not republished night by night (JAM-302): it is cancelled and published again.
+          sql`not ${careRequests.seriesWhole}`,
           exists(waiting),
         ),
       )

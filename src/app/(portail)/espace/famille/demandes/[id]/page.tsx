@@ -35,7 +35,7 @@ import { creditShares } from "@/lib/credits/credits";
 import { creditRecap, feeLine } from "@/lib/paiements/format";
 import { PAYMENT_RETURN_PATH } from "@/lib/paiements/paths";
 import { feeCents, isSessionId } from "@/lib/paiements/rules";
-import { familyAnswers } from "@/lib/reservations/answers";
+import { answersEver, familyAnswers } from "@/lib/reservations/answers";
 import { gardeState } from "@/lib/gardes/rules";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
 import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
@@ -43,6 +43,8 @@ import { familyBookingPath, professionalProfilePath } from "@/lib/reservations/p
 import { canRepublish } from "@/lib/reservations/rules";
 
 import { acceptAnswerAction, cancelRequestAction, republishRequestAction } from "../actions";
+
+import { SeriesRequest } from "./series-request";
 
 const t = words(demandes);
 const r = words(reservations);
@@ -95,7 +97,7 @@ function message(notice: Notice): string | null {
  * One of her requests: the card and her optional reason (demande-motif-facultatif), then, while it is open and its night has not
  * started, « Les professionnelles qui ont répondu à votre demande » (the
  * guide) with « Voir le profil complet » and « Accepter et réserver » for each,
- * « Modifier ma demande » while no answer waits (D-76), « Annuler ma demande »,
+ * « Modifier ma demande » until a professional answers it (JAM-302, Q4), « Annuler ma demande »,
  * and « Republier ma demande » once an answer waits (D-70). Without an address
  * in her profile she is sent to complete it before booking (D-77). A booked
  * request reads « Attribuée » and links to its booking. Another family's id,
@@ -119,17 +121,49 @@ export default async function DemandePage({
 
   const now = new Date();
   const notice = message(query);
+
+  // A regular request answered as one (JAM-302): its own view, whichever night's page this is.
+  if (request.seriesWhole && request.seriesId) {
+    const subscribed = await isSubscribed(user.id, now);
+    return (
+      <SpaceShell user={user} title={t.meta.detail}>
+        {notice ? <FormMessage>{notice}</FormMessage> : null}
+        {query.paiement === "enCours" ? (
+          <Link
+            href={
+              isSessionId(query.session)
+                ? `${PAYMENT_RETURN_PATH}?session_id=${query.session}`
+                : familyRequestPath(request.id)
+            }
+            className="w-fit text-corps font-semibold text-sauge underline underline-offset-4"
+          >
+            {p.retour.actualiser}
+          </Link>
+        ) : null}
+        <SeriesRequest
+          userId={user.id}
+          request={request}
+          seriesId={request.seriesId}
+          subscribed={subscribed}
+          now={now}
+        />
+      </SpaceShell>
+    );
+  }
+
   const open = isChangeable(request, now);
   const facts = { ...request, priorityProfileId: null };
-  const [answers, hasAddress, booking, subscribed] = await Promise.all([
+  const [answers, hasAddress, booking, subscribed, answered] = await Promise.all([
     open ? familyAnswers(user.id, request.id) : Promise.resolve([]),
     open ? requestHasAddress(user.id, request.id) : Promise.resolve(false),
     // A booked request, and one whose garde was cancelled since (D-110), link to the garde.
     request.status !== "ouverte" ? bookingOfRequest(user.id, request.id) : Promise.resolve(null),
     isSubscribed(user.id, now),
+    answersEver(user.id, request.id),
   ]);
   const mayBook = familyMay("reserver", { subscribed });
-  const editable = isEditable(request, answers.length, now);
+  // One answer ever locks editing (JAM-302, Q4).
+  const editable = isEditable(request, answered, now);
   // Republishing needs a waiting answer, so the answers' invitation line stands for it too.
   const republishable = canRepublish(facts, answers.length, now);
   const night = recapNight(request.nightDate, request.startTime, request.extraHours);
@@ -248,7 +282,7 @@ export default async function DemandePage({
         </section>
       ) : null}
 
-      {open && answers.length > 0 ? <p className="max-w-2xl text-corps text-taupe">{r.famille.verrou}</p> : null}
+      {open && answered > 0 ? <p className="max-w-2xl text-corps text-taupe">{r.famille.verrou}</p> : null}
 
       {editable && !familyMay("modifier", { subscribed }) ? <SubscriptionRequired /> : null}
       <div className="flex flex-wrap gap-3">

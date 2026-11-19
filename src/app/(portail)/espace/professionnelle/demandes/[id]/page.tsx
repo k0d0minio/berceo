@@ -13,10 +13,11 @@ import { reservations } from "@/content/reservations";
 import { requireAccess } from "@/lib/auth/guard";
 import { withQuery } from "@/lib/auth/routing";
 import { PROFESSIONAL_REQUESTS_PATH, professionalRequestPath } from "@/lib/demandes/paths";
-import { professionalRequest } from "@/lib/demandes/requests";
+import { professionalRequest, professionalRequests } from "@/lib/demandes/requests";
 import { conversationsOfRequests } from "@/lib/messagerie/conversations";
 
 import { AnswerFooter, answerNotice, type AnswerNotice } from "../answer-footer";
+import { SeriesEntry } from "../series-entry";
 
 const t = words(demandes);
 const r = words(reservations).professionnelle;
@@ -52,6 +53,41 @@ export default async function DemandeProfessionnellePage({
   const { request } = view;
   const now = new Date();
   const notice = answerNotice(query);
+
+  // A regular request answered as one (JAM-302): every night of it on her list, one answer.
+  if (request.seriesWhole && request.seriesId) {
+    const seriesId = request.seriesId;
+    const list = await professionalRequests(user.id);
+    const nights = (list.validated ? list.requests : [])
+      .filter((night) => night.seriesId === seriesId)
+      .sort((a, b) => a.nightDate.localeCompare(b.nightDate));
+    const ids = await conversationsOfRequests(
+      user.id,
+      nights.map((night) => night.id),
+    );
+    return (
+      <SpaceShell user={user} title={t.professionnelle.titre}>
+        {notice ? <FormMessage>{notice}</FormMessage> : null}
+        <div className="max-w-2xl">
+          <SeriesEntry
+            nights={nights.length > 0 ? nights : [request]}
+            seriesId={seriesId}
+            nightRateEur={view.nightRateEur}
+            extraHourRateEur={view.extraHourRateEur}
+            conversationId={nights.map((night) => ids.get(night.id)).find((id) => id !== undefined)}
+            from="demande"
+          />
+        </div>
+        {request.reason ? <RequestReason title={t.professionnelle.motif} reason={request.reason} /> : null}
+        <div className="flex max-w-2xl flex-wrap gap-3">
+          <Button asChild variant="raye">
+            <Link href={PROFESSIONAL_REQUESTS_PATH}>{t.professionnelle.retour}</Link>
+          </Button>
+        </div>
+      </SpaceShell>
+    );
+  }
+
   const conversationIds = await conversationsOfRequests(user.id, [request.id]);
 
   return (

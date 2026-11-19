@@ -588,9 +588,16 @@ export const careRequests = pgTable(
     /**
      * The nights the family published together as « Nuits régulières »
      * (demande-nuits-regulieres): one request per night, one shared id. Null on
-     * a one-off night. Each night keeps its own status, answers and booking.
+     * a one-off night.
      */
     seriesId: uuid("series_id"),
+    /**
+     * The series is one request (JAM-302): a professional answers all its
+     * nights at once, the family books her for all of them with one fee, and
+     * each night then lives as its own garde. False on a one-off night and on
+     * the series published before JAM-302, whose nights are answered one by one.
+     */
+    seriesWhole: boolean("series_whole").notNull().default(false),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -628,6 +635,7 @@ export const careRequests = pgTable(
       sql`(${table.status} = 'annulee') = (${table.cancelledAt} IS NOT NULL)`,
     ),
     // A profile deleted later clears the id and leaves the moment: only a set id needs one.
+    check("care_requests_series_whole", sql`NOT ${table.seriesWhole} OR ${table.seriesId} IS NOT NULL`),
     check(
       "care_requests_priority_sent_at",
       sql`${table.priorityProfileId} IS NULL OR ${table.prioritySentAt} IS NOT NULL`,
@@ -985,7 +993,11 @@ export const payments = pgTable(
     /** The part of the fee a Berceo credit paid (credits-au-paiement); 0 when none did. */
     creditCents: integer("credit_cents").notNull().default(0),
     /** Null only for a fee a credit pays whole: it opens no Checkout. */
-    stripeSessionId: text("stripe_session_id").unique(),
+    /**
+     * The Checkout that paid it. The nights of one regular request (JAM-302)
+     * share one Checkout: one row per night, one session.
+     */
+    stripeSessionId: text("stripe_session_id"),
     stripePaymentIntentId: text("stripe_payment_intent_id"),
     stripeRefundId: text("stripe_refund_id"),
     /** When the Checkout closes on its own (30 minutes, D-92). */
@@ -1002,6 +1014,7 @@ export const payments = pgTable(
       .on(table.requestId)
       .where(sql`${table.status} = 'en_attente'`),
     index("payments_created_at_idx").on(table.createdAt),
+    index("payments_stripe_session_idx").on(table.stripeSessionId),
     index("payments_payment_intent_idx").on(table.stripePaymentIntentId),
     // 3 % of a rate from 100 €, with no ceiling (onboarding-retour-1).
     check("payments_amount_min", sql`${table.amountCents} >= 300`),

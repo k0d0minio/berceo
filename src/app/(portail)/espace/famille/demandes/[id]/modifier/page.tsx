@@ -13,7 +13,7 @@ import { familyRequestPath } from "@/lib/demandes/paths";
 import { ownRequest } from "@/lib/demandes/requests";
 import { dateWindow, isEditable, toHourMinute } from "@/lib/demandes/rules";
 import { ownRequestAddress } from "@/lib/famille/request-address";
-import { pendingCounts } from "@/lib/reservations/answers";
+import { answersEver } from "@/lib/reservations/answers";
 
 import { updateRequestAction } from "../../actions";
 
@@ -50,8 +50,9 @@ export default async function ModifierDemandePage({ params }: { params: Promise<
       </SpaceShell>
     );
   }
-  const pending = (await pendingCounts(user.id)).get(request.id) ?? 0;
-  if (!isEditable(request, pending, now)) redirect(`${familyRequestPath(request.id)}?erreur=nonModifiable`);
+  // One answer ever, on it or on any night of its regular request, locks it (JAM-302, Q4).
+  const answered = await answersEver(user.id, request.id);
+  if (!isEditable(request, answered, now)) redirect(`${familyRequestPath(request.id)}?erreur=nonModifiable`);
   const address = await ownRequestAddress(user.id, request.id);
 
   return (

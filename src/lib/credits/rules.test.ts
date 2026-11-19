@@ -10,6 +10,8 @@ import {
   isExpired,
   remainingCents,
   spendingPlan,
+  splitShare,
+  splitTakes,
   STRIPE_MIN_CENTS,
   type SpendableCredit,
 } from "./rules";
@@ -186,6 +188,58 @@ describe("CREDIT_ORIGINS", () => {
       "absence_professionnelle",
       "annulation_berceo",
       "geste_berceo",
+    ]);
+  });
+});
+
+/**
+ * Spec (JAM-302): the nights of a regular request share one Checkout, one fee
+ * per night. A credit share is cut over those fees so each fee is paid whole
+ * or leaves Stripe at least its minimum.
+ */
+describe("splitShare", () => {
+  it("gives one fee what creditShare gives it", () => {
+    expect(splitShare(1000, [390])).toEqual([390]);
+    expect(splitShare(200, [390])).toEqual([200]);
+  });
+
+  it("pays whole fees first, then part of the next", () => {
+    expect(splitShare(900, [390, 390, 390])).toEqual([390, 390, 120]);
+  });
+
+  it("never leaves a fee less than Stripe's minimum", () => {
+    const split = splitShare(760, [390, 390]);
+    expect(split).toEqual([390, 340]);
+    for (const [i, fee] of [390, 390].entries()) {
+      const rest = fee - split[i];
+      expect(rest === 0 || rest >= STRIPE_MIN_CENTS).toBe(true);
+    }
+  });
+
+  it("spends nothing of an empty share", () => {
+    expect(splitShare(0, [390, 390])).toEqual([0, 0]);
+  });
+});
+
+describe("splitTakes", () => {
+  it("cuts a credit over two fees and guards the second piece on the first", () => {
+    const takes = [
+      { id: "a", cents: 500, spentBefore: 100 },
+      { id: "b", cents: 200, spentBefore: 0 },
+    ];
+    expect(splitTakes(takes, [390, 310])).toEqual([
+      [{ id: "a", cents: 390, spentBefore: 100 }],
+      [
+        { id: "a", cents: 110, spentBefore: 490 },
+        { id: "b", cents: 200, spentBefore: 0 },
+      ],
+    ]);
+  });
+
+  it("gives a fee with no credit no take", () => {
+    expect(splitTakes([{ id: "a", cents: 100, spentBefore: 0 }], [100, 0])).toEqual([
+      [{ id: "a", cents: 100, spentBefore: 0 }],
+      [],
     ]);
   });
 });

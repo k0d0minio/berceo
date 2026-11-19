@@ -312,6 +312,19 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   night keeps its garde. The digest shows the nights of a series that read the same as one line
   (`groupForDigest`). Sent from a professional's profile, every night goes to her in priority,
   in one e-mail (`notifySeriesPriority`, D-71). An urgent request is always one night.
+- **One regular request, one professional (JAM-302):** a series published from JAM-302 on has
+  `care_requests.series_whole`. It is one request. Her list and its page show it once, with all
+  its open nights (`groupForProfessional`, `SeriesEntry`). She answers all the open nights or
+  none (`answerSeries`, one answer row per night, one conversation on the last night's answer).
+  A night she is booked keeps her out (`seriesAnswerState`, Q5). The family sees the
+  professionals who cover every open night (`familySeriesAnswers`) and books one for all of them
+  with one Checkout (`startSeriesCheckout`): one `payments` row per night, one Stripe session,
+  her credit cut over the nights (`splitCreditPart`). The paid Checkout books each night
+  (`confirmPayment` → `settleSeries`), and each night then lives as its own garde (Q2). A refund
+  is one night's card part. A whole series is never republished, sent in priority after its
+  publication, answered, withdrawn, booked or cancelled night by night. Any request, a whole
+  series included, is no longer editable once a professional answered it (`answersEver`, Q4).
+  Series published before JAM-302 keep `series_whole` false and work night by night (Q3).
 - **The extra hours:** « Heures supplémentaires », 0 to 6 whole hours, default 0, under « Heure
   de début ». `care_requests.extra_hours` stores them. The night ends at start + 11 h + the extra
   hours. `endTime` and `hasNightEnded` in `rules.ts` compute it, `nightEnd` in `night-end.ts`

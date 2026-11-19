@@ -30,12 +30,13 @@ import {
   planCreditPart,
   releaseHoldOfSessionStatement,
   releaseHoldStatement,
+  splitCreditPart,
   type CreditPart,
 } from "@/lib/credits/credits";
 import { formatDate } from "@/lib/demandes/format";
 import { isUniqueViolation, UUID } from "@/lib/demandes/requests";
-import { acceptAnswer, acceptCheck } from "@/lib/reservations/bookings";
-import { notifyBooking } from "@/lib/reservations/notify";
+import { acceptAnswer, acceptCheck, acceptSeriesCheck } from "@/lib/reservations/bookings";
+import { notifyBooking, notifySeriesBooking } from "@/lib/reservations/notify";
 import type { AcceptRefusal } from "@/lib/reservations/rules";
 
 import { notifyRefund } from "./notify";
@@ -119,6 +120,8 @@ export async function startCheckout(input: {
   const { user, requestId, applicationId, siteUrl, now } = input;
   const check = await acceptCheck(user.id, requestId, applicationId, now);
   if (!check.ok) return { kind: "refus", reason: check.reason };
+  // A night of a regular request is booked with all its nights (JAM-302, startSeriesCheckout).
+  if (check.seriesWhole) return { kind: "refus", reason: "indisponible" };
 
   // A fee already paid for this request and still being settled: confirm it,
   // never charge a second one.
@@ -287,6 +290,158 @@ async function payWithCredit(input: {
   return { kind: "credit", result: await settle(payment, siteUrl, now) };
 }
 
+/**
+ * « Accepter et réserver » on a regular request (JAM-302, Q1): one Checkout
+ * for the fees of all its open nights ahead, one fee row per night (3 % of
+ * each night's frozen rate), all on one Stripe session. Her credit pays first,
+ * cut over the nights (`splitCreditPart`); a balance that covers every fee
+ * books at once, with no Checkout. The paid Checkout books every night through
+ * `confirmPayment`. Nothing about the request or its answers changes here.
+ */
+export async function startSeriesCheckout(input: {
+  user: { id: string; email: string };
+  seriesId: string;
+  profileId: string;
+  siteUrl: string;
+  now: Date;
+}): Promise<StartResult> {
+  const { user, seriesId, profileId, siteUrl, now } = input;
+  const check = await acceptSeriesCheck(user.id, seriesId, profileId, now);
+  if (!check.ok) return { kind: "refus", reason: check.reason };
+  const { nights } = check;
+  const requestIds = nights.map((night) => night.requestId);
+
+  // Fees already paid for these nights and still being settled: confirm them, never charge twice.
+  const inFlight = await db
+    .select()
+    .from(payments)
+    .where(and(inArray(payments.requestId, requestIds), eq(payments.status, "payee"), isNull(payments.bookingId)));
+  if (inFlight.length > 0) {
+    const withSession = inFlight.find((row) => row.stripeSessionId);
+    if (withSession?.stripeSessionId) return { kind: "dejaPaye", sessionId: withSession.stripeSessionId };
+    return { kind: "credit", result: await settleSeries(inFlight, siteUrl, now) };
+  }
+
+  // One open Checkout per night (D-92): the open ones are closed first, once per session.
+  const open = await openCheckouts(inArray(payments.requestId, requestIds));
+  const sessions = new Map(open.map((row) => [row.stripeSessionId, row]));
+  for (const row of sessions.values()) {
+    const closed = await closeCheckout(row);
+    if (closed === "payee") return { kind: "dejaPaye", sessionId: row.stripeSessionId };
+  }
+  await releaseStaleHolds(user.id, siteUrl, now);
+
+  const fees = nights.map((night) => feeCents(night.nightRateEur));
+  const totalCents = fees.reduce((sum, fee) => sum + fee, 0);
+  const parts = splitCreditPart(await planCreditPart(user.id, totalCents, now), fees);
+  const ids = nights.map(() => randomUUID());
+  const creditCents = parts.reduce((sum, part) => sum + part.creditCents, 0);
+  const chargeCents = totalCents - creditCents;
+
+  const rowsAt = (status: "en_attente" | "payee", sessionId: string | null, expiresAt: Date) =>
+    nights.map((night, i) => ({
+      id: ids[i],
+      requestId: night.requestId,
+      applicationId: night.applicationId,
+      familyUserId: user.id,
+      nightDate: night.nightDate,
+      nightRateEur: night.nightRateEur,
+      amountCents: fees[i],
+      creditCents: parts[i].creditCents,
+      stripeSessionId: sessionId,
+      status,
+      paidAt: status === "payee" ? now : null,
+      expiresAt,
+      createdAt: now,
+      updatedAt: now,
+    }));
+
+  if (chargeCents === 0) {
+    // Her credit covers every night: the fees are written paid, and booked at once (credits-au-paiement).
+    let inserted: Payment[];
+    try {
+      const [rows] = await db.batch([
+        db.insert(payments).values(rowsAt("payee", null, now)).returning(),
+        ...parts.flatMap((part, i) => holdStatements(part, ids[i], "confirmee", now)).map((statement) => db.execute(statement)),
+      ]);
+      inserted = rows;
+    } catch (error) {
+      if (isUniqueViolation(error)) return { kind: "refus", reason: "conflit" };
+      if (isHoldConflict(error)) logError("credit changed before the hold", { seriesId });
+      else logError("credit payment not recorded", { seriesId }, error);
+      return { kind: "erreur" };
+    }
+    return { kind: "credit", result: await settleSeries(inserted, siteUrl, now) };
+  }
+
+  const expiresAt = checkoutExpiry(now);
+  const metadata = { payment_id: ids[0], series_id: seriesId, application_id: nights[0].applicationId };
+  const dates = nights.map((night) => formatDate(night.nightDate)).join(", ");
+
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe().checkout.sessions.create(
+      {
+        mode: "payment",
+        locale: "fr",
+        payment_method_types: ["card", "bancontact"],
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: "eur",
+              unit_amount: chargeCents,
+              product_data: {
+                name: t.checkout.produit,
+                description:
+                  creditCents > 0
+                    ? fill(t.checkout.descriptionSerieCredit, {
+                        dates,
+                        montant: fill(t.recapitulatif.montant, { montant: eurosFromCents(creditCents) }),
+                      })
+                    : fill(t.checkout.descriptionSerie, { dates }),
+              },
+            },
+          },
+        ],
+        customer_email: user.email,
+        client_reference_id: ids[0],
+        metadata,
+        payment_intent_data: { metadata },
+        expires_at: Math.floor(expiresAt.getTime() / 1000),
+        success_url: `${siteUrl}${PAYMENT_RETURN_PATH}?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${siteUrl}${PAYMENT_ABANDON_PATH}?paiement=${ids[0]}`,
+      },
+      { idempotencyKey: `frais-checkout-${ids[0]}` },
+    );
+  } catch (error) {
+    logError("series checkout not opened", { seriesId }, error);
+    return { kind: "erreur" };
+  }
+  if (!session.url) {
+    logError("checkout without a url", { seriesId, sessionId: session.id });
+    return { kind: "erreur" };
+  }
+
+  try {
+    // Every night's fee and the credit each holds land together, or none does.
+    await db.batch([
+      db.insert(payments).values(rowsAt("en_attente", session.id, expiresAt)),
+      ...parts.flatMap((part, i) => holdStatements(part, ids[i], "reservee", now)).map((statement) => db.execute(statement)),
+    ]);
+  } catch (error) {
+    await stripe()
+      .checkout.sessions.expire(session.id)
+      .catch((expireError: unknown) => logError("racing checkout not expired", { sessionId: session.id }, expireError));
+    if (isUniqueViolation(error)) return { kind: "refus", reason: "conflit" };
+    if (isHoldConflict(error)) logError("credit changed before the hold", { seriesId });
+    else logError("series payment not recorded", { seriesId, sessionId: session.id }, error);
+    return { kind: "erreur" };
+  }
+
+  return { kind: "stripe", url: session.url };
+}
+
 type OpenCheckout = { id: string; stripeSessionId: string };
 
 /** The open Checkouts that match `where`. Each one has a session: a fee with none is never open. */
@@ -332,12 +487,13 @@ async function closeCheckout(row: OpenCheckout): Promise<"expiree" | "payee"> {
     }
   }
   const now = new Date();
+  // Every fee of the Checkout: one, or each night of a regular request (JAM-302).
   await db.batch([
     db
       .update(payments)
       .set({ status: "expiree", updatedAt: now })
-      .where(and(eq(payments.id, row.id), eq(payments.status, "en_attente"))),
-    db.execute(releaseHoldStatement(row.id, now)),
+      .where(and(eq(payments.stripeSessionId, row.stripeSessionId), eq(payments.status, "en_attente"))),
+    db.execute(releaseHoldOfSessionStatement(row.stripeSessionId, now)),
   ]);
   return "expiree";
 }
@@ -373,8 +529,17 @@ function outcome(row: Pick<Payment, "status" | "bookingId" | "requestId">): Conf
   }
 }
 
+/** The fees of one Checkout, in night order: one, or each night of a regular request (JAM-302). */
+async function paymentsOfSession(sessionId: string): Promise<Payment[]> {
+  return db
+    .select()
+    .from(payments)
+    .where(eq(payments.stripeSessionId, sessionId))
+    .orderBy(payments.nightDate);
+}
+
 async function paymentBySession(sessionId: string): Promise<Payment | null> {
-  const [row] = await db.select().from(payments).where(eq(payments.stripeSessionId, sessionId)).limit(1);
+  const [row] = await paymentsOfSession(sessionId);
   return row ?? null;
 }
 
@@ -395,7 +560,9 @@ function paymentIntentId(value: string | { id: string } | null): string | null {
  */
 export async function confirmPayment(sessionId: string, siteUrl: string, now: Date): Promise<ConfirmResult> {
   if (!isSessionId(sessionId)) return { kind: "inconnue" };
-  const row = await paymentBySession(sessionId);
+  const rows = await paymentsOfSession(sessionId);
+  if (rows.length > 1) return confirmSeries(sessionId, rows, siteUrl, now);
+  const [row] = rows;
   if (!row) return { kind: "inconnue" };
   if (row.status === "payee" && !row.bookingId) return settle(row, siteUrl, now);
   if (row.status !== "en_attente" && row.status !== "expiree") return outcome(row);
@@ -430,6 +597,110 @@ export async function confirmPayment(sessionId: string, siteUrl: string, now: Da
     return again ? outcome(again) : { kind: "inconnue" };
   }
   return settle(taken, siteUrl, now);
+}
+
+/**
+ * `confirmPayment` for the Checkout of a regular request (JAM-302): the same
+ * steps for every night's fee at once. Stripe's total must be the sum of what
+ * the credit left to each fee; one update takes all of them to `payee`, and
+ * each night's held credit is confirmed in the same batch. Then the nights are
+ * settled together.
+ */
+async function confirmSeries(sessionId: string, rows: Payment[], siteUrl: string, now: Date): Promise<ConfirmResult> {
+  const [first] = rows;
+  const unsettled = rows.filter((row) => row.status === "payee" && !row.bookingId);
+  if (!rows.some((row) => row.status === "en_attente" || row.status === "expiree")) {
+    return unsettled.length > 0 ? settleSeries(unsettled, siteUrl, now) : outcome(first);
+  }
+
+  const session = await stripe().checkout.sessions.retrieve(sessionId);
+  if (session.payment_status !== "paid") {
+    if (session.status === "expired") await markSession(sessionId, "expiree");
+    return { kind: "nonPayee", requestId: first.requestId };
+  }
+  const expected = rows.reduce((sum, row) => sum + row.amountCents - row.creditCents, 0);
+  if (session.amount_total !== expected || session.currency !== first.currency) {
+    logError("paid amount differs from the fees", { sessionId, amount: session.amount_total });
+    throw new Error("paid amount differs from the fees");
+  }
+
+  await db.batch([
+    db
+      .update(payments)
+      .set({
+        status: "payee",
+        paidAt: now,
+        stripePaymentIntentId: paymentIntentId(session.payment_intent),
+        updatedAt: now,
+      })
+      .where(and(eq(payments.stripeSessionId, sessionId), inArray(payments.status, ["en_attente", "expiree"]))),
+    ...rows.map((row) => db.execute(confirmHoldStatement(row.id, now))),
+  ]);
+  const again = await paymentsOfSession(sessionId);
+  const pending = again.filter((row) => row.status === "payee" && !row.bookingId);
+  if (pending.length === 0) return again[0] ? outcome(again[0]) : { kind: "inconnue" };
+  return settleSeries(pending, siteUrl, now);
+}
+
+/**
+ * The paid fees of a regular request without a booking (JAM-302): each night
+ * is booked as `settle` books one (D-102), or its own fee is refunded when its
+ * booking can no longer be made (D-103). The nights booked here are told in
+ * one pair of e-mails, with every declined professional told once.
+ */
+async function settleSeries(rows: Payment[], siteUrl: string, now: Date): Promise<ConfirmResult> {
+  const sorted = [...rows].sort((a, b) => a.nightDate.localeCompare(b.nightDate));
+  const made: { bookingId: string; requestId: string | null }[] = [];
+  const declined: string[] = [];
+  const fee = { amountCents: 0, creditCents: 0 };
+  let refunded = false;
+  let refundWaits = false;
+
+  for (const payment of sorted) {
+    const { requestId, applicationId, familyUserId } = payment;
+    const held = await creditPartHeld(payment.id, payment.creditCents);
+    const booked =
+      held && requestId && applicationId && familyUserId
+        ? await acceptAnswer(familyUserId, requestId, applicationId, payment.id, now)
+        : ({ ok: false, reason: "introuvable" } as const);
+    if (booked.ok) {
+      made.push({ bookingId: booked.bookingId, requestId });
+      declined.push(...booked.declined);
+      fee.amountCents += payment.amountCents;
+      fee.creditCents += payment.creditCents;
+      continue;
+    }
+
+    const [current] = await db.select().from(payments).where(eq(payments.id, payment.id)).limit(1);
+    // Booked by another caller meanwhile, or no longer paid: nothing to refund here.
+    if (!current || current.bookingId || current.status !== "payee") continue;
+    const refund = await refundFee(payment.id, "reservation_impossible", now);
+    if (!refund.ok) {
+      logError("paid fee neither booked nor refunded", { paymentId: payment.id, reason: refund.reason });
+      refundWaits = true;
+      continue;
+    }
+    if (refund.status !== "remboursee") {
+      refundWaits = true;
+      continue;
+    }
+    refunded = true;
+    if (refund.recorded) after(() => notifyRefund(payment.id, siteUrl));
+  }
+
+  const [first] = made;
+  if (first) {
+    const bookingIds = made.map((booking) => booking.bookingId);
+    after(() => notifySeriesBooking(bookingIds, declined, siteUrl, fee));
+    return { kind: "reservee", bookingId: first.bookingId, requestId: first.requestId };
+  }
+  const requestId = sorted[0]?.requestId ?? null;
+  if (refundWaits) return { kind: "remboursementEnAttente", requestId };
+  if (refunded) return { kind: "remboursee", requestId };
+  const again = await db.select().from(payments).where(inArray(payments.id, sorted.map((row) => row.id)));
+  const booked = again.find((row) => row.bookingId);
+  if (booked) return outcome(booked);
+  return again[0] ? outcome(again[0]) : { kind: "inconnue" };
 }
 
 /**
@@ -569,8 +840,13 @@ export async function refundFee(
   if (cardCents > 0 && payment.stripePaymentIntentId) {
     const previous = payment.status === "remboursement_echoue" ? payment.stripeRefundId : null;
     // The PaymentIntent holds the card part only: Stripe refunds that, never the credit.
+    // One fee's card part only: the nights of a regular request share one PaymentIntent (JAM-302).
     const made = await stripe().refunds.create(
-      { payment_intent: payment.stripePaymentIntentId, metadata: { ...APP_REFUND, payment_id: payment.id } },
+      {
+        payment_intent: payment.stripePaymentIntentId,
+        amount: cardCents,
+        metadata: { ...APP_REFUND, payment_id: payment.id },
+      },
       { idempotencyKey: refundKey(payment.id, previous) },
     );
     refund = { id: made.id, status: made.status };
@@ -639,7 +915,23 @@ export async function refundFee(
 export async function syncRefund(refund: Stripe.Refund): Promise<void> {
   const intent = paymentIntentId(refund.payment_intent);
   if (!intent) return;
-  const [payment] = await db.select().from(payments).where(eq(payments.stripePaymentIntentId, intent)).limit(1);
+  // The app's refund names its fee; the nights of a regular request share one PaymentIntent (JAM-302).
+  const named = refund.metadata?.payment_id;
+  const rows = await db
+    .select()
+    .from(payments)
+    .where(
+      and(
+        eq(payments.stripePaymentIntentId, intent),
+        named && UUID.test(named) ? eq(payments.id, named) : undefined,
+      ),
+    );
+  if (rows.length > 1) {
+    // A dashboard refund on a shared PaymentIntent names no night: the founders settle it by hand.
+    logError("refund on a shared payment intent", { refundId: refund.id, fees: rows.length });
+    return;
+  }
+  const [payment] = rows;
   if (!payment) return;
 
   const sync = refundSync(payment, {
