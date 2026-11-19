@@ -13,7 +13,8 @@ import type { Step } from "@/lib/professionnelle/rules"
  * Step 1, the account, is always done by the time she is here. A step already
  * complete says so; the one she is on is marked for screen readers
  * (aria-current). The steps are a list, not links: the pages themselves send
- * her to the first incomplete one.
+ * her to the first incomplete one. The track is white, since the page is
+ * pearl (JAM-327).
  */
 const ORDER = ["compte", "profil", "justificatifs", "declarations"] as const
 
@@ -28,7 +29,7 @@ function StepsHeader({ current, done }: { current: Step; done: readonly Step[] }
       <Progress
         value={(completed / ORDER.length) * 100}
         aria-label={t.progression}
-        className="h-2 bg-perle [&>[data-slot=progress-indicator]]:bg-sauge"
+        className="h-2 bg-blanc [&>[data-slot=progress-indicator]]:bg-sauge"
       />
       <ol className="grid gap-3 md:grid-cols-4">
         {ORDER.map((step, i) => {
@@ -40,7 +41,7 @@ function StepsHeader({ current, done }: { current: Step; done: readonly Step[] }
               aria-current={isCurrent ? "step" : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-carte border border-solid px-4 py-3 text-corps",
-                isCurrent ? "border-sauge bg-blanc text-sauge" : "border-perle bg-blanc text-taupe",
+                isCurrent ? "border-sauge bg-blanc text-sauge" : "border-blanc bg-blanc text-taupe",
               )}
             >
               <span

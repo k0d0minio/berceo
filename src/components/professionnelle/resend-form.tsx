@@ -20,7 +20,7 @@ function ResendForm({ reason }: { reason: string | null }) {
   return (
     <form
       action={submit}
-      className="flex flex-col gap-4 rounded-carte border border-solid border-perle bg-blanc p-8"
+      className="flex max-w-2xl flex-col gap-4 rounded-carte bg-blanc p-8"
     >
       <h2 className="text-h3 font-bold text-sauge">{t.renvoi.titre}</h2>
       {reason ? <p className="max-w-2xl text-corps text-taupe">{fill(t.messages.motif, { motif: reason })}</p> : null}

@@ -5,10 +5,12 @@ import {
   CaretRight,
   CaretUp,
   Check,
+  CurrencyEur,
   FileText,
   Heart,
   List,
   ShieldCheck,
+  User,
   X,
 } from "@phosphor-icons/react/ssr"
 
@@ -33,8 +35,10 @@ export const CaretLeftIcon = filled(CaretLeft)
 export const CaretRightIcon = filled(CaretRight)
 export const CaretUpIcon = filled(CaretUp)
 export const CheckIcon = filled(Check)
+export const EuroIcon = filled(CurrencyEur)
 export const FileTextIcon = filled(FileText)
 export const HeartIcon = filled(Heart)
 export const MenuIcon = filled(List)
 export const ShieldCheckIcon = filled(ShieldCheck)
+export const UserIcon = filled(User)
 export const XIcon = filled(X)

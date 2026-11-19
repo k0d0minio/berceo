@@ -23,7 +23,7 @@ function DocumentView({
   const src = `/api/fichiers/${id}`
 
   return (
-    <figure className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-4">
+    <figure className="flex flex-col gap-3 rounded-carte bg-blanc p-4">
       {contentType === "application/pdf" ? (
         <object data={src} type="application/pdf" className="h-[36rem] w-full rounded-carte bg-perle">
           <p className="p-4 text-corps text-taupe">{t.pdfIndisponible}</p>

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { BookingsTable } from "@/components/admin/bookings-table";
 import { FilterLinks, listHref, Pager } from "@/components/admin/list-controls";
+import { CalendrierIcon } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { db, users } from "@/db";
@@ -80,7 +82,7 @@ export default async function ReservationsPage({
         ]}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-taupe">{t.vide}</p>
+        <EmptyState icon={CalendrierIcon} text={t.vide} />
       ) : (
         <BookingsTable rows={rows} />
       )}

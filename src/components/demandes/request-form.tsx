@@ -164,7 +164,12 @@ function RequestForm({
         : t.boutons.envoyer
 
   return (
-    <form action={submit} noValidate className="flex max-w-2xl flex-col gap-8">
+    // A white card on the pearl page (JAM-327): its pages put it straight on the page.
+    <form
+      action={submit}
+      noValidate
+      className="flex max-w-2xl flex-col gap-8 rounded-carte bg-blanc px-6 py-8 md:px-10"
+    >
       {state.message ? (
         <FormMessage>
           {state.message === "generique" ? c.erreurs.generique : t.erreurs.nonModifiable}

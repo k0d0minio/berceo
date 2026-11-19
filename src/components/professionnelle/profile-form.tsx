@@ -75,7 +75,13 @@ function ProfileForm({
   const errorOf = (key: keyof typeof e) => (e[key] ? t.erreurs[e[key]!] : undefined)
 
   return (
-    <form ref={form} action={submit} noValidate className="flex flex-col gap-8">
+    // A white card on the pearl page (JAM-327).
+    <form
+      ref={form}
+      action={submit}
+      noValidate
+      className="flex max-w-2xl flex-col gap-8 rounded-carte bg-blanc px-6 py-8 md:px-10"
+    >
       {state.message ? (
         <FormMessage>
           {state.message === "enregistre" ? t.messages.enregistre : t.erreurs[state.message]}

@@ -73,6 +73,8 @@ export const recherche = catalogue({
 
     carte: {
       verifie: "Profil vérifié par Berceo",
+      /** The deck's capsule at the foot of the profile card (slide 25; JAM-327). */
+      voirComplet: "Voir le profil complet",
       /** @relecture Surya — nom accessible d'une carte, qui mène au profil. */
       voirProfil: "Voir le profil de {prenom}",
       /** @relecture Surya — la zone sur une carte. */

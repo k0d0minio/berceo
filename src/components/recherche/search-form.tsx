@@ -12,7 +12,8 @@ import { SEARCH_PATH } from "@/lib/recherche/slugs"
  * postal », its placeholder, « Rechercher ». The same combobox as the family's
  * profile; the form is a GET, so a search is a URL. The page resolves what it
  * posts (`q`: a picked locality, a postcode or a name) and answers with the
- * communes it names.
+ * communes it names. The form is a white card of 32 px on the pearl page
+ * (JAM-327).
  */
 function SearchForm({
   defaultValue,
@@ -25,7 +26,7 @@ function SearchForm({
 }) {
   const t = words(recherche).recherche
   return (
-    <form method="get" action={SEARCH_PATH} role="search" className="flex max-w-2xl flex-col gap-4">
+    <form method="get" action={SEARCH_PATH} role="search" className="flex max-w-2xl flex-col gap-4 rounded-carte bg-blanc px-6 py-8 md:px-10">
       <CommuneCombobox
         name="q"
         label={t.label}

@@ -33,11 +33,14 @@ function MobileMenu({
   links,
   labels,
   actions = [],
+  variant = "blanc",
 }: {
   links: readonly MenuLink[]
   labels: { open: string; close: string; title: string; nav: string }
   /** Capsule buttons under the links (the account entries). */
   actions?: readonly MenuLink[]
+  /** The background the menu button sits on: white, or the sage band and the home's photograph. */
+  variant?: "blanc" | "sauge"
 }) {
   const [open, setOpen] = React.useState(false)
   const badges = links.flatMap((link) => (link.badge && link.badge.count > 0 ? [link.badge] : []))
@@ -48,6 +51,7 @@ function MobileMenu({
       <DialogPrimitive.Trigger asChild>
         <Button
           size="icon"
+          variant={variant}
           aria-label={[labels.open, ...badges.map((badge) => badge.label)].join(", ")}
           className="relative"
         >

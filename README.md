@@ -43,10 +43,12 @@ Where the build runs: `.icm/environments.md`.
 | [src/lib/abonnements/](src/lib/abonnements/) | The four family subscriptions through Stripe: the plans, the Checkout in subscription mode, the row the webhook keeps true, `hasActiveSubscription`. See **The subscriptions** below. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | `GET /api/health` → `200 {"status":"ok"}`. |
 | [src/app/globals.css](src/app/globals.css) | The design system's tokens (colours, type scale, radii, stripes, transparency). The only file that holds a colour. |
-| [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fraunces standing in for Comodo) and Nunito. |
+| [src/app/fonts.ts](src/app/fonts.ts) | Every typeface, bound once: the display slot (Fredoka standing in for Comodo, JAM-327) and Nunito. |
 | [src/app/theme-color.ts](src/app/theme-color.ts) | The browser-chrome colour — a `<meta>` cannot read a CSS variable. |
 | [src/app/layout.tsx](src/app/layout.tsx) | The light root layout; `metadataBase` is production. |
-| [src/components/ui/](src/components/ui/) | shadcn components retuned to the DA, plus `confirm-dialog`, `striped-section`, `translucent-block`, `input`. |
+| [src/components/ui/](src/components/ui/) | shadcn components retuned to the DA, plus `confirm-dialog`, `striped-section`, `translucent-block`, `input`, `card-field` (the sage zone white cards sit on) and `empty-state`. |
+| [src/components/berceo-icons.tsx](src/components/berceo-icons.tsx) | Surya's 18 icons, inlined, `currentColor`. |
+| [src/lib/contact/](src/lib/contact/), [src/components/contact/](src/components/contact/) | The contact form: its rules, its server action, the `CONTACT_EMAIL` setting. See "The vitrine". |
 | [src/components/shell/](src/components/shell/) | Public header and footer, the portal shell, the mobile menu, the sign-out dialog. |
 | [src/components/berceo-logo.tsx](src/components/berceo-logo.tsx) | Wordmark and logomark, inlined so they take `currentColor`. |
 | [public/logos/](public/logos/) | Brand pack. SVG is what the site uses; PNG for raster; `.ai` is the source. |
@@ -71,7 +73,8 @@ is set in two inks darkened from sage and taupe on their own hue.
   The one exception is form errors: `destructive` points at the same red, so a field that
   blocks a form shows a red border and a red message (onboarding-retour-1).
   The inks and the darkened red carry `@relecture` for Surya.
-- **Type**: `font-display` (Comodo's slot, Fraunces until Surya delivers Comodo) for H1, H2
+- **Type**: `font-display` (Comodo's slot, Fredoka at weight 500 with a letter-spacing of 0.08em until Surya delivers
+  Comodo, JAM-327) for H1, H2
   and navigation; Nunito for everything else. The DA's hierarchy is `text-h1`, `text-h2`,
   `text-nav`, `text-h3`, `text-intro`, `text-corps`, `text-bouton`, `text-champ`,
   `text-legende`, each switching from its mobile to its desktop size at `md`.
@@ -1061,23 +1064,40 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
 
 ## The vitrine
 
-- **Two doors from the first screen.** The home page's H1 and both calls to action sit above
-  the fold on a phone: the family's (filled sage) to `/inscription-famille`, "Rejoindre le
-  réseau" (outlined) to `/inscription-professionnelle`. "Trouver votre gardienne de la nuit"
-  is used only under text that names health professionals; everywhere else it is "Trouver une
-  professionnelle" (D-25).
+- **The deck's screens (JAM-327).** The site follows Surya's deck `Direction artistique
+  web.pdf`. The public header is its slide 19: the white logomark, « Accueil », « Histoire »,
+  « Nos gardes de nuit », « Contact » in white capitals and one account icon, which opens
+  `/connexion`. It lies on the home's photograph and on a sage band on every other page
+  (`header-frame.tsx`). « Tarifs » and « FAQ » are in the footer. The home's hero is the
+  photograph and the white logotype alone. The first block on the stripes carries the page's
+  H1 and the family's button to `/inscription-famille`. The link « Se connecter » of round 2
+  is under it. The professional's door is the button of « Notre histoire » and the home's last
+  band. An inner page opens with the banner of slide 10 (`page-header.tsx`). The two legal
+  placeholders follow slide 29. `/design-system` shows one specimen for each slide.
+- **The deck's words.** A text quoted from the deck is Surya's: it carries a comment that
+  names its slide and no `@relecture`. The deck's « diplômées » stays in these texts (Jamie,
+  2026-11-19: D-7 is set aside for them). Its ellipsis and its two spelling errors do not.
+- **Testimonials.** `testimonial-card.tsx` is the card of slide 27. It shows on
+  `/design-system` only, with the deck's sample marked « Exemple ». No public page shows a
+  testimonial before the founders supply a real one.
 - **Reassurance is the manual verification**, never insurance (D-8), bar the fee sentence on « Tarifs » (Jamie, 2026-10-29).
 - **Prices**: the four family subscriptions of the devis (Découverte, 1 mois, 24,90 € ·
   Parenthèse, 3 mois, 59,90 € · Sérénité, 6 mois, 94,90 € · Premium, 12 mois, 159,90 €) in
   `src/content/abonnements.ts`, the professional's night rate from 130 € with no ceiling and her
   rate for each extra hour (profil-tarifs), paid to her directly, and the 3 % service fee with its refund rule. The founders' feedback round 1
   supersedes D-3 and D-4.
-- **The founders' story**: `/qui-sommes-nous` carries their first-person text (D-23), verbatim
-  but for the guide's punctuation. It is indexed and in the sitemap.
+- **The founders' story**: `/qui-sommes-nous` carries their first-person text of round 2
+  (JAM-301), complete, in the layout of slide 26 under the title « Notre histoire »: taupe
+  blocks on the stripes. It is indexed and in the sitemap.
 - **Placeholders**: the two legal pages wait for the founders' texts. Both are `noindex` and
   out of the sitemap; lifting that is part of the change that brings the text.
-- **No contact is shown.** Berceo has no published address yet, and inventing one would
-  be worse than showing none.
+- **Contact is a form, and no address is published.** `/contact` has three required fields
+  (name, e-mail address, message of 2,000 characters at most). `sendContact`
+  (`src/lib/contact/send.ts`) sends one e-mail through Resend to the address of the
+  environment variable `CONTACT_EMAIL`, with the writer's address in `Reply-To`. Nothing is
+  stored. A hidden trap field keeps robots out. Where `CONTACT_EMAIL` is empty, the page
+  answers 404, and the header, the footer and the sitemap do not name it. The page does not
+  limit how many messages one visitor sends. `.icm/setup/contact-email.md` has the setup act.
 - **Indexed on production only.** See AGENTS.md if that needs reversing.
 
 ## Notes

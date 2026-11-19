@@ -21,7 +21,16 @@ export const quiSommesNous = catalogue({
         "Deux sages-femmes racontent pourquoi elles ont créé Berceo : que les jeunes parents ne soient plus seuls la nuit et puissent souffler, sans jugement.",
     },
 
-    title: "Qui sommes-nous ?",
+    /** The deck's title of the page (slide 26; JAM-327, question 3). */
+    title: "Notre histoire",
+    /**
+     * The deck's two buttons (slide 26), with its spelling of
+     * « professionnelles » corrected (JAM-327, question 6).
+     */
+    boutons: {
+      rejoindre: "Rejoindre le réseau de professionnelles",
+      trouver: "Trouver une Gardienne de la nuit",
+    },
     sections: [
       {
         title: "Deux sages-femmes, une conviction commune",

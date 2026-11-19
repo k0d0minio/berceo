@@ -4,6 +4,12 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/*
+ * The founders' tables (JAM-327). The deck shows no table: each one sits in a
+ * white card of 32 px that its caller draws on the pearl page, and scrolls
+ * sideways inside that card on a phone. Header cells are small taupe labels,
+ * rows part on a pearl line, and no vertical rule.
+ */
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
@@ -23,7 +29,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
+      className={cn("[&_tr]:border-b [&_tr]:border-perle", className)}
       {...props}
     />
   )
@@ -44,7 +50,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+        "border-t border-perle bg-perle/50 font-medium [&>tr]:last:border-b-0",
         className
       )}
       {...props}
@@ -57,7 +63,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        "border-b border-perle transition-colors hover:bg-perle/50 has-aria-expanded:bg-perle/50 data-[state=selected]:bg-perle",
         className
       )}
       {...props}
@@ -70,7 +76,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        "h-10 px-2 text-left align-middle text-legende font-semibold whitespace-nowrap text-taupe [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
@@ -98,7 +104,7 @@ function TableCaption({
   return (
     <caption
       data-slot="table-caption"
-      className={cn("mt-4 text-sm text-muted-foreground", className)}
+      className={cn("mt-4 text-legende text-taupe", className)}
       {...props}
     />
   )

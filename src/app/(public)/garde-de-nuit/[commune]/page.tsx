@@ -52,8 +52,8 @@ export default async function CommunePage({ params }: { params: Promise<{ commun
     <>
       <PageHeader title={fill(t.titre, { commune: name })} intro={fill(t.intro, { commune: name })} />
 
-      <VitrineSection tone="perle" title={fill(t.liste, { commune: name })}>
-        <p className="max-w-2xl text-corps text-taupe">{t.verification}</p>
+      <VitrineSection tone="sauge" title={fill(t.liste, { commune: name })}>
+        <p className="max-w-2xl text-corps text-blanc">{t.verification}</p>
         {teasers.length === 0 ? (
           <NoResult text={a.texteCommune} className="bg-blanc">
             <Button asChild variant="sauge">

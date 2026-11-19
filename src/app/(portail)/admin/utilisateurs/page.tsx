@@ -4,7 +4,9 @@ import Link from "next/link";
 import { AccountsTable } from "@/components/admin/accounts-table";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { listHref, Pager } from "@/components/admin/list-controls";
+import { OursonIcon } from "@/components/berceo-icons";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
@@ -63,7 +65,7 @@ export default async function UtilisateursPage({
         <p className="text-corps text-taupe">{t.recents}</p>
       )}
       {rows.length === 0 ? (
-        <p className="text-corps text-taupe">{t.vide}</p>
+        <EmptyState icon={OursonIcon} text={t.vide} />
       ) : (
         <AccountsTable rows={rows} />
       )}

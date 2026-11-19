@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 
 import { common } from "@/content/common";
 import { words } from "@/content/locale";
+import { CONTACT_PATH, contactEnabled } from "@/lib/contact/config";
 import { validProfessionals } from "@/lib/recherche/professionals";
 import { sitemapPaths } from "@/lib/recherche/sitemap";
 import { siteUrl } from "./site";
@@ -32,7 +33,9 @@ const professionals = unstable_cache(validProfessionals, ["sitemap-professionnel
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return sitemapPaths(vitrine, await professionals()).map((path) => ({
+  // The contact page exists only where the environment has a contact address (JAM-327).
+  const pagesOfSite = contactEnabled() ? [...vitrine, CONTACT_PATH] : vitrine;
+  return sitemapPaths(pagesOfSite, await professionals()).map((path) => ({
     url: new URL(path, siteUrl).toString(),
   }));
 }

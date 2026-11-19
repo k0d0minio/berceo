@@ -5,6 +5,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { CancellationDelay } from "@/components/admin/cancellation-delay";
 import { QueueTable } from "@/components/admin/queue-table";
 import { StudentsSwitch } from "@/components/admin/students-switch";
+import { DocumentIcon } from "@/components/berceo-icons";
 import { admin } from "@/content/admin";
 import { words } from "@/content/locale";
 import { db, users } from "@/db";
@@ -63,7 +64,11 @@ export default async function DossiersPage() {
 
   return (
     <AdminShell user={user} title={a.dossiers.titre} current="dossiers">
-      <h2 className="font-display text-h2 text-sauge">{a.file.titre}</h2>
+      {/* One functional icon of Surya's set on the queue's heading (JAM-327). */}
+      <h2 className="flex items-center gap-3 font-display text-h2 text-sauge">
+        <DocumentIcon aria-hidden className="size-6 shrink-0 text-sauge" />
+        {a.file.titre}
+      </h2>
       <QueueTable rows={queue} studentsAdmitted={setting.value} />
       <h2 className="font-display text-h2 text-sauge">{a.reglages.titre}</h2>
       <StudentsSwitch value={setting.value} changed={changed} />

@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { RatingsTable } from "@/components/avis/ratings-table";
+import { CoeursIcon } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { requireAccess } from "@/lib/auth/guard";
@@ -39,7 +41,7 @@ export default async function AvisPage({ searchParams }: { searchParams: Promise
     <AdminShell user={user} title={a.avis.titre} current="avis">
       <p className="max-w-3xl text-corps text-taupe">{a.avis.intro}</p>
       {rows.length === 0 ? (
-        <p className="text-corps text-taupe">{a.avis.vide}</p>
+        <EmptyState icon={CoeursIcon} text={a.avis.vide} />
       ) : (
         <RatingsTable rows={rows} />
       )}

@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 
 import { FormMessage } from "@/components/auth/field";
 import { RequestCard } from "@/components/demandes/request-card";
+import { LuneIcon } from "@/components/berceo-icons";
 import { SpaceShell } from "@/components/shell/space-shell";
+import { CardField } from "@/components/ui/card-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { demandes } from "@/content/demandes";
 import { words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
@@ -60,48 +63,51 @@ export default async function DemandesProfessionnellePage({
         <>
           <p className="max-w-2xl text-intro text-taupe">{t.professionnelle.intro}</p>
           {view.requests.length === 0 ? (
-            <p className="max-w-2xl text-corps text-taupe">{t.professionnelle.vide}</p>
+            <EmptyState icon={LuneIcon} text={t.professionnelle.vide} />
           ) : (
-            <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
-              {groupForProfessional(view.requests).map((entry) =>
-                entry.kind === "serie" ? (
-                  // A regular request answered as one (JAM-302): one card, one answer for all its nights.
-                  <li key={entry.seriesId} id={`demande-${entry.requests[0].id}`} className="scroll-mt-24">
-                    <SeriesEntry
-                      nights={entry.requests}
-                      seriesId={entry.seriesId}
-                      nightRateEur={view.nightRateEur}
-                      extraHourRateEur={view.extraHourRateEur}
-                      conversationId={entry.requests
-                        .map((night) => conversationIds.get(night.id))
-                        .find((id) => id !== undefined)}
-                      from="liste"
-                    />
-                  </li>
-                ) : (
-                  <li key={entry.request.id} id={`demande-${entry.request.id}`} className="scroll-mt-24">
-                    <RequestCard
-                      request={entry.request}
-                      href={professionalRequestPath(entry.request.id)}
-                      showPublished
-                      priority={entry.request.priority}
-                      rate={view.nightRateEur}
-                      extraHourRate={view.extraHourRateEur}
-                      rateLabel={r.votreTarif}
-                      note={entry.request.answer === "en_attente" ? r.repondu : undefined}
-                      footer={
-                        <AnswerFooter
-                          request={entry.request}
-                          conversationId={conversationIds.get(entry.request.id)}
-                          from="liste"
-                          now={now}
-                        />
-                      }
-                    />
-                  </li>
-                ),
-              )}
-            </ul>
+            // The request cards sit on the sage zone (slide 25, JAM-327).
+            <CardField className="max-w-4xl">
+              <ul className="grid gap-6 md:grid-cols-2">
+                {groupForProfessional(view.requests).map((entry) =>
+                  entry.kind === "serie" ? (
+                    // A regular request answered as one (JAM-302): one card, one answer for all its nights.
+                    <li key={entry.seriesId} id={`demande-${entry.requests[0].id}`} className="min-w-0 scroll-mt-24">
+                      <SeriesEntry
+                        nights={entry.requests}
+                        seriesId={entry.seriesId}
+                        nightRateEur={view.nightRateEur}
+                        extraHourRateEur={view.extraHourRateEur}
+                        conversationId={entry.requests
+                          .map((night) => conversationIds.get(night.id))
+                          .find((id) => id !== undefined)}
+                        from="liste"
+                      />
+                    </li>
+                  ) : (
+                    <li key={entry.request.id} id={`demande-${entry.request.id}`} className="min-w-0 scroll-mt-24">
+                      <RequestCard
+                        request={entry.request}
+                        href={professionalRequestPath(entry.request.id)}
+                        showPublished
+                        priority={entry.request.priority}
+                        rate={view.nightRateEur}
+                        extraHourRate={view.extraHourRateEur}
+                        rateLabel={r.votreTarif}
+                        note={entry.request.answer === "en_attente" ? r.repondu : undefined}
+                        footer={
+                          <AnswerFooter
+                            request={entry.request}
+                            conversationId={conversationIds.get(entry.request.id)}
+                            from="liste"
+                            now={now}
+                          />
+                        }
+                      />
+                    </li>
+                  ),
+                )}
+              </ul>
+            </CardField>
           )}
         </>
       )}

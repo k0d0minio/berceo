@@ -3,7 +3,10 @@ import Link from "next/link";
 
 import { RequestCard } from "@/components/demandes/request-card";
 import { GardeStateMark } from "@/components/gardes/garde-state";
+import { OursonIcon } from "@/components/berceo-icons";
 import { SpaceShell } from "@/components/shell/space-shell";
+import { CardField } from "@/components/ui/card-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { avis } from "@/content/avis";
 import { words } from "@/content/locale";
 import { reservations } from "@/content/reservations";
@@ -40,38 +43,41 @@ function List({
   return (
     <section className="flex flex-col gap-4">
       <h2 className="font-display text-h2 text-sauge">{title}</h2>
-      <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
-        {items.map((booking) => (
-          <li key={booking.id}>
-            <RequestCard
-              request={booking.request}
-              rate={booking.nightRateEur}
-              extraHourRate={booking.extraHourRateEur}
-              footer={
-                <>
-                  <GardeStateMark
-                    state={gardeState({ ...booking.request, status: booking.garde.status }, now)}
-                  />
-                  <Link
-                    href={professionalBookingPath(booking.id)}
-                    className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
-                  >
-                    {t.gardes.voir}
-                  </Link>
-                  {canRate({ ...booking.request, status: booking.garde.status }, rated.has(booking.id), now) ? (
+      {/* The garde cards sit on the sage zone (slide 25, JAM-327). */}
+      <CardField className="max-w-4xl">
+        <ul className="grid gap-6 md:grid-cols-2">
+          {items.map((booking) => (
+            <li key={booking.id}>
+              <RequestCard
+                request={booking.request}
+                rate={booking.nightRateEur}
+                extraHourRate={booking.extraHourRateEur}
+                footer={
+                  <>
+                    <GardeStateMark
+                      state={gardeState({ ...booking.request, status: booking.garde.status }, now)}
+                    />
                     <Link
-                      href={professionalRatingPath(booking.id)}
+                      href={professionalBookingPath(booking.id)}
                       className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
                     >
-                      {words(avis).lien}
+                      {t.gardes.voir}
                     </Link>
-                  ) : null}
-                </>
-              }
-            />
-          </li>
-        ))}
-      </ul>
+                    {canRate({ ...booking.request, status: booking.garde.status }, rated.has(booking.id), now) ? (
+                      <Link
+                        href={professionalRatingPath(booking.id)}
+                        className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+                      >
+                        {words(avis).lien}
+                      </Link>
+                    ) : null}
+                  </>
+                }
+              />
+            </li>
+          ))}
+        </ul>
+      </CardField>
     </section>
   );
 }
@@ -95,7 +101,7 @@ export default async function GardesPage() {
   return (
     <SpaceShell user={user} title={t.gardes.titre}>
       <p className="max-w-2xl text-intro text-taupe">{t.gardes.intro}</p>
-      {all.length === 0 ? <p className="max-w-2xl text-corps text-taupe">{t.gardes.vide}</p> : null}
+      {all.length === 0 ? <EmptyState icon={OursonIcon} text={t.gardes.vide} /> : null}
       <List title={t.gardes.aVenir} items={coming} rated={rated} now={now} />
       <List title={t.gardes.passees} items={past} rated={rated} now={now} />
     </SpaceShell>

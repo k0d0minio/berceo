@@ -1,6 +1,8 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
 
+import { MobileIcon } from "@/components/berceo-icons"
+import { EmptyState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
 import { words } from "@/content/locale"
 import { messagerie } from "@/content/messagerie"
@@ -15,7 +17,8 @@ import { isConversationOpen, type Side } from "@/lib/messagerie/rules"
  * A row names the other person (the professional's profession for the family,
  * the family's first name only for the professional), the night, the first
  * line of the last message, and marks an unread or a closed conversation. The
- * guide's opening line heads the family's list.
+ * guide's opening line heads the family's list. A row is a white card on the
+ * pearl page, and an empty list is the taupe block (JAM-327).
  */
 
 const t = words(messagerie)
@@ -43,7 +46,7 @@ async function ConversationList({ userId, side }: { userId: string; side: Side }
         {side === "famille" ? t.liste.introFamille : t.liste.introProfessionnelle}
       </p>
       {rows.length === 0 ? (
-        <p className="max-w-2xl text-corps text-taupe">{t.liste.vide}</p>
+        <EmptyState icon={MobileIcon} text={t.liste.vide} />
       ) : (
         <ul className="flex max-w-3xl flex-col gap-4">
           {rows.map((row) => (
@@ -51,7 +54,7 @@ async function ConversationList({ userId, side }: { userId: string; side: Side }
               <Link
                 href={conversationPath(side, row.id)}
                 prefetch={false}
-                className="flex flex-col gap-2 rounded-carte bg-perle px-6 py-5 transition-colors duration-200 ease-out hover:bg-beurre md:px-8"
+                className="flex flex-col gap-2 rounded-carte bg-blanc px-6 py-5 transition-colors duration-200 ease-out hover:bg-beurre md:px-8"
               >
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="text-h3 font-bold text-sauge">{row.firstName}</span>

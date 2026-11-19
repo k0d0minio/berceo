@@ -11,7 +11,8 @@ import { eurosFromCents } from "@/lib/paiements/rules";
  * pay nothing any more, marked « utilisé », « annulé » (a contested absence,
  * annulations-table) or « expiré ». With no credit at
  * all, one line. The same block sits on her home and on « Mes réservations »;
- * the page reads `familyCredits` and hands the result here.
+ * the page reads `familyCredits` and hands the result here. A white card:
+ * the page behind it is pearl (JAM-327).
  */
 
 const t = words(creditsFamille);
@@ -50,7 +51,7 @@ function CreditsBlock({ list, balanceCents }: { list: FamilyCredit[]; balanceCen
   const usable = list.filter((credit) => credit.state === "disponible");
   const past = list.filter((credit) => credit.state !== "disponible");
   return (
-    <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+    <section className="flex max-w-2xl flex-col items-start gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
       <h2 className="text-h3 font-bold text-sauge">{t.titre}</h2>
       <p className="text-corps text-taupe">{t.intro}</p>
       {list.length === 0 ? (

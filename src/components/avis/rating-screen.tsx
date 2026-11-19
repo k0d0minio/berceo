@@ -18,7 +18,8 @@ import { GivenRating } from "./stars"
  * then, in this order, the stars this side already gave (read-only), or the
  * reason there is no form, or the form with the double-blind line (D-116) and
  * the line saying an avis cannot be changed (D-117). The other side's rating
- * is never read here.
+ * is never read here. The given stars and the form are white cards on the
+ * pearl page (JAM-327).
  */
 
 function RatingScreen({
@@ -49,7 +50,7 @@ function RatingScreen({
           labels={labels}
           scores={target.given.scores}
           date={formatDate(brusselsNow(target.given.createdAt).date)}
-          className="max-w-2xl rounded-carte bg-perle px-6 py-8 md:px-10"
+          className="max-w-2xl rounded-carte bg-blanc px-6 py-8 md:px-10"
         />
       ) : refusal ? (
         <p className="max-w-2xl text-corps text-taupe">{t.refus[refusal]}</p>

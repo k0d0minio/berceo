@@ -2,6 +2,8 @@ import Link from "next/link"
 import type * as React from "react"
 
 import { NoteDisplay } from "@/components/avis/stars"
+import { CalendrierIcon, LieuIcon, OursonIcon, type IconComponent } from "@/components/berceo-icons"
+import { CheckIcon } from "@/components/icons"
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo"
 import { fill, words } from "@/content/locale"
 import { recherche } from "@/content/recherche"
@@ -13,13 +15,18 @@ import { reachLine, zoneLine } from "@/lib/recherche/rules"
 import { cn } from "@/lib/utils"
 
 /*
- * The DA's profile card, as a signed-in family reads it in the search (D-11):
- * photo, first name, profession, « Profil vérifié par Berceo », her zone with
- * the searched commune first and her radius (zone-rayon-lecture), her note and gardes count, and her next
- * indicative nights. The whole card is one link to her full profile, named by
- * her first name. 32 px corners, flat white on pearl, no shadow. A subscribed
- * family's card carries the mark « mes professionnelles » at its foot
- * (favoris-marquer), outside the link: a button never sits inside a link.
+ * The DA's profile card (slide 25; JAM-327), as a signed-in family reads it
+ * in the search (D-11): her round photo with the sage verification mark, her
+ * first name in capitals, a taupe label with her profession and « Profil
+ * vérifié par Berceo », then one line for each fact with one of Surya's icons
+ * in taupe: her zone with the searched commune first and her radius
+ * (zone-rayon-lecture), her note and gardes count, her next indicative
+ * nights. The whole card is one link to her full profile, named by her first
+ * name; the capsule « Voir le profil complet » at its foot is that link's
+ * visible end. A white card of 32 px on a sage or pearl zone, no shadow. A
+ * subscribed family's card carries the mark « mes professionnelles » at its
+ * foot (favoris-marquer), outside the link: a button never sits inside a
+ * link.
  */
 
 const t = words(recherche).carte
@@ -35,7 +42,11 @@ type CardProps = {
   className?: string
 }
 
-const CARD = "flex min-w-0 flex-col gap-4 rounded-carte bg-blanc px-6 py-6 md:px-8"
+const CARD = "flex min-w-0 flex-col gap-5 rounded-carte bg-blanc px-6 py-8 text-taupe md:px-8"
+
+/* The deck's outlined sage capsule, drawn at the foot of the link it belongs to. */
+const CAPSULE =
+  "mt-auto inline-flex min-h-12 items-center justify-center self-center rounded-capsule border border-solid border-sauge px-7 text-bouton font-semibold text-sauge"
 
 function CardFrame({
   href,
@@ -61,7 +72,7 @@ function CardFrame({
   // The card's look moves to the frame. The link keeps the content, the foot holds the button.
   return (
     <div className={cn(CARD, className)}>
-      <Link href={href} aria-label={label} className="flex min-w-0 flex-1 flex-col gap-4">
+      <Link href={href} aria-label={label} className="flex min-w-0 flex-1 flex-col gap-5">
         {children}
       </Link>
       <div className="flex justify-end">{footer}</div>
@@ -71,10 +82,28 @@ function CardFrame({
 
 function Identity({ firstName, profession }: { firstName: string; profession: Profession | null }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <p className="text-h3 font-bold break-words text-sauge">{firstName}</p>
-      <p className="text-corps text-taupe">{professionLabel(profession)}</p>
-      <p className="text-legende font-semibold text-taupe">{t.verifie}</p>
+    <div className="flex min-w-0 flex-col items-center gap-3 text-center">
+      <p className="font-display text-intro break-words text-taupe">{firstName}</p>
+      <div className="flex w-full flex-col rounded-xl bg-taupe px-4 py-2 text-blanc">
+        <p className="text-corps font-semibold">{professionLabel(profession)}</p>
+        <p className="text-legende">{t.verifie}</p>
+      </div>
+    </div>
+  )
+}
+
+/** One fact of the card: an icon of 24 px in taupe, then its lines. */
+function Fact({
+  icon: Icon,
+  children,
+}: {
+  icon: IconComponent
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <Icon aria-hidden className="mt-0.5 size-6 shrink-0 text-taupe" />
+      <div className="flex min-w-0 flex-col gap-1">{children}</div>
     </div>
   )
 }
@@ -83,9 +112,33 @@ function Identity({ firstName, profession }: { firstName: string; profession: Pr
 function Zone({ zone, reach }: Pick<CardProps, "zone" | "reach">) {
   const line = reachLine(reach)
   return (
-    <div className="flex flex-col gap-1">
-      <p className="text-corps break-words text-taupe">{zoneLine(zone)}</p>
-      {line ? <p className="text-corps break-words text-taupe">{line}</p> : null}
+    <Fact icon={LieuIcon}>
+      <p className="text-corps break-words">{zoneLine(zone)}</p>
+      {line ? <p className="text-corps break-words">{line}</p> : null}
+    </Fact>
+  )
+}
+
+/** Her note and her gardes count. */
+function Rating({ note }: { note: Note }) {
+  return (
+    <Fact icon={OursonIcon}>
+      <NoteDisplay note={note} />
+    </Fact>
+  )
+}
+
+/** Her photo with the sage verification mark at its top right. */
+function VerifiedPhoto({ photoId, firstName }: { photoId: string | null; firstName: string }) {
+  return (
+    <div className="relative self-center">
+      <ProfessionalPhoto photoId={photoId} prenom={firstName} className="size-24" />
+      <span
+        aria-hidden
+        className="absolute -top-1 -right-1 inline-flex size-7 items-center justify-center rounded-full bg-sauge text-blanc"
+      >
+        <CheckIcon className="size-4" />
+      </span>
     </div>
   )
 }
@@ -99,26 +152,25 @@ function ProfessionalCard({
 }: CardProps & { photoId: string | null; nights: readonly string[]; mark?: React.ReactNode }) {
   return (
     <CardFrame href={props.href} firstName={props.firstName} footer={mark} className={props.className}>
-      <div className="flex items-center gap-4">
-        <ProfessionalPhoto photoId={photoId} prenom={props.firstName} className="size-20" />
-        <Identity firstName={props.firstName} profession={props.profession} />
-      </div>
+      <VerifiedPhoto photoId={photoId} firstName={props.firstName} />
+      <Identity firstName={props.firstName} profession={props.profession} />
       <Zone zone={props.zone} reach={props.reach} />
-      <NoteDisplay note={props.note} />
-      <div className="flex flex-col gap-1">
-        <p className="text-legende font-semibold text-taupe">{t.prochaines}</p>
+      <Rating note={props.note} />
+      <Fact icon={CalendrierIcon}>
+        <p className="text-legende font-semibold">{t.prochaines}</p>
         {nights.length === 0 ? (
-          <p className="text-corps text-taupe">{t.aucuneNuit}</p>
+          <p className="text-corps">{t.aucuneNuit}</p>
         ) : (
           <ul className="flex flex-col gap-1">
             {nights.slice(0, 3).map((night) => (
-              <li key={night} className="text-corps text-taupe">
+              <li key={night} className="text-corps">
                 {nightName(night)}
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </Fact>
+      <span className={CAPSULE}>{t.voirComplet}</span>
     </CardFrame>
   )
 }
@@ -129,7 +181,8 @@ function TeaserCard(props: CardProps) {
     <CardFrame href={props.href} firstName={props.firstName} className={props.className}>
       <Identity firstName={props.firstName} profession={props.profession} />
       <Zone zone={props.zone} reach={props.reach} />
-      <NoteDisplay note={props.note} />
+      <Rating note={props.note} />
+      <span className={CAPSULE}>{t.voirComplet}</span>
     </CardFrame>
   )
 }

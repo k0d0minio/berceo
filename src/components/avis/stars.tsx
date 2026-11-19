@@ -7,7 +7,9 @@ import { cn } from "@/lib/utils"
 /*
  * The stars (avis-etoiles, D-9, D-119): filled and rounded, as every icon of
  * the DA (JAM-300). A given star is sage, an empty one pearl. No outline, no
- * new colour, never red or green, no shadow. `NoteDisplay` is a person's note wherever it shows, with
+ * new colour, never red or green, no shadow. With `tone="beurre"` a given star
+ * is butter yellow and an empty one taupe: the deck's testimonial stars
+ * (slide 27, JAM-327), for a sage or taupe surface only, never white or pearl. `NoteDisplay` is a person's note wherever it shows, with
  * the value in text and the gardes count; `GivenRating` is the stars one side
  * gave on a garde, read-only, to that side only.
  */
@@ -15,13 +17,28 @@ import { cn } from "@/lib/utils"
 const STAR_PATH =
   "M12 2.5l2.94 5.96 6.58.96-4.76 4.64 1.12 6.55L12 17.52l-5.88 3.09 1.12-6.55L2.48 9.42l6.58-.96L12 2.5z"
 
-function Star({ filled, className }: { filled: boolean; className?: string }) {
+type StarTone = "sauge" | "beurre"
+
+const starTones: Record<StarTone, { filled: string; empty: string }> = {
+  sauge: { filled: "text-sauge", empty: "text-perle" },
+  beurre: { filled: "text-beurre", empty: "text-taupe" },
+}
+
+function Star({
+  filled,
+  tone = "sauge",
+  className,
+}: {
+  filled: boolean
+  tone?: StarTone
+  className?: string
+}) {
   return (
     <svg
       viewBox="0 0 24 24"
       aria-hidden="true"
       focusable="false"
-      className={cn("size-5 shrink-0", filled ? "text-sauge" : "text-perle", className)}
+      className={cn("size-5 shrink-0", filled ? starTones[tone].filled : starTones[tone].empty, className)}
     >
       <path
         d={STAR_PATH}
@@ -35,18 +52,18 @@ function Star({ filled, className }: { filled: boolean; className?: string }) {
 }
 
 /** Five stars filled to `value` (0 to 5, tenths included), for the eye only. */
-function StarRow({ value, className }: { value: number; className?: string }) {
+function StarRow({ value, tone = "sauge", className }: { value: number; tone?: StarTone; className?: string }) {
   const percent = Math.max(0, Math.min(100, (value / MAX_SCORE) * 100))
   return (
     <span className={cn("relative inline-flex", className)} aria-hidden="true">
       <span className="flex gap-0.5">
         {Array.from({ length: MAX_SCORE }, (_, i) => (
-          <Star key={i} filled={false} />
+          <Star key={i} filled={false} tone={tone} />
         ))}
       </span>
       <span className="absolute inset-y-0 left-0 flex gap-0.5 overflow-hidden" style={{ width: `${percent}%` }}>
         {Array.from({ length: MAX_SCORE }, (_, i) => (
-          <Star key={i} filled />
+          <Star key={i} filled tone={tone} />
         ))}
       </span>
     </span>
@@ -60,7 +77,17 @@ function gardesLine(gardes: number): string | null {
 }
 
 /** A person's note (D-119): the stars and the value, or « Pas encore de note »; the gardes count, hidden at zero. */
-function NoteDisplay({ note, label, className }: { note: Note; label?: string; className?: string }) {
+function NoteDisplay({
+  note,
+  label,
+  tone = "sauge",
+  className,
+}: {
+  note: Note
+  label?: string
+  tone?: StarTone
+  className?: string
+}) {
   const t = words(avis).note
   const gardes = gardesLine(note.gardes)
   return (
@@ -70,7 +97,7 @@ function NoteDisplay({ note, label, className }: { note: Note; label?: string; c
         <span>{t.aucune}</span>
       ) : (
         <span role="img" aria-label={fill(t.accessible, { note: formatNote(note.note) })} className="inline-flex items-center gap-2">
-          <StarRow value={note.note} />
+          <StarRow value={note.note} tone={tone} />
           <span aria-hidden="true" className="font-semibold">
             {formatNote(note.note)}
           </span>
@@ -118,11 +145,11 @@ function GivenRating({
   )
 }
 
-/** Her own note on her home (D-121): the aggregate and the gardes count, never a single rating. */
+/** Her own note on her home (D-121): the aggregate and the gardes count, never a single rating. A white card on the pearl page (JAM-327). */
 function OwnNote({ note, className }: { note: Note; className?: string }) {
   const t = words(avis).note
   return (
-    <section className={cn("flex max-w-2xl flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8", className)}>
+    <section className={cn("flex max-w-2xl flex-col gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8", className)}>
       <h2 className="text-h3 font-bold text-sauge">{t.vous}</h2>
       <NoteDisplay note={note} />
       <p className="text-legende text-taupe">{t.explication}</p>

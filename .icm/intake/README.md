@@ -65,3 +65,26 @@ names each rule that it overrides.
 - `src/app/contrast.test.ts` is skipped, not deleted. Accessibility is reviewed after launch
   (Chloé Sanfilipo's recap mail of 12 Nov). Then un-skip the test and update its pairs.
 - No DA change without written approval from Surya.
+
+### JAM-327: the screens of Surya's deck (Jamie, 2026-11-19)
+
+The whole application follows the screens of `Direction artistique web.pdf`. Where the deck
+shows no screen, the page is built from its components. The ticket sets these rules aside:
+
+- Fredoka replaces Fraunces as the stand-in for Comodo, until the Comodo files come (JAM-308).
+- D-7 is set aside for the texts quoted from the deck: they keep « professionnelles de santé
+  diplômées ». Risk: the deck's own profile card shows a student midwife.
+- A text quoted from the deck is Surya's and carries no `@relecture`. D-19 still holds for its
+  punctuation: the deck's ellipsis is removed, and its two spelling errors are corrected.
+- The home's H1 and message of the guide are replaced by the text of slide 19. The two sign-up
+  buttons leave the hero and the header. The link « Se connecter » of round 2 (JAM-301) stays,
+  under the first block.
+- The header has the deck's four links. « Tarifs » and « FAQ » are in the footer.
+- « The vitrine shows no contact » becomes « the vitrine publishes no address »: `/contact` is
+  a form to the address of the environment variable `CONTACT_EMAIL`.
+- Surya's yellow illustrative icons are permitted, sparingly, on taupe, sage or a photograph.
+  They never sit on white or pearl, where they cannot be seen.
+- Testimonials: the card exists on `/design-system` only, until the founders supply a real
+  text.
+- Jamie permitted the Build session of this ticket to run a local development server and to
+  test with a test account. `build`, `lint`, `typecheck` and `test` stay with CI.

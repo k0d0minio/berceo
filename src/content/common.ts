@@ -44,7 +44,21 @@ export const common = catalogue({
       },
     },
 
+    /**
+     * The public navigation, as the DA's deck writes it (slide 19; JAM-327,
+     * Jamie's answers to questions 2 and 5). « Contact » shows only where the
+     * environment has a contact address.
+     */
+    nav: {
+      accueil: { label: "Accueil", href: "/" },
+      histoire: { label: "Histoire", href: "/qui-sommes-nous" },
+      gardesDeNuit: { label: "Nos gardes de nuit", href: "/comment-ca-marche" },
+      contact: { label: "Contact", href: "/contact" },
+    },
+
     header: {
+      /** @relecture Surya — icône de compte de l'en-tête, lue par les lecteurs d'écran. */
+      compte: "Mon compte",
       /** @relecture Surya — libellé d'accessibilité de la navigation principale. */
       navLabel: "Navigation principale",
       /** @relecture Surya — bouton du menu sur mobile. */

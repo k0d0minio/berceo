@@ -29,7 +29,7 @@ function SubscriptionsTable({ rows }: { rows: AdminSubscription[] }) {
   const t = words(admin).abonnements
 
   return (
-    <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
+    <div className="rounded-carte bg-blanc p-4 md:p-6">
       <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>
@@ -101,7 +101,7 @@ function NightPassesTable({ rows }: { rows: AdminNightPass[] }) {
   const t = a.nuits
 
   return (
-    <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
+    <div className="rounded-carte bg-blanc p-4 md:p-6">
       <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>

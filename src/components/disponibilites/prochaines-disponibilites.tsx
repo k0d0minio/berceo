@@ -10,14 +10,14 @@ import { nightName } from "@/lib/disponibilites/format"
  * unavailable. It takes the dates from `nextAvailableNights`; the family-facing
  * pages that mount it come with candidature-et-reservation and
  * recherche-et-fiches-publiques (D-69). The DA's card: 32 px corners, flat
- * pearl, no shadow.
+ * white on the pearl page (JAM-327), no shadow.
  */
 
 const t = words(disponibilites).famille
 
 function ProchainesDisponibilites({ nights }: { nights: readonly string[] }) {
   return (
-    <section className="flex flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+    <section className="flex flex-col gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
       <h3 className="text-h3 font-bold text-sauge">{t.titre}</h3>
       {nights.length === 0 ? (
         <p className="text-corps text-taupe">{t.vide}</p>

@@ -18,8 +18,8 @@ import { cn } from "@/lib/utils"
  * A card of « Mes professionnelles » (favoris-liste): her photo, first name,
  * profession, « Profil vérifié par Berceo », her note and gardes count, then
  * « Voir le profil complet » and « Lui envoyer ma demande en priorité », with
- * the mark beside them (favoris-marquer). 32 px corners, flat white on pearl,
- * no shadow. A professional who is no longer validated, or whose account is
+ * the mark beside them (favoris-marquer). 32 px corners, a flat white card on
+ * the list's sage zone (JAM-327), no shadow. A professional who is no longer validated, or whose account is
  * suspended, reads as unavailable: no « vérifié », no button, no mark, and no
  * link, since her profile and the priority request answer not found. A family
  * without a subscription sees the card with no button: the page shows the

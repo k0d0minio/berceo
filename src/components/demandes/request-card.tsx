@@ -1,6 +1,9 @@
 import type * as React from "react"
 import Link from "next/link"
 
+import { BebeIcon, BiberonIcon, CalendrierIcon, LieuIcon, type IconComponent } from "@/components/berceo-icons"
+import { EuroIcon } from "@/components/icons"
+import { Button } from "@/components/ui/button"
 import { demandes } from "@/content/demandes"
 import { fill, words } from "@/content/locale"
 import { reservations } from "@/content/reservations"
@@ -11,14 +14,17 @@ import { extraHourLine, rateLine } from "@/lib/reservations/format"
 import { cn } from "@/lib/utils"
 
 /*
- * The DA's request card (Cartes et blocs de contenu): « Garde de nuit à
- * <Commune> », the locality, the night, the children and their feeding, 32 px corners, flat
- * pearl, no shadow. An urgent request carries a butter-yellow mark, never red
- * (D-24). The family's card adds its status, its answers and a link; a
+ * The DA's request card (Cartes et blocs de contenu, slide 25; JAM-327): a
+ * white card of 32 px, « Garde de nuit à <Commune> » in taupe capitals, then
+ * one line for each fact with one of Surya's icons in taupe: the locality,
+ * the night, the children and their feeding, the rate. No shadow. An urgent
+ * request carries a butter-yellow mark, never red (D-24). The family's card
+ * adds its status, its answers and a filled sage capsule to the request; a
  * professional's card shows when it was published, a request sent to her in
  * priority (butter yellow too, D-71), her rate as the DA's price line under a
- * label that says it is her own (JAM-307), and her answer's buttons below. It never shows anything about the family (D-15): its
- * props hold only the card columns.
+ * label that says it is her own (JAM-307), and her answer's buttons below. It
+ * never shows anything about the family (D-15): its props hold only the card
+ * columns. A white card sits on a sage or pearl zone (`CardField`).
  */
 
 const t = words(demandes)
@@ -79,45 +85,73 @@ function RequestCard({
   }).format(request.createdAt)
 
   return (
-    <article className="flex flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-      <div className="flex flex-wrap items-center gap-2">
-        {priority ? <Mark className="bg-beurre">{r.professionnelle.prioritaire}</Mark> : null}
-        {request.urgent ? <Mark className="bg-beurre">{t.carte.urgente}</Mark> : null}
-        {status ? (
-          <Mark className="border border-solid border-taupe bg-blanc">{t.statuts[status]}</Mark>
-        ) : null}
-      </div>
-      <h2 className="text-h3 font-bold text-sauge">
+    <article className="flex h-full min-w-0 flex-col gap-4 rounded-carte bg-blanc px-6 py-8 text-taupe md:px-10">
+      {priority || request.urgent || status ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {priority ? <Mark className="bg-beurre">{r.professionnelle.prioritaire}</Mark> : null}
+          {request.urgent ? <Mark className="bg-beurre">{t.carte.urgente}</Mark> : null}
+          {status ? (
+            <Mark className="border border-solid border-taupe bg-blanc">{t.statuts[status]}</Mark>
+          ) : null}
+        </div>
+      ) : null}
+      <h2 className="font-display text-intro text-balance text-taupe">
         {cardTitle(request.communeIns, request.locality)}
       </h2>
-      <p className="text-corps text-taupe">{placeLine(request.postcode, request.locality)}</p>
-      <p className="text-corps font-semibold text-taupe">
-        {nightLine(request.nightDate, request.startTime, request.extraHours)}
-      </p>
-      <p className="text-corps text-taupe">
-        {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
-      </p>
-      {/* A request published before the field has no feeding. */}
-      {request.feeding ? <p className="text-corps text-taupe">{feedingLine(request.feeding)}</p> : null}
-      {rate && rateLabel ? <p className="text-legende text-taupe">{rateLabel}</p> : null}
-      {rate ? <p className="text-corps font-semibold text-sauge">{rateLine(rate)}</p> : null}
-      {extraHourRate ? (
-        <p className="text-corps font-semibold text-sauge">{extraHourLine(extraHourRate)}</p>
-      ) : null}
+      <ul className="flex flex-col gap-3">
+        <Fact icon={LieuIcon}>{placeLine(request.postcode, request.locality)}</Fact>
+        <Fact icon={CalendrierIcon}>
+          <span className="font-semibold">
+            {nightLine(request.nightDate, request.startTime, request.extraHours)}
+          </span>
+        </Fact>
+        <Fact icon={BebeIcon}>
+          {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
+        </Fact>
+        {/* A request published before the field has no feeding. */}
+        {request.feeding ? <Fact icon={BiberonIcon}>{feedingLine(request.feeding)}</Fact> : null}
+        {rate ? (
+          <Fact icon={EuroIcon}>
+            {rateLabel ? <span className="block text-legende">{rateLabel}</span> : null}
+            <span className="block font-semibold text-sauge">{rateLine(rate)}</span>
+            {extraHourRate ? (
+              <span className="block font-semibold text-sauge">{extraHourLine(extraHourRate)}</span>
+            ) : null}
+          </Fact>
+        ) : null}
+      </ul>
       {showPublished ? (
-        <p className="text-legende text-taupe">{fill(t.carte.publiee, { date: published })}</p>
+        <p className="text-legende">{fill(t.carte.publiee, { date: published })}</p>
       ) : null}
-      {note ? <p className="text-corps font-semibold text-taupe">{note}</p> : null}
+      {note ? <p className="text-corps font-semibold">{note}</p> : null}
       {href ? (
-        <Link
-          href={href}
-          className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
-        >
-          {t.boutons.voir}
-        </Link>
+        <Button asChild variant="sauge" className="mt-auto self-start">
+          <Link href={href}>{t.boutons.voir}</Link>
+        </Button>
       ) : null}
-      {footer ? <div className="flex flex-wrap gap-3 pt-2">{footer}</div> : null}
+      {/* A long answer button wraps inside the card on a phone, in place of pushing the page sideways. */}
+      {footer ? (
+        <div className="mt-auto flex flex-wrap gap-3 pt-2 [&_button]:h-auto [&_button]:max-w-full [&_button]:py-3 [&_button]:whitespace-normal">
+          {footer}
+        </div>
+      ) : null}
     </article>
+  )
+}
+
+/** One fact of the card: an icon of 24 px in taupe, then its line. */
+function Fact({
+  icon: Icon,
+  children,
+}: {
+  icon: IconComponent
+  children: React.ReactNode
+}) {
+  return (
+    <li className="flex items-start gap-3 text-corps">
+      <Icon aria-hidden className="mt-0.5 size-6 shrink-0 text-taupe" />
+      <span className="min-w-0">{children}</span>
+    </li>
   )
 }
 

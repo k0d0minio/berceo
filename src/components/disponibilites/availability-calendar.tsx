@@ -58,7 +58,13 @@ function AvailabilityCalendar({
   }
 
   return (
-    <form action={submit} aria-busy={pending} className="flex max-w-md flex-col gap-6">
+    // A white card on the pearl page (JAM-327): an unmarked night stays pearl inside it.
+    // Narrow sides on a phone keep each night near 44 px wide (D-81).
+    <form
+      action={submit}
+      aria-busy={pending}
+      className="flex max-w-md flex-col gap-6 rounded-carte bg-blanc px-4 py-6 md:px-8 md:py-8"
+    >
       <p className="text-corps text-taupe">{p.legende}</p>
 
       <div role="group" aria-label={p.calendrier} className="flex flex-col gap-4">

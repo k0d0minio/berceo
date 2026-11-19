@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { CreditTable } from "@/components/admin/credit-table";
 import { listHref, Pager } from "@/components/admin/list-controls";
+import { CoeursIcon } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { journalPage } from "@/lib/admin/rules";
@@ -41,7 +43,7 @@ export default async function AdminCreditPage({ searchParams }: { searchParams: 
       <p className="text-corps font-semibold text-taupe">
         {fill(t.resume, { n: String(live.count), montant: eurosFromCents(live.remainingCents) })}
       </p>
-      {rows.length === 0 ? <p className="text-corps text-taupe">{t.vide}</p> : <CreditTable rows={rows} />}
+      {rows.length === 0 ? <EmptyState icon={CoeursIcon} text={t.vide} /> : <CreditTable rows={rows} />}
       <Pager page={page} pages={pages} href={(n) => listHref(ADMIN_CREDITS_PATH, { page: n > 1 ? String(n) : null })} />
     </AdminShell>
   );

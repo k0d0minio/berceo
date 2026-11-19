@@ -16,7 +16,8 @@ import { professionLabel } from "@/lib/reservations/format"
  * (D-126), no surname, phone, e-mail, address, rate or availability: this
  * component takes those fields one by one, so nothing else can reach the HTML
  * or the page's payload. The call to action is a free family account whose
- * way back is her full profile (D-3, D-129).
+ * way back is her full profile (D-3, D-129). White cards of 32 px on sage,
+ * as the deck shows its profile card (slide 25; JAM-327).
  */
 
 const t = words(recherche)
@@ -42,8 +43,9 @@ function PublicProfessional({
   signUpHref: string
 }) {
   return (
+    <div className="bg-sauge [--ring:var(--blanc)]">
     <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 pt-10 pb-16 md:px-8 md:pt-16">
-      <article className="flex flex-col gap-6 rounded-carte bg-perle px-6 py-8 md:px-10">
+      <article className="flex flex-col gap-6 rounded-carte bg-blanc px-6 py-8 [--ring:var(--sauge)] md:px-10">
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="font-display text-h1 break-words text-sauge uppercase">{firstName}</h1>
           <p className="text-intro text-taupe">{professionLabel(profession)}</p>
@@ -86,13 +88,14 @@ function PublicProfessional({
         </dl>
       </article>
 
-      <section className="flex flex-col items-start gap-4 rounded-carte bg-blanc px-6 py-8 md:px-10">
+      <section className="flex flex-col items-start gap-4 rounded-carte bg-blanc px-6 py-8 [--ring:var(--sauge)] md:px-10">
         <h2 className="font-display text-h2 text-sauge">{t.fiche.ctaTitre}</h2>
         <p className="text-corps text-taupe">{t.fiche.ctaTexte}</p>
         <Button asChild variant="sauge" className="h-auto max-w-full py-3 whitespace-normal">
           <Link href={signUpHref}>{t.fiche.ctaBouton}</Link>
         </Button>
       </section>
+    </div>
     </div>
   )
 }

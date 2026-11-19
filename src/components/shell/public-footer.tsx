@@ -3,12 +3,15 @@ import Link from "next/link"
 import { BerceoWordmark } from "@/components/berceo-logo"
 import { common } from "@/content/common"
 import { words } from "@/content/locale"
+import { contactEnabled } from "@/lib/contact/config"
 
 /*
  * The public footer: on the sage ink, the brand's identity colour deep enough
  * to carry white text (finition-accueil D-2); the focus ring turns white here. Every page of the
- * guide's URL map, the legal ones last. No contact: Berceo has no published
- * address yet (AGENTS.md → Standing rules).
+ * guide's URL map, the legal ones last. « Tarifs » and « FAQ » live here
+ * since they left the header (JAM-327, question 5). « Contact » is a link to
+ * the form, where the environment has a contact address: no address is ever
+ * published.
  */
 function PublicFooter() {
   const t = words(common)
@@ -17,6 +20,7 @@ function PublicFooter() {
     t.pages.tarifs,
     t.pages.quiSommesNous,
     t.pages.faq,
+    ...(contactEnabled() ? [t.nav.contact] : []),
     t.pages.inscriptionFamille,
     t.pages.inscriptionProfessionnelle,
     t.pages.conditionsGenerales,

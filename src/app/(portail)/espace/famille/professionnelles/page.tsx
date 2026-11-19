@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { SubscriptionRequired } from "@/components/abonnements/subscription-required";
+import { CoeursIcon } from "@/components/berceo-icons";
 import { MarkButton } from "@/components/favoris/mark-button";
 import { ProfessionalListCard } from "@/components/favoris/professional-list-card";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
+import { CardField } from "@/components/ui/card-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { favoris } from "@/content/favoris";
 import { words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
@@ -40,7 +43,8 @@ export const dynamic = "force-dynamic";
  * request and carries the mark: « Retirer » on a favourite, « Ajouter » on a
  * past garde's professional. Without one the invitation line shows once and
  * the cards carry no button (abonnements-acces). Empty, the page sends her
- * to the search.
+ * to the search. The cards sit on a sage zone, and an empty list is the
+ * taupe empty state (JAM-327).
  */
 export default async function MesProfessionnellesPage() {
   const user = await requireAccess(FAMILY_PROFESSIONALS_PATH);
@@ -73,26 +77,28 @@ export default async function MesProfessionnellesPage() {
     cards.length === 0 ? null : (
       <section className="flex flex-col gap-4">
         <h2 className="font-display text-h2 text-sauge">{title}</h2>
-        <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
-          {cards.map((card) => (
-            <li key={card.id} className="min-w-0">
-              <ProfessionalListCard
-                {...card}
-                actions={open}
-                mark={
-                  mayMark && card.available ? (
-                    <MarkButton
-                      marked={isMarked}
-                      prenom={card.firstName}
-                      onToggle={markAction.bind(null, card.id, !isMarked)}
-                    />
-                  ) : undefined
-                }
-                className="h-full"
-              />
-            </li>
-          ))}
-        </ul>
+        <CardField className="max-w-4xl">
+          <ul className="grid gap-6 md:grid-cols-2">
+            {cards.map((card) => (
+              <li key={card.id} className="min-w-0">
+                <ProfessionalListCard
+                  {...card}
+                  actions={open}
+                  mark={
+                    mayMark && card.available ? (
+                      <MarkButton
+                        marked={isMarked}
+                        prenom={card.firstName}
+                        onToggle={markAction.bind(null, card.id, !isMarked)}
+                      />
+                    ) : undefined
+                  }
+                  className="h-full"
+                />
+              </li>
+            ))}
+          </ul>
+        </CardField>
       </section>
     );
 
@@ -101,12 +107,11 @@ export default async function MesProfessionnellesPage() {
       <p className="max-w-2xl text-intro text-taupe">{t.liste.intro}</p>
       {open ? null : <SubscriptionRequired />}
       {marked.length === 0 && past.length === 0 ? (
-        <div className="flex max-w-2xl flex-col items-start gap-4">
-          <p className="text-corps text-taupe">{t.liste.vide}</p>
-          <Button asChild>
+        <EmptyState icon={CoeursIcon} text={t.liste.vide}>
+          <Button asChild variant="taupe">
             <Link href={SEARCH_PATH}>{words(recherche).nav}</Link>
           </Button>
-        </div>
+        </EmptyState>
       ) : (
         <>
           {block(t.liste.ajoutees, marked, true)}

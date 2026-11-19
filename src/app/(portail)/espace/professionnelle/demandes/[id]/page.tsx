@@ -105,8 +105,8 @@ export default async function DemandeProfessionnellePage({
         />
       </div>
       {request.reason ? <RequestReason title={t.professionnelle.motif} reason={request.reason} /> : null}
-      {/* Her answer comes after the reason, so she reads it first. */}
-      <div className="flex max-w-2xl flex-wrap gap-3">
+      {/* Her answer comes after the reason, so she reads it first. A white card on the pearl page (JAM-327). */}
+      <div className="flex max-w-2xl flex-wrap gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
         <AnswerFooter
           request={request}
           conversationId={conversationIds.get(request.id)}

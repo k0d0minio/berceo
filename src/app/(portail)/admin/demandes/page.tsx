@@ -5,6 +5,8 @@ import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { FilterLinks, listHref, Pager } from "@/components/admin/list-controls";
 import { RequestsTable } from "@/components/admin/requests-table";
+import { LuneIcon } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { fill, words } from "@/content/locale";
 import { db, users } from "@/db";
@@ -79,7 +81,7 @@ export default async function DemandesPage({
         ]}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-taupe">{t.vide}</p>
+        <EmptyState icon={LuneIcon} text={t.vide} />
       ) : (
         <RequestsTable rows={rows} now={now} />
       )}

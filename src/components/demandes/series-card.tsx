@@ -1,6 +1,7 @@
 import type * as React from "react"
 import Link from "next/link"
 
+import { BebeIcon, BiberonIcon, CalendrierIcon, LieuIcon, type IconComponent } from "@/components/berceo-icons"
 import { demandes } from "@/content/demandes"
 import { fill, words } from "@/content/locale"
 import { cardTitle, childrenLine, feedingLine, nightLine, placeLine } from "@/lib/demandes/format"
@@ -9,8 +10,9 @@ import type { DisplayStatus } from "@/lib/demandes/rules"
 
 /*
  * Regular nights in « Mes demandes » (demande-nuits-regulieres): one card for
- * the series, in the request card's construction (32 px corners, flat pearl, no
- * shadow). The commune, the place, the count of nights, the children and their
+ * the series, in the request card's construction (JAM-327: a white card of
+ * 32 px, the title in taupe capitals, one line for each fact with one of
+ * Surya's icons in taupe, no shadow). The commune, the place, the count of nights, the children and their
  * feeding are the first night's: the series was published with one set of
  * details. Then one line per night, in date order, with its own hours, its
  * status, its answers and its link: each night of an older series is a
@@ -47,17 +49,21 @@ function SeriesCard({
   const count = nights.length === 1 ? t.serie.uneNuit : fill(t.serie.nombre, { n: String(nights.length) })
 
   return (
-    <article className="flex flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
+    <article className="flex h-full flex-col gap-4 rounded-carte bg-blanc px-6 py-8 text-taupe md:px-10">
       <span className="inline-flex w-fit items-center rounded-capsule border border-solid border-taupe bg-blanc px-3 py-1 text-legende font-semibold text-taupe">
         {t.serie.marque}
       </span>
-      <h2 className="text-h3 font-bold text-sauge">{cardTitle(first.communeIns, first.locality)}</h2>
-      <p className="text-corps text-taupe">{placeLine(first.postcode, first.locality)}</p>
-      <p className="text-corps font-semibold text-taupe">{count}</p>
-      <p className="text-corps text-taupe">
-        {childrenLine(first.children, first.babyAgeValue, first.babyAgeUnit)}
-      </p>
-      {first.feeding ? <p className="text-corps text-taupe">{feedingLine(first.feeding)}</p> : null}
+      <h2 className="font-display text-intro text-balance text-taupe">
+        {cardTitle(first.communeIns, first.locality)}
+      </h2>
+      <ul className="flex flex-col gap-3">
+        <Fact icon={LieuIcon}>{placeLine(first.postcode, first.locality)}</Fact>
+        <Fact icon={CalendrierIcon}>
+          <span className="font-semibold">{count}</span>
+        </Fact>
+        <Fact icon={BebeIcon}>{childrenLine(first.children, first.babyAgeValue, first.babyAgeUnit)}</Fact>
+        {first.feeding ? <Fact icon={BiberonIcon}>{feedingLine(first.feeding)}</Fact> : null}
+      </ul>
       {aside}
       <ul aria-label={t.serie.nuits} className="flex flex-col gap-3 pt-2">
         {nights.map(({ request, status, href, linkLabel, note }) => (
@@ -87,8 +93,18 @@ function SeriesCard({
           </li>
         ))}
       </ul>
-      {footer ? <div className="flex flex-wrap gap-3 pt-2">{footer}</div> : null}
+      {footer ? <div className="mt-auto flex flex-wrap gap-3 pt-2">{footer}</div> : null}
     </article>
+  )
+}
+
+/** One fact of the card, as on the request card: an icon of 24 px in taupe, then its line. */
+function Fact({ icon: Icon, children }: { icon: IconComponent; children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-3 text-corps">
+      <Icon aria-hidden className="mt-0.5 size-6 shrink-0 text-taupe" />
+      <span className="min-w-0">{children}</span>
+    </li>
   )
 }
 

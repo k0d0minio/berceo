@@ -17,7 +17,7 @@ function AccountsTable({ rows }: { rows: AccountRow[] }) {
   const t = words(admin).utilisateurs
 
   return (
-    <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
+    <div className="rounded-carte bg-blanc p-4 md:p-6">
       <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>

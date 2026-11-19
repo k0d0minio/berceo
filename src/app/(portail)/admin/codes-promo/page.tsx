@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PromoCodeForm } from "@/components/admin/promo-code-form";
 import { PromoCodesTable } from "@/components/admin/promo-codes-table";
+import { DocumentIcon } from "@/components/berceo-icons";
+import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
 import { words } from "@/content/locale";
 import { ADMIN_PROMO_CODES_PATH } from "@/lib/abonnements/paths";
@@ -36,7 +38,7 @@ export default async function CodesPromoPage() {
       {rows === null ? (
         <p role="status" className="text-corps text-taupe">{t.illisible}</p>
       ) : rows.length === 0 ? (
-        <p className="text-corps text-taupe">{t.vide}</p>
+        <EmptyState icon={DocumentIcon} text={t.vide} />
       ) : (
         <PromoCodesTable rows={rows} />
       )}

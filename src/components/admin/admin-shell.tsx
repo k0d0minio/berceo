@@ -53,7 +53,8 @@ const SECTIONS: readonly [AdminSection, string][] = [
 /*
  * Every back-office page: the admin's space with the back-office navigation
  * above the page (D-132). Eleven capsules wrap on a phone rather than scroll;
- * the current one reads as the current page and carries the butter fill.
+ * the current one reads as the current page and carries the butter fill. The
+ * page is pearl (JAM-327), so a capsule that is not the current one is white.
  */
 async function AdminShell({
   user,
@@ -78,7 +79,7 @@ async function AdminShell({
                 href={href}
                 aria-current={section === current ? "page" : undefined}
                 className={cn(
-                  "inline-flex min-h-12 items-center rounded-capsule border border-solid border-sauge px-5 text-corps font-semibold text-sauge transition-colors duration-200 ease-out hover:bg-beurre",
+                  "inline-flex min-h-12 items-center rounded-capsule border border-solid border-sauge bg-blanc px-5 text-corps font-semibold text-sauge transition-colors duration-200 ease-out hover:bg-beurre",
                   section === current && "border-beurre bg-beurre",
                 )}
               >

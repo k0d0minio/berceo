@@ -29,7 +29,7 @@ function StudentsSwitch({
   const next = !value
 
   return (
-    <section className="flex flex-col gap-4 rounded-carte border border-solid border-perle bg-blanc p-8">
+    <section className="flex flex-col gap-4 rounded-carte bg-blanc p-6 md:p-8">
       <h2 className="text-h3 font-bold text-sauge">{t.titre}</h2>
       <p className="max-w-2xl text-corps text-taupe">{t.description}</p>
       <p className="text-corps font-semibold text-taupe">{value ? t.active : t.desactive}</p>

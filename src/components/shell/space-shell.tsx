@@ -72,7 +72,7 @@ async function SpaceShell({
           : []),
       ]}
       home={home}
-      actions={<SignOutDialog onSignOut={signOut} />}
+      actions={<SignOutDialog onSignOut={signOut} variant="sauge" />}
       legal={[pages.conditionsGenerales, pages.confidentialite]}
     >
       <div className="flex flex-col gap-6">

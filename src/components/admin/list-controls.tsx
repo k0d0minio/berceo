@@ -17,7 +17,7 @@ export function listHref(path: string, params: Record<string, string | null | un
 /*
  * A list's filters as capsule links, the current one marked (the DA's filters
  * are capsules). A link, not a form: each filter is an address the overview
- * can point at (D-133).
+ * can point at (D-133). White on the pearl page (JAM-327).
  */
 function FilterLinks({
   label,
@@ -35,7 +35,7 @@ function FilterLinks({
               href={option.href}
               aria-current={option.current ? "true" : undefined}
               className={cn(
-                "inline-flex min-h-12 items-center rounded-capsule border border-solid border-taupe px-5 text-corps text-taupe transition-colors duration-200 ease-out hover:bg-beurre",
+                "inline-flex min-h-12 items-center rounded-capsule border border-solid border-taupe bg-blanc px-5 text-corps text-taupe transition-colors duration-200 ease-out hover:bg-beurre",
                 option.current && "border-beurre bg-beurre font-semibold",
               )}
             >
