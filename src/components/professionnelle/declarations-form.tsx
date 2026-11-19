@@ -52,8 +52,8 @@ function DeclarationsForm({
         <label
           className={
             blocks
-              ? "flex items-start gap-3 rounded-carte text-corps text-encre-taupe outline-1 outline-offset-4 outline-destructive"
-              : "flex items-start gap-3 text-corps text-encre-taupe"
+              ? "flex items-start gap-3 rounded-carte text-corps text-taupe outline-1 outline-offset-4 outline-destructive"
+              : "flex items-start gap-3 text-corps text-taupe"
           }
         >
           <input
@@ -83,7 +83,7 @@ function DeclarationsForm({
         <FormMessage>{t.erreurs[state.message]}</FormMessage>
       ) : null}
 
-      <p className="text-corps text-encre-taupe">
+      <p className="text-corps text-taupe">
         {mode === "inscription" ? t.declarations.intro : t.declarations.nouvellesIntro}
       </p>
 

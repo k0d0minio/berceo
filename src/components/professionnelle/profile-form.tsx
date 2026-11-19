@@ -41,7 +41,7 @@ export type ProfileValues = {
   bio: string | null
 }
 
-const legend = "text-corps font-semibold text-encre-taupe"
+const legend = "text-corps font-semibold text-taupe"
 
 function ProfileForm({
   saved,
@@ -104,7 +104,7 @@ function ProfileForm({
       >
         <legend className={legend}>{t.champs.profession}</legend>
         {professions.map((key) => (
-          <label key={key} className="flex items-center gap-3 text-corps text-encre-taupe">
+          <label key={key} className="flex items-center gap-3 text-corps text-taupe">
             <input
               type="radio"
               name="profession"
@@ -139,12 +139,12 @@ function ProfileForm({
           ]
             .filter(Boolean)
             .join(" ")}
-          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge aria-invalid:border-destructive"
+          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge aria-invalid:border-destructive"
         />
-        <p id="champ-formations-aide" className="px-6 text-legende text-encre-taupe">
+        <p id="champ-formations-aide" className="px-6 text-legende text-taupe">
           {t.aides.formations}
         </p>
-        <p id="champ-formations-compteur" aria-live="polite" className="px-6 text-legende text-encre-taupe">
+        <p id="champ-formations-compteur" aria-live="polite" className="px-6 text-legende text-taupe">
           {fill(t.aides.formationsRestant, { n: String(FORMATIONS_MAX - formations.trim().length) })}
         </p>
         {e.formations ? (
@@ -162,7 +162,7 @@ function ProfileForm({
           describedBy={["champ-zone-aide", e.communes ? "champ-zone-erreur" : ""].filter(Boolean).join(" ")}
           invalid={Boolean(e.communes)}
         />
-        <p id="champ-zone-aide" className="px-6 text-legende text-encre-taupe">
+        <p id="champ-zone-aide" className="px-6 text-legende text-taupe">
           {t.aides.zone}
         </p>
         {e.communes ? (
@@ -182,7 +182,7 @@ function ProfileForm({
       >
         <legend className={legend}>{t.champs.rayon}</legend>
         {ZONE_CHOICES.map((choice) => (
-          <label key={choice} className="flex items-center gap-3 text-corps text-encre-taupe">
+          <label key={choice} className="flex items-center gap-3 text-corps text-taupe">
             <input
               type="radio"
               name="rayon"
@@ -193,7 +193,7 @@ function ProfileForm({
             {t.rayons[choice]}
           </label>
         ))}
-        <p id="champ-rayon-aide" className="text-legende text-encre-taupe">
+        <p id="champ-rayon-aide" className="text-legende text-taupe">
           {t.aides.rayon}
         </p>
         {e.rayon ? <FieldError id="champ-rayon-erreur">{errorOf("rayon")}</FieldError> : null}
@@ -239,12 +239,12 @@ function ProfileForm({
           aria-describedby={["champ-bio-aide", "champ-bio-compteur", e.bio ? "champ-bio-erreur" : ""]
             .filter(Boolean)
             .join(" ")}
-          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-encre-taupe transition-[border-color] duration-200 ease-out focus-visible:border-encre-sauge aria-invalid:border-destructive"
+          className="w-full rounded-carte border border-solid border-input bg-blanc px-6 py-4 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge aria-invalid:border-destructive"
         />
-        <p id="champ-bio-aide" className="px-6 text-legende text-encre-taupe">
+        <p id="champ-bio-aide" className="px-6 text-legende text-taupe">
           {t.aides.bio}
         </p>
-        <p id="champ-bio-compteur" aria-live="polite" className="px-6 text-legende text-encre-taupe">
+        <p id="champ-bio-compteur" aria-live="polite" className="px-6 text-legende text-taupe">
           {fill(t.aides.bioRestant, { n: String(BIO_MAX - bio.trim().length) })}
         </p>
         {e.bio ? (

@@ -72,9 +72,9 @@ function CancelGarde({
       cancel={{ label: t.non, tone: "confirmation" }}
     >
       <fieldset className="flex flex-col gap-2" aria-describedby={missing ? `${id}-erreur` : undefined}>
-        <legend className="mb-2 text-corps font-semibold text-encre-taupe">{t.motif}</legend>
+        <legend className="mb-2 text-corps font-semibold text-taupe">{t.motif}</legend>
         {reasons.map((key) => (
-          <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-encre-taupe">
+          <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-taupe">
             <input
               type="radio"
               name={`${id}-motif`}

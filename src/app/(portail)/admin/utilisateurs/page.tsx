@@ -45,7 +45,7 @@ export default async function UtilisateursPage({
     <AdminShell user={user} title={t.titre} current="utilisateurs">
       <form action={ADMIN_USERS_PATH} method="get" role="search" className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex flex-1 flex-col gap-2">
-          <label htmlFor="recherche-utilisateur" className="text-corps font-semibold text-encre-taupe">
+          <label htmlFor="recherche-utilisateur" className="text-corps font-semibold text-taupe">
             {t.recherche}
           </label>
           <Input id="recherche-utilisateur" name="q" type="search" defaultValue={q} maxLength={SEARCH_MAX} />
@@ -54,16 +54,16 @@ export default async function UtilisateursPage({
       </form>
       {q ? (
         <div className="flex flex-wrap items-center gap-6">
-          <p className="text-corps text-encre-taupe">{fill(t.resultats, { q })}</p>
-          <Link href={ADMIN_USERS_PATH} className="text-corps font-semibold text-encre-sauge underline underline-offset-4">
+          <p className="text-corps text-taupe">{fill(t.resultats, { q })}</p>
+          <Link href={ADMIN_USERS_PATH} className="text-corps font-semibold text-sauge underline underline-offset-4">
             {t.effacer}
           </Link>
         </div>
       ) : (
-        <p className="text-corps text-encre-taupe">{t.recents}</p>
+        <p className="text-corps text-taupe">{t.recents}</p>
       )}
       {rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{t.vide}</p>
+        <p className="text-corps text-taupe">{t.vide}</p>
       ) : (
         <AccountsTable rows={rows} />
       )}

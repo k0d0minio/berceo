@@ -59,10 +59,10 @@ export default async function ReservationsPage({
     <AdminShell user={user} title={t.titre} current="reservations">
       {account ? (
         <div className="flex flex-wrap items-center gap-6">
-          <p className="text-corps font-semibold text-encre-taupe">{fill(t.deCompte, { nom: fullName(account) })}</p>
+          <p className="text-corps font-semibold text-taupe">{fill(t.deCompte, { nom: fullName(account) })}</p>
           <Link
             href={listHref(ADMIN_BOOKINGS_PATH, { etat })}
-            className="text-corps font-semibold text-encre-sauge underline underline-offset-4"
+            className="text-corps font-semibold text-sauge underline underline-offset-4"
           >
             {t.toutesLesReservations}
           </Link>
@@ -80,7 +80,7 @@ export default async function ReservationsPage({
         ]}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{t.vide}</p>
+        <p className="text-corps text-taupe">{t.vide}</p>
       ) : (
         <BookingsTable rows={rows} />
       )}

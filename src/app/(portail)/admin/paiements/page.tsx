@@ -74,7 +74,7 @@ export default async function PaiementsPage({
         ]}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{empty}</p>
+        <p className="text-corps text-taupe">{empty}</p>
       ) : (
         <PaymentsTable rows={rows} now={now} />
       )}

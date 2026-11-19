@@ -32,7 +32,7 @@ function PublicHeader() {
         <Link
           href="/"
           aria-label={t.header.homeLabel}
-          className="shrink-0 rounded-md text-encre-sauge"
+          className="shrink-0 rounded-md text-sauge"
         >
           <BerceoWordmark aria-hidden className="w-32 md:w-36" />
         </Link>
@@ -43,7 +43,7 @@ function PublicHeader() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="font-display text-nav whitespace-nowrap text-encre-sauge underline-offset-4 hover:underline"
+                  className="font-display text-nav whitespace-nowrap text-sauge underline-offset-4 hover:underline"
                 >
                   {link.label}
                 </Link>

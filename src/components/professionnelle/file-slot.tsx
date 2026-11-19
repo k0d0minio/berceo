@@ -101,7 +101,7 @@ function FileSlot({
   return (
     // The input is visually hidden: the form scrolls this block into view when the slot blocks.
     <div data-champ className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-corps font-semibold text-encre-taupe">
+      <label htmlFor={id} className="text-corps font-semibold text-taupe">
         {label}
       </label>
 
@@ -119,7 +119,7 @@ function FileSlot({
           {files.map((file) => (
             <li
               key={file.id}
-              className="flex flex-wrap items-center gap-3 rounded-carte bg-perle px-6 py-3 text-corps text-encre-taupe"
+              className="flex flex-wrap items-center gap-3 rounded-carte bg-perle px-6 py-3 text-corps text-taupe"
             >
               <FileText aria-hidden className="size-5 shrink-0" />
               <span className="min-w-0 flex-1 break-all">{file.fileName}</span>
@@ -127,7 +127,7 @@ function FileSlot({
                 href={`/api/fichiers/${file.id}`}
                 target="_blank"
                 rel="noopener"
-                className="text-encre-sauge underline"
+                className="text-sauge underline"
               >
                 {t.justificatifs.voir}
               </a>
@@ -135,7 +135,7 @@ function FileSlot({
                 type="button"
                 disabled={busy || disabled}
                 onClick={() => remove(file.id)}
-                className="text-encre-sauge underline disabled:opacity-50"
+                className="text-sauge underline disabled:opacity-50"
               >
                 {t.justificatifs.retirer}
               </button>
@@ -162,7 +162,7 @@ function FileSlot({
         <label
           htmlFor={id}
           aria-hidden
-          className="inline-flex min-h-12 w-fit cursor-pointer items-center justify-center rounded-capsule border border-solid border-encre-sauge bg-blanc px-7 text-bouton font-semibold text-encre-sauge transition-[background-color,color] duration-200 ease-out peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-encre-sauge peer-disabled:cursor-default peer-disabled:opacity-50 peer-aria-invalid:border-destructive hover:bg-encre-sauge hover:text-blanc"
+          className="inline-flex min-h-12 w-fit cursor-pointer items-center justify-center rounded-capsule border border-solid border-sauge bg-blanc px-7 text-bouton font-semibold text-sauge transition-[background-color,color] duration-200 ease-out peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-sauge peer-disabled:cursor-default peer-disabled:opacity-50 peer-aria-invalid:border-destructive hover:bg-sauge hover:text-blanc"
         >
           {busy
             ? t.justificatifs.envoiEnCours
@@ -172,7 +172,7 @@ function FileSlot({
         </label>
       ) : null}
 
-      <p id={`${id}-aide`} className="px-6 text-legende text-encre-taupe">
+      <p id={`${id}-aide`} className="px-6 text-legende text-taupe">
         {help}
       </p>
       {message ? (

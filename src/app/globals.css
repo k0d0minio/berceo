@@ -6,13 +6,13 @@
  * Berceo — Surya's web art direction (DA), as tokens.
  *
  * This file is the only place a colour value is written. Components name the
- * DA's colours (`bg-sauge`, `border-perle`…), the two inks, or the shadcn
- * contract below; they never carry a hex. The five DA values are the DA's
- * own. They stay surfaces, borders and accents: none of them carries text
- * legibly, so text, filled controls and control outlines use the two inks,
- * sage and taupe darkened on their own hue (finition-accueil D-1, D-2, which
- * override socle D-9's literal text colours). src/app/contrast.test.ts holds
- * every text and surface pair to WCAG AA.
+ * DA's colours (`bg-sauge`, `border-perle`…) or the shadcn contract below;
+ * they never carry a hex. Only the charter palette of `Direction artistique
+ * web.pdf` exists, plus the two confirmation colours (JAM-300). Text, filled
+ * controls and outlines use the charter's sage and taupe as the DA shows
+ * them. The client accepts that they are below WCAG AA until after launch
+ * (Jamie, 2026-11-18): JAM-300 replaces finition-accueil D-1, D-2 and D-24,
+ * and src/app/contrast.test.ts is skipped (.icm/intake/README.md).
  *
  * Tailwind's default palette is switched off so an off-brand `bg-red-500`
  * cannot creep in: the only colours that exist are the ones declared here.
@@ -30,14 +30,10 @@
   --color-perle: var(--perle); /* fond discret, 5 % */
   --color-beurre: var(--beurre); /* couleur d'accent, survol, 5 % */
 
-  /* --- the two inks: text, filled controls, outlines, the focus ring --- */
-  --color-encre-sauge: var(--encre-sauge);
-  --color-encre-taupe: var(--encre-taupe);
-
   /*
-   * Confirmation colours (D-24). Referenced by one component only:
-   * src/components/ui/confirm-dialog.tsx. Never a page-wide button. The red
-   * also carries form errors, through --destructive below.
+   * Confirmation colours (the DA's "couleurs de confirmation"): only for an
+   * important choice (confirm, cancel, refuse) and, through --destructive
+   * below, for a field that blocks a form (JAM-300, Q6).
    */
   --color-rouge-confirmation: var(--rouge-confirmation);
   --color-vert-confirmation: var(--vert-confirmation);
@@ -115,59 +111,46 @@
   --perle: #e0ded8;
   --beurre: #fef5b5;
 
-  /*
-   * The inks (finition-accueil D-1). @relecture Surya: the values are fixed by
-   * the contrast test. The sage ink reaches 7.81:1 on white, 5.80 on pearl
-   * and 3.25 on sage (the sage band's heading and focus ring); the taupe ink
-   * 6.15:1 on white and 4.57 on pearl. White on either passes 4.5:1.
-   */
-  --encre-sauge: #3c584b;
-  --encre-taupe: #646254;
-  /*
-   * @relecture Surya: the DA's #ed5957 darkened on its own hue so white
-   * reaches 5.80:1 on it (finition-accueil D-11); the green is unchanged and
-   * carries the sage ink (4.88:1).
-   */
-  --rouge-confirmation: #bc312f;
+  /* The DA's confirmation colours, as the DA writes them (JAM-300). */
+  --rouge-confirmation: #ed5957;
   --vert-confirmation: #b6d3c6;
 
   /* --- the shadcn contract, on the DA --- */
   --background: var(--blanc);
-  --foreground: var(--encre-taupe);
+  --foreground: var(--taupe);
   --card: var(--blanc);
-  --card-foreground: var(--encre-taupe);
+  --card-foreground: var(--taupe);
   --popover: var(--blanc);
-  --popover-foreground: var(--encre-taupe);
-  --primary: var(--encre-sauge);
+  --popover-foreground: var(--taupe);
+  --primary: var(--sauge);
   --primary-foreground: var(--blanc);
   --secondary: var(--perle);
-  --secondary-foreground: var(--encre-taupe);
+  --secondary-foreground: var(--taupe);
   --muted: var(--perle);
-  --muted-foreground: var(--encre-taupe);
+  --muted-foreground: var(--taupe);
   --accent: var(--beurre);
-  --accent-foreground: var(--encre-taupe);
+  --accent-foreground: var(--taupe);
   /*
-   * Form errors: the border and the message of a field that blocks the form.
-   * The founders asked for red (onboarding-retour-1), which bends D-24 for
-   * form errors only. It is the dialogs' darkened red, 5.80:1 on white.
+   * Form errors: the border and the message of a field that blocks the form
+   * (onboarding-retour-1). The DA's confirmation red (JAM-300, Q6).
    */
   --destructive: var(--rouge-confirmation);
-  /* Decoration only: separators and card edges, never a control's boundary. */
+  /* Decoration only: separators and card edges. */
   --border: var(--perle);
-  /* A field's border must reach 3:1 on white, so it is an ink. */
-  --input: var(--encre-taupe);
+  /* A field's border. */
+  --input: var(--taupe);
   /*
-   * The focus ring. The ink surfaces (the footer, an ink card) set it to
-   * white locally with `[--ring:var(--blanc)]`, or it would vanish there.
+   * The focus ring. The sage and taupe surfaces (the footer, a coloured card)
+   * set it to white locally with `[--ring:var(--blanc)]`.
    */
-  --ring: var(--encre-sauge);
+  --ring: var(--sauge);
 
   /* --- the type scale, mobile first (the DA's "Mobile" column) --- */
   --taille-h1: 2.5rem; /* 40 px */
   --taille-h2: 2rem; /* 32 px */
   --taille-nav: 1.125rem; /* 18 px */
-  --taille-h3: 1.5rem; /* 24 px */
-  --taille-intro: 1.1875rem; /* 19 px */
+  --taille-h3: 1.625rem; /* 26 px */
+  --taille-intro: 1.25rem; /* 20 px */
   --taille-corps: 1rem; /* 16 px */
   --taille-bouton: 1rem; /* 16 px */
 
@@ -224,7 +207,14 @@
   }
   ::selection {
     background: var(--beurre);
-    color: var(--encre-taupe);
+    color: var(--taupe);
+  }
+  /*
+   * The display face (Comodo, Fraunces until JAM-308) is set in capitals
+   * only: H1, H2, the navigation and short taglines (DA, Typographie).
+   */
+  .font-display {
+    text-transform: uppercase;
   }
   /* One focus treatment for the whole system: an outline, never a shadow. */
   :focus-visible {

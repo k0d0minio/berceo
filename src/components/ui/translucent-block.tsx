@@ -18,7 +18,7 @@ function TranslucentBlock({
     <div
       data-slot="translucent-block"
       className={cn(
-        "voile-perle flex flex-col gap-4 rounded-carte p-6 text-encre-sauge md:p-8",
+        "voile-perle flex flex-col gap-4 rounded-carte p-6 text-sauge md:p-8",
         className
       )}
       {...props}

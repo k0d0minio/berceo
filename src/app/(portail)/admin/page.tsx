@@ -67,12 +67,12 @@ export default async function AdminPage() {
             key={block.key}
             className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-8"
           >
-            <h2 className="font-display text-h3 text-encre-sauge">{a.vueEnsemble.blocs[block.key]}</h2>
-            <p className="font-display text-h1 text-encre-sauge">{block.n}</p>
-            <p className="text-corps text-encre-taupe">{a.vueEnsemble.precisions[block.key]}</p>
+            <h2 className="text-h3 font-bold text-sauge">{a.vueEnsemble.blocs[block.key]}</h2>
+            <p className="font-display text-h1 text-sauge">{block.n}</p>
+            <p className="text-corps text-taupe">{a.vueEnsemble.precisions[block.key]}</p>
             <Link
               href={block.href}
-              className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
+              className="self-start text-corps font-semibold text-sauge underline underline-offset-4"
             >
               {a.vueEnsemble.voir}
               <span className="sr-only">{` : ${a.vueEnsemble.blocs[block.key]}`}</span>
@@ -80,7 +80,7 @@ export default async function AdminPage() {
             {block.key === "paiements" && toRefund > 0 ? (
               <Link
                 href={listHref(ADMIN_PAYMENTS_PATH, { statut: TO_REFUND })}
-                className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
+                className="self-start text-corps font-semibold text-sauge underline underline-offset-4"
               >
                 {fill(a.vueEnsemble.aRembourser, { n: String(toRefund) })}
               </Link>

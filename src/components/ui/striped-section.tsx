@@ -34,7 +34,7 @@ function StripedSection({
       <div
         data-slot="striped-section-block"
         className={cn(
-          "mx-auto flex max-w-2xl flex-col items-start gap-6 rounded-carte bg-blanc p-6 text-encre-taupe md:p-12",
+          "mx-auto flex max-w-2xl flex-col items-start gap-6 rounded-carte bg-blanc p-6 text-taupe md:p-12",
           blockClassName
         )}
       >

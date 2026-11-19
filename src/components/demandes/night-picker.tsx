@@ -154,11 +154,11 @@ function NightPicker({
           aria-label={t.precedent}
           disabled={month <= firstMonth}
           onClick={() => showMonth(addDays(`${month}-01`, -1).slice(0, 7))}
-          className="flex size-11 items-center justify-center rounded-capsule text-encre-sauge transition-colors duration-200 ease-out hover:bg-beurre disabled:pointer-events-none disabled:opacity-50"
+          className="flex size-11 items-center justify-center rounded-capsule text-sauge transition-colors duration-200 ease-out hover:bg-beurre disabled:pointer-events-none disabled:opacity-50"
         >
           <ChevronLeft aria-hidden="true" className="size-6" />
         </button>
-        <p aria-live="polite" className="font-display text-h3 text-encre-sauge">
+        <p aria-live="polite" className="text-h3 font-bold text-sauge">
           {monthHeading(month)}
         </p>
         <button
@@ -166,7 +166,7 @@ function NightPicker({
           aria-label={t.suivant}
           disabled={month >= lastMonth}
           onClick={() => showMonth(firstOfNextMonth(month).slice(0, 7))}
-          className="flex size-11 items-center justify-center rounded-capsule text-encre-sauge transition-colors duration-200 ease-out hover:bg-beurre disabled:pointer-events-none disabled:opacity-50"
+          className="flex size-11 items-center justify-center rounded-capsule text-sauge transition-colors duration-200 ease-out hover:bg-beurre disabled:pointer-events-none disabled:opacity-50"
         >
           <ChevronRight aria-hidden="true" className="size-6" />
         </button>
@@ -180,7 +180,7 @@ function NightPicker({
         aria-invalid={invalid ? true : undefined}
         className="flex flex-col gap-px sm:gap-1"
       >
-        <div aria-hidden="true" className="grid grid-cols-7 gap-px pb-1 text-center text-corps text-encre-taupe sm:gap-1">
+        <div aria-hidden="true" className="grid grid-cols-7 gap-px pb-1 text-center text-corps text-taupe sm:gap-1">
           {n.joursCourts.map((day) => (
             <span key={day}>{day}</span>
           ))}
@@ -203,13 +203,13 @@ function NightPicker({
                   onClick={() => choose(day.date)}
                   onKeyDown={(event) => onKeyDown(event, day.date)}
                   className={cn(
-                    "flex min-h-11 min-w-0 items-center justify-center rounded-md text-corps font-semibold transition-colors duration-200 ease-out focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-encre-taupe focus-visible:outline-solid disabled:opacity-50",
+                    "flex min-h-11 min-w-0 items-center justify-center rounded-md text-corps font-semibold transition-colors duration-200 ease-out focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-taupe focus-visible:outline-solid disabled:opacity-50",
                     // The focus ring sits on the cell's own fill: butter on the ink, the ink elsewhere.
                     isSelected
-                      ? "bg-encre-sauge text-blanc focus-visible:outline-beurre"
+                      ? "bg-sauge text-blanc focus-visible:outline-beurre"
                       : open
-                        ? "bg-perle text-encre-taupe hover:bg-beurre"
-                        : "text-encre-taupe"
+                        ? "bg-perle text-taupe hover:bg-beurre"
+                        : "text-taupe"
                   )}
                 >
                   {dayNumber(day.date)}
@@ -221,7 +221,7 @@ function NightPicker({
       </div>
 
       {selected.length > 0 ? (
-        <p aria-live="polite" className="px-2 text-corps font-semibold text-encre-taupe">
+        <p aria-live="polite" className="px-2 text-corps font-semibold text-taupe">
           {!multiple
             ? nightName(selected[0])
             : selected.length === 1

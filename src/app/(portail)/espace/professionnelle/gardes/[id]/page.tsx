@@ -63,8 +63,8 @@ export const dynamic = "force-dynamic";
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <dt className="text-legende font-semibold text-encre-taupe">{label}</dt>
-      <dd className="text-corps text-encre-taupe">{children}</dd>
+      <dt className="text-legende font-semibold text-taupe">{label}</dt>
+      <dd className="text-corps text-taupe">{children}</dd>
     </div>
   );
 }
@@ -139,13 +139,13 @@ export default async function GardePage({
           extraHourRate={booking.extraHourRateEur}
           note={duration}
         />
-        {cancelled ? <p className="text-corps font-semibold text-encre-taupe">{cancelled}</p> : null}
-        {reason ? <p className="text-corps text-encre-taupe">{reason}</p> : null}
-        {dispute ? <p className="text-corps font-semibold text-encre-taupe">{dispute}</p> : null}
-        {feeLine ? <p className="text-corps text-encre-taupe">{feeLine}</p> : null}
+        {cancelled ? <p className="text-corps font-semibold text-taupe">{cancelled}</p> : null}
+        {reason ? <p className="text-corps text-taupe">{reason}</p> : null}
+        {dispute ? <p className="text-corps font-semibold text-taupe">{dispute}</p> : null}
+        {feeLine ? <p className="text-corps text-taupe">{feeLine}</p> : null}
       </div>
       <section className="flex max-w-2xl flex-col gap-4 rounded-carte bg-perle px-6 py-6 md:px-8">
-        <h2 className="font-display text-h3 text-encre-sauge uppercase">{t.gardes.famille}</h2>
+        <h2 className="text-h3 font-bold text-sauge">{t.gardes.famille}</h2>
         <dl className="flex flex-col gap-4">
           <Row label={t.gardes.nom}>{`${family.firstName} ${family.lastName}`}</Row>
           <Row label={words(avis).note.famille}>

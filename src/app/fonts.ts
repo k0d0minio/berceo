@@ -3,7 +3,8 @@ import { Fraunces, Nunito } from "next/font/google";
 /*
  * Every typeface the site loads is bound here, and only here.
  *
- * `titre` is the DA's display slot: Comodo, for titles and navigation. Surya
+ * `titre` is the DA's display slot: Comodo, in capitals only (globals.css),
+ * for H1, H2, the navigation and short taglines. Surya
  * delivers the Comodo files and licence through the Drive; until they are in
  * the repo, Fraunces stands in. To swap, replace this one binding with
  * `next/font/local` pointing at the Comodo files and keep the variable name —

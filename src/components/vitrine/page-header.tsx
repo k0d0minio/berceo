@@ -31,7 +31,7 @@ function PageHeader({
     >
       {nav ? <div className="flex justify-end lg:col-span-full">{nav}</div> : null}
       <div className="flex max-w-2xl flex-col gap-5">
-        <h1 className="font-display text-h1 text-balance text-encre-sauge">
+        <h1 className="font-display text-h1 text-balance text-sauge">
           {title}
         </h1>
         {intro ? <p className="max-w-xl text-intro">{intro}</p> : null}

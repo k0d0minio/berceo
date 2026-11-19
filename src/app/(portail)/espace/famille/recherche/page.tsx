@@ -107,11 +107,11 @@ export default async function RecherchePage({
       {communes.length > 0 ? (
         <section className="flex flex-col gap-4" aria-labelledby="resultats">
           <div className="flex flex-col gap-1">
-            <h2 id="resultats" className="font-display text-h3 text-encre-sauge">
+            <h2 id="resultats" className="text-h3 font-bold text-sauge">
               {fill(t.recherche.resultatsPour, { communes: names })}
             </h2>
             {cards.length > 0 ? (
-              <p className="text-legende text-encre-taupe">
+              <p className="text-legende text-taupe">
                 {cards.length === 1
                   ? t.recherche.uneProfessionnelle
                   : fill(t.recherche.professionnelles, { n: String(cards.length) })}

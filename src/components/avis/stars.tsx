@@ -21,7 +21,7 @@ function Star({ filled, className }: { filled: boolean; className?: string }) {
       viewBox="0 0 24 24"
       aria-hidden="true"
       focusable="false"
-      className={cn("size-5 shrink-0", filled ? "text-encre-sauge" : "text-encre-taupe", className)}
+      className={cn("size-5 shrink-0", filled ? "text-sauge" : "text-taupe", className)}
     >
       <path
         d={STAR_PATH}
@@ -64,7 +64,7 @@ function NoteDisplay({ note, label, className }: { note: Note; label?: string; c
   const t = words(avis).note
   const gardes = gardesLine(note.gardes)
   return (
-    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-corps text-encre-taupe", className)}>
+    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-corps text-taupe", className)}>
       {label ? <span className="font-semibold">{label}</span> : null}
       {note.note === null ? (
         <span>{t.aucune}</span>
@@ -102,12 +102,12 @@ function GivenRating({
   const t = words(avis).donne
   return (
     <section className={cn("flex flex-col gap-3", className)}>
-      <h2 className="font-display text-h3 text-encre-sauge">{t.titre}</h2>
-      <p className="text-legende text-encre-taupe">{fill(t.date, { date })}</p>
+      <h2 className="text-h3 font-bold text-sauge">{t.titre}</h2>
+      <p className="text-legende text-taupe">{fill(t.date, { date })}</p>
       <dl className="flex flex-col gap-2">
         {labels.map((label, i) => (
           <div key={label} className="flex flex-wrap items-center justify-between gap-x-4">
-            <dt className="text-corps font-semibold text-encre-taupe">{label}</dt>
+            <dt className="text-corps font-semibold text-taupe">{label}</dt>
             <dd role="img" aria-label={starsText(scores[i])}>
               <StarRow value={scores[i]} />
             </dd>
@@ -123,9 +123,9 @@ function OwnNote({ note, className }: { note: Note; className?: string }) {
   const t = words(avis).note
   return (
     <section className={cn("flex max-w-2xl flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8", className)}>
-      <h2 className="font-display text-h3 text-encre-sauge">{t.vous}</h2>
+      <h2 className="text-h3 font-bold text-sauge">{t.vous}</h2>
       <NoteDisplay note={note} />
-      <p className="text-legende text-encre-taupe">{t.explication}</p>
+      <p className="text-legende text-taupe">{t.explication}</p>
     </section>
   )
 }

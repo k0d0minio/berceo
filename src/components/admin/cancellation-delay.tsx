@@ -60,15 +60,15 @@ function CancellationDelay({
 
   return (
     <section className="flex flex-col gap-4 rounded-carte border border-solid border-perle bg-blanc p-8">
-      <h2 className="font-display text-h3 text-encre-sauge">{t.titre}</h2>
-      <p className="max-w-2xl text-corps text-encre-taupe">{t.description}</p>
-      <p className="text-corps font-semibold text-encre-taupe">{fill(t.actuel, { heures: String(value) })}</p>
-      <p className="text-legende text-encre-taupe">
+      <h2 className="text-h3 font-bold text-sauge">{t.titre}</h2>
+      <p className="max-w-2xl text-corps text-taupe">{t.description}</p>
+      <p className="text-corps font-semibold text-taupe">{fill(t.actuel, { heures: String(value) })}</p>
+      <p className="text-legende text-taupe">
         {changed ? fill(t.modifie, { date: changed.date, nom: changed.name }) : t.jamais}
       </p>
       {message ? <FormMessage>{message}</FormMessage> : null}
       <div className="flex max-w-xs flex-col gap-2">
-        <label htmlFor={`${id}-heures`} className="text-corps font-semibold text-encre-taupe">
+        <label htmlFor={`${id}-heures`} className="text-corps font-semibold text-taupe">
           {t.champ}
         </label>
         <Input

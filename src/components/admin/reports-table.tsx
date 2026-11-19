@@ -31,7 +31,7 @@ function ReportsTable({ rows }: { rows: AdminReportRow[] }) {
 
   return (
     <div className="rounded-carte border border-solid border-perle bg-blanc p-4">
-      <Table className="text-corps text-encre-taupe">
+      <Table className="text-corps text-taupe">
         <TableHeader>
           <TableRow>
             <TableHead>{t.colonnes.date}</TableHead>
@@ -52,12 +52,12 @@ function ReportsTable({ rows }: { rows: AdminReportRow[] }) {
                 {fill(a.demandes.nuit, { date: formatDate(row.nightDate), heure: formatTime(row.startTime) })}
               </TableCell>
               <TableCell>
-                <Link href={adminUserPath(row.family.id)} className="text-encre-sauge underline underline-offset-4">
+                <Link href={adminUserPath(row.family.id)} className="text-sauge underline underline-offset-4">
                   {row.family.name}
                 </Link>
               </TableCell>
               <TableCell>
-                <Link href={adminUserPath(row.professional.id)} className="text-encre-sauge underline underline-offset-4">
+                <Link href={adminUserPath(row.professional.id)} className="text-sauge underline underline-offset-4">
                   {row.professional.name}
                 </Link>
               </TableCell>
@@ -74,7 +74,7 @@ function ReportsTable({ rows }: { rows: AdminReportRow[] }) {
                     {fill(p.montant, { montant: eurosFromCents(row.fee.amountCents) })}
                     <span className="block text-legende">{p.statuts[row.fee.status]}</span>
                     {row.credited ? <span className="block text-legende">{p.devenusCredit}</span> : null}
-                    <Link href={ADMIN_PAYMENTS_PATH} className="block text-legende text-encre-sauge underline underline-offset-4">
+                    <Link href={ADMIN_PAYMENTS_PATH} className="block text-legende text-sauge underline underline-offset-4">
                       {t.lienPaiements}
                     </Link>
                   </>

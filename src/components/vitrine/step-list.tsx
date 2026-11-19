@@ -25,7 +25,7 @@ function StepList({
         >
           <span
             aria-hidden
-            className="flex size-12 items-center justify-center rounded-capsule border border-sauge font-display text-nav text-encre-sauge"
+            className="flex size-12 items-center justify-center rounded-capsule border border-sauge font-display text-nav text-sauge"
           >
             {index + 1}
           </span>
