@@ -80,12 +80,12 @@ function AcceptAnswer({ recap, onAccept }: { recap: Recap; onAccept: () => Promi
       <dl className="flex flex-col gap-3">
         {rows.map(([label, value]) => (
           <div key={label} className="flex flex-wrap justify-between gap-x-4">
-            <dt className="text-corps font-semibold text-encre-taupe">{label}</dt>
-            <dd className="text-corps text-encre-taupe">{value}</dd>
+            <dt className="text-corps font-semibold text-taupe">{label}</dt>
+            <dd className="text-corps text-taupe">{value}</dd>
           </div>
         ))}
       </dl>
-      <div className="flex flex-col gap-2 text-legende text-encre-taupe">
+      <div className="flex flex-col gap-2 text-legende text-taupe">
         <p>{f.prelevement}</p>
         <p>{f.remboursement}</p>
         <p>{creditPaysAll ? f.creditTotal : recap.credit ? f.stripeReste : f.stripe}</p>

@@ -103,16 +103,16 @@ export async function SeriesRequest({
 
       {open ? (
         <section className="flex max-w-4xl flex-col gap-4">
-          <h2 className="font-display text-h2 text-encre-sauge">{r.famille.reponsesTitre}</h2>
+          <h2 className="font-display text-h2 text-sauge">{r.famille.reponsesTitre}</h2>
           {answers.length === 0 ? (
-            <p className="max-w-2xl text-corps text-encre-taupe">{r.famille.aucuneReponse}</p>
+            <p className="max-w-2xl text-corps text-taupe">{r.famille.aucuneReponse}</p>
           ) : (
             <>
-              <p className="max-w-2xl text-corps text-encre-taupe">{r.famille.reponsesSerie}</p>
+              <p className="max-w-2xl text-corps text-taupe">{r.famille.reponsesSerie}</p>
               {!mayBook ? <SubscriptionRequired /> : null}
               {mayBook && !hasAddress ? (
                 <div className="flex max-w-2xl flex-col gap-3">
-                  <p className="text-corps text-encre-taupe">{r.famille.adresseRequise}</p>
+                  <p className="text-corps text-taupe">{r.famille.adresseRequise}</p>
                   <Button asChild variant="raye" className="w-fit">
                     <Link href={PROFILE_PATH}>{r.famille.completerAdresse}</Link>
                   </Button>
@@ -130,14 +130,14 @@ export async function SeriesRequest({
                         <div className="flex items-center gap-4">
                           <ProfessionalPhoto photoId={answer.photoId} prenom={answer.firstName} className="size-16" />
                           <div className="flex flex-col gap-1">
-                            <h3 className="font-display text-h3 text-encre-sauge uppercase">{answer.firstName}</h3>
-                            <p className="text-corps text-encre-taupe">{professionLabel(answer.profession)}</p>
+                            <h3 className="text-h3 font-bold text-sauge">{answer.firstName}</h3>
+                            <p className="text-corps text-taupe">{professionLabel(answer.profession)}</p>
                           </div>
                         </div>
                         <NoteDisplay note={answer.note} />
-                        <p className="text-corps font-semibold text-encre-sauge">{rateLine(answer.nightRateEur)}</p>
+                        <p className="text-corps font-semibold text-sauge">{rateLine(answer.nightRateEur)}</p>
                         {answer.extraHourRateEur ? (
-                          <p className="text-corps font-semibold text-encre-sauge">
+                          <p className="text-corps font-semibold text-sauge">
                             {extraHourLine(answer.extraHourRateEur)}
                           </p>
                         ) : null}
@@ -146,7 +146,7 @@ export async function SeriesRequest({
                             <Link
                               href={conversationPath("famille", conversationId)}
                               prefetch={false}
-                              className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+                              className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
                             >
                               {fill(m.liens.ecrire, { prenom: answer.firstName })}
                             </Link>
@@ -185,7 +185,7 @@ export async function SeriesRequest({
         </section>
       ) : null}
 
-      {open && answered > 0 ? <p className="max-w-2xl text-corps text-encre-taupe">{r.famille.verrouSerie}</p> : null}
+      {open && answered > 0 ? <p className="max-w-2xl text-corps text-taupe">{r.famille.verrouSerie}</p> : null}
 
       {editable && !familyMay("modifier", { subscribed }) ? <SubscriptionRequired /> : null}
       <div className="flex flex-wrap gap-3">

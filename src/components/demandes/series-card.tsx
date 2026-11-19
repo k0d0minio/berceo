@@ -48,16 +48,16 @@ function SeriesCard({
 
   return (
     <article className="flex flex-col gap-3 rounded-carte bg-perle px-6 py-6 md:px-8">
-      <span className="inline-flex w-fit items-center rounded-capsule border border-solid border-taupe bg-blanc px-3 py-1 text-legende font-semibold text-encre-taupe">
+      <span className="inline-flex w-fit items-center rounded-capsule border border-solid border-taupe bg-blanc px-3 py-1 text-legende font-semibold text-taupe">
         {t.serie.marque}
       </span>
-      <h2 className="font-display text-h3 text-encre-sauge uppercase">{cardTitle(first.communeIns, first.locality)}</h2>
-      <p className="text-corps text-encre-taupe">{placeLine(first.postcode, first.locality)}</p>
-      <p className="text-corps font-semibold text-encre-taupe">{count}</p>
-      <p className="text-corps text-encre-taupe">
+      <h2 className="text-h3 font-bold text-sauge">{cardTitle(first.communeIns, first.locality)}</h2>
+      <p className="text-corps text-taupe">{placeLine(first.postcode, first.locality)}</p>
+      <p className="text-corps font-semibold text-taupe">{count}</p>
+      <p className="text-corps text-taupe">
         {childrenLine(first.children, first.babyAgeValue, first.babyAgeUnit)}
       </p>
-      {first.feeding ? <p className="text-corps text-encre-taupe">{feedingLine(first.feeding)}</p> : null}
+      {first.feeding ? <p className="text-corps text-taupe">{feedingLine(first.feeding)}</p> : null}
       {aside}
       <ul aria-label={t.serie.nuits} className="flex flex-col gap-3 pt-2">
         {nights.map(({ request, status, href, linkLabel, note }) => (
@@ -66,20 +66,20 @@ function SeriesCard({
             className="flex flex-col gap-1 border-t border-solid border-taupe pt-3 first:border-t-0 first:pt-0"
           >
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-corps font-semibold text-encre-taupe">
+              <span className="text-corps font-semibold text-taupe">
                 {nightLine(request.nightDate, request.startTime, request.extraHours)}
               </span>
               {status ? (
-                <span className="inline-flex w-fit items-center rounded-capsule border border-solid border-taupe bg-blanc px-3 py-1 text-legende font-semibold text-encre-taupe">
+                <span className="inline-flex w-fit items-center rounded-capsule border border-solid border-taupe bg-blanc px-3 py-1 text-legende font-semibold text-taupe">
                   {t.statuts[status]}
                 </span>
               ) : null}
             </div>
-            {note ? <p className="text-corps text-encre-taupe">{note}</p> : null}
+            {note ? <p className="text-corps text-taupe">{note}</p> : null}
             {href ? (
               <Link
                 href={href}
-                className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+                className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
               >
                 {linkLabel ?? t.serie.voir}
               </Link>

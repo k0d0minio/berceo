@@ -43,17 +43,17 @@ export function SeriesEntry({
       aside={
         <>
           {first.priority ? (
-            <p className="text-corps font-semibold text-encre-taupe">{r.prioritaire}</p>
+            <p className="text-corps font-semibold text-taupe">{r.prioritaire}</p>
           ) : null}
-          {nightRateEur ? <p className="text-corps font-semibold text-encre-sauge">{rateLine(nightRateEur)}</p> : null}
+          {nightRateEur ? <p className="text-corps font-semibold text-sauge">{rateLine(nightRateEur)}</p> : null}
           {extraHourRateEur ? (
-            <p className="text-corps font-semibold text-encre-sauge">{extraHourLine(extraHourRateEur)}</p>
+            <p className="text-corps font-semibold text-sauge">{extraHourLine(extraHourRateEur)}</p>
           ) : null}
-          {state === "repondu" ? <p className="text-corps font-semibold text-encre-taupe">{r.repondu}</p> : null}
+          {state === "repondu" ? <p className="text-corps font-semibold text-taupe">{r.repondu}</p> : null}
           {from === "liste" ? (
             <Link
               href={professionalRequestPath(first.id)}
-              className="w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4"
+              className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
             >
               {t.boutons.voir}
             </Link>

@@ -12,6 +12,7 @@ import {
   UUID,
   type PublishResult,
 } from "@/lib/demandes/requests";
+import { journalInsertAfter, type Person } from "@/lib/admin/journal";
 import { gardeCreditStatement, voidGardeCreditStatement } from "@/lib/credits/credits";
 import { nightAddressOf } from "@/lib/famille/request-address";
 import { bookingFees, type BookingFee } from "@/lib/paiements/payments";
@@ -112,6 +113,69 @@ export async function cancelGarde(
     ),
   ]);
   return cancelled.rows.length > 0 ? { ok: true } : { ok: false };
+}
+
+/**
+ * A founder cancels a confirmed garde for Berceo (annulations-back-office: a
+ * security concern, a fraud, a suspension), until the end of its night. The
+ * garde is recorded against `berceo`, with the founder as who clicked and her
+ * note, which only the founders read; its request is cancelled, the paid fee
+ * becomes a credit of origin `annulation_berceo` (`outcomeOf`), and one
+ * journal entry names the family, the night, the professional and the note,
+ * all in one transaction. A garde already ended, cancelled, or cancelled by a
+ * second founder first changes nothing. The caller has checked the note.
+ */
+export async function cancelGardeForBerceo(
+  bookingId: string,
+  admin: Person,
+  note: string,
+  now: Date,
+): Promise<GardeWrite> {
+  if (!UUID.test(bookingId) || !UUID.test(admin.id) || note.trim().length === 0) return { ok: false };
+  const at = now.toISOString();
+  const [journal] = await db.batch([
+    journalInsertAfter(
+      sql`cancelled as (
+        update bookings b
+        set status = 'annulee', cancelled_at = ${at}::timestamptz, cancelled_by = 'berceo'::booking_side,
+            cancelled_by_user_id = ${admin.id}::uuid, cancellation_kind = 'annulation',
+            cancellation_note = ${note}
+        from care_requests r
+        where b.id = ${bookingId}
+          and r.id = b.request_id
+          and b.status = 'confirmee'
+          and ${requestNightEnd} > ${localNow}
+        returning b.family_user_id, b.profile_id, b.night_date
+      ),
+      subject as (
+        select c.night_date, f.id, trim(f.first_name || ' ' || f.last_name) as name,
+               trim(pu.first_name || ' ' || pu.last_name) as professional
+        from cancelled c
+        join users f on f.id = c.family_user_id
+        join professional_profiles p on p.id = c.profile_id
+        join users pu on pu.id = p.user_id
+      )`,
+      "subject",
+      {
+        action: "garde_annulee_berceo",
+        subject: { id: sql`subject.id`, name: sql`subject.name` },
+        admin,
+        detail: sql`to_char(subject.night_date, 'YYYY-MM-DD') || ', ' || subject.professional || ', ' || ${note}::text`,
+        at: now,
+      },
+    ),
+    db.execute(cancelBookedRequestStatement(bookingId, at)),
+    db.execute(
+      gardeCreditStatement(
+        bookingId,
+        creditOriginOf("berceo", "annulation"),
+        sql`b.status = 'annulee' and b.cancelled_by = 'berceo'::booking_side
+          and b.cancelled_at = ${at}::timestamptz and b.cancelled_by_user_id = ${admin.id}::uuid`,
+        now,
+      ),
+    ),
+  ]);
+  return journal.rows.length > 0 ? { ok: true } : { ok: false };
 }
 
 /**

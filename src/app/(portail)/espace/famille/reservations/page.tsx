@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const link = "w-fit rounded-md text-corps font-semibold text-encre-sauge underline underline-offset-4";
+const link = "w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4";
 
 function List({
   title,
@@ -45,7 +45,7 @@ function List({
   if (items.length === 0) return null;
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-display text-h2 text-encre-sauge">{title}</h2>
+      <h2 className="font-display text-h2 text-sauge">{title}</h2>
       <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
         {items.map(({ id, request, professional, garde }) => (
           <li key={id}>
@@ -54,12 +54,12 @@ function List({
               <div className="flex items-center gap-4">
                 <ProfessionalPhoto photoId={professional.photoId} prenom={professional.firstName} className="size-14" />
                 <div className="flex flex-col gap-1">
-                  <h3 className="font-display text-h3 text-encre-sauge uppercase">{professional.firstName}</h3>
-                  <p className="text-corps text-encre-taupe">{professionLabel(professional.profession)}</p>
+                  <h3 className="text-h3 font-bold text-sauge">{professional.firstName}</h3>
+                  <p className="text-corps text-taupe">{professionLabel(professional.profession)}</p>
                 </div>
               </div>
-              <p className="text-corps text-encre-taupe">{cardTitle(request.communeIns, request.locality)}</p>
-              <p className="text-corps font-semibold text-encre-taupe">
+              <p className="text-corps text-taupe">{cardTitle(request.communeIns, request.locality)}</p>
+              <p className="text-corps font-semibold text-taupe">
                 {nightLine(request.nightDate, request.startTime, request.extraHours)}
               </p>
               <Link href={familyBookingPath(id)} className={link}>
@@ -100,9 +100,9 @@ export default async function ReservationsPage() {
 
   return (
     <SpaceShell user={user} title={t.reservationsFamille.titre}>
-      <p className="max-w-2xl text-intro text-encre-taupe">{t.reservationsFamille.intro}</p>
+      <p className="max-w-2xl text-intro text-taupe">{t.reservationsFamille.intro}</p>
       <CreditsBlock list={wallet.list} balanceCents={wallet.balanceCents} />
-      {all.length === 0 ? <p className="max-w-2xl text-corps text-encre-taupe">{t.reservationsFamille.vide}</p> : null}
+      {all.length === 0 ? <p className="max-w-2xl text-corps text-taupe">{t.reservationsFamille.vide}</p> : null}
       <List title={t.reservationsFamille.aVenir} items={coming} rated={rated} now={now} />
       <List title={t.reservationsFamille.passees} items={past} rated={rated} now={now} />
     </SpaceShell>

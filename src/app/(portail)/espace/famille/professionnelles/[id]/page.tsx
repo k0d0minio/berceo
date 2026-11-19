@@ -107,36 +107,36 @@ export default async function ProfilProfessionnellePage({
         <div className="flex flex-wrap items-center gap-6">
           <ProfessionalPhoto photoId={profile.photoId} prenom={profile.firstName} className="size-28" />
           <div className="flex flex-col gap-1">
-            <h2 className="font-display text-h2 text-encre-sauge uppercase">{profile.firstName}</h2>
-            <p className="text-corps text-encre-taupe">{professionLabel(profile.profession)}</p>
-            <p className="text-legende font-semibold text-encre-taupe">{r.profil.verifie}</p>
+            <h2 className="font-display text-h2 text-sauge uppercase">{profile.firstName}</h2>
+            <p className="text-corps text-taupe">{professionLabel(profile.profession)}</p>
+            <p className="text-legende font-semibold text-taupe">{r.profil.verifie}</p>
           </div>
         </div>
         <NoteDisplay note={profile.note} />
         {profile.nightRateEur ? (
-          <p className="text-corps font-semibold text-encre-sauge">{rateLine(profile.nightRateEur)}</p>
+          <p className="text-corps font-semibold text-sauge">{rateLine(profile.nightRateEur)}</p>
         ) : null}
         {profile.extraHourRateEur ? (
-          <p className="text-corps font-semibold text-encre-sauge">{extraHourLine(profile.extraHourRateEur)}</p>
+          <p className="text-corps font-semibold text-sauge">{extraHourLine(profile.extraHourRateEur)}</p>
         ) : null}
         <dl className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <dt className="text-legende font-semibold text-encre-taupe">{r.profil.zone}</dt>
-            <dd className="text-corps text-encre-taupe">{communes.join(", ")}</dd>
-            {reach ? <dd className="text-corps text-encre-taupe">{reach}</dd> : null}
+            <dt className="text-legende font-semibold text-taupe">{r.profil.zone}</dt>
+            <dd className="text-corps text-taupe">{communes.join(", ")}</dd>
+            {reach ? <dd className="text-corps text-taupe">{reach}</dd> : null}
           </div>
           {profile.formationsComplementaires ? (
             <div className="flex flex-col gap-1">
-              <dt className="text-legende font-semibold text-encre-taupe">{r.profil.formations}</dt>
-              <dd className="text-corps break-words whitespace-pre-line text-encre-taupe">
+              <dt className="text-legende font-semibold text-taupe">{r.profil.formations}</dt>
+              <dd className="text-corps break-words whitespace-pre-line text-taupe">
                 {profile.formationsComplementaires}
               </dd>
             </div>
           ) : null}
           {profile.bio ? (
             <div className="flex flex-col gap-1">
-              <dt className="text-legende font-semibold text-encre-taupe">{r.profil.bio}</dt>
-              <dd className="text-corps whitespace-pre-line text-encre-taupe">{profile.bio}</dd>
+              <dt className="text-legende font-semibold text-taupe">{r.profil.bio}</dt>
+              <dd className="text-corps whitespace-pre-line text-taupe">{profile.bio}</dd>
             </div>
           ) : null}
         </dl>
@@ -148,7 +148,7 @@ export default async function ProfilProfessionnellePage({
 
       {answer && request && !hasAddress ? (
         <div className="flex max-w-2xl flex-col gap-3">
-          <p className="text-corps text-encre-taupe">{r.famille.adresseRequise}</p>
+          <p className="text-corps text-taupe">{r.famille.adresseRequise}</p>
           <Button asChild variant="raye" className="w-fit">
             <Link href={PROFILE_PATH}>{r.famille.completerAdresse}</Link>
           </Button>

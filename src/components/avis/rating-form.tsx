@@ -33,7 +33,7 @@ function StarInput({ name, label }: { name: string; label: string }) {
 
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-2 text-corps font-semibold text-encre-taupe">{label}</legend>
+      <legend className="mb-2 text-corps font-semibold text-taupe">{label}</legend>
       <div role="radiogroup" aria-label={label} className="flex" onMouseLeave={() => setHover(0)}>
         {Array.from({ length: MAX_SCORE }, (_, i) => {
           const n = i + 1
@@ -41,7 +41,7 @@ function StarInput({ name, label }: { name: string; label: string }) {
             <label
               key={n}
               onMouseEnter={() => setHover(n)}
-              className="flex size-11 cursor-pointer items-center justify-center rounded-capsule has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-encre-sauge"
+              className="flex size-11 cursor-pointer items-center justify-center rounded-capsule has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-sauge"
             >
               <input
                 type="radio"
@@ -78,7 +78,7 @@ function RatingForm({
   return (
     <form action={submit} className="flex max-w-2xl flex-col gap-8">
       {message ? <FormMessage>{message}</FormMessage> : null}
-      <p className="text-corps text-encre-taupe">{t.consigne}</p>
+      <p className="text-corps text-taupe">{t.consigne}</p>
       {labels.map((label, i) => (
         <StarInput key={label} name={`score_${i + 1}`} label={label} />
       ))}

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { AccountActions } from "@/components/admin/account-actions";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { BerceoCancelButton } from "@/components/admin/berceo-cancel-button";
 import { JournalTable } from "@/components/admin/journal-table";
 import { listHref } from "@/components/admin/list-controls";
 import { admin } from "@/content/admin";
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const date = new Intl.DateTimeFormat("fr-BE", { dateStyle: "long", timeZone: "Europe/Brussels" });
-const link = "text-corps font-semibold text-encre-sauge underline underline-offset-4";
+const link = "text-corps font-semibold text-sauge underline underline-offset-4";
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -45,7 +46,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-display text-h2 text-encre-sauge">{title}</h2>
+      <h2 className="font-display text-h2 text-sauge">{title}</h2>
       {children}
     </section>
   );
@@ -56,7 +57,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
  * account is and since when, a family's commune but never her address (D-15),
  * a family's subscription line (abonnements-back-office), a professional's
  * file, communes, rate and note, what she did on Berceo with
- * links to the lists filtered on her, her gardes still standing, the actions,
+ * links to the lists filtered on her, her gardes still standing with
+ * « Annuler la garde » for Berceo on each (annulations-back-office), the actions,
  * and every journal entry about her. An admin account shows no action. A 404
  * to anyone but an admin (D-33), and for an id that names no account.
  */
@@ -90,7 +92,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
   return (
     <AdminShell user={user} title={name} current="utilisateurs">
       <Section title={t.sections.identite}>
-        <dl className="flex flex-col gap-3 text-corps text-encre-taupe">
+        <dl className="flex flex-col gap-3 text-corps text-taupe">
           <Row label={t.champs.role}>{u.roles[account.role]}</Row>
           <Row label={t.champs.email}>{account.deletedAt ? t.nonRenseigne : account.email}</Row>
           <Row label={t.champs.telephone}>{account.phone ?? t.nonRenseigne}</Row>
@@ -149,7 +151,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
       </Section>
 
       <Section title={t.sections.activite}>
-        <ul className="flex flex-col gap-2 text-corps text-encre-taupe">
+        <ul className="flex flex-col gap-2 text-corps text-taupe">
           {account.role === "parent" ? (
             <li className="flex flex-wrap gap-x-4">
               {fill(t.compteurs.demandes, { n: String(view.counts.requests) })}
@@ -175,11 +177,20 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
       {account.role !== "admin" ? (
         <Section title={t.sections.gardes}>
           {upcoming.length === 0 ? (
-            <p className="text-corps text-encre-taupe">{t.aucuneGarde}</p>
+            <p className="text-corps text-taupe">{t.aucuneGarde}</p>
           ) : (
-            <ul className="flex list-disc flex-col gap-1 pl-6 text-corps text-encre-taupe">
-              {upcoming.map((line) => (
-                <li key={line}>{line}</li>
+            <ul className="flex list-disc flex-col gap-3 pl-6 text-corps text-taupe">
+              {view.upcoming.map((garde, index) => (
+                <li key={garde.bookingId} className="flex flex-col gap-2">
+                  {upcoming[index]}
+                  {/* « Annuler la garde » for Berceo (annulations-back-office): the account is one side, the line names the other. */}
+                  <BerceoCancelButton
+                    bookingId={garde.bookingId}
+                    date={formatDate(garde.nightDate)}
+                    family={account.role === "parent" ? name : garde.other.name}
+                    professional={account.role === "parent" ? garde.other.name : name}
+                  />
+                </li>
               ))}
             </ul>
           )}
@@ -188,9 +199,9 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
 
       <Section title={t.sections.actions}>
         {account.role === "admin" ? (
-          <p className="text-corps text-encre-taupe">{t.sansActionAdmin}</p>
+          <p className="text-corps text-taupe">{t.sansActionAdmin}</p>
         ) : account.deletedAt ? (
-          <p className="text-corps text-encre-taupe">{t.sansActionSupprime}</p>
+          <p className="text-corps text-taupe">{t.sansActionSupprime}</p>
         ) : (
           <AccountActions
             userId={account.id}
@@ -205,7 +216,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
 
       <Section title={t.sections.historique}>
         {view.journal.length === 0 ? (
-          <p className="text-corps text-encre-taupe">{t.aucunHistorique}</p>
+          <p className="text-corps text-taupe">{t.aucunHistorique}</p>
         ) : (
           <JournalTable entries={view.journal} />
         )}

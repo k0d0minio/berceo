@@ -4,15 +4,14 @@ import { cn } from "@/lib/utils"
 
 /*
  * One band of a vitrine page: full width, on one of the DA's surfaces, with
- * its content held to the site's width and an optional H2, in the sage ink on
- * every surface. The sage band sets no text colour of its own: its body text
- * lives in white cards, since neither ink nor white reaches 4.5:1 on sage
- * (finition-accueil D-2); the ink heading, large text, reaches 3.25:1.
+ * its content held to the site's width and an optional H2: sage on white and
+ * pearl, white on the sage band (JAM-300). The sage band's body text lives in
+ * white cards.
  */
 const tones = {
-  blanc: { band: "bg-blanc", heading: "text-encre-sauge" },
-  perle: { band: "bg-perle", heading: "text-encre-sauge" },
-  sauge: { band: "bg-sauge", heading: "text-encre-sauge" },
+  blanc: { band: "bg-blanc", heading: "text-sauge" },
+  perle: { band: "bg-perle", heading: "text-sauge" },
+  sauge: { band: "bg-sauge", heading: "text-blanc" },
 } as const
 
 type Tone = keyof typeof tones

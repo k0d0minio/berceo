@@ -115,6 +115,8 @@ export const gardes = catalogue({
       parVous: "Annulée par vous le {date}.",
       /** @relecture Surya — annulée par l'autre partie. */
       parAutre: "Annulée par {prenom} le {date}.",
+      /** @relecture Surya — annulée par l'équipe Berceo (annulations-back-office), sans le motif, qui reste interne. */
+      parBerceo: "Annulée par Berceo le {date}.",
       /** @relecture Surya — absence de l'autre partie, signalée par la personne qui lit. */
       absenceAutre: "Absence de {prenom} signalée le {date}.",
       /** @relecture Surya — absence de la personne qui lit, signalée par l'autre partie. */

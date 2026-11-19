@@ -58,10 +58,10 @@ export default async function DemandesPage({
     <AdminShell user={user} title={t.titre} current="demandes">
       {family ? (
         <div className="flex flex-wrap items-center gap-6">
-          <p className="text-corps font-semibold text-encre-taupe">{fill(t.deCompte, { nom: fullName(family) })}</p>
+          <p className="text-corps font-semibold text-taupe">{fill(t.deCompte, { nom: fullName(family) })}</p>
           <Link
             href={listHref(ADMIN_REQUESTS_PATH, { etat })}
-            className="text-corps font-semibold text-encre-sauge underline underline-offset-4"
+            className="text-corps font-semibold text-sauge underline underline-offset-4"
           >
             {t.toutesLesDemandes}
           </Link>
@@ -79,7 +79,7 @@ export default async function DemandesPage({
         ]}
       />
       {rows.length === 0 ? (
-        <p className="text-corps text-encre-taupe">{t.vide}</p>
+        <p className="text-corps text-taupe">{t.vide}</p>
       ) : (
         <RequestsTable rows={rows} now={now} />
       )}

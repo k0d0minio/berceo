@@ -29,10 +29,10 @@ export const designSystem = catalogue({
         { token: "taupe", name: "Gris taupe", role: "Couleur de soutien, surface éditoriale", share: "15 %" },
         { token: "perle", name: "Gris perle", role: "Fond discret", share: "5 %" },
         { token: "beurre", name: "Jaune beurre", role: "Couleur d'accent", share: "5 %" },
-        /** @relecture Surya — les deux encres (finition-accueil D-1), explication interne. */
-        { token: "encre-sauge", name: "Encre sauge", role: "Titres, liens et boutons pleins qui portent un texte blanc", share: "" },
+        /** The DA's confirmation colours (JAM-300). @relecture Surya — explication interne. */
+        { token: "rouge-confirmation", name: "Rouge de confirmation", role: "Choix importants : annuler, refuser", share: "" },
         /** @relecture Surya — explication interne. */
-        { token: "encre-taupe", name: "Encre taupe", role: "Texte courant sur fond blanc et gris perle", share: "" },
+        { token: "vert-confirmation", name: "Vert de confirmation", role: "Choix importants : confirmer", share: "" },
       ],
     },
 
@@ -69,8 +69,9 @@ export const designSystem = catalogue({
         blanc: "Sur fond blanc",
         raye: "Sur le motif rayé",
         sauge: "Sur fond vert sauge",
-        /** @relecture Surya — explication interne. */
-        taupe: "Dans le bloc blanc sur le motif rayé",
+        taupe: "Sur fond gris taupe",
+        /** @relecture Surya — explication interne (JAM-300). */
+        rouge: "Refuser, dans l'espace des fondatrices",
       },
       sample: "Je cherche une garde de nuit",
       /** The DA's own column names (Boutons et actions, p. 23). */
@@ -106,7 +107,13 @@ export const designSystem = catalogue({
     dialog: {
       title: "Couleurs de confirmation",
       /** @relecture Surya — explication interne. */
-      hint: "Le rouge et le vert n'apparaissent que dans les fenêtres de confirmation.",
+      hint: "Le rouge et le vert n'apparaissent que pour les choix importants : confirmer, annuler, refuser.",
+    },
+
+    icons: {
+      title: "Iconographie",
+      /** @relecture Surya — explication interne (JAM-300). */
+      text: "Des icônes pleines, simples et arrondies. 20 à 24 px dans les champs et la navigation, 24 à 32 px dans les cartes, 40 à 56 px pour les services.",
     },
 
     portail: {

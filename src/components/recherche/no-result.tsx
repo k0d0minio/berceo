@@ -19,7 +19,7 @@ function NoResult({
 }) {
   return (
     <section className={cn("flex max-w-2xl flex-col items-start gap-4 rounded-carte bg-perle px-6 py-6 md:px-8", className)}>
-      <p className="text-corps text-encre-taupe">{text}</p>
+      <p className="text-corps text-taupe">{text}</p>
       {children}
     </section>
   )

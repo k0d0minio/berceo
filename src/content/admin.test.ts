@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { adminActionEnum, bookingSideEnum, cancellationKindEnum, paymentStatusEnum, refundReasonEnum } from "@/db/schema";
-import { BOOKING_FILTERS, REQUEST_FILTERS } from "@/lib/admin/rules";
+import {
+  adminActionEnum,
+  bookingSideEnum,
+  cancellationKindEnum,
+  creditOriginEnum,
+  paymentStatusEnum,
+  refundReasonEnum,
+} from "@/db/schema";
+import { BOOKING_FILTERS, REPORT_FILTERS, REQUEST_FILTERS } from "@/lib/admin/rules";
 
 import { admin } from "./admin";
 import { words } from "./locale";
@@ -58,9 +65,9 @@ describe("the guide's lines, verbatim", () => {
 });
 
 describe("the back-office's lines, verbatim (back-office-admin, D-19)", () => {
-  it("keeps the overview's title and its four blocks, and adds the subscriptions' after them", () => {
+  it("keeps the overview's title and its four blocks, and adds the subscriptions' and the credits' after them", () => {
     expect(a.vueEnsemble.titre).toBe("Vue d'ensemble");
-    const { abonnements, ...guide } = a.vueEnsemble.blocs;
+    const { abonnements, creditsBerceo, ...guide } = a.vueEnsemble.blocs;
     expect(Object.values(guide)).toEqual([
       "Dossiers en attente de validation",
       "Réservations en cours",
@@ -69,7 +76,9 @@ describe("the back-office's lines, verbatim (back-office-admin, D-19)", () => {
     ]);
     // Ours (abonnements-back-office), not the guide's.
     expect(abonnements).toBe("Abonnements actifs");
-    expect(Object.keys(a.vueEnsemble.blocs).at(-1)).toBe("abonnements");
+    // Ours (annulations-back-office), not the guide's.
+    expect(creditsBerceo).toBe("Crédits disponibles");
+    expect(Object.keys(a.vueEnsemble.blocs).slice(-2)).toEqual(["abonnements", "creditsBerceo"]);
   });
 
   it("keeps the search box and the actions on an account", () => {
@@ -101,8 +110,14 @@ describe("the catalogue covers every key the rules use", () => {
     for (const filter of BOOKING_FILTERS) expect(a.reservations.filtres[filter]).toBeTruthy();
     for (const filter of REQUEST_FILTERS) expect(a.demandes.filtres[filter]).toBeTruthy();
     for (const kind of cancellationKindEnum.enumValues) {
-      for (const side of bookingSideEnum.enumValues) expect(a.signalements.types[kind][side]).toBeTruthy();
+      for (const side of bookingSideEnum.enumValues) {
+        // Berceo cancels; it is never reported absent (annulations-back-office).
+        if (side === "berceo") continue;
+        expect(a.signalements.types[kind][side]).toBeTruthy();
+      }
     }
+    expect(a.signalements.types.annulation.berceo).toBeTruthy();
+    for (const filter of REPORT_FILTERS) expect(a.signalements.filtres[filter]).toBeTruthy();
     for (const error of ["admin", "supprime", "dejaSuspendu", "nonSuspendu", "gardesAVenir", "nomDifferent", "introuvable", "envoi", "generique"] as const) {
       expect(a.actionsCompte.erreurs[error]).toBeTruthy();
     }
@@ -125,5 +140,24 @@ describe("the catalogue covers every key the rules use", () => {
 
   it("points her to no contact address the platform does not have (D-51)", () => {
     expect(p.messages.refuse).not.toMatch(/contact|@/i);
+  });
+});
+
+describe("the founders' credits and cancellations (annulations-back-office)", () => {
+  it("names every credit origin and state on « Crédits »", () => {
+    for (const origin of creditOriginEnum.enumValues) expect(a.creditsBerceo.origines[origin]).toBeTruthy();
+    for (const state of ["disponible", "utilise", "annule", "expire"] as const) expect(a.creditsBerceo.etats[state]).toBeTruthy();
+  });
+
+  it("names the founder's note limit in each dialog and in the errors", () => {
+    expect(a.signalements.accord.motifAide).toContain("500");
+    expect(a.reservations.annulation.motifAide).toContain("500");
+    expect(a.note.motifLong).toContain("500");
+  });
+
+  it("names the family and the amount in the credit's confirmation, and the night in the cancellation's", () => {
+    expect(a.signalements.accord.titre).toContain("{nom}");
+    expect(a.signalements.accord.description).toContain("{montant}");
+    expect(a.reservations.annulation.titre).toContain("{date}");
   });
 });

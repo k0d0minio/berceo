@@ -120,7 +120,7 @@ export function SeriesAnswerFooter({
           <Button type="submit">{r.disponibleSerie}</Button>
         </form>
       ) : (
-        <p className="w-full text-corps text-encre-taupe">{r.serieIndisponible}</p>
+        <p className="w-full text-corps text-taupe">{r.serieIndisponible}</p>
       )}
     </>
   );

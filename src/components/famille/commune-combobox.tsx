@@ -84,7 +84,7 @@ function CommuneCombobox({
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-corps font-semibold text-encre-taupe">
+      <label htmlFor={id} className="text-corps font-semibold text-taupe">
         {label}
       </label>
       <div className="relative">
@@ -119,7 +119,7 @@ function CommuneCombobox({
             className="absolute inset-x-0 top-full z-10 mt-2 max-h-72 overflow-y-auto rounded-carte border border-input bg-blanc py-2"
           >
             {results.length === 0 ? (
-              <li className="px-6 py-3 text-corps text-encre-taupe">{emptyText}</li>
+              <li className="px-6 py-3 text-corps text-taupe">{emptyText}</li>
             ) : (
               results.map((locality, index) => (
                 <li
@@ -134,7 +134,7 @@ function CommuneCombobox({
                   }}
                   onMouseEnter={() => setActive(index)}
                   className={cn(
-                    "cursor-pointer px-6 py-3 text-corps text-encre-taupe",
+                    "cursor-pointer px-6 py-3 text-corps text-taupe",
                     index === active && "bg-beurre",
                   )}
                 >
@@ -145,7 +145,7 @@ function CommuneCombobox({
           </ul>
         ) : null}
       </div>
-      <p id={helpId} className="px-6 text-legende text-encre-taupe">
+      <p id={helpId} className="px-6 text-legende text-taupe">
         {help}
       </p>
       {error ? (

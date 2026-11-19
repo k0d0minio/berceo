@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, isNull, sql, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull, isNull, sql, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import {
@@ -10,14 +10,15 @@ import {
   db,
   professionalProfiles,
   users,
-  type BookingSide,
+  type CancellationAuthor,
   type CancellationKind,
   type CancellationReason,
+  type CreditOrigin,
 } from "@/db";
-import { gardeCredits } from "@/lib/credits/credits";
+import { gardeCredits, grantCreditStatement, grantedHere } from "@/lib/credits/credits";
 import { nightEnd as nightEndOf } from "@/lib/demandes/night-end";
 import { TIME_ZONE } from "@/lib/demandes/rules";
-import { gardeState, type GardeState } from "@/lib/gardes/rules";
+import { gardeState, hoursBeforeStart, type GardeState } from "@/lib/gardes/rules";
 import { bookingFees, type BookingFee } from "@/lib/paiements/payments";
 
 import { fullName, journalInsertAfter, type Person } from "./journal";
@@ -29,7 +30,9 @@ import { LIST_PAGE_SIZE, UUID, type BookingFilter, type ReportFilter, type Reque
  * counts with the very condition its list filters on (D-133), exported here
  * once, so the number and the list cannot disagree. Read-only but for
  * « Marquer comme traité » (D-139), which writes the booking's handled marker
- * and its journal entry in one statement.
+ * and its journal entry in one statement, and « Accorder un crédit »
+ * (annulations-back-office), which writes the credit, the marker on a litige
+ * and the journal entry in one transaction.
  */
 
 const familyUser = alias(users, "family_user");
@@ -242,9 +245,18 @@ export async function readBookings(
 // Reports (« Signalements », D-139)
 // ---------------------------------------------------------------------------
 
-/** A cancelled garde, by either side, or a reported absence; « À traiter » until marked handled. */
+/**
+ * A cancelled garde, by either side or by Berceo, or a reported absence;
+ * « À traiter » until marked handled; « Litige » once the side reported
+ * absent contested, handled or not (annulations-back-office).
+ */
 export function reportCondition(filter: ReportFilter): SQL | undefined {
-  return and(eq(bookings.status, "annulee"), filter === "a-traiter" ? isNull(bookings.reportHandledAt) : undefined);
+  const narrow: Record<ReportFilter, SQL | undefined> = {
+    "a-traiter": isNull(bookings.reportHandledAt),
+    litige: isNotNull(bookings.disputedAt),
+    tous: undefined,
+  };
+  return and(eq(bookings.status, "annulee"), narrow[filter]);
 }
 
 /** The overview's « Signalements à traiter ». */
@@ -258,16 +270,20 @@ export type AdminReportRow = {
   nightDate: string;
   startTime: string;
   cancelledAt: Date;
-  /** The side responsible: who cancelled, or who was absent. */
-  side: BookingSide;
+  /** The side responsible: who cancelled, or who was absent; or Berceo (annulations-back-office). */
+  side: CancellationAuthor;
   kind: CancellationKind;
   /** The reason the cancelling side chose (annulations-delai-et-motif); null for an absence or an older garde. */
   reason: CancellationReason | null;
+  /** The founders' note on a cancellation for Berceo (annulations-back-office). */
+  note: string | null;
+  /** Whole hours from the cancellation to the start hour, for a cancellation; null for an absence. */
+  hoursBefore: number | null;
   family: { id: string; name: string };
   professional: { id: string; name: string };
   fee: BookingFee | null;
-  /** The fee became a live credit (annulations-table). */
-  credited: boolean;
+  /** The origin of the garde's live credit (annulations-table, annulations-back-office); null when it has none. */
+  creditOrigin: CreditOrigin | null;
   /** When the side reported absent contested the report: the garde is in « litige » (annulations-table). */
   disputedAt: Date | null;
   handled: { at: Date; by: string } | null;
@@ -289,6 +305,7 @@ export async function readReports(
         side: bookings.cancelledBy,
         kind: bookings.cancellationKind,
         reason: bookings.cancellationReason,
+        note: bookings.cancellationNote,
         disputedAt: bookings.disputedAt,
         handledAt: bookings.reportHandledAt,
         handledFirst: handledBy.firstName,
@@ -320,13 +337,16 @@ export async function readReports(
               side: row.side,
               kind: row.kind,
               reason: row.reason,
+              note: row.note,
+              hoursBefore:
+                row.kind === "annulation" ? hoursBeforeStart(row.nightDate, row.startTime, row.cancelledAt) : null,
               family: { id: row.familyId, name: fullName({ firstName: row.familyFirst, lastName: row.familyLast }) },
               professional: {
                 id: row.professionalId,
                 name: fullName({ firstName: row.professionalFirst, lastName: row.professionalLast }),
               },
               fee: fees.get(row.id) ?? null,
-              credited: live.has(row.id),
+              creditOrigin: live.get(row.id)?.origin ?? null,
               disputedAt: row.disputedAt,
               handled: row.handledAt
                 ? {
@@ -344,7 +364,8 @@ export async function readReports(
 
 /**
  * « Marquer comme traité »: the handled marker on a cancelled garde nobody has
- * marked, and its journal entry naming the side responsible, in one statement.
+ * marked, and its journal entry naming the side responsible (the family for a
+ * cancellation by Berceo), in one statement.
  * Not reversible; a second founder's click changes nothing.
  */
 export async function markReportHandled(bookingId: string, admin: Person, now: Date): Promise<boolean> {
@@ -360,7 +381,7 @@ export async function markReportHandled(bookingId: string, admin: Person, now: D
       select h.night_date, u.id, trim(u.first_name || ' ' || u.last_name) as name
       from handled h
       join professional_profiles p on p.id = h.profile_id
-      join users u on u.id = case when h.cancelled_by = 'famille' then h.family_user_id else p.user_id end
+      join users u on u.id = case when h.cancelled_by = 'professionnelle' then p.user_id else h.family_user_id end
     )`,
     "subject",
     {
@@ -372,4 +393,45 @@ export async function markReportHandled(bookingId: string, admin: Person, now: D
     },
   );
   return result.rows.length > 0;
+}
+
+/**
+ * « Accorder un crédit » (annulations-back-office): a credit of the fee for the
+ * family, on a garde in litige or whose fee her own cancellation or absence
+ * left at Berceo, with the founder's note. One transaction writes the credit
+ * (`grantCreditStatement`, which holds the rule), marks a litige handled, and
+ * writes one journal entry naming the family, the night and the amount. A
+ * second click or a second founder writes nothing. The caller has checked
+ * the note.
+ */
+export async function grantFeeCredit(bookingId: string, admin: Person, note: string, now: Date): Promise<boolean> {
+  if (!UUID.test(bookingId) || !UUID.test(admin.id) || note.trim().length === 0) return false;
+  const granted = grantedHere(bookingId, admin.id, now);
+  const [credit] = await db.batch([
+    db.execute<{ id: string }>(grantCreditStatement(bookingId, admin.id, note, now)),
+    db.execute(sql`
+      update bookings
+      set report_handled_at = ${now.toISOString()}::timestamptz, report_handled_by = ${admin.id}::uuid
+      where id = ${bookingId} and disputed_at is not null and report_handled_at is null and ${granted}
+    `),
+    journalInsertAfter(
+      sql`subject as (
+        select b.night_date, u.id, trim(u.first_name || ' ' || u.last_name) as name, p.amount_cents
+        from bookings b
+        join users u on u.id = b.family_user_id
+        join payments p on p.booking_id = b.id and p.status = 'payee'
+        where b.id = ${bookingId} and ${granted}
+      )`,
+      "subject",
+      {
+        action: "credit_accorde",
+        subject: { id: sql`subject.id`, name: sql`subject.name` },
+        admin,
+        detail: sql`to_char(subject.night_date, 'YYYY-MM-DD') || ', '
+          || replace(to_char(subject.amount_cents / 100.0, 'FM9999990.00'), '.', ',') || ' €, ' || ${note}::text`,
+        at: now,
+      },
+    ),
+  ]);
+  return credit.rows.length > 0;
 }

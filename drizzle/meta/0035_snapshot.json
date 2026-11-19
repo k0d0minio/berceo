@@ -1,5 +1,5 @@
 {
-  "id": "bd6583e3-439e-4e8d-b736-2de0944e571f",
+  "id": "3b05c79d-91f7-4cea-8338-493b8db108f7",
   "prevId": "87ed73cf-b429-4124-b1c1-76231f22edf4",
   "version": "7",
   "dialect": "postgresql",
@@ -249,6 +249,12 @@
           "name": "cancellation_reason",
           "type": "cancellation_reason",
           "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancellation_note": {
+          "name": "cancellation_note",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -522,6 +528,10 @@
         "bookings_cancellation_reason": {
           "name": "bookings_cancellation_reason",
           "value": "\"bookings\".\"cancellation_reason\" IS NULL OR \"bookings\".\"cancellation_kind\" = 'annulation'"
+        },
+        "bookings_cancellation_note": {
+          "name": "bookings_cancellation_note",
+          "value": "\"bookings\".\"cancellation_note\" IS NULL OR \"bookings\".\"cancellation_kind\" = 'annulation'"
         }
       },
       "isRLSEnabled": false
@@ -869,13 +879,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "series_whole": {
-          "name": "series_whole",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -1054,10 +1057,6 @@
         "care_requests_cancelled_at": {
           "name": "care_requests_cancelled_at",
           "value": "(\"care_requests\".\"status\" = 'annulee') = (\"care_requests\".\"cancelled_at\" IS NOT NULL)"
-        },
-        "care_requests_series_whole": {
-          "name": "care_requests_series_whole",
-          "value": "NOT \"care_requests\".\"series_whole\" OR \"care_requests\".\"series_id\" IS NOT NULL"
         },
         "care_requests_priority_sent_at": {
           "name": "care_requests_priority_sent_at",
@@ -2074,21 +2073,6 @@
           "method": "btree",
           "with": {}
         },
-        "payments_stripe_session_idx": {
-          "name": "payments_stripe_session_idx",
-          "columns": [
-            {
-              "expression": "stripe_session_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "payments_payment_intent_idx": {
           "name": "payments_payment_intent_idx",
           "columns": [
@@ -2166,6 +2150,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "booking_id"
+          ]
+        },
+        "payments_stripe_session_id_unique": {
+          "name": "payments_stripe_session_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "stripe_session_id"
           ]
         }
       },
@@ -3516,7 +3507,9 @@
         "compte_supprime",
         "utilisateur_contacte",
         "signalement_traite",
-        "reglage_delai_annulation"
+        "reglage_delai_annulation",
+        "credit_accorde",
+        "garde_annulee_berceo"
       ]
     },
     "public.application_status": {
@@ -3550,7 +3543,8 @@
       "schema": "public",
       "values": [
         "famille",
-        "professionnelle"
+        "professionnelle",
+        "berceo"
       ]
     },
     "public.booking_status": {

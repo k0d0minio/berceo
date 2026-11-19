@@ -57,14 +57,14 @@ function ProfessionalListCard({
       <div className="flex items-center gap-4">
         <ProfessionalPhoto photoId={photoId} prenom={firstName} className="size-20" />
         <div className="flex min-w-0 flex-col gap-1">
-          <h3 className="font-display text-h3 break-words text-encre-sauge uppercase">{firstName}</h3>
-          <p className="text-corps text-encre-taupe">{professionLabel(profession)}</p>
-          {available ? <p className="text-legende font-semibold text-encre-taupe">{verifie}</p> : null}
+          <h3 className="text-h3 font-bold break-words text-sauge">{firstName}</h3>
+          <p className="text-corps text-taupe">{professionLabel(profession)}</p>
+          {available ? <p className="text-legende font-semibold text-taupe">{verifie}</p> : null}
         </div>
       </div>
       <NoteDisplay note={note} />
       {!available ? (
-        <p className="text-corps text-encre-taupe">{t.indisponible}</p>
+        <p className="text-corps text-taupe">{t.indisponible}</p>
       ) : actions ? (
         <div className="flex flex-wrap gap-3">
           <Button asChild>

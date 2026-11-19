@@ -72,7 +72,7 @@ export default async function MesProfessionnellesPage() {
   const block = (title: string, cards: ListedProfile[], isMarked: boolean) =>
     cards.length === 0 ? null : (
       <section className="flex flex-col gap-4">
-        <h2 className="font-display text-h2 text-encre-sauge">{title}</h2>
+        <h2 className="font-display text-h2 text-sauge">{title}</h2>
         <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
           {cards.map((card) => (
             <li key={card.id} className="min-w-0">
@@ -98,11 +98,11 @@ export default async function MesProfessionnellesPage() {
 
   return (
     <SpaceShell user={user} title={t.nav}>
-      <p className="max-w-2xl text-intro text-encre-taupe">{t.liste.intro}</p>
+      <p className="max-w-2xl text-intro text-taupe">{t.liste.intro}</p>
       {open ? null : <SubscriptionRequired />}
       {marked.length === 0 && past.length === 0 ? (
         <div className="flex max-w-2xl flex-col items-start gap-4">
-          <p className="text-corps text-encre-taupe">{t.liste.vide}</p>
+          <p className="text-corps text-taupe">{t.liste.vide}</p>
           <Button asChild>
             <Link href={SEARCH_PATH}>{words(recherche).nav}</Link>
           </Button>

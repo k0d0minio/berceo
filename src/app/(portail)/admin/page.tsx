@@ -15,9 +15,11 @@ import { loadQueue } from "@/lib/admin/review";
 import { RECENT_PERIOD, recentPaymentCutoff } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
+import { liveCreditSummary } from "@/lib/credits/credits";
+import { ADMIN_CREDITS_PATH } from "@/lib/credits/paths";
 import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths";
 import { awaitingRefundCount, paymentCountSince } from "@/lib/paiements/payments";
-import { TO_REFUND } from "@/lib/paiements/rules";
+import { eurosFromCents, TO_REFUND } from "@/lib/paiements/rules";
 
 const a = words(admin);
 
@@ -31,7 +33,9 @@ export const dynamic = "force-dynamic";
 /*
  * « Vue d'ensemble » (the guide, « Le backoffice »; back-office-admin, D-133):
  * four blocks, each a number and a link to the full list, and a fifth, the
- * active subscriptions (abonnements-back-office). Each number is
+ * active subscriptions (abonnements-back-office), and a sixth, the Berceo
+ * credit rows that can still pay, and what they can pay in all
+ * (annulations-back-office). Each number is
  * counted by the same condition its list filters on, so the two never
  * disagree. The payments block also names the fees still owed after a
  * professional's cancellation, only when there are some, linking to the
@@ -42,13 +46,14 @@ export default async function AdminPage() {
   const user = await requireAccess(SPACES.admin);
   const now = new Date();
 
-  const [queue, bookings, reports, payments, toRefund, subscriptions] = await Promise.all([
+  const [queue, bookings, reports, payments, toRefund, subscriptions, live] = await Promise.all([
     loadQueue(),
     bookingCount("en-cours"),
     reportCount(),
     paymentCountSince(recentPaymentCutoff(now)),
     awaitingRefundCount(),
     activeSubscriptionCount(now),
+    liveCreditSummary(now),
   ]);
 
   const blocks = [
@@ -57,6 +62,7 @@ export default async function AdminPage() {
     { key: "signalements", n: reports, href: ADMIN_REPORTS_PATH },
     { key: "paiements", n: payments, href: listHref(ADMIN_PAYMENTS_PATH, { periode: RECENT_PERIOD }) },
     { key: "abonnements", n: subscriptions, href: listHref(ADMIN_SUBSCRIPTIONS_PATH, { statut: ACTIVE_FILTER }) },
+    { key: "creditsBerceo", n: live.count, href: ADMIN_CREDITS_PATH },
   ] as const;
 
   return (
@@ -67,12 +73,12 @@ export default async function AdminPage() {
             key={block.key}
             className="flex flex-col gap-3 rounded-carte border border-solid border-perle bg-blanc p-8"
           >
-            <h2 className="font-display text-h3 text-encre-sauge">{a.vueEnsemble.blocs[block.key]}</h2>
-            <p className="font-display text-h1 text-encre-sauge">{block.n}</p>
-            <p className="text-corps text-encre-taupe">{a.vueEnsemble.precisions[block.key]}</p>
+            <h2 className="text-h3 font-bold text-sauge">{a.vueEnsemble.blocs[block.key]}</h2>
+            <p className="font-display text-h1 text-sauge">{block.n}</p>
+            <p className="text-corps text-taupe">{a.vueEnsemble.precisions[block.key]}</p>
             <Link
               href={block.href}
-              className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
+              className="self-start text-corps font-semibold text-sauge underline underline-offset-4"
             >
               {a.vueEnsemble.voir}
               <span className="sr-only">{` : ${a.vueEnsemble.blocs[block.key]}`}</span>
@@ -80,10 +86,15 @@ export default async function AdminPage() {
             {block.key === "paiements" && toRefund > 0 ? (
               <Link
                 href={listHref(ADMIN_PAYMENTS_PATH, { statut: TO_REFUND })}
-                className="self-start text-corps font-semibold text-encre-sauge underline underline-offset-4"
+                className="self-start text-corps font-semibold text-sauge underline underline-offset-4"
               >
                 {fill(a.vueEnsemble.aRembourser, { n: String(toRefund) })}
               </Link>
+            ) : null}
+            {block.key === "creditsBerceo" ? (
+              <p className="text-corps font-semibold text-taupe">
+                {fill(a.vueEnsemble.resteCredits, { montant: eurosFromCents(live.remainingCents) })}
+              </p>
             ) : null}
           </li>
         ))}
