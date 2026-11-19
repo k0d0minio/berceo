@@ -233,7 +233,7 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
 - **The page:** `/espace/famille/profil` (`src/app/(portail)/espace/famille/profil/`), linked
   as "Mon profil" in a parent's portal navigation. Prénom, nom and téléphone are saved on
   `users`; the e-mail is shown and cannot be changed, because Neon Auth does not support an
-  e-mail change yet (parked: `.icm/intake/triage/famille-changement-email.md`). The commune is
+  e-mail change yet (parked: the stub `famille-changement-email` left the backlog in #73, commit `5119934`, and git history keeps its text). The commune is
   required, the address (rue, numéro, boîte) optional until a booking, the context line at most
   300 characters. `/espace/famille` asks the family to complete her profile until a commune is
   saved. Words in `src/content/famille.ts`.
