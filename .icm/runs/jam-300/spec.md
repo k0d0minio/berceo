@@ -44,12 +44,14 @@ The photos are large, as in the mock-ups (Q5). Text on a photo sits in a pearl b
 - The licensed Comodo font files. JAM-308 supplies them. Fraunces stays until then (Q1).
 - Accessibility and contrast work. The client reviews it after launch.
 - The family's "yellow/green clicks" question of the round-2 PDF. It is open with the client.
-- New photographs from the Drive image bank beyond the 4 in `public/photos/`, unless Q5 says otherwise.
+- New photographs from the Drive image bank beyond the 4 in `public/photos/`.
 - Any change to the words of the site, the routes or the data model.
 - Any DA change that Surya has not approved in writing.
 - A dark theme.
 
 ## Open questions
+
+- Answers of Jamie, 2026-11-19 (all six defaults): Q1 Fraunces in capitals until JAM-308. Q2 skip the contrast test with a note, do not delete it. Q3 taupe #BAB9AD and sage #8BAF9F text on white, below AA. Q4 Phosphor Icons in the fill weight. Q5 the 4 photos in `public/photos/`. Q6 one red token #ED5957 for dialogs, refuse and form errors.
 
 - The mock-ups are not in the repo. The operator checks the logo placement, the photo size and the transparency blocks against them on the Vercel preview.
 - This ticket overrides three rules of the repo: finition-accueil D-1 (the two inks held to AA), D-24 (red and green only in confirmation dialogs, with #bc312f) and `src/app/contrast.test.ts`. The `CLAUDE.md` Rules line on the platform's colours changes with the decision note.

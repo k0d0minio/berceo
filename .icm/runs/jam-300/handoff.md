@@ -2,7 +2,7 @@
 
 ## Next action
 
-The operator answers the six questions on the HUD card or in the pull request body. The operator then says `new JAM-300`. The session runs `questions.sh JAM-300`, puts the answers in `spec.md`, and runs `new-run.sh JAM-300 --refresh-body`. The operator then ticks Spec approved and says `build JAM-300`.
+The six questions have answers (all defaults, Jamie, 2026-11-19). They are in `spec.md`. The operator ticks Spec approved on the pull request, then says `build JAM-300`.
 
 ## How to test
 
@@ -10,7 +10,7 @@ On the Vercel preview, open the home page, `/comment-ca-marche`, a sign-in page,
 
 ## Blockers
 
-- Six questions wait for an answer (Q1 to Q6 in the pull request body).
+- none
 
 ## Do not touch
 
