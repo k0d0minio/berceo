@@ -13,6 +13,7 @@ import { accueil } from "@/content/accueil";
 import { common } from "@/content/common";
 import { words } from "@/content/locale";
 import { photos } from "@/content/photos";
+import { SIGN_IN_PATH } from "@/lib/auth/routing";
 import { pageMetadata } from "./page-metadata";
 
 const t = words(accueil);
@@ -57,6 +58,16 @@ export default function AccueilPage() {
                 href: c.pages.inscriptionProfessionnelle.href,
               }}
             />
+            {/* The way in for an existing account, families and professionals alike (round 2, JAM-301). */}
+            <p className="text-corps">
+              {t.hero.connexion.question}{" "}
+              <Link
+                href={SIGN_IN_PATH}
+                className="rounded-md font-semibold underline underline-offset-4"
+              >
+                {t.hero.connexion.lien}
+              </Link>
+            </p>
             <p className="flex items-start gap-3 font-semibold">
               <ShieldCheckIcon aria-hidden className="mt-0.5 size-6 shrink-0" />
               {t.hero.reassurance}

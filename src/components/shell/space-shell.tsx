@@ -3,6 +3,7 @@ import * as React from "react"
 import { signOut } from "@/app/(auth)/actions"
 import { PortalShell } from "@/components/shell/portal-shell"
 import { SignOutDialog } from "@/components/shell/sign-out-dialog"
+import { common } from "@/content/common"
 import { comptes } from "@/content/comptes"
 import { favoris } from "@/content/favoris"
 import { fill, words } from "@/content/locale"
@@ -25,7 +26,8 @@ import { FAMILY_BOOKINGS_PATH, FAMILY_PROFESSIONALS_PATH, PROFESSIONAL_BOOKINGS_
  * and profile, a professional's requests, gardes and availability), the
  * sign-out dialog wired to the session, and the greeting by first name. Each feature stub adds its own
  * navigation entries. « Messages » carries the number of conversations
- * holding an unread message, read on each page load (D-91).
+ * holding an unread message, read on each page load (D-91). The footer links
+ * to the general conditions and the privacy policy (round 2, JAM-301).
  */
 async function SpaceShell({
   user,
@@ -44,6 +46,7 @@ async function SpaceShell({
   const side = user.role === "parent" ? "famille" : user.role === "professionnel" ? "professionnelle" : null
   const unread = side ? await unreadCount(user.id, side) : 0
   const badge = { count: unread, label: unreadLabel(unread) }
+  const pages = words(common).pages
 
   return (
     <PortalShell
@@ -70,6 +73,7 @@ async function SpaceShell({
       ]}
       home={home}
       actions={<SignOutDialog onSignOut={signOut} />}
+      legal={[pages.conditionsGenerales, pages.confidentialite]}
     >
       <div className="flex flex-col gap-6">
         {title ? <p className="text-intro text-taupe">{greeting}</p> : null}

@@ -32,6 +32,11 @@ export const accueil = catalogue({
       /** The guide's first reassurance argument, word for word. */
       reassurance:
         "Aucun profil n'est visible avant vérification manuelle par l'équipe Berceo.",
+      /** @relecture Surya — lien vers la connexion, à côté des deux boutons d'inscription (retour 2, JAM-301). */
+      connexion: {
+        question: "Famille ou professionnelle, vous avez déjà un compte ?",
+        lien: "Se connecter",
+      },
     },
 
     etapes: {
