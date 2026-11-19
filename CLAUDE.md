@@ -42,10 +42,12 @@ The router has the commands, the stages and the lanes. A ticket is a Linear key 
 | Sitemap, robots, the production URL | [`src/app/sitemap.ts`](src/app/sitemap.ts), [`src/app/robots.ts`](src/app/robots.ts), [`src/app/site.ts`](src/app/site.ts) |
 | Photographs, the OG card | [`public/photos/`](public/photos/) (WebP, alt texts in `src/content/photos.ts`), [`public/og.png`](public/og.png) |
 | Colour, type scale, radii, stripes | [`src/app/globals.css`](src/app/globals.css) — the DA's tokens, the only file holding a colour |
-| Fonts | [`src/app/fonts.ts`](src/app/fonts.ts) — the one file that names a typeface (Fraunces stands in for Comodo) |
+| Fonts | [`src/app/fonts.ts`](src/app/fonts.ts) — the one file that names a typeface (Fredoka stands in for Comodo, JAM-327) |
 | Root metadata, the light root layout | [`src/app/layout.tsx`](src/app/layout.tsx) — `metadataBase` is production |
 | See every token and component | `/design-system` ([`src/app/(public)/design-system/`](src/app/(public)/design-system/)) and `/design-system/portail` — noindex |
-| Header, footer, portal shell | [`src/components/shell/`](src/components/shell/) |
+| Header, footer, portal shell | [`src/components/shell/`](src/components/shell/) — the public header of the deck's slide 19 (`public-header.tsx`, on the home's photograph or on the sage band, `header-frame.tsx`): Accueil, Histoire, Nos gardes de nuit, Contact, one account icon (JAM-327) |
+| The contact page | [`src/lib/contact/`](src/lib/contact/) (`config.ts`: the address is the environment variable `CONTACT_EMAIL`, never in git; `rules.ts`, `send.ts`), [`src/components/contact/`](src/components/contact/), `src/app/(public)/contact/`, words in `src/content/contact.ts`; the setup act in `.icm/setup/contact-email.md`; README → The vitrine |
+| Surya's 18 icons, the deck's screens | [`src/components/berceo-icons.tsx`](src/components/berceo-icons.tsx) — inlined, `currentColor`; each screen of the deck has a specimen on `/design-system` with its slide number (JAM-327) |
 | The health endpoint | [`src/app/api/health/route.ts`](src/app/api/health/route.ts) |
 | The logo marks | [`src/components/berceo-logo.tsx`](src/components/berceo-logo.tsx) — inlined, `currentColor` |
 | Brand artwork | [`public/logos/`](public/logos/) — SVG is what the site uses; PNG for raster; `.ai` is the source |
@@ -94,14 +96,17 @@ The router has the commands, the stages and the lanes. A ticket is a Linear key 
   or BAXTER moves the states.
 - Never invent a commercial term. Rates, scope, launch dates and contact addresses come from
   Jamie or from `.icm/docs/`. Berceo has no published email or domain yet; a blank is the
-  correct state until it does. The vitrine deliberately shows no contact for exactly this reason.
+  correct state until it does. The vitrine publishes no address for exactly this reason: « Contact » is a form, and its
+  destination is the environment variable `CONTACT_EMAIL` (JAM-327, question 2). Where the
+  variable is empty, the page and its links do not exist.
 - The platform is light, per Surya's web DA (`Direction artistique web.pdf`). Only the charter
   palette: white, sage, taupe, pearl, butter yellow, the stripes; text in the charter's sage and
   taupe, below AA by the client's decision until after launch (JAM-300, which replaces
   finition-accueil D-1 and skips `src/app/contrast.test.ts`; `.icm/intake/README.md`). Comodo
-  in capitals for H1, H2 and the navigation (Fraunces until delivered, JAM-308), Nunito for the
+  in capitals for H1, H2 and the navigation (Fredoka until delivered, JAM-308 and JAM-327), Nunito for the
   rest; capsule buttons, 32 px cards, filled rounded icons, no numbered badges. No shadow, no
-  gendered pink or blue, no naïve illustration, no gadget animation; the DA's red #ED5957 and
+  gendered pink or blue, no naïve illustration but Surya's own yellow icons, sparingly, and never on white or pearl
+  (JAM-327), no gadget animation; the DA's red #ED5957 and
   green #B6D3C6 only for confirm, cancel and refuse, and red for a field that blocks a form
   (JAM-300 replaces D-24). No DA change without Surya's written approval. There is no dark
   theme and no toggle.
