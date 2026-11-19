@@ -50,4 +50,12 @@ Règle remplacée (décision de Jamie du 2026-11-18 : la demande du client gagne
 
 ## Open questions
 
-- Les réponses de Q1 à Q5 sont dans le corps de la pull request. Chaque défaut ci-dessus vaut jusqu'à la réponse.
+- none
+
+## Answers
+
+- Q1 : un seul Checkout pour le total de toutes les nuits. Le formulaire disait « Un Checkout par nuit ». Jamie a corrigé dans le chat le 2026-11-19 : « One Checkout, all nights ».
+- Q2 : les règles de garde existantes s'appliquent nuit par nuit.
+- Q3 : les demandes déjà publiées nuit par nuit restent telles quelles.
+- Q4 : la règle « modifier seulement avant la première réponse » s'applique à toutes les demandes.
+- Q5 : une professionnelle qui a une garde confirmée une des nuits ne voit pas le bouton de réponse.
