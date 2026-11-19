@@ -1078,6 +1078,13 @@ export const subscriptions = pgTable(
     /** When a cancellation set in Stripe's portal ends the subscription; null while it renews. */
     cancelsAt: timestamp("cancels_at", { withTimezone: true }),
     endedAt: timestamp("ended_at", { withTimezone: true }),
+    /**
+     * The promotion code the family typed on the Checkout (JAM-304), read once
+     * from the completed Checkout, with the discount of the first payment in
+     * cents. `amountDiscount` is null until that read, 0 without a code.
+     */
+    promotionCode: text("promotion_code"),
+    amountDiscount: integer("amount_discount"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -1091,6 +1098,50 @@ export const subscriptions = pgTable(
       sql`${table.status} NOT IN ('active', 'impayee') OR ${table.currentPeriodEnd} IS NOT NULL`,
     ),
     check("subscriptions_ended", sql`(${table.status} = 'terminee') = (${table.endedAt} IS NOT NULL)`),
+  ],
+);
+
+/**
+ * A one-night pass's life (JAM-304): `en_attente` while its Checkout is open,
+ * `payee` once Stripe reports the payment, `terminee` when the Checkout closed
+ * unpaid. Whether a paid pass still opens anything is read from the clock and
+ * the family's bookings (`nightPassOpen` in `src/lib/abonnements/rules.ts`),
+ * never stored.
+ */
+export const nightPassStatusEnum = pgEnum("night_pass_status", ["en_attente", "payee", "terminee"]);
+
+/**
+ * One row per Checkout of the one-night plan (JAM-304): a one-off payment that
+ * opens what a subscription opens, for one booking. A money record like
+ * `subscriptions`: the family's link is set null, never cascaded. At most one
+ * Checkout open per family. `src/lib/abonnements/` alone reads and writes it.
+ */
+export const nightPasses = pgTable(
+  "night_passes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    status: nightPassStatusEnum("status").notNull().default("en_attente"),
+    stripeCustomerId: text("stripe_customer_id").notNull(),
+    stripeCheckoutSessionId: text("stripe_checkout_session_id").notNull().unique(),
+    stripePaymentIntentId: text("stripe_payment_intent_id"),
+    /** The amount paid in cents, after the discount; set once paid. */
+    amountTotal: integer("amount_total"),
+    /** The promotion code typed on the Checkout, and its discount in cents (0 without one). */
+    promotionCode: text("promotion_code"),
+    amountDiscount: integer("amount_discount"),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("night_passes_one_open_checkout_per_family")
+      .on(table.userId)
+      .where(sql`${table.status} = 'en_attente'`),
+    index("night_passes_user_id_idx").on(table.userId),
+    check("night_passes_paid", sql`(${table.status} = 'payee') = (${table.paidAt} IS NOT NULL)`),
+    check("night_passes_ended", sql`(${table.status} = 'terminee') = (${table.endedAt} IS NOT NULL)`),
   ],
 );
 
@@ -1329,6 +1380,9 @@ export const adminActionEnum = pgEnum("admin_action", [
   // annulations-back-office
   "credit_accorde",
   "garde_annulee_berceo",
+  // JAM-304: the promotion codes
+  "code_promo_cree",
+  "code_promo_desactive",
 ]);
 
 /**
@@ -1399,6 +1453,8 @@ export type RefundReason = (typeof refundReasonEnum.enumValues)[number];
 export type Subscription = typeof subscriptions.$inferSelect;
 export type SubscriptionPlan = (typeof subscriptionPlanEnum.enumValues)[number];
 export type SubscriptionStatus = (typeof subscriptionStatusEnum.enumValues)[number];
+export type NightPass = typeof nightPasses.$inferSelect;
+export type NightPassStatus = (typeof nightPassStatusEnum.enumValues)[number];
 export type Rating = typeof ratings.$inferSelect;
 export type RatingSide = (typeof ratingSideEnum.enumValues)[number];
 export type Favourite = typeof favourites.$inferSelect;

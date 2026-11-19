@@ -2,11 +2,22 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
-import { and, count, desc, eq, gt, inArray, isNotNull, isNull, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, gte, inArray, isNotNull, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import { after } from "next/server";
 import type Stripe from "stripe";
 
-import { db, subscriptions, users, type Subscription, type SubscriptionPlan, type User } from "@/db";
+import {
+  bookings,
+  careRequests,
+  db,
+  nightPasses,
+  subscriptions,
+  users,
+  type NightPass,
+  type Subscription,
+  type SubscriptionPlan,
+  type User,
+} from "@/db";
 import { isUniqueViolation, UUID } from "@/lib/demandes/requests";
 import { isSessionId } from "@/lib/paiements/rules";
 import { stripe } from "@/lib/paiements/stripe";
@@ -15,6 +26,7 @@ import { siteOrigin } from "@/lib/site-origin";
 import { notifyGracePeriod } from "./notify";
 import { SUBSCRIPTION_PATH, SUBSCRIPTION_PORTAL_RETURN_PATH, SUBSCRIPTION_RETURN_PATH } from "./paths";
 import {
+  adminNightPassState,
   adminSubscriptionState,
   cancelsAt,
   checkoutExpiry,
@@ -22,13 +34,17 @@ import {
   graceEndsAt,
   hasActiveSubscription,
   LIVE,
+  NIGHT_PASS_PRICE_ENV,
+  nightPassOpen,
   planOfPrice,
   PRICE_ENV,
   statusFromStripe,
   stripeSubscriptionUrl,
   testClocksEnabled,
+  type AdminNightPassState,
   type AdminSubscriptionState,
   type FamilyAction,
+  type PassBooking,
 } from "./rules";
 
 /**
@@ -45,6 +61,15 @@ import {
  * her the one e-mail of the grace period (abonnements-espace-echec-paiement).
  * The founders read every subscription, the count of active ones and a
  * family's own line (abonnements-back-office).
+ *
+ * The one-night plan (JAM-304) is here too: the only reads and writes of
+ * `night_passes`. A family opens a Checkout in payment mode
+ * (`startNightPass`); the payment is read from Stripe and copied onto the row
+ * (`confirmNightPassCheckout`) by the webhook and by the return page. A paid
+ * pass opens what a subscription opens until the night of her first booking
+ * after it ends (`nightPassOpen`), so `isSubscribed` reads both. Every
+ * Checkout accepts a promotion code; the code and its discount are read back
+ * from the completed Checkout.
  */
 
 function logError(what: string, context: Record<string, unknown>, error?: unknown): void {
@@ -99,8 +124,17 @@ export async function hasCompletedCheckout(userId: string): Promise<boolean> {
   return row !== undefined;
 }
 
-/** Whether the family is subscribed now: `hasActiveSubscription` on her live row. */
+/**
+ * Whether the family is subscribed now: `hasActiveSubscription` on her live
+ * row, or a one-night pass still open (JAM-304). Every gate reads this.
+ */
 export async function isSubscribed(userId: string, now: Date): Promise<boolean> {
+  if (hasActiveSubscription(await liveSubscription(userId), now)) return true;
+  return nightPassOpenNow(userId, now);
+}
+
+/** Whether a subscription that Stripe created runs now (`active`, or `impayee` in its grace period): the pass does not count. */
+async function subscriptionRuns(userId: string, now: Date): Promise<boolean> {
   return hasActiveSubscription(await liveSubscription(userId), now);
 }
 
@@ -264,6 +298,7 @@ export async function startSubscription(input: {
         mode: "subscription",
         locale: "fr",
         customer: customerId,
+        allow_promotion_codes: true,
         payment_method_types: ["card", "bancontact"],
         line_items: [{ price: priceId, quantity: 1 }],
         client_reference_id: id,
@@ -310,6 +345,37 @@ export async function startSubscription(input: {
 // ---------------------------------------------------------------------------
 // Stripe's word
 // ---------------------------------------------------------------------------
+
+/** The promotion code typed on a completed Checkout, and the discount in cents (0 without one). */
+function discountOf(session: Stripe.Checkout.Session): { promotionCode: string | null; amountDiscount: number } {
+  const promo = session.discounts?.find((discount) => discount.promotion_code)?.promotion_code;
+  return {
+    promotionCode: promo && typeof promo !== "string" ? promo.code : null,
+    amountDiscount: session.total_details?.amount_discount ?? 0,
+  };
+}
+
+/**
+ * Reads the promotion code and the discount of a subscription's Checkout once
+ * (JAM-304): Stripe ends a `once` discount after the first invoice, so the
+ * subscription itself soon forgets it, and the Checkout keeps it. A failure
+ * leaves `amount_discount` null, and the next sync reads it again.
+ */
+async function recordSubscriptionDiscount(row: Subscription): Promise<void> {
+  if (row.amountDiscount !== null || !row.stripeSubscriptionId) return;
+  try {
+    const session = await stripe().checkout.sessions.retrieve(row.stripeCheckoutSessionId, {
+      expand: ["discounts.promotion_code"],
+    });
+    if (session.status !== "complete") return;
+    await db
+      .update(subscriptions)
+      .set(discountOf(session))
+      .where(and(eq(subscriptions.id, row.id), isNull(subscriptions.amountDiscount)));
+  } catch (error) {
+    logError("discount not read", { rowId: row.id }, error);
+  }
+}
 
 /**
  * Copies Stripe's subscription onto its row: the status, the plan, the
@@ -381,6 +447,7 @@ export async function syncSubscription(stripeSubscriptionId: string, now: Date):
     const [current] = await db.select().from(subscriptions).where(eq(subscriptions.id, row.id)).limit(1);
     return current ?? null;
   }
+  await recordSubscriptionDiscount(updated);
   if (entering) {
     const siteUrl = await siteOrigin();
     after(async () => notifyGracePeriod(updated.id, await unpaidInvoiceUrl(subscription.id), siteUrl));
@@ -546,6 +613,9 @@ export type AdminSubscription = {
   cancelsAt: Date | null;
   endedAt: Date | null;
   stripeUrl: string | null;
+  /** The promotion code of the first payment, and its discount in cents; null when none or not read yet. */
+  promotionCode: string | null;
+  amountDiscount: number | null;
 };
 
 /** One page of subscriptions, the newest first. */
@@ -570,6 +640,8 @@ export async function readSubscriptions(
         cancelsAt: subscriptions.cancelsAt,
         endedAt: subscriptions.endedAt,
         stripeSubscriptionId: subscriptions.stripeSubscriptionId,
+        promotionCode: subscriptions.promotionCode,
+        amountDiscount: subscriptions.amountDiscount,
       })
       .from(subscriptions)
       .leftJoin(users, eq(users.id, subscriptions.userId))
@@ -611,4 +683,292 @@ export async function familySubscriptionLine(
     .orderBy(sql`${subscriptions.status} = 'terminee'`, desc(subscriptions.createdAt))
     .limit(1);
   return row ? { plan: row.plan, state: adminSubscriptionState(row, now) } : null;
+}
+
+// ---------------------------------------------------------------------------
+// The one-night plan (JAM-304)
+// ---------------------------------------------------------------------------
+
+/** The one-night plan's Stripe price id, from its environment variable; a missing one throws. */
+function nightPassPriceId(): string {
+  const value = process.env[NIGHT_PASS_PRICE_ENV];
+  if (!value) throw new Error(`${NIGHT_PASS_PRICE_ENV} is not set — the one-night plan cannot be sold. See .env.example.`);
+  return value;
+}
+
+/** The family's latest paid pass: the only one that can still be open, since a second one is refused while it is. */
+async function latestPaidPass(userId: string): Promise<NightPass | null> {
+  const [row] = await db
+    .select()
+    .from(nightPasses)
+    .where(and(eq(nightPasses.userId, userId), eq(nightPasses.status, "payee")))
+    .orderBy(desc(nightPasses.paidAt))
+    .limit(1);
+  return row ?? null;
+}
+
+/** The first booking the family made at or after `paidAt`: the one a pass paid then is used by. */
+async function passBooking(userId: string, paidAt: Date): Promise<PassBooking | null> {
+  const [row] = await db
+    .select({
+      status: bookings.status,
+      nightDate: bookings.nightDate,
+      startTime: careRequests.startTime,
+      extraHours: careRequests.extraHours,
+    })
+    .from(bookings)
+    .innerJoin(careRequests, eq(careRequests.id, bookings.requestId))
+    .where(and(eq(bookings.familyUserId, userId), gte(bookings.confirmedAt, paidAt)))
+    .orderBy(asc(bookings.confirmedAt))
+    .limit(1);
+  return row ?? null;
+}
+
+/** Whether the family's one-night pass opens her actions now (`nightPassOpen`). */
+export async function nightPassOpenNow(userId: string, now: Date): Promise<boolean> {
+  const pass = await latestPaidPass(userId);
+  if (!pass?.paidAt) return false;
+  return nightPassOpen(pass, await passBooking(userId, pass.paidAt), now);
+}
+
+/** What « Votre abonnement » says of the family's pass: open, and whether a booking already uses it. Null when none is open. */
+export async function familyNightPass(userId: string, now: Date): Promise<{ booked: boolean } | null> {
+  const pass = await latestPaidPass(userId);
+  if (!pass?.paidAt) return null;
+  const booking = await passBooking(userId, pass.paidAt);
+  return nightPassOpen(pass, booking, now) ? { booked: booking !== null } : null;
+}
+
+/** Whose pass Checkout this is, for the return page: another family's reads as not found. */
+export async function nightPassOwner(sessionId: string): Promise<{ userId: string | null } | null> {
+  if (!isSessionId(sessionId)) return null;
+  const [row] = await db
+    .select({ userId: nightPasses.userId })
+    .from(nightPasses)
+    .where(eq(nightPasses.stripeCheckoutSessionId, sessionId))
+    .limit(1);
+  return row ?? null;
+}
+
+async function passBySession(sessionId: string): Promise<NightPass | null> {
+  const [row] = await db
+    .select()
+    .from(nightPasses)
+    .where(eq(nightPasses.stripeCheckoutSessionId, sessionId))
+    .limit(1);
+  return row ?? null;
+}
+
+export type NightPassStartResult =
+  | { kind: "stripe"; url: string }
+  /** A subscription runs: it already opens everything. */
+  | { kind: "dejaAbonnee" }
+  /** A pass is already open. */
+  | { kind: "nuitOuverte" }
+  /** The payment of a pass is still pending. */
+  | { kind: "enCours" }
+  | { kind: "erreur" };
+
+/**
+ * « Choisir » the one-night plan (JAM-304): refused while a subscription runs
+ * or a pass is open. An earlier open Checkout of a pass is closed first; one
+ * Stripe refuses to expire was paid, and is confirmed instead. Then a
+ * Checkout in payment mode is opened for the plan's one-off price, with the
+ * promotion code field, and recorded `en_attente`.
+ */
+export async function startNightPass(input: {
+  user: Pick<User, "id" | "email" | "firstName" | "lastName" | "stripeCustomerId">;
+  siteUrl: string;
+  now: Date;
+}): Promise<NightPassStartResult> {
+  const { user, siteUrl, now } = input;
+  if (await subscriptionRuns(user.id, now)) return { kind: "dejaAbonnee" };
+  if (await nightPassOpenNow(user.id, now)) return { kind: "nuitOuverte" };
+
+  const [open] = await db
+    .select()
+    .from(nightPasses)
+    .where(and(eq(nightPasses.userId, user.id), eq(nightPasses.status, "en_attente")))
+    .limit(1);
+  if (open) {
+    try {
+      await stripe().checkout.sessions.expire(open.stripeCheckoutSessionId);
+      await markNightPassClosed(open.stripeCheckoutSessionId, now);
+    } catch (error) {
+      const result = await confirmNightPassCheckout(open.stripeCheckoutSessionId, now);
+      if (result.kind === "active") return { kind: "nuitOuverte" };
+      if (result.kind === "enCours") return { kind: "enCours" };
+      if (result.kind !== "nonPayee") {
+        logError("pass checkout neither expired nor complete", { rowId: open.id }, error);
+        return { kind: "erreur" };
+      }
+    }
+  }
+
+  let customerId: string;
+  let priceId: string;
+  try {
+    priceId = nightPassPriceId();
+    customerId = await customerFor(user);
+  } catch (error) {
+    logError("pass checkout not prepared", { userId: user.id }, error);
+    return { kind: "erreur" };
+  }
+
+  const id = randomUUID();
+  const metadata = { night_pass_row_id: id, user_id: user.id, kind: "une_nuit" };
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe().checkout.sessions.create(
+      {
+        mode: "payment",
+        locale: "fr",
+        customer: customerId,
+        allow_promotion_codes: true,
+        payment_method_types: ["card", "bancontact"],
+        line_items: [{ price: priceId, quantity: 1 }],
+        client_reference_id: id,
+        metadata,
+        payment_intent_data: { metadata },
+        expires_at: Math.floor(checkoutExpiry(now).getTime() / 1000),
+        success_url: `${siteUrl}${SUBSCRIPTION_RETURN_PATH}?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${siteUrl}${SUBSCRIPTION_PATH}?retour=abandonne`,
+      },
+      { idempotencyKey: `une-nuit-checkout-${id}` },
+    );
+  } catch (error) {
+    logError("pass checkout not opened", { userId: user.id }, error);
+    return { kind: "erreur" };
+  }
+  if (!session.url) {
+    logError("pass checkout without a url", { userId: user.id, sessionId: session.id });
+    return { kind: "erreur" };
+  }
+
+  try {
+    await db.insert(nightPasses).values({
+      id,
+      userId: user.id,
+      stripeCustomerId: customerId,
+      stripeCheckoutSessionId: session.id,
+      createdAt: now,
+      updatedAt: now,
+    });
+  } catch (error) {
+    await stripe()
+      .checkout.sessions.expire(session.id)
+      .catch((expireError: unknown) => logError("racing pass checkout not expired", { sessionId: session.id }, expireError));
+    if (isUniqueViolation(error)) return { kind: "enCours" };
+    logError("pass not recorded", { userId: user.id, sessionId: session.id }, error);
+    return { kind: "erreur" };
+  }
+
+  return { kind: "stripe", url: session.url };
+}
+
+/** Whether a Checkout is a one-night pass's, read from the metadata `startNightPass` puts on it. */
+export function isNightPassSession(session: Pick<Stripe.Checkout.Session, "mode" | "metadata">): boolean {
+  return session.mode === "payment" && session.metadata?.kind === "une_nuit";
+}
+
+/**
+ * A pass Checkout that came back (the webhook, the return page): the session
+ * is read from Stripe, never from the caller. Paid, the row moves to `payee`
+ * once, with the amount, the payment and the promotion code. Expired, it
+ * ends. Safe to repeat.
+ */
+export async function confirmNightPassCheckout(sessionId: string, now: Date): Promise<ConfirmResult> {
+  if (!isSessionId(sessionId)) return { kind: "inconnue" };
+  const row = await passBySession(sessionId);
+  if (!row) return { kind: "inconnue" };
+  if (row.status === "payee") return { kind: "active" };
+  if (row.status === "terminee") return { kind: "nonPayee" };
+
+  const session = await stripe().checkout.sessions.retrieve(sessionId, { expand: ["discounts.promotion_code"] });
+  if (!isNightPassSession(session)) return { kind: "inconnue" };
+  if (session.status === "expired") {
+    await markNightPassClosed(sessionId, now);
+    return { kind: "nonPayee" };
+  }
+  if (session.status !== "complete" || session.payment_status !== "paid") return { kind: "enCours" };
+
+  await db
+    .update(nightPasses)
+    .set({
+      status: "payee",
+      paidAt: now,
+      stripePaymentIntentId: idOf(session.payment_intent),
+      amountTotal: session.amount_total,
+      ...discountOf(session),
+      updatedAt: now,
+    })
+    .where(and(eq(nightPasses.id, row.id), eq(nightPasses.status, "en_attente")));
+  return { kind: "active" };
+}
+
+/** A pass Checkout closed or failed unpaid: its row ends, only from `en_attente`. */
+export async function markNightPassClosed(sessionId: string, now: Date): Promise<void> {
+  if (!isSessionId(sessionId)) return;
+  await db
+    .update(nightPasses)
+    .set({ status: "terminee", endedAt: now, updatedAt: now })
+    .where(and(eq(nightPasses.stripeCheckoutSessionId, sessionId), eq(nightPasses.status, "en_attente")));
+}
+
+export type AdminNightPass = {
+  id: string;
+  familyUserId: string | null;
+  family: string | null;
+  state: AdminNightPassState;
+  paidAt: Date | null;
+  amountTotal: number | null;
+  promotionCode: string | null;
+  amountDiscount: number | null;
+  stripeUrl: string | null;
+};
+
+/** The payment's page in Stripe's dashboard, in test mode with a test key. */
+function stripePaymentUrl(paymentIntentId: string): string {
+  const key = process.env.STRIPE_SECRET_KEY ?? "";
+  const test = key.startsWith("sk_test_") || key.startsWith("rk_test_");
+  return `https://dashboard.stripe.com/${test ? "test/" : ""}payments/${encodeURIComponent(paymentIntentId)}`;
+}
+
+/** One page of paid passes for the founders' list, the newest payment first. */
+export async function readNightPasses(page: number, now: Date): Promise<{ rows: AdminNightPass[]; pages: number }> {
+  const where = eq(nightPasses.status, "payee");
+  const [rows, [total]] = await Promise.all([
+    db
+      .select({
+        id: nightPasses.id,
+        familyUserId: nightPasses.userId,
+        familyFirstName: users.firstName,
+        familyLastName: users.lastName,
+        status: nightPasses.status,
+        paidAt: nightPasses.paidAt,
+        amountTotal: nightPasses.amountTotal,
+        promotionCode: nightPasses.promotionCode,
+        amountDiscount: nightPasses.amountDiscount,
+        stripePaymentIntentId: nightPasses.stripePaymentIntentId,
+      })
+      .from(nightPasses)
+      .leftJoin(users, eq(users.id, nightPasses.userId))
+      .where(where)
+      .orderBy(desc(nightPasses.paidAt), desc(nightPasses.id))
+      .limit(ADMIN_SUBSCRIPTIONS_PAGE_SIZE)
+      .offset((page - 1) * ADMIN_SUBSCRIPTIONS_PAGE_SIZE),
+    db.select({ n: count() }).from(nightPasses).where(where),
+  ]);
+  const withState = await Promise.all(
+    rows.map(async ({ familyFirstName, familyLastName, status, stripePaymentIntentId, ...row }) => {
+      const booking = row.familyUserId && row.paidAt ? await passBooking(row.familyUserId, row.paidAt) : null;
+      return {
+        ...row,
+        family: familyFirstName === null ? null : `${familyFirstName} ${familyLastName ?? ""}`.trim(),
+        state: adminNightPassState({ status, paidAt: row.paidAt }, booking, now),
+        stripeUrl: stripePaymentIntentId ? stripePaymentUrl(stripePaymentIntentId) : null,
+      };
+    }),
+  );
+  return { rows: withState, pages: Math.max(1, Math.ceil(total.n / ADMIN_SUBSCRIPTIONS_PAGE_SIZE)) };
 }

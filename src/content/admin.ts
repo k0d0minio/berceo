@@ -174,6 +174,9 @@ export const admin = catalogue({
         /** @relecture Surya — les actions des fondatrices sur une garde et ses frais (annulations-back-office). */
         credit_accorde: "Crédit Berceo accordé",
         garde_annulee_berceo: "Garde annulée par Berceo",
+        /** @relecture Surya — les codes promo (JAM-304). */
+        code_promo_cree: "Code promo créé",
+        code_promo_desactive: "Code promo désactivé",
       },
       /** @relecture Surya — détail du réglage, de la purge, du message et du signalement. */
       details: {
@@ -411,6 +414,37 @@ export const admin = catalogue({
         renouvellement: "Renouvellement",
         grace: "Période de grâce",
         stripe: "Stripe",
+        /** @relecture Surya — le code promo du premier paiement (JAM-304). */
+        codePromo: "Code promo",
+      },
+      /** @relecture Surya — le code et sa remise (« BIENVENUE, 5,00 € »). */
+      remise: "{code}, {montant} €",
+      /** La formule une nuit, sous les abonnements (JAM-304). */
+      nuits: {
+        /** @relecture Surya — titre de la section. */
+        titre: "Formules Une nuit",
+        /** @relecture Surya — colonnes. */
+        colonnes: {
+          famille: "Famille",
+          statut: "Statut",
+          payeLe: "Payée le",
+          montant: "Montant payé",
+          codePromo: "Code promo",
+          stripe: "Stripe",
+        },
+        /** @relecture Surya — l'état d'une formule une nuit. */
+        etats: {
+          en_attente: "Paiement en cours",
+          ouverte: "Active",
+          utilisee: "Utilisée",
+          terminee: "Non payée",
+        },
+        /** @relecture Surya — un montant en euros. */
+        montant: "{montant} €",
+        /** @relecture Surya — le lien vers le paiement dans Stripe. */
+        voirStripe: "Voir dans Stripe",
+        /** @relecture Surya — liste vide. */
+        vide: "Aucune formule Une nuit payée.",
       },
       /** @relecture Surya — l'état d'un abonnement, les mots de « Votre abonnement » quand ils existent. */
       etats: {
@@ -442,6 +476,64 @@ export const admin = catalogue({
     },
 
     /** La navigation de chaque page de l'administration (back-office-admin, D-132). */
+    /** « Codes promo » (JAM-304) : les fondatrices créent et désactivent les codes, Stripe les garde. */
+    codesPromo: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Codes promo",
+      /** @relecture Surya — l'introduction. */
+      intro:
+        "Un code promo réduit le premier paiement de chaque formule, abonnement ou Une nuit. La famille le saisit sur la page de paiement de Stripe.",
+      /** @relecture Surya — le formulaire. */
+      formulaire: {
+        titre: "Créer un code",
+        code: "Code",
+        codeAide: "De 3 à 30 lettres ou chiffres, sans espace. Il est mis en majuscules.",
+        type: "Type de remise",
+        pourcentage: "Pourcentage",
+        montant: "Montant en euros",
+        valeur: "Remise",
+        valeurAide: "Un pourcentage entier de 1 à 100, ou un montant en euros (par exemple 5 ou 5,50).",
+        fin: "Date de fin (facultatif)",
+        finAide: "Le code n'est plus accepté après ce jour.",
+        utilisations: "Nombre maximal d'utilisations (facultatif)",
+        creer: "Créer le code",
+      },
+      /** @relecture Surya — les erreurs du formulaire. */
+      erreurs: {
+        code: "Saisissez un code de 3 à 30 lettres ou chiffres.",
+        remise: "Saisissez un pourcentage entier de 1 à 100, ou un montant en euros supérieur à 0.",
+        fin: "Choisissez une date d'aujourd'hui ou plus tard.",
+        utilisations: "Saisissez un nombre entier à partir de 1.",
+        pris: "Ce code existe déjà dans Stripe. Choisissez un autre code.",
+        generique: "Le code n'a pas pu être créé. Réessayez dans un instant.",
+      },
+      /** @relecture Surya — la confirmation. */
+      cree: "Le code {code} est créé.",
+      /** @relecture Surya — colonnes de la liste. */
+      colonnes: {
+        code: "Code",
+        remise: "Remise",
+        fin: "Fin",
+        utilisations: "Utilisations",
+        statut: "Statut",
+        action: "Action",
+      },
+      /** @relecture Surya — les valeurs de la liste. */
+      remisePourcentage: "{valeur} %",
+      remiseMontant: "{valeur} €",
+      utilisationsSur: "{n} sur {max}",
+      actif: "Actif",
+      desactive: "Désactivé",
+      /** @relecture Surya — le bouton et sa confirmation. */
+      desactiver: "Désactiver",
+      confirmation: "Désactiver le code {code} ? Les familles ne pourront plus l'utiliser. Cette action est définitive.",
+      annuler: "Annuler",
+      erreurDesactivation: "Le code n'a pas pu être désactivé. Réessayez dans un instant.",
+      /** @relecture Surya — liste vide, ou Stripe illisible. */
+      vide: "Aucun code promo.",
+      illisible: "La liste des codes n'a pas pu être lue dans Stripe. Réessayez dans un instant.",
+    },
+
     nav: {
       /** @relecture Surya — nom de la navigation pour les lecteurs d'écran. */
       libelle: "Navigation de l'administration",
@@ -456,6 +548,7 @@ export const admin = catalogue({
       /** @relecture Surya — la liste des crédits Berceo (annulations-back-office). */
       creditsBerceo: "Crédits",
       abonnements: "Abonnements",
+      codesPromo: "Codes promo",
       avis: "Avis",
       journal: "Journal",
     },

@@ -722,6 +722,33 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   `accueil` and `requis` (the invitation line); the failed renewal's e-mail in
   `src/content/emails.ts`, `abonnementImpaye`.
 
+## The one-night plan and the promotion codes
+
+JAM-304, the founders' feedback round 2. The client's request overrides the rule « no price
+but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
+
+- **The plan:** « Une nuit », 14,75 €, a one-off payment through Stripe Checkout in payment
+  mode. Its price id is `STRIPE_PRICE_UNE_NUIT` (a one-off price, not a recurring one): name in
+  `.env.example`, value in Vercel, never in git. A missing one makes the plan fail with the
+  generic error.
+- **The row:** `night_passes`, one row per Checkout: `en_attente`, `payee` or `terminee`. At
+  most one open Checkout per family. `src/lib/abonnements/subscriptions.ts` holds its only reads
+  and writes. The webhook tells a pass's Checkout from the fee's by its metadata
+  (`kind: une_nuit`).
+- **What it opens:** what a subscription opens, for one booking (`nightPassOpen`). A paid pass
+  stays open until the family's first booking confirmed after the payment. It then closes when
+  that night ends, also when that booking is cancelled. A pass with no booking has no end date.
+  `isSubscribed` reads the subscription and the pass, so every gate reads both. A pass is
+  refused while a subscription runs or while another pass is open.
+- **The promotion codes:** every Checkout, the four subscriptions and the pass, takes a code
+  (`allow_promotion_codes`). The founders make and deactivate the codes on
+  `/admin/codes-promo` (`src/lib/abonnements/promo-codes.ts`). Stripe keeps them: a coupon of
+  duration `once` (the first payment only, for the five plans) and its promotion code. Each
+  change writes a line in the journal. The code and its discount are read back from the
+  completed Checkout onto `subscriptions` and `night_passes`, and the founders' list of
+  subscriptions shows them. With a restricted key, `STRIPE_SECRET_KEY` needs write access to
+  Coupons and Promotion codes.
+
 ## The conversation
 
 - **One per answer (D-16, D-91):** `withConversation` in `src/lib/messagerie/conversations.ts`

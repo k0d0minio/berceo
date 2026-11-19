@@ -21,6 +21,11 @@ import { catalogue } from "./locale";
  * in the guide's rules, and waits for Surya. `{name}` slots are filled with
  * `fill()` from ./locale.
  *
+ * `uneNuit` is the one-night plan the founders asked for in their feedback
+ * round 2 (JAM-304): a one-off payment of 14,75 €, which opens what a
+ * subscription opens for one booking. Its words, `espace.uneNuit` and the
+ * notices `retour.nuit*` are ours.
+ *
  * @relecture Surya — noms, durées et prix repris du devis.
  */
 export const abonnements = catalogue({
@@ -31,6 +36,9 @@ export const abonnements = catalogue({
       { name: "Sérénité", duree: "6 mois", prix: "94,90 €" },
       { name: "Premium", duree: "12 mois", prix: "159,90 €" },
     ],
+
+    /** @relecture Surya — la formule une nuit (retour des fondatrices, tour 2) : le nom est à confirmer. */
+    uneNuit: { name: "Une nuit", duree: "1 réservation", prix: "14,75 €" },
 
     espace: {
       /** @relecture Surya — le titre de la page et de l'onglet. */
@@ -46,6 +54,17 @@ export const abonnements = catalogue({
         "Vous réglez votre abonnement sur la page sécurisée de Stripe, par Bancontact, par carte, Apple Pay ou Google Pay. Si vous payez par Bancontact, les renouvellements sont prélevés par domiciliation SEPA.",
       /** @relecture Surya — les factures. */
       factures: "Stripe vous envoie chaque facture par e-mail.",
+      /** La formule une nuit (JAM-304). */
+      uneNuit: {
+        /** @relecture Surya — ce qu'est la formule, sous son prix. */
+        texte: "Un paiement unique, sans renouvellement. Vous avez le même accès qu'avec un abonnement, pour une réservation.",
+        /** @relecture Surya — la formule est payée, aucune réservation encore. */
+        active: "Votre formule Une nuit est active. Elle reste ouverte jusqu'à votre prochaine réservation.",
+        /** @relecture Surya — la formule couvre une réservation. */
+        reservee: "Votre formule Une nuit couvre votre réservation. Elle prend fin après la garde.",
+      },
+      /** @relecture Surya — le code promo, sur la page de Stripe. */
+      codePromo: "Vous avez un code promo ? Vous le saisissez sur la page de paiement de Stripe.",
       /** @relecture Surya — la formule en cours. */
       formule: "Votre formule : {plan}",
       /** @relecture Surya — la date du prochain renouvellement. */
@@ -97,6 +116,10 @@ export const abonnements = catalogue({
       abandonne: "Le paiement n'a pas abouti. Vous pouvez choisir une formule à nouveau.",
       /** @relecture Surya — un abonnement court déjà. */
       dejaAbonnee: "Vous avez déjà un abonnement en cours.",
+      /** @relecture Surya — payé, la formule une nuit est active. */
+      nuitActive: "Merci. Votre formule Une nuit est active.",
+      /** @relecture Surya — une formule une nuit est déjà ouverte. */
+      nuitOuverte: "Votre formule Une nuit est déjà active.",
       /** @relecture Surya — la page de paiement n'a pas pu s'ouvrir. */
       erreur: "La page de paiement n'a pas pu s'ouvrir. Réessayez dans un instant.",
       /** @relecture Surya — le portail de Stripe n'a pas pu s'ouvrir. */

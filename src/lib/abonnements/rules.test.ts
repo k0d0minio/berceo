@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import { abonnements } from "@/content/abonnements";
 import { admin } from "@/content/admin";
+import { words } from "@/content/locale";
 import { subscriptionPlanEnum, subscriptionStatusEnum } from "@/db/schema";
 
 import {
   ACTIVE_FILTER,
+  adminNightPassState,
   adminSubscriptionState,
+  brusselsDayStart,
   cancelsAt,
   checkoutExpiry,
   FAMILY_ACTIONS,
@@ -18,6 +21,9 @@ import {
   isLive,
   isPlan,
   LIVE,
+  NIGHT_PASS_PRICE_ENV,
+  nightPassOpen,
+  parsePromoCode,
   planOfPrice,
   PLANS,
   planToFinish,
@@ -340,5 +346,122 @@ describe("the founders' list of subscriptions", () => {
     expect(stripeSubscriptionUrl("sub_123", { STRIPE_SECRET_KEY: "sk_live_abc" })).toBe(
       "https://dashboard.stripe.com/subscriptions/sub_123",
     );
+  });
+});
+
+describe("the one-night plan (JAM-304)", () => {
+  const paidAt = new Date("2026-12-01T10:00:00Z");
+  const pass = { status: "payee" as const, paidAt };
+  const booking = { status: "confirmee" as const, nightDate: "2026-12-10", startTime: "20:00:00", extraHours: 0 };
+
+  it("names its price by its own environment variable", () => {
+    expect(NIGHT_PASS_PRICE_ENV).toBe("STRIPE_PRICE_UNE_NUIT");
+  });
+
+  it("opens nothing before the payment, or when the Checkout closed unpaid", () => {
+    expect(nightPassOpen(null, null, paidAt)).toBe(false);
+    expect(nightPassOpen({ status: "en_attente", paidAt: null }, null, paidAt)).toBe(false);
+    expect(nightPassOpen({ status: "terminee", paidAt: null }, null, paidAt)).toBe(false);
+  });
+
+  it("stays open with no booking, with no end date", () => {
+    expect(nightPassOpen(pass, null, new Date("2028-01-01T00:00:00Z"))).toBe(true);
+  });
+
+  it("stays open until the booked night ends, then closes", () => {
+    expect(nightPassOpen(pass, booking, new Date("2026-12-10T22:00:00Z"))).toBe(true);
+    expect(nightPassOpen(pass, booking, new Date("2026-12-11T12:00:00Z"))).toBe(false);
+  });
+
+  it("closes at the night's end also when that booking was cancelled", () => {
+    const cancelled = { ...booking, status: "annulee" as const };
+    expect(nightPassOpen(pass, cancelled, new Date("2026-12-09T12:00:00Z"))).toBe(true);
+    expect(nightPassOpen(pass, cancelled, new Date("2026-12-12T12:00:00Z"))).toBe(false);
+  });
+
+  it("opens what a subscription opens while it is open", () => {
+    const subscribed = nightPassOpen(pass, booking, new Date("2026-12-05T12:00:00Z"));
+    for (const action of FAMILY_ACTIONS) expect(familyMay(action, { subscribed })).toBe(true);
+    const after = nightPassOpen(pass, booking, new Date("2026-12-12T12:00:00Z"));
+    for (const action of FAMILY_ACTIONS) expect(familyMay(action, { subscribed: after })).toBe(false);
+  });
+
+  it("reads its state for the founders' list, with words for each state", () => {
+    expect(adminNightPassState(pass, null, paidAt)).toBe("ouverte");
+    expect(adminNightPassState(pass, booking, new Date("2026-12-12T12:00:00Z"))).toBe("utilisee");
+    expect(adminNightPassState({ status: "en_attente", paidAt: null }, null, paidAt)).toBe("en_attente");
+    expect(adminNightPassState({ status: "terminee", paidAt: null }, null, paidAt)).toBe("terminee");
+    for (const state of ["en_attente", "ouverte", "utilisee", "terminee"] as const) {
+      expect(words(admin).abonnements.nuits.etats[state]).toBeTruthy();
+    }
+  });
+
+  it("is sold at 14,75 €", () => {
+    expect(words(abonnements).uneNuit.prix).toBe("14,75 €");
+  });
+});
+
+describe("the promotion codes (JAM-304)", () => {
+  const now = new Date("2026-12-01T10:00:00Z");
+  const input = { code: "bienvenue2026", kind: "pourcentage", value: "10", endsOn: "", maxUses: "" };
+
+  it("accept a percentage, the code in capitals, no end and no limit", () => {
+    expect(parsePromoCode(input, now)).toEqual({
+      ok: true,
+      draft: { code: "BIENVENUE2026", percentOff: 10, amountOffCents: null, expiresAt: null, maxRedemptions: null },
+    });
+  });
+
+  it("accept an amount in euros, with a comma", () => {
+    const result = parsePromoCode({ ...input, kind: "montant", value: "5,50" }, now);
+    expect(result).toMatchObject({ ok: true, draft: { percentOff: null, amountOffCents: 550 } });
+    expect(parsePromoCode({ ...input, kind: "montant", value: "5" }, now)).toMatchObject({
+      ok: true,
+      draft: { amountOffCents: 500 },
+    });
+  });
+
+  it("refuse a code that is too short, too long or not letters and digits", () => {
+    for (const code of ["", "AB", "A".repeat(31), "BIEN VENUE", "BIEN-VENUE", "ÉTÉ2026"]) {
+      expect(parsePromoCode({ ...input, code }, now)).toEqual({ ok: false, error: "code" });
+    }
+  });
+
+  it("refuse a discount out of bounds", () => {
+    for (const value of ["0", "101", "-5", "10,5", "", "dix"]) {
+      expect(parsePromoCode({ ...input, value }, now)).toEqual({ ok: false, error: "remise" });
+    }
+    for (const value of ["0", "0,00", "-1", "5,555", ""]) {
+      expect(parsePromoCode({ ...input, kind: "montant", value }, now)).toEqual({ ok: false, error: "remise" });
+    }
+    expect(parsePromoCode({ ...input, kind: "gratuit" }, now)).toEqual({ ok: false, error: "remise" });
+    expect(parsePromoCode({ ...input, value: "100" }, now)).toMatchObject({ ok: true, draft: { percentOff: 100 } });
+  });
+
+  it("end the code when the Brussels day of its end date ends, and refuse a past date", () => {
+    expect(parsePromoCode({ ...input, endsOn: "2026-12-31" }, now)).toMatchObject({
+      ok: true,
+      draft: { expiresAt: new Date("2026-12-31T23:00:00Z") },
+    });
+    expect(parsePromoCode({ ...input, endsOn: "2026-07-31" }, new Date("2026-07-01T10:00:00Z"))).toMatchObject({
+      ok: true,
+      draft: { expiresAt: new Date("2026-07-31T22:00:00Z") },
+    });
+    expect(parsePromoCode({ ...input, endsOn: "2026-12-01" }, now)).toMatchObject({ ok: true });
+    for (const endsOn of ["2026-11-30", "2026-02-30", "31/12/2026"]) {
+      expect(parsePromoCode({ ...input, endsOn }, now)).toEqual({ ok: false, error: "fin" });
+    }
+  });
+
+  it("take a whole number of uses from 1", () => {
+    expect(parsePromoCode({ ...input, maxUses: "50" }, now)).toMatchObject({ ok: true, draft: { maxRedemptions: 50 } });
+    for (const maxUses of ["0", "1,5", "-2", "beaucoup"]) {
+      expect(parsePromoCode({ ...input, maxUses }, now)).toEqual({ ok: false, error: "utilisations" });
+    }
+  });
+
+  it("start a Brussels day in winter and in summer", () => {
+    expect(brusselsDayStart("2027-01-15")).toEqual(new Date("2027-01-14T23:00:00Z"));
+    expect(brusselsDayStart("2027-06-15")).toEqual(new Date("2027-06-14T22:00:00Z"));
   });
 });

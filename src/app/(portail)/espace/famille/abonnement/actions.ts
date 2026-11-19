@@ -2,7 +2,7 @@
 
 import { notFound, redirect } from "next/navigation";
 
-import { redirectToCheckout } from "@/lib/abonnements/checkout";
+import { redirectToCheckout, redirectToNightPassCheckout } from "@/lib/abonnements/checkout";
 import { SUBSCRIPTION_PATH } from "@/lib/abonnements/paths";
 import { isPlan } from "@/lib/abonnements/rules";
 import { openPortal } from "@/lib/abonnements/subscriptions";
@@ -22,6 +22,15 @@ export async function startSubscriptionAction(plan: string): Promise<void> {
   const chosen = String(plan);
   if (!isPlan(chosen)) notFound();
   await redirectToCheckout(user, chosen);
+}
+
+/*
+ * « Choisir Une nuit » (JAM-304): the one-night plan's Checkout for the
+ * session user. Nothing opens here: the payment does, when Stripe reports it.
+ */
+export async function startNightPassAction(): Promise<void> {
+  const user = await requireAccess(SUBSCRIPTION_PATH);
+  await redirectToNightPassCheckout(user);
 }
 
 /*
