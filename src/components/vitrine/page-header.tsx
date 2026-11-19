@@ -35,7 +35,8 @@ function PageHeader({
   return (
     <div className={cn("bg-sauge text-blanc [--ring:var(--blanc)]", className)}>
       <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 px-4 pt-10 pb-14 text-center md:px-8 md:pt-14 md:pb-20">
-        <div className="relative px-6 md:px-12">
+        {/* The box never grows past the band, so a long word in capitals breaks on a phone. */}
+        <div className="relative max-w-full px-6 md:px-12">
           <First
             aria-hidden
             className="pointer-events-none absolute -top-7 right-0 size-10 text-beurre md:-top-9 md:size-14"
