@@ -101,9 +101,9 @@ export const recherche = catalogue({
       ctaTitre: "Son profil complet vous attend",
       /** @relecture Surya — le texte de l'appel. */
       ctaTexte:
-        "Avec un compte famille gratuit, vous voyez son profil complet et ses prochaines disponibilités, et vous pouvez lui envoyer votre demande en priorité.",
+        "Avec un abonnement, vous voyez son profil complet et ses prochaines disponibilités, et vous pouvez lui envoyer votre demande en priorité.",
       /** @relecture Surya — le bouton de l'appel. */
-      ctaBouton: "Créer mon compte gratuit pour voir son profil complet",
+      ctaBouton: "M'abonner pour voir son profil complet",
     },
 
     commune: {
@@ -121,7 +121,7 @@ export const recherche = catalogue({
       ctaTitre: "Trouvez votre garde de nuit à {commune}",
       /** @relecture Surya — le texte de l'appel final. */
       ctaTexte:
-        "Créez votre compte famille gratuit pour voir les profils complets et publier votre demande.",
+        "Créez votre compte famille et choisissez votre abonnement pour voir les profils complets et publier votre demande.",
       /** @relecture Surya — le bouton de l'appel final et du message sans professionnelle. */
       ctaBouton: "Créer mon compte famille",
       /** @relecture Surya — l'intitulé des liens vers la vitrine. */
