@@ -60,7 +60,7 @@
 
   /*
    * Type. The faces are bound in src/app/fonts.ts: --font-titre is Comodo's
-   * slot (Fraunces stands in until Surya delivers the files), --font-texte is
+   * slot (Fredoka stands in until Surya delivers the files), --font-texte is
    * Nunito. Nothing else names a typeface.
    */
   --font-display: var(--font-titre);
@@ -210,13 +210,16 @@
     color: var(--taupe);
   }
   /*
-   * The display face (Comodo, Fraunces until JAM-308) is set in capitals
-   * only: H1, H2, the navigation and short taglines (DA, Typographie).
+   * The display face (Comodo, Fredoka until JAM-308) is set in capitals
+   * only: H1, H2, the navigation and short taglines (DA, Typographie), at
+   * weight 500 and with the wide letter-spacing of the deck's titles.
    * Capitals are wider: a long word such as « PROFESSIONNELLES » breaks with
    * a French hyphen on a phone rather than overflow the screen.
    */
   .font-display {
     text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.08em;
     hyphens: auto;
     overflow-wrap: break-word;
   }

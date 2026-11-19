@@ -1,10 +1,17 @@
 import Link from "next/link";
-import { ShieldCheckIcon } from "@/components/icons";
 
+import {
+  BiberonIcon,
+  CoeursIcon,
+  DocumentIcon,
+  LuneIcon,
+  MaisonIcon,
+} from "@/components/berceo-icons";
+import { BerceoWordmark } from "@/components/berceo-logo";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { StripedSection } from "@/components/ui/striped-section";
 import { TranslucentBlock } from "@/components/ui/translucent-block";
-import { CtaPair } from "@/components/vitrine/cta-pair";
 import { Photo } from "@/components/vitrine/photo";
 import { ReasonGrid } from "@/components/vitrine/reason-grid";
 import { VitrineSection } from "@/components/vitrine/section";
@@ -23,61 +30,101 @@ const p = words(photos);
 export const metadata = pageMetadata(t.meta, "/");
 
 /**
- * The home page. Its H1 and the two doors sit in a pearl block over a large
- * photograph, above the fold on a phone; the reassurance line follows them in
- * the first screen (the guide's "premier
- * tiers"). Four H2 below: the family's three steps, who the professionals
- * are, why Berceo, and the professionals' band on the stripes.
+ * The home page, to the DA's deck (JAM-327). The hero is slide 19: the
+ * photograph across the page, the header lying on it (HeaderFrame), the white
+ * logotype alone at its centre. Then the first block on the stripes, whose
+ * title is the page's H1, and the way in for an existing account under it
+ * (round 2, JAM-301). Then the block of slide 15, the translucent card of
+ * slide 20 on a photograph, and the sections the deck does not show, built
+ * from its components: the three steps, why Berceo, the professionals' band.
  */
 export default function AccueilPage() {
   return (
     <>
-      {/* The first screen: a large photograph across the page, and the H1, the two doors and the reassurance in a pearl block over it (DA, Le système de transparence; JAM-300). Below 360 px the gutter narrows to 12 px so « professionnelles » fits at the DA's 38 px floor (operator, 2026-09-25). */}
-      <section className="relative isolate w-full overflow-hidden">
-        {/* The crop keeps the fist and the mouth in frame. */}
+      {/* Slide 19: the photograph and the logotype. The crop keeps the fist and the mouth in frame. */}
+      <section className="relative isolate flex min-h-[28rem] w-full items-center justify-center overflow-hidden px-4 pt-24 pb-16 md:min-h-[36rem]">
         <Photo
           photo={p.bebeEndormi}
           preload
           sizes="100vw"
           className="absolute inset-0 -z-10 h-full rounded-none object-[30%_50%]"
         />
-        <div className="mx-auto max-w-6xl px-4 py-16 max-[22.5rem]:px-3 md:px-8 md:py-28">
-          <TranslucentBlock className="max-w-4xl gap-6">
-            <h1 className="font-display text-h1 text-balance max-[22.5rem]:text-[2.375rem]">
-              {t.hero.title}
-            </h1>
-            <p className="max-w-xl text-intro">{t.hero.message}</p>
-            {/* The message above names health professionals, so the family door may say "gardienne de la nuit" (D-25). */}
-            <CtaPair
-              family={{
-                label: c.cta.trouverGardienne,
-                href: c.pages.inscriptionFamille.href,
-              }}
-              professional={{
-                label: c.cta.rejoindreReseau,
-                href: c.pages.inscriptionProfessionnelle.href,
-              }}
-            />
-            {/* The way in for an existing account, families and professionals alike (round 2, JAM-301). */}
-            <p className="text-corps">
-              {t.hero.connexion.question}{" "}
-              <Link
-                href={SIGN_IN_PATH}
-                className="rounded-md font-semibold underline underline-offset-4"
-              >
-                {t.hero.connexion.lien}
-              </Link>
-            </p>
-            <p className="flex items-start gap-3 font-semibold">
-              <ShieldCheckIcon aria-hidden className="mt-0.5 size-6 shrink-0" />
-              {t.hero.reassurance}
-            </p>
+        <BerceoWordmark
+          role="img"
+          aria-label={t.hero.logo}
+          className="w-56 text-blanc md:w-80"
+        />
+      </section>
+
+      {/* Slide 19: the first block. Below md the title sets at 26 px so it keeps to three lines in the block. */}
+      <StripedSection
+        blockClassName="max-w-4xl"
+        ornament={<CoeursIcon />}
+      >
+        <h1 className="font-display text-h2 text-balance max-md:text-[1.625rem]">
+          {t.premier.title}
+        </h1>
+        <p className="max-w-2xl">{t.premier.text}</p>
+        <Button asChild variant="taupe">
+          <Link href={c.pages.inscriptionFamille.href}>{t.premier.bouton}</Link>
+        </Button>
+      </StripedSection>
+
+      {/* The way in for an existing account, families and professionals alike (round 2, JAM-301; JAM-327, question 7). */}
+      <div className="bg-blanc px-4 py-6 text-center md:px-8">
+        <p className="text-corps">
+          {t.premier.connexion.question}{" "}
+          <Link
+            href={SIGN_IN_PATH}
+            className="rounded-md font-semibold text-sauge underline underline-offset-4"
+          >
+            {t.premier.connexion.lien}
+          </Link>
+        </p>
+      </div>
+
+      {/* Slide 15: the wide taupe block. */}
+      <VitrineSection className="pt-6 md:pt-8">
+        <Card tone="taupe" className="items-start gap-5 px-6 md:px-16 md:py-12">
+          <h2 className="font-display text-h2 text-balance max-md:text-[1.625rem]">
+            {t.gardiennesDeLaNuit.title}
+          </h2>
+          <p className="max-w-4xl">{t.gardiennesDeLaNuit.text}</p>
+          <Button asChild variant="taupe">
+            <Link href={c.pages.commentCaMarche.href}>
+              {t.gardiennesDeLaNuit.bouton}
+            </Link>
+          </Button>
+        </Card>
+      </VitrineSection>
+
+      {/* Slide 20: the translucent card on a photograph, with three functional icons. */}
+      <section className="relative isolate w-full overflow-hidden">
+        <Photo
+          photo={p.mainsPieds}
+          sizes="100vw"
+          className="absolute inset-0 -z-10 h-full rounded-none"
+        />
+        <div className="mx-auto flex max-w-6xl justify-end px-4 py-16 md:px-8 md:py-28">
+          <TranslucentBlock className="max-w-md gap-5">
+            <h2 className="font-sans text-h3 font-bold tracking-wide text-balance uppercase">
+              {t.dormir.title}
+            </h2>
+            <p>{t.dormir.text}</p>
+            <div className="flex justify-around pt-2">
+              <MaisonIcon className="size-10" />
+              <LuneIcon className="size-10" />
+              <BiberonIcon className="size-10" />
+            </div>
           </TranslucentBlock>
         </div>
       </section>
 
       <VitrineSection title={t.etapes.title} tone="perle">
-        <StepList steps={t.etapes.steps} />
+        <StepList
+          steps={t.etapes.steps}
+          icons={[DocumentIcon, CoeursIcon, LuneIcon]}
+        />
         <ul className="flex flex-col gap-3 sm:flex-row sm:gap-8">
           <li>
             <Link
@@ -96,19 +143,6 @@ export default function AccueilPage() {
             </Link>
           </li>
         </ul>
-      </VitrineSection>
-
-      <VitrineSection
-        title={t.gardiennes.title}
-        className="md:grid md:grid-cols-2 md:items-center md:gap-12 md:[&>h2]:col-span-2"
-      >
-        <div className="flex flex-col gap-4">
-          {/* Body size, not intro: beside the photo that is about 60 to 65 characters a line (blocs-accueil D-18). */}
-          {t.gardiennes.paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
-        <Photo photo={p.mainDoigt} />
       </VitrineSection>
 
       <VitrineSection title={t.pourquoi.title} tone="sauge">

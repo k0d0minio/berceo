@@ -1,42 +1,50 @@
 import * as React from "react"
 
+import { MobileIcon, OursonIcon, type IconComponent } from "@/components/berceo-icons"
 import { cn } from "@/lib/utils"
 
+type Ornament = IconComponent
+
 /*
- * The top of an inner vitrine page: its one H1 and an introduction, with an
- * optional photograph (a `Photo` in `fillHeight` mode) beside them from lg
- * up, as large as the text, as in the mock-ups (JAM-300); stacked below lg. An optional
- * `nav` (the persona switch) sits at the top right, above both.
+ * The top of an inner public page: the DA's section banner (slide 10;
+ * JAM-327). A full-width sage band that continues the header above it, the
+ * page's one H1 in white capitals at its centre, and two of Surya's
+ * illustrative icons in butter yellow resting on the title. An introduction
+ * of three lines at most sits centred under it. An optional `nav` (the
+ * persona switch) closes the band.
  */
 function PageHeader({
   title,
   intro,
-  aside,
   nav,
+  ornaments = [OursonIcon, MobileIcon],
   className,
 }: {
   title: string
   intro?: string
-  aside?: React.ReactNode
   nav?: React.ReactNode
+  /** The two icons on the title: the first at its top right, the second at its bottom left. */
+  ornaments?: readonly [Ornament, Ornament]
   className?: string
 }) {
+  const [First, Second] = ornaments
   return (
-    <div
-      className={cn(
-        "mx-auto grid max-w-6xl gap-10 px-4 pt-10 pb-12 md:px-8 md:pt-16 md:pb-16",
-        aside ? "lg:grid-cols-2" : null,
-        className
-      )}
-    >
-      {nav ? <div className="flex justify-end lg:col-span-full">{nav}</div> : null}
-      <div className="flex max-w-2xl flex-col gap-5">
-        <h1 className="font-display text-h1 text-balance text-sauge">
-          {title}
-        </h1>
-        {intro ? <p className="max-w-xl text-intro">{intro}</p> : null}
+    <div className={cn("bg-sauge text-blanc [--ring:var(--blanc)]", className)}>
+      <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 px-4 pt-10 pb-14 text-center md:px-8 md:pt-14 md:pb-20">
+        <div className="relative px-6 md:px-12">
+          <First
+            aria-hidden
+            className="pointer-events-none absolute -top-7 right-0 size-10 text-beurre md:-top-9 md:size-14"
+          />
+          <h1 className="font-display text-h1 text-balance">{title}</h1>
+          <Second
+            aria-hidden
+            className="pointer-events-none absolute -bottom-8 left-0 size-10 text-beurre md:-bottom-10 md:size-14"
+          />
+        </div>
+        {intro ? <p className="max-w-2xl pt-4 text-intro">{intro}</p> : null}
+        {nav ? <div className="pt-2">{nav}</div> : null}
       </div>
-      {aside}
     </div>
   )
 }

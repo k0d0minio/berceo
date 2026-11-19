@@ -24,7 +24,7 @@ function PersonaSwitch({
 }) {
   return (
     <nav aria-label={label} className={className}>
-      <ul className="flex flex-wrap justify-end gap-2">
+      <ul className="flex flex-wrap justify-center gap-2">
         {sides.map((side) => {
           const active = side.href === current
           return (

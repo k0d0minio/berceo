@@ -1,50 +1,46 @@
 import Link from "next/link"
 
+import { UserIcon } from "@/components/icons"
+import { HeaderFrame } from "@/components/shell/header-frame"
 import { HeaderLogo } from "@/components/shell/header-logo"
 import { MobileMenu } from "@/components/shell/mobile-menu"
-import { Button } from "@/components/ui/button"
 import { common } from "@/content/common"
 import { words } from "@/content/locale"
+import { SIGN_IN_PATH } from "@/lib/auth/routing"
+import { contactEnabled } from "@/lib/contact/config"
 
 /*
- * The public header: the mark home (the logotype on the home page and the
- * account pages, the logomark on the inner pages, JAM-300), the vitrine's pages, the two account
- * entries. The full row needs about 1,075 px, which only the max-w-6xl
- * container at xl gives, so below xl the pages and entries move into the menu
- * panel (premier-ecran). Links never wrap; the capsules keep their height and
- * type, and only their side padding tightens here, to the DA's 24 px floor.
+ * The public header of the DA's slide 19 (JAM-327): the white logomark, the
+ * deck's four links in white capitals, one account icon. It lies on the
+ * home's photograph and on the sage band of every other page (HeaderFrame).
+ * The account icon opens the sign-in page, which sends a signed-in person to
+ * their own space. « Contact » exists only where the environment has a
+ * contact address (src/lib/contact/config.ts). Below md the links move into
+ * the menu panel; the account icon stays.
  */
 function PublicHeader({ fullLogo }: { fullLogo?: boolean } = {}) {
   const t = words(common)
   const links = [
-    t.pages.commentCaMarche,
-    t.pages.tarifs,
-    t.pages.quiSommesNous,
-    t.pages.faq,
-  ]
-  const accounts = [
-    t.pages.inscriptionFamille,
-    t.pages.inscriptionProfessionnelle,
+    t.nav.accueil,
+    t.nav.histoire,
+    t.nav.gardesDeNuit,
+    ...(contactEnabled() ? [t.nav.contact] : []),
   ]
 
   return (
-    <header className="bg-blanc">
+    <HeaderFrame>
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-8 md:py-6">
-        <Link
-          href="/"
-          aria-label={t.header.homeLabel}
-          className="shrink-0 rounded-md text-sauge"
-        >
+        <Link href="/" aria-label={t.header.homeLabel} className="shrink-0 rounded-md">
           <HeaderLogo full={fullLogo} />
         </Link>
 
-        <nav aria-label={t.header.navLabel} className="hidden xl:block">
-          <ul className="flex items-center gap-4">
+        <nav aria-label={t.header.navLabel} className="hidden md:block">
+          <ul className="flex items-center gap-6 lg:gap-10">
             {links.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="font-display text-nav whitespace-nowrap text-sauge underline-offset-4 hover:underline"
+                  className="rounded-md font-display text-nav whitespace-nowrap underline-offset-8 hover:underline"
                 >
                   {link.label}
                 </Link>
@@ -53,28 +49,29 @@ function PublicHeader({ fullLogo }: { fullLogo?: boolean } = {}) {
           </ul>
         </nav>
 
-        <div className="hidden items-center gap-3 xl:flex">
-          {accounts.map((account) => (
-            <Button key={account.href} asChild className="px-6">
-              <Link href={account.href}>{account.label}</Link>
-            </Button>
-          ))}
-        </div>
-
-        <div className="xl:hidden">
-          <MobileMenu
-            links={links}
-            labels={{
-              open: t.header.openMenu,
-              close: t.header.closeMenu,
-              title: t.header.menuTitle,
-              nav: t.header.navLabel,
-            }}
-            actions={accounts}
-          />
+        <div className="flex items-center gap-3">
+          <Link
+            href={SIGN_IN_PATH}
+            aria-label={t.header.compte}
+            className="inline-flex size-12 items-center justify-center rounded-capsule transition-transform duration-200 ease-out hover:[transform:scale(1.03)] motion-reduce:hover:[transform:none]"
+          >
+            <UserIcon aria-hidden className="size-7" />
+          </Link>
+          <div className="md:hidden">
+            <MobileMenu
+              variant="sauge"
+              links={links}
+              labels={{
+                open: t.header.openMenu,
+                close: t.header.closeMenu,
+                title: t.header.menuTitle,
+                nav: t.header.navLabel,
+              }}
+            />
+          </div>
         </div>
       </div>
-    </header>
+    </HeaderFrame>
   )
 }
 

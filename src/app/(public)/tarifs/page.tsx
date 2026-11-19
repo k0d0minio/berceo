@@ -1,21 +1,19 @@
 import Link from "next/link";
 
+import { CoeursIcon, LuneIcon } from "@/components/berceo-icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/vitrine/page-header";
-import { Photo } from "@/components/vitrine/photo";
 import { VitrineSection } from "@/components/vitrine/section";
 import { abonnements } from "@/content/abonnements";
 import { common } from "@/content/common";
 import { words } from "@/content/locale";
-import { photos } from "@/content/photos";
 import { tarifs } from "@/content/tarifs";
 import { pageMetadata } from "../page-metadata";
 
 const t = words(tarifs);
 const a = words(abonnements);
 const c = words(common);
-const p = words(photos);
 
 export const metadata = pageMetadata(t.meta, c.pages.tarifs.href);
 
@@ -36,7 +34,7 @@ export default function TarifsPage() {
       <PageHeader
         title={t.title}
         intro={t.intro}
-        aside={<Photo photo={p.oursBerceau} preload fillHeight />}
+        ornaments={[LuneIcon, CoeursIcon]}
       />
 
       <VitrineSection title={t.abonnements.title} tone="perle">

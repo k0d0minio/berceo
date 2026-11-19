@@ -11,9 +11,10 @@ const CHARTER_TITLE_ID = "charte-titre"
  * « Notre engagement », the 17 numbered sections and « L'engagement Berceo ».
  * `level` is the rank of its title: 1 on `/charte-des-professionnelles`, 2
  * inside step 4 and the page of the new declarations, under the page's own
- * title. Every heading below follows from it.
+ * title. Every heading below follows from it. `hideTitle` leaves the title
+ * to the page's own banner (the public page, JAM-327).
  */
-function Charte({ level, id }: { level: 1 | 2; id?: string }) {
+function Charte({ level, id, hideTitle = false }: { level: 1 | 2; id?: string; hideTitle?: boolean }) {
   const t = words(charte)
   const Title = `h${level}` as Heading
   const Section = `h${level + 1}` as Heading
@@ -21,9 +22,11 @@ function Charte({ level, id }: { level: 1 | 2; id?: string }) {
 
   return (
     <div className="flex flex-col gap-8 text-corps text-taupe">
-      <Title id={id} className={`font-display ${level === 1 ? "text-h1" : "text-h2"} text-balance text-sauge`}>
-        {t.title}
-      </Title>
+      {hideTitle ? null : (
+        <Title id={id} className={`font-display ${level === 1 ? "text-h1" : "text-h2"} text-balance text-sauge`}>
+          {t.title}
+        </Title>
+      )}
 
       <section className="flex flex-col gap-3">
         <Section className="text-h3 font-bold text-sauge">{t.intro.title}</Section>
