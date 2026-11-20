@@ -441,8 +441,10 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   one form and one statement. Her card has the form (`answer-footer.tsx`). A change is a new
   answer for the two protections of JAM-306: it moves `answered_at`, so a fee opened on the
   proposal of before books nothing (`acceptAnswer`), and the checkout refuses a confirmation that
-  is not the proposal the answer holds (`proposalsSignature`). It also moves `answer_count`, so
-  the family gets the e-mail of an answer one time for each change. A value equal to the saved
+  is not the proposal the answer holds (`proposalsSignature`). It also moves `answer_count`, which
+  is in the key of the family's e-mail of the change (`notifyProposalChanged`, « [Prénom] a
+  modifié l'heure de début proposée »): one e-mail for each change, with the requested start,
+  the new start and the end of each night that changed, and one e-mail for a regular request. A value equal to the saved
   one writes nothing. A booked, declined or withdrawn answer is not changed.
 - **The republication of a regular request (JAM-353):** « Republier ma demande » shows on the page
   of a regular request while one answer or more waits on an open night ahead and no night is
@@ -456,7 +458,9 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   the start the family asked for, and its end follows that start: `summary()` and
   `seriesSummary()` in `src/lib/demandes/notify.ts` hold the rule for the urgent e-mail, the
   digest, the priority e-mail and « non retenue ». The confirmation of a regular request gives
-  each night its own agreed start when the starts differ.
+  each night its own agreed start when the starts differ. The e-mail of a changed proposal is
+  before a booking, so its requested start is the family's start, and its end follows the start
+  that the line shows.
 - **The adapted schedule in the back office (JAM-350):** each back-office surface that shows the
   start of a booked night shows the record line: the lists « Réservations », « Demandes » and
   « Signalements », the gardes of an account's page, and the suspension dialog. The line is
@@ -464,6 +468,17 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   selects `nightColumns` (`src/lib/admin/lists.ts`), which has the family's start with it.
   `upcomingGardeLine` (`src/lib/admin/format.ts`) makes the line of a garde on the account page.
   `src/lib/admin/adapted-schedule.test.ts` holds the rule.
+- **The founders' list of communes (JAM-361):** `/admin/communes` lists the 565 communes with
+  their postcodes, the number of validated professionals who serve each one, and the share link
+  of its public page (`/garde-de-nuit/<slug>`). The count uses the rule of the search: a
+  professional of « Toute la Belgique » counts for every commune, and each other professional
+  counts for the communes of her reach. `servingCounts` in `src/lib/recherche/professionals.ts`
+  reads the counts in two queries. `src/lib/admin/communes.ts` has the pure rules: the search by
+  name or postcode, the order (most professionals first, then the name), 50 for each page, and
+  the share link, made from the host of the request (`src/lib/site-origin.ts`) and
+  `communePath`: a link copied on UAT names UAT. The page shows counts only. `CommuneShare`
+  (`src/components/admin/commune-share.tsx`) shows the link, « Copier le lien » and the link to
+  the public page. Its `children` is the place of the QR code, which is not built.
 
 ## The garde's life
 
@@ -1166,25 +1181,33 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
 - **The sleep consultation (JAM-305, JAM-352):** `/consultation-sommeil` presents the consultation
   with the two founders. The address of their calendar is the environment variable
   `SLEEP_CONSULTATION_URL` (`src/lib/consultation-sommeil/config.ts`), never in git. Where the
-  variable is empty or is not an `https://` address, the two pages below answer 404, and the
-  footer, the family's home and the sitemap do not name them. The calendar shows in the page, in
-  a plain `<iframe>`, only after the visitor clicks « Choisir un créneau »
-  (`calendar-embed.tsx`): before the click the page sends nothing to Calendly, and a sentence
-  under the button says that the calendar is a service of Calendly. The page loads no script and
-  no stylesheet of Calendly. `canEmbed` (`src/lib/consultation-sommeil/embed.ts`) frames the
-  calendar only where its origin is exactly `https://calendly.com`; for a different host, and
-  with no JavaScript, the button is a plain link in the same tab. `embedAddress` adds
-  `embed_domain` and `embed_type=Inline`, so that Calendly posts a message to the page when a
-  booking is made. `isBookingMessage` accepts that message only from the origin
-  `https://calendly.com`, reads its event name only, and never its payload; the page then shows
-  « Votre rendez-vous est enregistré » above the frame. `/consultation-sommeil/confirmation` is
-  the fixed address for Calendly's optional redirect: it reads no parameter, removes the
-  parameters from the address bar (`clean-address.tsx`), has `noindex`, and is not in the
-  sitemap. Next.js repeats the request address in its router data, in the response to that
-  visitor only: the setup act keeps the invitee's details out of the redirect. The pages show no
-  price and take no payment. The site sets no Content-Security-Policy: when one is added, it
-  needs `frame-src https://calendly.com`. Words in `src/content/consultation-sommeil.ts`.
+  variable is empty or is not an `https://` address, the page answers 404, and the footer, the
+  family's home and the sitemap do not name it. The calendar shows in the page, in a plain
+  `<iframe>`, only after the visitor clicks « Choisir un créneau » (`calendar-embed.tsx`): before
+  the click the page sends nothing to Calendly, and a sentence under the button says that the
+  calendar is a service of Calendly. The page loads no script and no stylesheet of Calendly.
+  `canEmbed` (`src/lib/consultation-sommeil/embed.ts`) frames the calendar only where its origin
+  is exactly `https://calendly.com`; for a different host, and with no JavaScript, the button is
+  a plain link in the same tab. `embedAddress` adds `embed_domain` and `embed_type=Inline`, so
+  that Calendly posts a message to the page when a booking is made. `isBookingMessage` accepts
+  that message only from the origin `https://calendly.com`, reads its event name only, and never
+  its payload; the page then shows « Votre rendez-vous est enregistré » above the frame. If no
+  message comes, the visitor sees Calendly's own confirmation in the frame. There is no
+  confirmation page and no redirect from Calendly. The page shows no price and takes no payment.
+  Where the consultation page exists, `/confidentialite` names Calendly as the recipient of the
+  booking data (`src/content/legal.ts`). Words in `src/content/consultation-sommeil.ts`.
   `.icm/setup/sleep-consultation-url.md` has the setup act.
+- **The security headers (JAM-360):** `next.config.ts` sends three headers on each path
+  (`/:path*`). The Content-Security-Policy is
+  `frame-src 'self' https://calendly.com; frame-ancestors 'self'; object-src 'self'; base-uri 'self'`:
+  the site frames only itself and the calendar of the sleep consultation, and a different origin
+  cannot frame the site. `object-src` is `'self'` and not `'none'` because the founders' dossier
+  page shows a professional's PDF in an `<object>` from `/api/fichiers/[id]`
+  (`src/components/admin/document-view.tsx`). The policy has no `default-src`, `script-src`,
+  `style-src`, `connect-src` and no `form-action`: a script policy needs nonces, and
+  `form-action` can break the redirect to Stripe Checkout. The two other headers are
+  `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`.
+  Vercel sets HSTS. `src/app/security-headers.test.ts` holds the values.
 - **Contact is a form, and no address is published.** `/contact` has three required fields
   (name, e-mail address, message of 2,000 characters at most). `sendContact`
   (`src/lib/contact/send.ts`) sends one e-mail through Resend to the address of the
