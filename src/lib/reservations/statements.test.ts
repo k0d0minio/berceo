@@ -168,3 +168,87 @@ describe("the start of a booked night (JAM-306)", () => {
     expect(q.params).toEqual([REQUEST, "20:00", OTHER, "18:30"]);
   });
 });
+
+/**
+ * Spec (JAM-349): she changes or removes her proposed start on her waiting
+ * answer, in one statement. The row is hers by her profile id, and only an
+ * answer that waits on an open night ahead is written. The change moves
+ * `answered_at`, so the booking refuses a fee that the family opened on the
+ * proposal of before, and `answer_count`, so the family's e-mail has a new
+ * key. Each statement is built, never run.
+ */
+describe("a proposed start changed in place (JAM-349)", () => {
+  const PROFILE = "3b8d0f2c-4e5a-4b7c-9d1e-2f3a4b5c6d72";
+  const SERIES = "7f2b4d6a-8c9e-4f1a-8b5c-6d7e8f9a0b16";
+  const AT = NOW.toISOString();
+
+  async function built(statement: import("drizzle-orm").SQL) {
+    const { PgDialect } = await import("drizzle-orm/pg-core");
+    const q = new PgDialect().sqlToQuery(statement);
+    return { sql: q.sql.replace(/\s+/g, " ").trim(), params: q.params };
+  }
+
+  it("writes the new start on her own waiting answer of one night, and moves the answer's time and count", async () => {
+    const { changeProposalStatement } = await import("./answers");
+    const { TIME_ZONE } = await import("@/lib/demandes/rules");
+    const q = await built(changeProposalStatement(PROFILE, REQUEST, "20:30", AT));
+    expect(q.sql).toMatch(
+      /^update care_request_applications a set proposed_start_time = nullif\(\$1::time, r\.start_time\), answered_at = \$2::timestamptz, answer_count = a\.answer_count \+ 1, updated_at = \$3::timestamptz from care_requests r, professional_profiles p where a\.request_id = \$4 and a\.profile_id = \$5 and a\.status = 'en_attente'/,
+    );
+    expect(q.params.slice(0, 5)).toEqual(["20:30", AT, AT, REQUEST, PROFILE]);
+    // An open request of one night, ahead at the family's start and at the new one.
+    expect(q.sql).toContain("and r.id = a.request_id and r.status = 'ouverte'");
+    expect(q.sql).toContain("and not r.series_whole");
+    expect(q.sql).toMatch(/\(r\.night_date \+ r\.start_time\) > \(now\(\) at time zone \$\d+\)/);
+    expect(q.sql).toMatch(/\(r\.night_date \+ coalesce\(\$\d+::time, r\.start_time\)\) > \(now\(\) at time zone \$\d+\)/);
+    expect(q.params.filter((param) => param === TIME_ZONE)).toHaveLength(2);
+    // Her profile is validated, and her account is not suspended.
+    expect(q.sql).toContain("and p.id = a.profile_id and p.status = 'valide'");
+    expect(q.sql).toContain(
+      "and not exists (select 1 from users as su where su.id = p.user_id and su.suspended_at is not null)",
+    );
+    // The same start writes nothing: the family is told of a change only.
+    expect(q.sql).toMatch(/and a\.proposed_start_time is distinct from nullif\(\$\d+::time, r\.start_time\) returning a\.id, a\.answer_count$/);
+    // The form's value is bound each time: nothing of it reaches the SQL text.
+    expect(q.params.filter((param) => param === "20:30")).toHaveLength(3);
+    expect(q.sql).not.toContain("20:30");
+    // A booked, declined or withdrawn answer matches nothing.
+    for (const other of ["retenue", "non_retenue", "retiree"]) expect(q.sql).not.toContain(`'${other}'`);
+  });
+
+  it("removes the proposal with no value", async () => {
+    const { changeProposalStatement } = await import("./answers");
+    const q = await built(changeProposalStatement(PROFILE, REQUEST, null, AT));
+    expect(q.params.filter((param) => param === null)).toHaveLength(3);
+    expect(q.sql).toContain("set proposed_start_time = nullif($1::time, r.start_time)");
+  });
+
+  it("writes each night of a regular request or no night, and moves each night's time and count", async () => {
+    const { changeSeriesProposalsStatement } = await import("./answers");
+    const OTHER = "6e1a3c5f-7b8d-4e0f-9a4b-5c6d7e8f9a05";
+    const q = await built(changeSeriesProposalsStatement(PROFILE, SERIES, [[REQUEST, "20:30"], [OTHER, "18:30"]], AT));
+    // Her waiting answers on the open nights ahead of this request, with the start asked for each.
+    expect(q.sql).toMatch(/^with nights as \( select a\.id, r\.night_date, r\.start_time, a\.proposed_start_time as saved, nullif\(\(select h\.start from \(values \(\$1::uuid, \$2::time\), \(\$3::uuid, \$4::time\)\) as h\(request_id, start\) where h\.request_id = r\.id\), r\.start_time\) as wanted/);
+    expect(q.params.slice(0, 4)).toEqual([REQUEST, "20:30", OTHER, "18:30"]);
+    expect(q.sql).toMatch(/where a\.profile_id = \$5 and a\.status = 'en_attente' and r\.series_id = \$6 and r\.series_whole and r\.status = 'ouverte'/);
+    expect(q.params.slice(4, 6)).toEqual([PROFILE, SERIES]);
+    expect(q.sql).toContain(
+      "and p.status = 'valide' and not exists (select 1 from users as su where su.id = p.user_id and su.suspended_at is not null)",
+    );
+    // Every night's answer moves, the unchanged nights too: one confirmation books them all.
+    expect(q.sql).toMatch(/update care_request_applications a set proposed_start_time = n\.wanted, answered_at = \$\d+::timestamptz, answer_count = a\.answer_count \+ 1, updated_at = \$\d+::timestamptz from nights n where a\.id = n\.id and a\.status = 'en_attente'/);
+    expect(q.params.filter((param) => param === AT)).toHaveLength(2);
+    // No night changes: nothing is written. One new start that has passed: nothing is written.
+    expect(q.sql).toContain("and exists (select 1 from nights c where c.wanted is distinct from c.saved)");
+    expect(q.sql).toMatch(/and not exists \( select 1 from nights late where \(late\.night_date \+ coalesce\(late\.wanted, late\.start_time\)\) <= \(now\(\) at time zone \$\d+\) \)/);
+    expect(q.sql).toMatch(/returning a\.id, a\.answer_count, n\.night_date::text as night_date$/);
+    for (const other of ["retenue", "non_retenue", "retiree"]) expect(q.sql).not.toContain(`'${other}'`);
+  });
+
+  it("puts each night back to the family's start when the form proposes none", async () => {
+    const { changeSeriesProposalsStatement } = await import("./answers");
+    const q = await built(changeSeriesProposalsStatement(PROFILE, SERIES, [], AT));
+    expect(q.sql).toContain("nullif(null::time, r.start_time) as wanted");
+    expect(q.params.slice(0, 2)).toEqual([PROFILE, SERIES]);
+  });
+});
