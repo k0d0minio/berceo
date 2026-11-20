@@ -478,7 +478,15 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   the share link, made from the host of the request (`src/lib/site-origin.ts`) and
   `communePath`: a link copied on UAT names UAT. The page shows counts only. `CommuneShare`
   (`src/components/admin/commune-share.tsx`) shows the link, « Copier le lien » and the link to
-  the public page. Its `children` is the place of the QR code, which is not built.
+  the public page. Its `children` holds the QR code of the link
+  (`src/components/admin/commune-qr.tsx`): a closed « Afficher le code QR » with the image and
+  two downloads, SVG and PNG (`berceo-<slug>.svg`). The route
+  `/admin/communes/[slug]/qr?format=svg|png` makes the code on the server with the package
+  `qrcode` (`src/lib/admin/commune-qr-render.ts`, the only import of the package), behind the
+  guard of the admin pages. `src/lib/admin/commune-qr.ts` has its rules: a real slug and one of
+  the two formats or a 404, error correction `M`, margin 4, a PNG of 1024 px, and
+  `Cache-Control: private`. The code holds only the share link that the server makes, so a code
+  downloaded on UAT names UAT.
 
 ## The garde's life
 
