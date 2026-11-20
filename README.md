@@ -416,6 +416,25 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   family reads, under « Votre tarif, indiqué à la famille avec votre réponse ». Before an answer and
   after a withdrawal, she reads the current rate of her profile. `shownRates` and `seriesShownRates`
   (`src/lib/reservations/rules.ts`) hold the rule.
+- **The adapted schedule (JAM-306):** a professional can answer a night with a start that differs
+  from the family's. « Proposer une autre heure de début » is above « Je suis disponible », with
+  one list for each night of the request: a half hour from 18:00 to 23:00, the family's own start
+  first. This applies to a single night, an urgent night, a regular request and an older series.
+  The form posts `heure-<request id>`. `readProposal` in `src/lib/reservations/rules.ts` reads it,
+  and the answer saves it in `care_request_applications.proposed_start_time` (null for no
+  proposal). The length of the night does not change, so the end moves with the start. She changes
+  or removes a proposal by withdrawing and answering again. The family reads each adapted night on
+  the answer card, on her profile opened from the request, and in the récapitulatif, where it
+  ticks « J'accepte l'horaire proposé par … » before the payment. The checkout opens only when
+  what the family confirmed is what the answer holds (`proposalsSignature`), and the booking
+  refuses an answer given again after the fee was opened. There is no refuse action: the family
+  does not book the answer. The booking writes the proposed start in `care_requests.start_time`
+  and keeps the family's in `requested_start_time` (`bookingSetsTheStart`), so each reader of a
+  booked night reads the agreed start: the gardes, the reminder, the cancellation delay, the
+  night's end, the e-mails and the back office. `requestedStart` reads the family's start: the
+  « non retenue » e-mail, a republished garde and the record line « Horaire adapté : début demandé
+  à …, début convenu à … » use it. A conversation reads its own answer's proposal
+  (`conversationStart`). The two columns come from migration 0039.
 
 ## The garde's life
 
