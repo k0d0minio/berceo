@@ -550,6 +550,8 @@ export const admin = catalogue({
       abonnements: "Abonnements",
       codesPromo: "Codes promo",
       avis: "Avis",
+      /** @relecture Surya — la liste des communes et de leurs liens à partager (JAM-361). */
+      communes: "Communes",
       journal: "Journal",
     },
 
@@ -975,6 +977,47 @@ export const admin = catalogue({
       sansGarde: "Aucune",
       compteSupprime: "Compte supprimé",
       vide: "Aucun crédit n'existe encore.",
+    },
+
+    /** La liste des communes et le lien à partager de chacune (JAM-361). */
+    communes: {
+      /** @relecture Surya — titre de la page. */
+      titre: "Communes",
+      /** @relecture Surya — ce que la page permet. */
+      intro:
+        "Chaque commune a sa page publique sur Berceo. Copiez son lien pour le partager dans vos publications.",
+      /** @relecture Surya — la recherche. */
+      recherche: "Rechercher une commune par nom ou code postal",
+      rechercher: "Rechercher",
+      effacer: "Effacer la recherche",
+      /** @relecture Surya — ce que la liste montre. */
+      ordre: "Les communes où interviennent le plus de professionnelles validées sont affichées en premier.",
+      resultats: "Communes trouvées pour « {q} »",
+      vide: "Aucune commune ne correspond à cette recherche.",
+      /** @relecture Surya — colonnes. */
+      colonnes: {
+        commune: "Commune",
+        codesPostaux: "Codes postaux",
+        professionnelles: "Professionnelles validées",
+        lien: "Lien à partager",
+      },
+      /** @relecture Surya — le lien à partager et ses actions. */
+      copier: "Copier le lien",
+      copierDe: "Copier le lien de {commune}",
+      copie: "Lien copié",
+      echec: "Le lien n'a pas pu être copié. Sélectionnez-le pour le copier.",
+      ouvrir: "Ouvrir la page publique",
+      ouvrirDe: "Ouvrir la page publique de {commune}",
+      /** @relecture Surya — le code QR du lien à partager et ses deux téléchargements (JAM-361). */
+      qr: {
+        afficher: "Afficher le code QR",
+        alt: "Code QR du lien de la page de {commune}",
+        aide: "Le fichier SVG convient à l'impression. Le fichier PNG convient aux publications en ligne.",
+        svg: "Télécharger en SVG",
+        svgDe: "Télécharger le code QR de {commune} en SVG",
+        png: "Télécharger en PNG",
+        pngDe: "Télécharger le code QR de {commune} en PNG",
+      },
     },
 
     /** La pagination des listes de l'administration. */

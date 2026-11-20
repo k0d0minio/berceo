@@ -15,6 +15,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Input } from "@/components/ui/input"
 import { admin } from "@/content/admin"
 import { fill, words } from "@/content/locale"
+import type { GardeLine } from "@/lib/admin/format"
 import {
   CONTACT_MESSAGE_MAX,
   CONTACT_SUBJECT_MAX,
@@ -51,8 +52,8 @@ function AccountActions({
   suspended: boolean
   /** Why « Supprimer le compte » is not offered, or null when it is. */
   deleteBlocked: "nonSuspendu" | "gardesAVenir" | null
-  /** Her gardes still standing, one line each, for the suspension dialog. */
-  upcoming: string[]
+  /** Her gardes still standing, one line each with the record line of an adapted schedule (JAM-350), for the suspension dialog. */
+  upcoming: GardeLine[]
 }) {
   const t = words(admin).actionsCompte
   const c = t.confirmation
@@ -107,8 +108,11 @@ function AccountActions({
               <div className="flex flex-col gap-2 text-corps text-taupe">
                 <p className="font-semibold">{c.suspendreGardes}</p>
                 <ul className="flex list-disc flex-col gap-1 pl-6">
-                  {upcoming.map((line) => (
-                    <li key={line}>{line}</li>
+                  {upcoming.map(({ line, record }) => (
+                    <li key={line}>
+                      {line}
+                      {record ? <span className="block text-legende">{record}</span> : null}
+                    </li>
                   ))}
                 </ul>
               </div>

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, exists, inArray, or, sql } from "drizzle-orm";
+import { and, asc, count, eq, exists, inArray, or, sql } from "drizzle-orm";
 
 import { db, professionalCommunes, professionalProfiles, professionalReach, users, type Profession } from "@/db";
 import { NO_NOTE, notesOfProfiles, type Note } from "@/lib/avis/ratings";
@@ -199,4 +199,47 @@ export async function validProfessionals(): Promise<{ id: string; firstName: str
     .innerJoin(users, eq(users.id, professionalProfiles.userId))
     .where(isValid)
     .orderBy(asc(professionalProfiles.id));
+}
+
+/**
+ * How many validated professionals serve each commune (JAM-361), by the rule
+ * of `servingQuery`: « Toute la Belgique » serves every commune, and a reach
+ * serves its communes. A count only: no column of a person leaves.
+ */
+export type ServingCounts = {
+  /** The validated professionals of « Toute la Belgique »: they count for every commune. */
+  everywhere: number;
+  /** The other validated professionals, counted for each commune of their reach. */
+  byCommune: Map<string, number>;
+};
+
+/** The query for the count of the validated professionals of « Toute la Belgique » (exported for its test). */
+export function everywhereCountQuery() {
+  return db
+    .select({ n: count() })
+    .from(professionalProfiles)
+    .where(and(isValid, eq(professionalProfiles.zoneWholeBelgium, true)));
+}
+
+/**
+ * The query for the count of the other validated professionals for each
+ * commune of their reach (exported for its test). The reach has one row for
+ * each profile and commune, so a row is a professional.
+ */
+export function reachCountsQuery() {
+  return db
+    .select({ ins: professionalReach.communeIns, n: count() })
+    .from(professionalReach)
+    .innerJoin(professionalProfiles, eq(professionalProfiles.id, professionalReach.profileId))
+    .where(and(isValid, eq(professionalProfiles.zoneWholeBelgium, false)))
+    .groupBy(professionalReach.communeIns);
+}
+
+/** The counts for every commune, in two queries. */
+export async function servingCounts(): Promise<ServingCounts> {
+  const [[whole], reach] = await Promise.all([everywhereCountQuery(), reachCountsQuery()]);
+  return {
+    everywhere: whole?.n ?? 0,
+    byCommune: new Map(reach.map((row) => [row.ins, row.n])),
+  };
 }

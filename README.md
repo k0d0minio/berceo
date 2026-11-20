@@ -435,6 +435,58 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   « non retenue » e-mail, a republished garde and the record line « Horaire adapté : début demandé
   à …, début convenu à … » use it. A conversation reads its own answer's proposal
   (`conversationStart`). The two columns come from migration 0039.
+- **A change of a proposal in place (JAM-349):** while her answer waits, a professional changes
+  or removes the start she proposed on the answer itself, and she can add one after she answered:
+  `changeProposal` for one night, `changeSeriesProposals` for a regular request, all its nights in
+  one form and one statement. Her card has the form (`answer-footer.tsx`). A change is a new
+  answer for the two protections of JAM-306: it moves `answered_at`, so a fee opened on the
+  proposal of before books nothing (`acceptAnswer`), and the checkout refuses a confirmation that
+  is not the proposal the answer holds (`proposalsSignature`). It also moves `answer_count`, which
+  is in the key of the family's e-mail of the change (`notifyProposalChanged`, « [Prénom] a
+  modifié l'heure de début proposée »): one e-mail for each change, with the requested start,
+  the new start and the end of each night that changed, and one e-mail for a regular request. A value equal to the saved
+  one writes nothing. A booked, declined or withdrawn answer is not changed.
+- **The republication of a regular request (JAM-353):** « Republier ma demande » shows on the page
+  of a regular request while one answer or more waits on an open night ahead and no night is
+  booked (`canRepublishSeries`, `src/lib/reservations/republish-series-rules.ts`).
+  `republishSeries` (`src/lib/reservations/republish-series.ts`) marks each open night ahead as
+  republished and declines each answer that waits on those nights, in one batch. No night, time
+  or other value changes. Each professional gets one « non retenue » e-mail for the request. The
+  next digest carries the request again, but not to a declined professional.
+- **Which start an e-mail gives (JAM-351):** the two sides of a booking read the agreed start
+  (`bookingNotice`: the confirmation and the reminder). Each other e-mail about a request reads
+  the start the family asked for, and its end follows that start: `summary()` and
+  `seriesSummary()` in `src/lib/demandes/notify.ts` hold the rule for the urgent e-mail, the
+  digest, the priority e-mail and « non retenue ». The confirmation of a regular request gives
+  each night its own agreed start when the starts differ. The e-mail of a changed proposal is
+  before a booking, so its requested start is the family's start, and its end follows the start
+  that the line shows.
+- **The adapted schedule in the back office (JAM-350):** each back-office surface that shows the
+  start of a booked night shows the record line: the lists « Réservations », « Demandes » and
+  « Signalements », the gardes of an account's page, and the suspension dialog. The line is
+  `agreedStartLine` (`src/lib/reservations/format.ts`). A back-office read of a night's start
+  selects `nightColumns` (`src/lib/admin/lists.ts`), which has the family's start with it.
+  `upcomingGardeLine` (`src/lib/admin/format.ts`) makes the line of a garde on the account page.
+  `src/lib/admin/adapted-schedule.test.ts` holds the rule.
+- **The founders' list of communes (JAM-361):** `/admin/communes` lists the 565 communes with
+  their postcodes, the number of validated professionals who serve each one, and the share link
+  of its public page (`/garde-de-nuit/<slug>`). The count uses the rule of the search: a
+  professional of « Toute la Belgique » counts for every commune, and each other professional
+  counts for the communes of her reach. `servingCounts` in `src/lib/recherche/professionals.ts`
+  reads the counts in two queries. `src/lib/admin/communes.ts` has the pure rules: the search by
+  name or postcode, the order (most professionals first, then the name), 50 for each page, and
+  the share link, made from the host of the request (`src/lib/site-origin.ts`) and
+  `communePath`: a link copied on UAT names UAT. The page shows counts only. `CommuneShare`
+  (`src/components/admin/commune-share.tsx`) shows the link, « Copier le lien » and the link to
+  the public page. Its `children` holds the QR code of the link
+  (`src/components/admin/commune-qr.tsx`): a closed « Afficher le code QR » with the image and
+  two downloads, SVG and PNG (`berceo-<slug>.svg`). The route
+  `/admin/communes/[slug]/qr?format=svg|png` makes the code on the server with the package
+  `qrcode` (`src/lib/admin/commune-qr-render.ts`, the only import of the package), behind the
+  guard of the admin pages. `src/lib/admin/commune-qr.ts` has its rules: a real slug and one of
+  the two formats or a 404, error correction `M`, margin 4, a PNG of 1024 px, and
+  `Cache-Control: private`. The code holds only the share link that the server makes, so a code
+  downloaded on UAT names UAT.
 
 ## The garde's life
 
@@ -1134,14 +1186,36 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
   blocks on the stripes. It is indexed and in the sitemap.
 - **Placeholders**: the two legal pages wait for the founders' texts. Both are `noindex` and
   out of the sitemap; lifting that is part of the change that brings the text.
-- **The sleep consultation (JAM-305):** `/consultation-sommeil` presents the consultation with
-  the two founders and has one button that opens their calendar in a new tab. The address of
-  the calendar is the environment variable `SLEEP_CONSULTATION_URL`
-  (`src/lib/consultation-sommeil/config.ts`), never in git. Where the variable is empty or is
-  not an `https://` address, the page answers 404, and the footer, the family's home and the
-  sitemap do not name it. The page shows no price. Words in
-  `src/content/consultation-sommeil.ts`. `.icm/setup/sleep-consultation-url.md` has the setup
-  act.
+- **The sleep consultation (JAM-305, JAM-352):** `/consultation-sommeil` presents the consultation
+  with the two founders. The address of their calendar is the environment variable
+  `SLEEP_CONSULTATION_URL` (`src/lib/consultation-sommeil/config.ts`), never in git. Where the
+  variable is empty or is not an `https://` address, the page answers 404, and the footer, the
+  family's home and the sitemap do not name it. The calendar shows in the page, in a plain
+  `<iframe>`, only after the visitor clicks « Choisir un créneau » (`calendar-embed.tsx`): before
+  the click the page sends nothing to Calendly, and a sentence under the button says that the
+  calendar is a service of Calendly. The page loads no script and no stylesheet of Calendly.
+  `canEmbed` (`src/lib/consultation-sommeil/embed.ts`) frames the calendar only where its origin
+  is exactly `https://calendly.com`; for a different host, and with no JavaScript, the button is
+  a plain link in the same tab. `embedAddress` adds `embed_domain` and `embed_type=Inline`, so
+  that Calendly posts a message to the page when a booking is made. `isBookingMessage` accepts
+  that message only from the origin `https://calendly.com`, reads its event name only, and never
+  its payload; the page then shows « Votre rendez-vous est enregistré » above the frame. If no
+  message comes, the visitor sees Calendly's own confirmation in the frame. There is no
+  confirmation page and no redirect from Calendly. The page shows no price and takes no payment.
+  Where the consultation page exists, `/confidentialite` names Calendly as the recipient of the
+  booking data (`src/content/legal.ts`). Words in `src/content/consultation-sommeil.ts`.
+  `.icm/setup/sleep-consultation-url.md` has the setup act.
+- **The security headers (JAM-360):** `next.config.ts` sends three headers on each path
+  (`/:path*`). The Content-Security-Policy is
+  `frame-src 'self' https://calendly.com; frame-ancestors 'self'; object-src 'self'; base-uri 'self'`:
+  the site frames only itself and the calendar of the sleep consultation, and a different origin
+  cannot frame the site. `object-src` is `'self'` and not `'none'` because the founders' dossier
+  page shows a professional's PDF in an `<object>` from `/api/fichiers/[id]`
+  (`src/components/admin/document-view.tsx`). The policy has no `default-src`, `script-src`,
+  `style-src`, `connect-src` and no `form-action`: a script policy needs nonces, and
+  `form-action` can break the redirect to Stripe Checkout. The two other headers are
+  `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`.
+  Vercel sets HSTS. `src/app/security-headers.test.ts` holds the values.
 - **Contact is a form, and no address is published.** `/contact` has three required fields
   (name, e-mail address, message of 2,000 characters at most). `sendContact`
   (`src/lib/contact/send.ts`) sends one e-mail through Resend to the address of the

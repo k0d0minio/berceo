@@ -89,6 +89,10 @@ export const reservations = catalogue({
         retrait: "Votre disponibilité ne peut plus être retirée.",
         /** @relecture Surya — l'heure de début proposée n'est pas une heure de la liste (JAM-306). */
         horaire: "L'heure de début proposée n'est pas valable. Choisissez une heure de la liste.",
+        /** @relecture Surya — sa réponse n'attend plus : réservée, déclinée ou retirée (JAM-349). */
+        modification: "Votre heure de début ne peut plus être modifiée.",
+        /** @relecture Surya — elle enregistre l'heure déjà enregistrée (JAM-349). */
+        inchange: "Cette heure de début est déjà enregistrée.",
       },
       /** L'horaire adapté, côté professionnelle (retour 2 des fondatrices, JAM-306). */
       horaires: {
@@ -108,8 +112,16 @@ export const reservations = catalogue({
         votreProposition: "Vous avez proposé de commencer à {propose} au lieu de {demande}. La garde se terminerait à {fin}.",
         /** @relecture Surya — sa proposition enregistrée pour une nuit d'une demande régulière. */
         votrePropositionNuit: "Vous avez proposé de commencer à {propose} au lieu de {demande}, fin à {fin}.",
-        /** @relecture Surya — comment modifier ou retirer sa proposition. */
-        changer: "Pour modifier ou retirer votre proposition, retirez votre disponibilité puis répondez de nouveau.",
+        /** @relecture Surya — sous sa proposition : elle se modifie sur la carte, sans retirer sa disponibilité (JAM-349). */
+        changer: "Vous pouvez modifier ou retirer cette proposition ci-dessous, tant que la famille n'a pas réservé.",
+        /** @relecture Surya — ouvre la modification de sa proposition enregistrée (JAM-349). */
+        modifier: "Modifier l'heure de début proposée",
+        /** @relecture Surya — ce que la modification change, et comment retirer sa proposition (JAM-349). */
+        aideModifier: "Choisissez une autre heure de début, ou l'heure demandée pour retirer votre proposition. Votre disponibilité reste transmise. La famille est prévenue de la modification.",
+        /** @relecture Surya — le bouton qui enregistre la modification (JAM-349). */
+        enregistrer: "Enregistrer l'heure de début",
+        /** @relecture Surya — après la modification (JAM-349). */
+        modifiee: "Votre heure de début est enregistrée. La famille est prévenue.",
       },
     },
 

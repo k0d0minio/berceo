@@ -111,6 +111,7 @@ export default async function DemandesProfessionnellePage({
                         footer={
                           <AnswerFooter
                             request={entry.request}
+                            saved={savedRates}
                             conversationId={conversationIds.get(entry.request.id)}
                             from="liste"
                             now={now}

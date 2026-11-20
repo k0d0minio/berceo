@@ -332,6 +332,46 @@ export function newAnswerEmail(input: {
   };
 }
 
+/**
+ * A professional changed or removed the start she proposed, on her waiting
+ * answer (JAM-349). One line for each night that changed: the start the family
+ * asked for, the start she now proposes, and the end of the night from the
+ * start the line shows. A night with `propose` null is a proposal she removed:
+ * she starts at the requested time. `serie` is a regular request: each line
+ * then names its night. The e-mail names her first name only, as the new-answer
+ * e-mail does.
+ */
+export function proposalChangedEmail(input: {
+  siteUrl: string;
+  prenom: string;
+  professionnelle: string;
+  nuits: readonly { date: string; demande: string; propose: string | null; fin: string }[];
+  serie: boolean;
+  url: string;
+}): RenderedEmail {
+  const r = t.horaireModifie;
+  const prenom = input.professionnelle;
+  const [first] = input.nuits;
+  const lines = input.nuits.map((night) => {
+    const slots = { prenom, date: night.date, demande: night.demande, propose: night.propose ?? "", fin: night.fin };
+    if (input.serie) return fill(night.propose ? r.ligneNuit : r.ligneNuitRetiree, slots);
+    return fill(night.propose ? r.ligne : r.ligneRetiree, slots);
+  });
+  return {
+    subject: fill(r.objet, { prenom }),
+    ...layout({
+      siteUrl: input.siteUrl,
+      prenom: input.prenom,
+      paragraphs: [
+        input.serie ? fill(r.corpsSerie, { prenom }) : fill(r.corps, { prenom, date: first?.date ?? "" }),
+        ...lines,
+        ...(input.nuits.some((night) => night.propose) ? [r.accepter] : []),
+      ],
+      cta: { label: fill(r.cta, { prenom }), href: input.url },
+    }),
+  };
+}
+
 /** Her booking is confirmed (the guide, without its insurance sentence, D-8). */
 export function bookingFamilyEmail(input: {
   siteUrl: string;
@@ -339,6 +379,12 @@ export function bookingFamilyEmail(input: {
   professionnelle: string;
   date: string;
   heure: string;
+  /**
+   * The nights of a regular request whose agreed starts differ (JAM-351): each
+   * night then reads with its own start, and `heure` is not used. `date` stays
+   * every night's date, for the subject.
+   */
+  nuits?: readonly { date: string; heure: string }[];
   url: string;
   /**
    * The fee when a Berceo credit paid some of it (credits-au-paiement): the
@@ -359,7 +405,12 @@ export function bookingFamilyEmail(input: {
       siteUrl: input.siteUrl,
       prenom: input.prenom,
       paragraphs: [
-        fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure }),
+        input.nuits?.length
+          ? fill(r.corpsNuits, {
+              prenom: input.professionnelle,
+              nuits: dateList(input.nuits.map((night) => fill(r.nuit, night))),
+            })
+          : fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure }),
         ...(creditLine ? [creditLine] : []),
       ],
       cta: { label: r.cta, href: input.url },

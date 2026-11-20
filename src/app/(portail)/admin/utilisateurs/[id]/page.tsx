@@ -16,11 +16,12 @@ import { professionnelle } from "@/content/professionnelle";
 import { planWords } from "@/lib/abonnements/format";
 import { familySubscriptionLine } from "@/lib/abonnements/subscriptions";
 import { accountView } from "@/lib/admin/accounts";
+import { upcomingGardeLine } from "@/lib/admin/format";
 import { fullName } from "@/lib/admin/journal";
 import { ADMIN_BOOKINGS_PATH, ADMIN_REQUESTS_PATH, adminFilePath, adminUserPath } from "@/lib/admin/paths";
 import { deleteRefusal, UUID } from "@/lib/admin/rules";
 import { requireAccess } from "@/lib/auth/guard";
-import { formatDate, formatTime } from "@/lib/demandes/format";
+import { formatDate } from "@/lib/demandes/format";
 import { zoneChoice } from "@/lib/professionnelle/rules";
 
 const a = words(admin);
@@ -65,7 +66,8 @@ function Section({ title, icon: Icon, children }: { title: string; icon?: IconCo
  * account is and since when, a family's commune but never her address (D-15),
  * a family's subscription line (abonnements-back-office), a professional's
  * file, communes, rate and note, what she did on Berceo with
- * links to the lists filtered on her, her gardes still standing with
+ * links to the lists filtered on her, her gardes still standing (each with
+ * the record line of an adapted schedule, JAM-350) with
  * « Annuler la garde » for Berceo on each (annulations-back-office), the actions,
  * and every journal entry about her. An admin account shows no action. A 404
  * to anyone but an admin (D-33), and for an id that names no account.
@@ -87,14 +89,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
     : account.suspendedAt
       ? fill(t.suspenduLe, { date: date.format(account.suspendedAt) })
       : u.etats.actif;
-  const upcoming = view.upcoming.map((garde) =>
-    fill(t.garde, {
-      date: formatDate(garde.nightDate),
-      heure: formatTime(garde.startTime),
-      nom: garde.other.name,
-      telephone: garde.other.phone ?? t.nonRenseigne,
-    }),
-  );
+  const upcoming = view.upcoming.map(upcomingGardeLine);
   const blocked = deleteRefusal(account, view.upcoming.length);
 
   return (
@@ -190,7 +185,9 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
             <ul className={`${card} flex list-disc flex-col gap-3 pl-10 text-corps text-taupe md:pl-12`}>
               {view.upcoming.map((garde, index) => (
                 <li key={garde.bookingId} className="flex flex-col gap-2">
-                  {upcoming[index]}
+                  {upcoming[index].line}
+                  {/* Booked at a start the professional proposed (JAM-306, JAM-350): the family's own start, as a record. */}
+                  {upcoming[index].record ? <span className="block text-legende">{upcoming[index].record}</span> : null}
                   {/* « Annuler la garde » for Berceo (annulations-back-office): the account is one side, the line names the other. */}
                   <BerceoCancelButton
                     bookingId={garde.bookingId}

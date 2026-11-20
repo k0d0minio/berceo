@@ -10,6 +10,7 @@ import {
   type RequestSummary,
   type SeriesSummary,
 } from "@/lib/email/templates";
+import { requestedStart } from "@/lib/reservations/rules";
 
 import { childrenLine, formatDate, hoursLine, nightLine } from "./format";
 import { PROFESSIONAL_REQUESTS_PATH } from "./paths";
@@ -34,11 +35,19 @@ import { groupForDigest } from "./series";
  * everyone but the professionals the family declined on it.
  */
 
-
+/**
+ * A request as an e-mail tells it to a professional who does not hold its
+ * booking: the urgent e-mail, the digest, the priority e-mail and « not
+ * retained ». The night reads at the start the family asked for (JAM-351),
+ * and its end follows that start. On a booked request, `startTime` is the
+ * start the family agreed with the booked professional (JAM-306): that start
+ * is theirs alone, and only the e-mails of the booking's two sides give it
+ * (`bookingNotice`).
+ */
 export function summary(request: RequestCard): RequestSummary {
   return {
     commune: communeName(request.communeIns) ?? request.locality,
-    nuit: nightLine(request.nightDate, request.startTime, request.extraHours),
+    nuit: nightLine(request.nightDate, requestedStart(request), request.extraHours),
     enfants: childrenLine(request.childAges),
     date: formatDate(request.nightDate),
   };
@@ -48,14 +57,15 @@ export function summary(request: RequestCard): RequestSummary {
  * The nights of one series, as one e-mail line (demande-nuits-regulieres): the
  * first night's commune and children, the hours when every night has the same,
  * or one line that says they differ (JAM-303), and every night's date in order.
- * One night reads as `summary` does.
+ * One night reads as `summary` does, and the hours are those the family asked
+ * for, as in `summary` (JAM-351).
  */
 export function seriesSummary(nights: readonly RequestCard[]): RequestSummary | SeriesSummary {
   const [first] = nights;
   if (nights.length === 1) return summary(first);
   return {
     commune: communeName(first.communeIns) ?? first.locality,
-    horaire: hoursLine(nights),
+    horaire: hoursLine(nights.map((night) => ({ startTime: requestedStart(night), extraHours: night.extraHours }))),
     dates: nights.map((night) => formatDate(night.nightDate)),
     enfants: childrenLine(first.childAges),
   };

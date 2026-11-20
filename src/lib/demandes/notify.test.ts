@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { notifyUrgentRequest, sendRequestDigest, seriesSummary } from "./notify";
+import { notifyUrgentRequest, sendRequestDigest, seriesSummary, summary } from "./notify";
 import type { DigestRequest, Recipient } from "./requests";
 
 /**
@@ -259,5 +259,47 @@ describe("a regular request in an e-mail", () => {
       dates: ["02/10/2026", "05/10/2026"],
       enfants: "Un bébé de trois mois",
     });
+  });
+});
+
+/**
+ * Spec (JAM-351): a professional who does not hold the booking reads the night
+ * at the start the family asked for, and its end follows that start. On a
+ * booked request, `startTime` is the start agreed with the booked professional
+ * (JAM-306) and `requestedStartTime` keeps the family's.
+ */
+describe("the start a request's e-mail gives (JAM-351)", () => {
+  // The family asked for 20:00, and the booked professional's 21:30 is the garde's start.
+  const booked = { ...request("r1", "21009"), startTime: "21:30:00", requestedStartTime: "20:00:00", extraHours: 1 };
+
+  it("gives the night and its end at the start the family asked for", () => {
+    expect(summary(booked).nuit).toBe("30/09/2026 de 20h00 à 8h00");
+  });
+
+  it("gives the request's own start when no other start was agreed", () => {
+    expect(summary(request("r1", "21009")).nuit).toBe("30/09/2026 de 20h00 à 7h00");
+    expect(summary({ ...request("r1", "21009"), requestedStartTime: null }).nuit).toBe("30/09/2026 de 20h00 à 7h00");
+  });
+
+  it("says the hours of regular nights at the starts the family asked for", () => {
+    const first = request("s1", "21009", "2026-10-02", "S");
+    const second = { ...request("s2", "21009", "2026-10-05", "S"), startTime: "21:30:00", requestedStartTime: "20:00:00" };
+    expect(seriesSummary([first, second])).toMatchObject({ horaire: "de 20h00 à 7h00" });
+  });
+
+  it("gives that start in the urgent e-mail and in a digest line", async () => {
+    requestForNotice.mockResolvedValue({ ...booked, urgent: true, status: "ouverte", priorityProfileId: null, republishCount: 0 });
+    declinedPairs.mockResolvedValue(new Set());
+    professionalsServing.mockResolvedValue([julie]);
+    await notifyUrgentRequest("r1", SITE);
+    expect(sendEmail.mock.calls[0][1].text).toContain("30/09/2026 de 20h00 à 8h00");
+    expect(sendEmail.mock.calls[0][1].text).not.toContain("21h30");
+
+    sendEmail.mockClear();
+    digestSentOn.mockResolvedValue(false);
+    claimDigestRequests.mockResolvedValue([booked]);
+    await sendRequestDigest(AFTER_SIX, SITE);
+    expect(sendEmail.mock.calls[0][1].text).toContain("30/09/2026 de 20h00 à 8h00");
+    expect(sendEmail.mock.calls[0][1].text).not.toContain("21h30");
   });
 });

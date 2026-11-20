@@ -98,3 +98,44 @@ describe("only a validated profile is read (D-75)", () => {
     for (const status of others) expect(params).not.toContain(status);
   });
 });
+
+// Spec (JAM-361): the founders' list of communes counts the validated professionals who serve
+// each commune, with the rule of the search. Two queries count every commune.
+describe("the counts for each commune (JAM-361)", () => {
+  const others = profileStatusEnum.enumValues.filter((status) => status !== "valide");
+  const notSuspended =
+    /not exists \(select 1 from users as su where su\.id = "professional_profiles"\."user_id" and su\.suspended_at is not null\)/;
+
+  it("counts the validated professionals of « Toute la Belgique » once, and no suspended account", async () => {
+    const { everywhereCountQuery } = await import("./professionals");
+    const { sql, params } = everywhereCountQuery().toSQL();
+    expect(sql).toMatch(/^select count\(\*\) from "professional_profiles"/);
+    expect(sql).toMatch(/"professional_profiles"\."status" = \$\d+/);
+    expect(sql).toMatch(/"professional_profiles"\."zone_whole_belgium" = \$\d+/);
+    expect(sql).toMatch(notSuspended);
+    expect(params).toEqual(expect.arrayContaining(["valide", true]));
+    for (const status of others) expect(params).not.toContain(status);
+  });
+
+  it("counts the others for each commune of their reach, never twice with « Toute la Belgique »", async () => {
+    const { reachCountsQuery } = await import("./professionals");
+    const { sql, params } = reachCountsQuery().toSQL();
+    expect(sql).toMatch(/^select "professional_reach"\."commune_ins", count\(\*\) from "professional_reach"/);
+    expect(sql).toMatch(/inner join "professional_profiles" on "professional_profiles"\."id" = "professional_reach"\."profile_id"/);
+    expect(sql).toMatch(/"professional_profiles"\."status" = \$\d+/);
+    expect(sql).toMatch(notSuspended);
+    expect(sql).toMatch(/group by "professional_reach"\."commune_ins"$/);
+    expect(params).toEqual(expect.arrayContaining(["valide", false]));
+    for (const status of others) expect(params).not.toContain(status);
+    expect(sql).not.toContain("professional_communes");
+  });
+
+  it("selects a commune code and a count, and no column of a person", async () => {
+    const { everywhereCountQuery, reachCountsQuery } = await import("./professionals");
+    for (const query of [everywhereCountQuery(), reachCountsQuery()]) {
+      const select = query.toSQL().sql.split(" from ")[0];
+      for (const hidden of ["first_name", ...HIDDEN]) expect(select).not.toContain(hidden);
+      expect(select).not.toContain('"id"');
+    }
+  });
+});

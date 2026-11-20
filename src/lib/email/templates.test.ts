@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { emails } from "@/content/emails";
+
 import {
   absenceReportedEmail,
   bookingFamilyEmail,
@@ -18,6 +20,7 @@ import {
   notRetainedEmail,
   priorityRequestEmail,
   profileRefusedEmail,
+  proposalChangedEmail,
   profileValidatedEmail,
   ratingFamilyEmail,
   ratingProfessionalEmail,
@@ -83,6 +86,17 @@ const all: [string, RenderedEmail][] = [
       prenom: "Julie",
       professionnelle: { prenom: "Emma", profession: "sage-femme" },
       date: "30/09/2026",
+      url: `${SITE}/espace/famille/professionnelles/p1?demande=r1`,
+    }),
+  ],
+  [
+    "proposed start changed",
+    proposalChangedEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      professionnelle: "Emma",
+      nuits: [{ date: "30/09/2026", demande: "20h00", propose: "21h00", fin: "8h00" }],
+      serie: false,
       url: `${SITE}/espace/famille/professionnelles/p1?demande=r1`,
     }),
   ],
@@ -381,6 +395,26 @@ describe("the answer and the booking e-mails", () => {
     );
     expect(email.text).toContain(`Voir les détails de ma réservation : ${SITE}/b`);
     expect(email.text.toLowerCase()).not.toMatch(/assur|couvert/);
+  });
+
+  it("gives each night of a regular request its own start when the starts differ (JAM-351)", () => {
+    const email = bookingFamilyEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      professionnelle: "Emma",
+      date: "02/11/2026, 05/11/2026, 09/11/2026",
+      heure: "20h00",
+      nuits: [
+        { date: "02/11/2026", heure: "20h00" },
+        { date: "05/11/2026", heure: "21h30" },
+        { date: "09/11/2026", heure: "20h00" },
+      ],
+      url: `${SITE}/b`,
+    });
+    expect(email.subject).toBe("Votre garde du 02/11/2026, 05/11/2026, 09/11/2026 est confirmée ✓");
+    expect(email.text).toContain(
+      "Tout est prêt. Emma sera chez vous le 02/11/2026 à partir de 20h00, le 05/11/2026 à partir de 21h30 et le 09/11/2026 à partir de 20h00. L'adresse lui a été transmise.",
+    );
   });
 
   it("confirms the professional's garde, ending « Bonne nuit. »", () => {
@@ -692,5 +726,81 @@ describe("the founders' cancellation and credit e-mails (annulations-back-office
     expect(email.text).toContain("L'équipe Berceo vous offre un crédit de 4,50 € pour votre garde du 30/09/2026.");
     expect(email.text).toContain("valable jusqu'au 19/11/2028");
     expect(email.text).toContain(`Voir mes crédits : ${SITE}/espace/famille`);
+  });
+});
+
+/**
+ * Spec (JAM-349): the e-mail of a proposed start changed in place. One line
+ * for each night that changed, with the requested start, the new start and
+ * the end. A removed proposal reads as a start at the requested time. The
+ * e-mail names the professional by her first name only.
+ */
+describe("the e-mail of a proposed start changed in place (JAM-349)", () => {
+  const url = `${SITE}/espace/famille/professionnelles/p1?demande=r1`;
+  const base = { siteUrl: SITE, prenom: "Julie", professionnelle: "Emma", url };
+
+  it("gives the three times of the night that changed, and a button to her answer", () => {
+    const email = proposalChangedEmail({
+      ...base,
+      nuits: [{ date: "30/09/2026", demande: "20h00", propose: "21h00", fin: "8h00" }],
+      serie: false,
+    });
+    expect(email.subject).toBe("Emma a modifié l'heure de début proposée");
+    expect(email.text).toContain("Emma a modifié l'heure de début de sa réponse pour votre garde du 30/09/2026.");
+    expect(email.text).toContain("Début à 21h00 au lieu de 20h00. Fin de la garde à 8h00.");
+    expect(email.text).toContain("Vous acceptez ou non cet horaire au moment de réserver.");
+    expect(email.text).toContain(`Voir la réponse de Emma : ${url}`);
+    expect(email.html).toContain("Début à 21h00 au lieu de 20h00. Fin de la garde à 8h00.");
+  });
+
+  it("says she can start at the requested time when the proposal is removed", () => {
+    const email = proposalChangedEmail({
+      ...base,
+      nuits: [{ date: "30/09/2026", demande: "20h00", propose: null, fin: "7h00" }],
+      serie: false,
+    });
+    expect(email.text).toContain("Emma peut maintenant commencer à l'heure demandée, 20h00. Fin de la garde à 7h00.");
+    expect(email.text).not.toContain("au lieu de");
+    // Nothing is left for the family to accept.
+    expect(email.text).not.toContain("Vous acceptez ou non cet horaire");
+  });
+
+  it("names each changed night of a regular request, in the order given", () => {
+    const email = proposalChangedEmail({
+      ...base,
+      nuits: [
+        { date: "02/10/2026", demande: "19h00", propose: "18h30", fin: "5h30" },
+        { date: "05/10/2026", demande: "19h00", propose: null, fin: "6h00" },
+      ],
+      serie: true,
+    });
+    expect(email.text).toContain("Emma a modifié l'heure de début de sa réponse pour votre demande régulière.");
+    const first = "Nuit du 02/10/2026 : début à 18h30 au lieu de 19h00, fin de la garde à 5h30.";
+    const second = "Nuit du 05/10/2026 : début à l'heure demandée, 19h00, fin de la garde à 6h00.";
+    expect(email.text.indexOf(first)).toBeGreaterThan(-1);
+    expect(email.text.indexOf(second)).toBeGreaterThan(email.text.indexOf(first));
+    // One night keeps a proposal: the family still accepts it or not.
+    expect(email.text).toContain("Vous acceptez ou non cet horaire au moment de réserver.");
+  });
+
+  it("fills every slot of its words", () => {
+    const h = emails.fr.horaireModifie;
+    for (const slot of ["{propose}", "{demande}", "{fin}"]) {
+      expect(h.ligne).toContain(slot);
+      expect(h.ligneNuit).toContain(slot);
+    }
+    for (const line of [h.ligneRetiree, h.ligneNuitRetiree]) {
+      expect(line).toContain("{demande}");
+      expect(line).toContain("{fin}");
+      expect(line).not.toContain("{propose}");
+    }
+    expect(h.ligneNuit).toContain("{date}");
+    expect(h.ligneNuitRetiree).toContain("{date}");
+    const email = proposalChangedEmail({
+      ...base,
+      nuits: [{ date: "30/09/2026", demande: "20h00", propose: "21h00", fin: "8h00" }],
+      serie: true,
+    });
+    expect(email.text).not.toMatch(/\{[a-z]+\}/);
   });
 });

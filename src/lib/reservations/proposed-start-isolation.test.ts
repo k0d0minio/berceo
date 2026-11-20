@@ -76,8 +76,44 @@ describe("the writes of the two columns", () => {
     expect(answers.match(/nullif\(\$\{seriesProposal\(proposed\)\}, ok\.start_time\)/g)).toHaveLength(1);
     // A re-answer writes the proposal again: an old one never stays on the row.
     expect(answers.match(/proposed_start_time = excluded\.proposed_start_time/g)).toHaveLength(2);
-    // The form's value is read by the rule before each write.
-    expect(answers.match(/readProposal\(/g)).toHaveLength(2);
+    // The form's value is read by the rule before each write: two answers, two changes in place (JAM-349).
+    expect(answers.match(/readProposal\(/g)).toHaveLength(4);
+  });
+
+  it("changes a proposal in place only in the two UPDATEs of her waiting answer (JAM-349)", () => {
+    const answers = read(join("lib", "reservations", "answers.ts"));
+    // One night: the bound value, never the family's own start. A regular request: each night's value.
+    expect(answers.match(/set proposed_start_time = nullif\(\$\{proposed\}::time, r\.start_time\)/g)).toHaveLength(1);
+    expect(answers.match(/nullif\(\$\{seriesProposal\(proposed, sql`r\.id`\)\}, r\.start_time\) as wanted/g)).toHaveLength(1);
+    expect(answers.match(/set proposed_start_time = /g)).toHaveLength(2);
+    // Each change is a new answer for the booking: the fee opened before it books nothing.
+    expect(answers.match(/set proposed_start_time = [^;]*?answered_at = \$\{at\}::timestamptz,\s+answer_count = a\.answer_count \+ 1/g)).toHaveLength(2);
+    // Only an answer that waits, of the profile read from the session's user.
+    for (const name of ["changeProposal", "changeSeriesProposals"]) {
+      const start = answers.indexOf(`export async function ${name}(`);
+      const body = answers.slice(start, answers.indexOf("\n}\n", start));
+      expect(body).toContain("const profile = await professionalProfileOf(userId);");
+      expect(body).toContain("changeRefusal(");
+      expect(body).toContain("profile.id");
+    }
+  });
+
+  it("takes the professional from the session in each action that changes a proposal (JAM-349)", () => {
+    const actions = read(join("app", "(portail)", "espace", "professionnelle", "demandes", "actions.ts"));
+    for (const name of ["changeProposalAction", "changeSeriesProposalsAction"]) {
+      const start = actions.indexOf(`export async function ${name}(`);
+      expect(start).toBeGreaterThan(-1);
+      const body = actions.slice(start, actions.indexOf("\n}\n", start));
+      expect(body).toContain("const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);");
+      expect(body).toMatch(/await change(Series)?Proposals?\(\s*user\.id,/);
+      // A regular request is told as one, a night alone as one night.
+      expect(body).toContain(`nights, ${name === "changeSeriesProposalsAction"}, site`);
+      // The family is told with the e-mail of a change, after the write, with the nights the write changed.
+      expect(body).toContain("const { applicationId, answerCount, nights } = result;");
+      expect(body).toMatch(/after\(\(\) => notifyProposalChanged\(applicationId, answerCount, nights, (true|false), site\)\);/);
+      // Never the e-mail of a new answer: she did not answer again.
+      expect(body).not.toContain("notifyNewAnswer(");
+    }
   });
 
   it("writes the request's start and its record in one statement of the booking, nowhere else", () => {

@@ -161,3 +161,34 @@ describe("the founders' credits and cancellations (annulations-back-office)", ()
     expect(a.reservations.annulation.titre).toContain("{date}");
   });
 });
+
+// Spec (JAM-361): the founders' list of communes is in the navigation, and its share link has
+// a button to copy it and a link to the public page.
+describe("the list of communes (JAM-361)", () => {
+  it("has its entry in the navigation, before the journal", () => {
+    const entries = Object.keys(a.nav);
+    expect(a.nav.communes).toBe("Communes");
+    expect(entries.indexOf("communes")).toBe(entries.indexOf("journal") - 1);
+  });
+
+  it("names the page, its four columns and the actions of the share link", () => {
+    expect(a.communes.titre).toBe("Communes");
+    expect(Object.values(a.communes.colonnes)).toEqual([
+      "Commune",
+      "Codes postaux",
+      "Professionnelles validées",
+      "Lien à partager",
+    ]);
+    expect(a.communes.copier).toBe("Copier le lien");
+    expect(a.communes.copierDe).toContain("{commune}");
+    expect(a.communes.ouvrirDe).toContain("{commune}");
+    expect(a.communes.resultats).toContain("{q}");
+  });
+
+  it("names the QR code, its image and its two downloads", () => {
+    const { qr } = a.communes;
+    expect(qr.afficher).toBe("Afficher le code QR");
+    expect([qr.svg, qr.png]).toEqual(["Télécharger en SVG", "Télécharger en PNG"]);
+    for (const text of [qr.alt, qr.svgDe, qr.pngDe]) expect(text).toContain("{commune}");
+  });
+});

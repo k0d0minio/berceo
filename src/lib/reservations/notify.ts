@@ -5,6 +5,7 @@ import { paiement } from "@/content/paiement";
 import { formatDate, formatTime } from "@/lib/demandes/format";
 import { logFailures, seriesSummary, summary } from "@/lib/demandes/notify";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
+import { endTime } from "@/lib/demandes/rules";
 import { sendEmail } from "@/lib/email/send";
 import { eurosFromCents } from "@/lib/paiements/rules";
 import {
@@ -13,12 +14,13 @@ import {
   newAnswerEmail,
   notRetainedEmail,
   priorityRequestEmail,
+  proposalChangedEmail,
 } from "@/lib/email/templates";
 
 import { professionInSentence } from "./format";
 import { answerNotice, bookingNotice, declinedNotices, priorityNotice } from "./notices";
 import { familyBookingPath, professionalBookingPath, professionalProfilePath } from "./paths";
-import { requestedStart } from "./rules";
+import { effectiveStart, requestedStart, type ChangedNight } from "./rules";
 
 /**
  * The e-mails of an answer and a booking. Each runs after the response
@@ -61,6 +63,56 @@ export async function notifyNewAnswer(applicationId: string, answerCount: number
 }
 
 /**
+ * She changed or removed the start she proposed, on her waiting answer
+ * (JAM-349): « [Prénom] a modifié l'heure de début proposée », to the family,
+ * one for each change. `nights` are the nights the write changed, as it
+ * returned them; a regular request (`ofSeries`) is told in one e-mail with each
+ * changed night. The request is open, so the start each line calls requested
+ * is the family's (`requestedStart`, the rule of JAM-351), and the end follows
+ * the start the line shows. The key holds the answer's count, which each
+ * change moves: a retry never sends twice, and the next change sends again.
+ */
+export async function notifyProposalChanged(
+  applicationId: string,
+  answerCount: number,
+  nights: readonly ChangedNight[],
+  ofSeries: boolean,
+  siteUrl: string,
+): Promise<void> {
+  if (nights.length === 0) return;
+  try {
+    const notice = await answerNotice(applicationId);
+    if (!notice) return;
+    const { family, professional } = notice;
+    await sendEmail(
+      family.email,
+      proposalChangedEmail({
+        siteUrl,
+        prenom: family.firstName,
+        professionnelle: professional.firstName,
+        nuits: [...nights]
+          .sort((a, b) => a.nightDate.localeCompare(b.nightDate))
+          .map((night) => {
+            const requested = requestedStart(night);
+            const shown = effectiveStart(requested, night.proposedStartTime);
+            return {
+              date: formatDate(night.nightDate),
+              demande: formatTime(requested),
+              propose: shown === requested ? null : formatTime(shown),
+              fin: formatTime(endTime(shown, night.extraHours)),
+            };
+          }),
+        serie: ofSeries,
+        url: `${siteUrl}${professionalProfilePath(professional.profileId, notice.requestId)}`,
+      }),
+      `horaire-${applicationId}-${answerCount}`,
+    );
+  } catch (error) {
+    logError("changed-start e-mail not sent", { applicationId }, error);
+  }
+}
+
+/**
  * « Not retained »: to each professional whose waiting answer was declined
  * (D-70, D-76). Her declined nights of one regular request are told once, with
  * one of its nights (JAM-302): she answered them as one.
@@ -82,14 +134,9 @@ export async function notifyDeclined(applicationIds: string[], siteUrl: string):
       notices.map((n) =>
         sendEmail(
           n.email,
-          // The request is booked by now: its start can be another professional's proposal (JAM-306).
-          // She reads the night at the start the family asked for.
-          notRetainedEmail({
-            siteUrl,
-            prenom: n.firstName,
-            url,
-            request: summary({ ...n.request, startTime: requestedStart(n.request) }),
-          }),
+          // The request can be booked by now: its start is then another professional's proposal (JAM-306).
+          // `summary` gives her the night at the start the family asked for (JAM-351).
+          notRetainedEmail({ siteUrl, prenom: n.firstName, url, request: summary(n.request) }),
           `non-retenue-${n.key}`,
         ),
       ),
@@ -161,7 +208,9 @@ export async function notifyBooking(
  * The booking of a regular request (JAM-302): one pair of confirmations for
  * all its nights, keyed by the first night's booking, so a retry sends it
  * once; then « not retained » to the others who waited, once each. The dates
- * are every night booked, in order; the hour is the first night's.
+ * are every night booked, in order. The hour is the agreed start: said once
+ * when every night has the same, and night by night when they differ (JAM-351),
+ * because each night of an answer can hold its own proposed start (JAM-306).
  */
 export async function notifySeriesBooking(
   bookingIds: readonly string[],
@@ -179,6 +228,10 @@ export async function notifySeriesBooking(
     const [notice] = sorted;
     if (notice) {
       const date = sorted.map((n) => formatDate(n.nightDate)).join(", ");
+      const heures = sorted.map((n) => formatTime(n.startTime));
+      const nuits = heures.some((heure) => heure !== heures[0])
+        ? sorted.map((n, i) => ({ date: formatDate(n.nightDate), heure: heures[i] }))
+        : undefined;
       const results = await Promise.allSettled([
         sendEmail(
           notice.family.email,
@@ -187,7 +240,8 @@ export async function notifySeriesBooking(
             prenom: notice.family.firstName,
             professionnelle: notice.professional.firstName,
             date,
-            heure: formatTime(notice.startTime),
+            heure: heures[0],
+            nuits,
             url: `${siteUrl}${familyBookingPath(notice.id)}`,
             credit: fee ? creditLine(fee) : undefined,
           }),

@@ -391,6 +391,9 @@ export const demandes = catalogue({
       nuits: "Les nuits de cette demande",
       /** @relecture Surya — lien vers une nuit. */
       voir: "Voir la nuit",
+      /** @relecture Surya — une demande régulière verrouillée par une réponse en attente : elle peut être republiée (JAM-353). */
+      verrouRepubliable:
+        "Une professionnelle a répondu à cette demande, elle ne peut donc plus être modifiée. Si aucune réponse ne vous convient, vous pouvez la republier.",
     },
 
     annulationSerie: {

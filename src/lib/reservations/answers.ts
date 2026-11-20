@@ -18,7 +18,17 @@ import { nightAhead, professionalProfileOf, UUID } from "@/lib/demandes/requests
 import { TIME_ZONE } from "@/lib/demandes/rules";
 import { withConversation, withSeriesConversation } from "@/lib/messagerie/conversations";
 
-import { answerRefusal, readProposal, type AnswerRefusal, type ApplicationStatus, type Rates } from "./rules";
+import {
+  answerRefusal,
+  changeRefusal,
+  proposalChanged,
+  readProposal,
+  type AnswerRefusal,
+  type ApplicationStatus,
+  type ChangedNight,
+  type ChangeRefusal,
+  type Rates,
+} from "./rules";
 
 /**
  * Every read and write of an answer (« Je suis disponible pour cette garde »).
@@ -61,8 +71,9 @@ export type AnswerResult =
  * given again on the same row, at her current rate (D-73, D-74). `proposed` is
  * the start she proposes in place of the family's (JAM-306): a half hour of
  * the request's range, refused as « horaire » otherwise. None, or the
- * family's own start, saves no proposal. A re-answer writes it again, so she
- * changes or removes her proposal by answering again.
+ * family's own start, saves no proposal. A re-answer writes it again. While
+ * her answer waits, she changes or removes her proposal in place
+ * (`changeProposal`, JAM-349).
  */
 export async function answerRequest(
   userId: string,
@@ -380,6 +391,250 @@ export async function withdrawAnswer(userId: string, requestId: string, now: Dat
     )
     .returning({ id: careRequestApplications.id });
   return updated.length > 0;
+}
+
+// ---------------------------------------------------------------------------
+// Her proposed start changed in place (JAM-349)
+// ---------------------------------------------------------------------------
+
+export type ChangeResult =
+  /** `nights` are the nights whose start the write changed, in night order: the family's e-mail names them. */
+  | { ok: true; applicationId: string; answerCount: number; nights: ChangedNight[] }
+  | { ok: false; reason: ChangeRefusal | "introuvable" };
+
+/** A night as the two statements return it: text, so the driver's types do not matter. */
+type ChangedRow = {
+  id: string;
+  answer_count: number;
+  night_date: string;
+  start_time: string;
+  extra_hours: string | number;
+  proposed: string | null;
+};
+
+function changedNight(row: ChangedRow): ChangedNight {
+  return {
+    nightDate: row.night_date,
+    startTime: row.start_time,
+    extraHours: Number(row.extra_hours),
+    proposedStartTime: row.proposed,
+  };
+}
+
+/**
+ * `changeProposal`'s statement, built and not run: her waiting answer on one
+ * open night ahead takes the start she now proposes, or none. The row is hers
+ * by her profile id. A booked, declined or withdrawn answer matches nothing.
+ * The change is a new answer for the booking: `answered_at` moves, so a fee
+ * opened on the proposal of before books nothing (`acceptAnswer`), and
+ * `answer_count` moves, so the family's e-mail of the change has a new key. A value equal to
+ * the saved one writes nothing.
+ */
+export function changeProposalStatement(profileId: string, requestId: string, proposed: string | null, at: string): SQL {
+  return sql`
+    update care_request_applications a
+    set proposed_start_time = nullif(${proposed}::time, r.start_time),
+        answered_at = ${at}::timestamptz,
+        answer_count = a.answer_count + 1,
+        updated_at = ${at}::timestamptz
+    from care_requests r, professional_profiles p
+    where a.request_id = ${requestId}
+      and a.profile_id = ${profileId}
+      and a.status = 'en_attente'
+      and r.id = a.request_id
+      and r.status = 'ouverte'
+      -- Her answer on a regular request is changed for all its nights (changeSeriesProposals).
+      and not r.series_whole
+      and (r.night_date + r.start_time) > (now() at time zone ${TIME_ZONE})
+      and (r.night_date + coalesce(${proposed}::time, r.start_time)) > (now() at time zone ${TIME_ZONE})
+      and p.id = a.profile_id
+      and p.status = 'valide'
+      and ${notSuspended(sql`p.user_id`)}
+      and a.proposed_start_time is distinct from nullif(${proposed}::time, r.start_time)
+    returning a.id, a.answer_count, r.night_date::text as night_date, r.start_time::text as start_time,
+              r.extra_hours, a.proposed_start_time::text as proposed
+  `;
+}
+
+/**
+ * She changes or removes the start she proposed for one night, on her waiting
+ * answer (JAM-349): a request of one night, an urgent one, or a night of an
+ * older series. The rules are read first for a precise message
+ * (`changeRefusal`), then held again by the UPDATE. `proposed` is read as an
+ * answer reads it (`readProposal`): empty, or the family's own start, removes
+ * the proposal. The caller tells the family (`notifyProposalChanged`).
+ */
+export async function changeProposal(
+  userId: string,
+  requestId: string,
+  now: Date,
+  proposed: string | null,
+): Promise<ChangeResult> {
+  if (!UUID.test(requestId)) return { ok: false, reason: "introuvable" };
+  const profile = await professionalProfileOf(userId);
+  if (!profile) return { ok: false, reason: "nonValide" };
+
+  const [row] = await db
+    .select({
+      status: careRequests.status,
+      nightDate: careRequests.nightDate,
+      startTime: careRequests.startTime,
+      seriesWhole: careRequests.seriesWhole,
+      answer: careRequestApplications.status,
+      saved: careRequestApplications.proposedStartTime,
+    })
+    .from(careRequests)
+    .leftJoin(
+      careRequestApplications,
+      and(
+        eq(careRequestApplications.requestId, careRequests.id),
+        eq(careRequestApplications.profileId, profile.id),
+      ),
+    )
+    .where(eq(careRequests.id, requestId))
+    .limit(1);
+  if (!row) return { ok: false, reason: "introuvable" };
+  if (row.seriesWhole) return { ok: false, reason: "modification" };
+
+  const proposal = readProposal(row.startTime, proposed);
+  if (!proposal.ok) return { ok: false, reason: "horaire" };
+  const refusal = changeRefusal(
+    { profile, request: row, answer: row.answer, proposedStartTime: proposal.proposed },
+    now,
+  );
+  if (refusal) return { ok: false, reason: refusal };
+  if (!proposalChanged(row.saved, proposal.proposed)) return { ok: false, reason: "inchange" };
+
+  const written = await db.execute<ChangedRow>(
+    changeProposalStatement(profile.id, requestId, proposal.proposed, now.toISOString()),
+  );
+  const [answer] = written.rows;
+  // The answer moved between the read and the write: booked, declined, withdrawn.
+  if (!answer) return { ok: false, reason: "modification" };
+  return {
+    ok: true,
+    applicationId: answer.id,
+    answerCount: Number(answer.answer_count),
+    nights: [changedNight(answer)],
+  };
+}
+
+/**
+ * `changeSeriesProposals`' statement, built and not run: her waiting answers
+ * on the open nights ahead of a regular request take the starts she now
+ * proposes, each night or no night. Nothing is written when no night changes,
+ * or when one new start is not ahead. Each night's `answered_at` and
+ * `answer_count` move, the unchanged nights too: the family books all the
+ * nights with one confirmation, so a fee opened before the change books no
+ * night (`acceptAnswer`).
+ */
+export function changeSeriesProposalsStatement(
+  profileId: string,
+  seriesId: string,
+  proposed: readonly (readonly [string, string])[],
+  at: string,
+): SQL {
+  return sql`
+    with nights as (
+      select a.id, r.night_date, r.start_time, r.extra_hours, a.proposed_start_time as saved,
+             nullif(${seriesProposal(proposed, sql`r.id`)}, r.start_time) as wanted
+      from care_request_applications a
+      join care_requests r on r.id = a.request_id
+      join professional_profiles p on p.id = a.profile_id
+      where a.profile_id = ${profileId}
+        and a.status = 'en_attente'
+        and r.series_id = ${seriesId} and r.series_whole
+        and r.status = 'ouverte'
+        and (r.night_date + r.start_time) > (now() at time zone ${TIME_ZONE})
+        and p.status = 'valide'
+        and ${notSuspended(sql`p.user_id`)}
+    )
+    update care_request_applications a
+    set proposed_start_time = n.wanted,
+        answered_at = ${at}::timestamptz,
+        answer_count = a.answer_count + 1,
+        updated_at = ${at}::timestamptz
+    from nights n
+    where a.id = n.id
+      and a.status = 'en_attente'
+      and exists (select 1 from nights c where c.wanted is distinct from c.saved)
+      and not exists (
+        select 1 from nights late
+        where (late.night_date + coalesce(late.wanted, late.start_time)) <= (now() at time zone ${TIME_ZONE})
+      )
+    returning a.id, a.answer_count, n.night_date::text as night_date, n.start_time::text as start_time,
+              n.extra_hours, n.wanted::text as proposed, (n.wanted is distinct from n.saved) as changed
+  `;
+}
+
+/**
+ * She changes or removes the starts she proposed on a regular request
+ * answered as one (JAM-302, JAM-349): one form for all its open nights ahead,
+ * one write. A night with no value in `proposals` goes back to the family's
+ * start. Each night is read with `changeRefusal`, the first refusal is hers.
+ * The returned answer is the first night's: the family's e-mail names it, as
+ * for `answerSeries`.
+ */
+export async function changeSeriesProposals(
+  userId: string,
+  seriesId: string,
+  now: Date,
+  proposals: ReadonlyMap<string, string> = new Map(),
+): Promise<ChangeResult> {
+  if (!UUID.test(seriesId)) return { ok: false, reason: "introuvable" };
+  const profile = await professionalProfileOf(userId);
+  if (!profile) return { ok: false, reason: "nonValide" };
+
+  const nights = await db
+    .select({
+      id: careRequests.id,
+      status: careRequests.status,
+      nightDate: careRequests.nightDate,
+      startTime: careRequests.startTime,
+      answer: careRequestApplications.status,
+      saved: careRequestApplications.proposedStartTime,
+    })
+    .from(careRequests)
+    .leftJoin(
+      careRequestApplications,
+      and(
+        eq(careRequestApplications.requestId, careRequests.id),
+        eq(careRequestApplications.profileId, profile.id),
+      ),
+    )
+    .where(and(eq(careRequests.seriesId, seriesId), eq(careRequests.seriesWhole, true), eq(careRequests.status, "ouverte"), nightAhead));
+  if (nights.length === 0) return { ok: false, reason: "introuvable" };
+
+  // A proposal for a night that is not of this request is ignored.
+  const proposed: [string, string][] = [];
+  let changed = false;
+  for (const night of nights) {
+    const proposal = readProposal(night.startTime, proposals.get(night.id));
+    if (!proposal.ok) return { ok: false, reason: "horaire" };
+    if (proposal.proposed) proposed.push([night.id, proposal.proposed]);
+    const refusal = changeRefusal(
+      { profile, request: night, answer: night.answer, proposedStartTime: proposal.proposed },
+      now,
+    );
+    if (refusal) return { ok: false, reason: refusal };
+    if (proposalChanged(night.saved, proposal.proposed)) changed = true;
+  }
+  if (!changed) return { ok: false, reason: "inchange" };
+
+  const written = await db.execute<ChangedRow & { changed: boolean }>(
+    changeSeriesProposalsStatement(profile.id, seriesId, proposed, now.toISOString()),
+  );
+  const rows = [...written.rows].sort((a, b) => a.night_date.localeCompare(b.night_date));
+  const [first] = rows;
+  // A night moved between the read and the write: booked, declined, withdrawn, started.
+  if (!first) return { ok: false, reason: "modification" };
+  return {
+    ok: true,
+    applicationId: first.id,
+    answerCount: Number(first.answer_count),
+    // Each night's answer moved, and only the nights whose start changed are told.
+    nights: rows.filter((row) => row.changed).map(changedNight),
+  };
 }
 
 /**
@@ -739,7 +994,7 @@ export async function republishRequest(userId: string, requestId: string, now: D
           eq(careRequests.familyUserId, userId),
           eq(careRequests.status, "ouverte"),
           nightAhead,
-          // A regular request is not republished night by night (JAM-302): it is cancelled and published again.
+          // A regular request is not republished night by night (JAM-302): `republishSeries` republishes it whole (JAM-353).
           sql`not ${careRequests.seriesWhole}`,
           exists(waiting),
         ),

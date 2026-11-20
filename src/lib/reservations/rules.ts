@@ -306,3 +306,69 @@ export function proposalsSignature(
     .sort()
     .join(",");
 }
+
+// ---------------------------------------------------------------------------
+// A proposal changed in place (JAM-349)
+// ---------------------------------------------------------------------------
+
+/*
+ * While her answer waits, she changes or removes her proposed start on the
+ * answer itself: no withdrawal, no new answer. The change counts as a new
+ * answer for the two protections of JAM-306. It moves `answered_at`, so a fee
+ * that the family opened on the proposal of before books nothing
+ * (`acceptAnswer`). The checkout compares the proposal the family confirmed
+ * with the proposal the answer holds (`proposalsSignature`), so it refuses the
+ * old one. A booked, declined or withdrawn answer is never changed.
+ */
+
+/** Why a change of her proposed start is refused, as a catalogue key. */
+export type ChangeRefusal = "nonValide" | "modification" | "fermee" | "commencee" | "horaire" | "inchange";
+
+export type ChangeFacts = {
+  /** Her profile: only a validated one holds a waiting answer. */
+  profile: { status: string };
+  request: Pick<RequestFacts, "status" | "nightDate" | "startTime">;
+  /** Her answer on this request, if she ever gave one. */
+  answer: ApplicationStatus | null;
+  /** The start she now proposes for the night (`readProposal`); null for the family's own. */
+  proposedStartTime: string | null;
+};
+
+/**
+ * Why she may not change the proposed start of a night, or null: a validated
+ * profile, an answer of hers that still waits, an open request whose night has
+ * not started, and a new start that is ahead too.
+ */
+export function changeRefusal(facts: ChangeFacts, now: Date): ChangeRefusal | null {
+  if (facts.profile.status !== "valide") return "nonValide";
+  if (facts.answer !== "en_attente") return "modification";
+  if (facts.request.status !== "ouverte") return "fermee";
+  if (hasNightStarted(facts.request.nightDate, facts.request.startTime, now)) return "commencee";
+  if (facts.proposedStartTime && hasNightStarted(facts.request.nightDate, facts.proposedStartTime, now)) {
+    return "commencee";
+  }
+  return null;
+}
+
+/**
+ * Whether the start she now proposes differs from the one her answer holds.
+ * No change writes nothing, so the family is not told of it.
+ */
+export function proposalChanged(saved: string | null | undefined, proposed: string | null | undefined): boolean {
+  const before = saved ? toHourMinute(saved) : null;
+  const after = proposed ? toHourMinute(proposed) : null;
+  return before !== after;
+}
+
+/**
+ * One night whose proposed start a change in place wrote (JAM-349): what the
+ * family's e-mail says of it. `startTime` is the family's start, since only an
+ * open request is changed. `proposedStartTime` is null when she removed her
+ * proposal.
+ */
+export type ChangedNight = {
+  nightDate: string;
+  startTime: string;
+  extraHours: number;
+  proposedStartTime: string | null;
+};

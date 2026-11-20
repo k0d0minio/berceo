@@ -7,7 +7,8 @@ import { catalogue } from "./locale";
  * the request, not the words: every entry is ours, written in the guide's
  * rules (vouvoiement, no exclamation mark, no em dash, no ellipsis) and
  * tagged `@relecture`. The page names no price, no duration and no place:
- * the calendar has them.
+ * the calendar has them. The button shows the calendar in the page, in a
+ * frame that loads only after the click (JAM-352).
  */
 export const consultationSommeil = catalogue({
   fr: {
@@ -31,26 +32,44 @@ export const consultationSommeil = catalogue({
       /** @relecture Surya — texte du bloc qui porte le bouton. */
       paragraphs: [
         "Les nuits avec un bébé soulèvent beaucoup de questions. Alix et Jordane prennent le temps de vous écouter et de regarder avec vous ce qui peut aider votre famille à mieux se reposer.",
-        "Le rendez-vous se prend en ligne, dans leur agenda. Vous y trouverez les créneaux disponibles et toutes les informations pratiques.",
+        "Le rendez-vous se prend en ligne, dans leur agenda Calendly. Vous y trouverez les créneaux disponibles et toutes les informations pratiques.",
       ],
-      /** @relecture Surya — bouton vers l'agenda en ligne. */
+      /** @relecture Surya — bouton qui affiche l'agenda dans la page (JAM-352). */
       bouton: "Choisir un créneau",
-      /** @relecture Surya — précision lue par les lecteurs d'écran, après le libellé du bouton. */
-      nouvelOnglet: "(s'ouvre dans un nouvel onglet)",
+      /** @relecture Surya — phrase sous le bouton : l'agenda est un service tiers, chargé après le clic (JAM-352). */
+      service:
+        "L'agenda est un service de Calendly. Il s'affiche sur cette page après votre clic, et Calendly reçoit alors les informations que vous y saisissez.",
+      /** @relecture Surya — titre du cadre de l'agenda, lu par les lecteurs d'écran. */
+      cadre: "Agenda de la consultation sommeil, sur Calendly",
+      /**
+       * Shown above the calendar when Calendly tells the page that a booking
+       * is made. If Calendly sends no message, the visitor sees Calendly's
+       * own confirmation in the frame, and these words do not show.
+       */
+      confirme: {
+        /** @relecture Surya — titre de la confirmation, après la réservation dans l'agenda. */
+        title: "Votre rendez-vous est enregistré",
+        /** @relecture Surya — texte de la confirmation, après la réservation dans l'agenda. */
+        text: "Merci pour votre confiance. Calendly vous envoie un e-mail de confirmation avec la date, l'heure et le lien du rendez-vous.",
+        /** @relecture Surya — bouton vers l'accueil du site. */
+        accueil: "Retour à l'accueil",
+        /** @relecture Surya — bouton vers la connexion, qui mène une personne connectée à son espace. */
+        espace: "Accéder à mon espace",
+      },
     },
 
     etapes: {
       /** @relecture Surya — titre des trois étapes. */
       title: "Comment ça se passe",
-      /** @relecture Surya — les trois étapes. */
+      /** @relecture Surya — les trois étapes de la prise de rendez-vous (JAM-352). */
       items: [
         {
           title: "Choisissez votre créneau",
-          text: "Ouvrez l'agenda d'Alix et Jordane et retenez le moment qui vous convient.",
+          text: "Le bouton affiche sur cette page Calendly, l'agenda en ligne d'Alix et Jordane. Retenez le moment qui vous convient.",
         },
         {
-          title: "Confirmez votre rendez-vous",
-          text: "Vous recevez une confirmation avec les informations pratiques de la consultation.",
+          title: "Recevez votre e-mail",
+          text: "Une fois votre créneau choisi, Calendly vous envoie un e-mail de confirmation avec la date, l'heure et le lien du rendez-vous.",
         },
         {
           title: "Échangez avec une sage-femme",
