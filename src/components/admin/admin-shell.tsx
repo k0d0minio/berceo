@@ -15,6 +15,7 @@ import {
   ADMIN_REQUESTS_PATH,
   ADMIN_USERS_PATH,
 } from "@/lib/admin/paths"
+import { ADMIN_COMMUNES_PATH } from "@/lib/admin/communes"
 import { ADMIN_RATINGS_PATH } from "@/lib/avis/paths"
 import { ADMIN_CREDITS_PATH } from "@/lib/credits/paths"
 import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths"
@@ -33,6 +34,7 @@ export type AdminSection =
   | "abonnements"
   | "codesPromo"
   | "avis"
+  | "communes"
   | "journal"
 
 const SECTIONS: readonly [AdminSection, string][] = [
@@ -47,12 +49,13 @@ const SECTIONS: readonly [AdminSection, string][] = [
   ["abonnements", ADMIN_SUBSCRIPTIONS_PATH],
   ["codesPromo", ADMIN_PROMO_CODES_PATH],
   ["avis", ADMIN_RATINGS_PATH],
+  ["communes", ADMIN_COMMUNES_PATH],
   ["journal", ADMIN_JOURNAL_PATH],
 ]
 
 /*
  * Every back-office page: the admin's space with the back-office navigation
- * above the page (D-132). Eleven capsules wrap on a phone rather than scroll;
+ * above the page (D-132). The capsules wrap on a phone rather than scroll;
  * the current one reads as the current page and carries the butter fill. The
  * page is pearl (JAM-327), so a capsule that is not the current one is white.
  */
