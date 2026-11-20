@@ -13,8 +13,10 @@ ALTER TABLE "care_requests" ADD COLUMN "feedings" "feeding"[] DEFAULT '{}' NOT N
 -- published before the feeding was asked keeps an empty list.
 UPDATE "care_requests" SET
   "child_ages" = (
-    SELECT jsonb_agg(jsonb_build_object('value', "care_requests"."baby_age_value", 'unit', "care_requests"."baby_age_unit"))
-    FROM generate_series(1, CASE "care_requests"."children" WHEN 'un_bebe' THEN 1 WHEN 'jumeaux' THEN 2 ELSE 3 END)
+    -- "ORDER BY child.n" makes the aggregate belong to this subquery: with outer columns only,
+    -- Postgres reads it as an aggregate of the UPDATE and refuses it.
+    SELECT jsonb_agg(jsonb_build_object('value', "care_requests"."baby_age_value", 'unit', "care_requests"."baby_age_unit") ORDER BY child.n)
+    FROM generate_series(1, CASE "care_requests"."children" WHEN 'un_bebe' THEN 1 WHEN 'jumeaux' THEN 2 ELSE 3 END) AS child(n)
   ),
   "feedings" = CASE WHEN "care_requests"."feeding" IS NULL THEN '{}'::"feeding"[] ELSE ARRAY["care_requests"."feeding"] END;--> statement-breakpoint
 ALTER TABLE "care_requests" ALTER COLUMN "child_ages" SET NOT NULL;--> statement-breakpoint
