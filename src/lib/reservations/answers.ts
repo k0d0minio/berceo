@@ -959,7 +959,7 @@ export async function republishRequest(userId: string, requestId: string, now: D
           eq(careRequests.familyUserId, userId),
           eq(careRequests.status, "ouverte"),
           nightAhead,
-          // A regular request is not republished night by night (JAM-302): it is cancelled and published again.
+          // A regular request is not republished night by night (JAM-302): `republishSeries` republishes it whole (JAM-353).
           sql`not ${careRequests.seriesWhole}`,
           exists(waiting),
         ),
