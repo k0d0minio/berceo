@@ -121,6 +121,17 @@ export const professionnelle = catalogue({
       envoiEnCours: "Envoi en cours",
       voir: "Voir",
       retirer: "Retirer",
+      /** La confirmation avant le retrait d'un fichier (JAM-343). */
+      retrait: {
+        /** @relecture Surya — titre de la confirmation. */
+        titre: "Retirer ce fichier",
+        /** @relecture Surya — ce que fait le retrait. Un dossier validé ne change pas d'état : le retrait y est refusé avant la réouverture. */
+        description: "Le fichier « {fichier} » sera retiré de votre dossier.",
+        /** @relecture Surya — réponse qui retire (rouge, JAM-300). */
+        confirmer: "Oui, retirer ce fichier",
+        /** @relecture Surya — réponse qui ne change rien (vert, JAM-300). */
+        annuler: "Non, garder ce fichier",
+      },
     },
 
     declarations: {

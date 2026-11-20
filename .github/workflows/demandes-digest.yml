@@ -7,7 +7,8 @@
 # at most, so the other call of the day sends nothing.
 # One secret, CRON_SECRET, is shared by both environments (D-68): the same
 # value is set on each Vercel environment and as this repository's secret.
-# While it is missing the run is skipped with a warning, never a failure.
+# While it is missing the run is skipped with a warning, never a failure; so is
+# a 404 from an environment the route has not reached yet.
 name: Demandes digest
 
 on:
@@ -44,7 +45,13 @@ jobs:
             echo "::warning::CRON_SECRET is not set: the $URL digest is skipped."
             exit 0
           fi
-          curl --fail-with-body --silent --show-error --max-time 60 \
+          # Until the batch carrying the route is promoted, production answers 404: skipped, not failed.
+          code=$(curl --silent --show-error --max-time 60 -o response.json -w "%{http_code}" \
             -X POST -H "Authorization: Bearer $CRON_SECRET" \
-            "$URL/api/cron/demandes-digest"
-          echo
+            "$URL/api/cron/demandes-digest")
+          cat response.json; echo
+          if [ "$code" = "404" ]; then
+            echo "::warning::$URL has no digest route yet: skipped."
+            exit 0
+          fi
+          [ "$code" = "200" ] || { echo "::error::$URL answered $code"; exit 1; }

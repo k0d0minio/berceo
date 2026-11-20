@@ -62,6 +62,7 @@ function NightPicker({
   describedBy,
   multiple = false,
   maxCount,
+  onChange,
 }: {
   name: string
   /** The id of the visible label, « Date de la garde ». */
@@ -77,6 +78,8 @@ function NightPicker({
   multiple?: boolean
   /** With `multiple`: the most nights a tap may tick. */
   maxCount?: number
+  /** Told the nights ticked, in date order, after each tap: the form shows each night's own hours (JAM-303). */
+  onChange?: (nights: string[]) => void
 }) {
   function clamp(date: string): string {
     return date < min ? min : date > max ? max : date
@@ -137,12 +140,13 @@ function NightPicker({
 
   function choose(date: string) {
     setActive(date)
-    if (!multiple) {
-      setSelected([date])
-      return
-    }
-    if (selected.includes(date)) setSelected(selected.filter((night) => night !== date))
-    else if (maxCount === undefined || selected.length < maxCount) setSelected([...selected, date].sort())
+    let next = selected
+    if (!multiple) next = [date]
+    else if (selected.includes(date)) next = selected.filter((night) => night !== date)
+    else if (maxCount === undefined || selected.length < maxCount) next = [...selected, date].sort()
+    if (next === selected) return
+    setSelected(next)
+    onChange?.(next)
   }
 
   return (

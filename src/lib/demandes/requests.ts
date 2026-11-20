@@ -21,8 +21,8 @@ import { familyCommune } from "@/lib/famille/profile";
 import { requestAddressValues } from "@/lib/famille/request-address";
 import type { Address } from "@/lib/famille/validation";
 
-import { isChangeable, TIME_ZONE, type Children, type Feeding, type RequestStatus } from "./rules";
-import type { RequestValues } from "./validation";
+import { isChangeable, TIME_ZONE, type ChildAge, type Feeding, type RequestStatus } from "./rules";
+import type { RequestValues, SeriesNight } from "./validation";
 
 /**
  * Every read and write of a care request. The family's functions take her id
@@ -48,10 +48,8 @@ export const cardColumns = {
   nightDate: careRequests.nightDate,
   startTime: careRequests.startTime,
   extraHours: careRequests.extraHours,
-  children: careRequests.children,
-  babyAgeValue: careRequests.babyAgeValue,
-  babyAgeUnit: careRequests.babyAgeUnit,
-  feeding: careRequests.feeding,
+  childAges: careRequests.childAges,
+  feedings: careRequests.feedings,
   communeIns: careRequests.communeIns,
   postcode: careRequests.postcode,
   locality: careRequests.locality,
@@ -67,11 +65,10 @@ export type RequestCard = {
   nightDate: string;
   startTime: string;
   extraHours: number;
-  children: Children;
-  babyAgeValue: number;
-  babyAgeUnit: "semaines" | "mois";
-  /** Null on a request published before the field (demande-enfants-alimentation). */
-  feeding: Feeding | null;
+  /** One to four children, each with its own age (JAM-303). */
+  childAges: readonly ChildAge[];
+  /** Empty on a request published before the field (demande-enfants-alimentation). */
+  feedings: readonly Feeding[];
   communeIns: string;
   postcode: string;
   locality: string;
@@ -136,12 +133,12 @@ export type PublishPlace = {
  * and address, prefilled from her profile (demande-adresse-de-la-nuit). Without
  * a profile there is nothing to publish. Published from a professional's
  * profile, it carries her as its priority professional (D-71); the caller has
- * checked she is validated. A republished garde copies its request's feeding,
- * address and reason, null when that request predates the field.
+ * checked she is validated. A republished garde copies its request's feedings,
+ * address and reason, empty or null when that request predates the field.
  */
 export async function publishRequest(
   userId: string,
-  values: Omit<RequestValues, "feeding"> & { feeding: Feeding | null },
+  values: RequestValues,
   place: PublishPlace,
   urgent: boolean,
   now: Date,
@@ -164,7 +161,7 @@ export async function publishRequest(
 /** The row a publication inserts: the form's values, its place, the tick's moment and the priority. */
 function requestRow(
   userId: string,
-  values: Omit<RequestValues, "feeding"> & { feeding: Feeding | null },
+  values: RequestValues,
   place: PublishPlace,
   urgent: boolean,
   now: Date,
@@ -194,7 +191,8 @@ export type SeriesResult =
 
 /**
  * Publishes « Nuits régulières » (demande-nuits-regulieres): one normal request
- * per night, every one with the same details and one new series id, in one
+ * per night, every one with the same children, feedings, place and reason, its
+ * own start and its own extra hours (JAM-303), and one new series id, in one
  * INSERT, so the nights are published together or not at all. The series is
  * one request (JAM-302): a professional answers all its nights or none, and the
  * family books her for all of them with one fee. A night she
@@ -205,13 +203,14 @@ export type SeriesResult =
 export async function publishSeries(
   userId: string,
   values: RequestValues,
-  nights: string[],
+  seriesNights: readonly SeriesNight[],
   place: PublishPlace,
   now: Date,
   priorityProfileId: string | null = null,
 ): Promise<SeriesResult> {
   if (!(await familyCommune(userId))) return { ok: false, reason: "commune" };
 
+  const nights = seriesNights.map((night) => night.nightDate);
   const held = await liveNightsAmong(userId, nights);
   if (held.length > 0) return { ok: false, reason: "doublon", nights: held };
 
@@ -220,8 +219,9 @@ export async function publishSeries(
     const rows = await db
       .insert(careRequests)
       .values(
-        nights.map((nightDate) => ({
-          ...requestRow(userId, { ...values, nightDate }, place, false, now, priorityProfileId),
+        // Each night's own start and extra hours: never the first night's.
+        seriesNights.map((night) => ({
+          ...requestRow(userId, { ...values, ...night }, place, false, now, priorityProfileId),
           seriesId,
           seriesWhole: true,
         })),

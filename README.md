@@ -199,7 +199,10 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   retry in a few minutes; an orphan that signs in is signed out and asked to sign up again. The
   lookup and the delete (`orphanByEmail`, `deleteOrphanIdentity`, `src/lib/auth/users.ts`) are
   the accounts code's only statements on `neon_auth."user"`; the delete refuses any identity a
-  `users` row carries, in the same statement.
+  `users` row carries, in the same statement. Since JAM-342 the sign-up reads `users` by e-mail before
+  it makes an identity: an address that has a row makes no new identity and gets the answer of
+  D-34. Two sign-ups at the same time can still meet `users_email_unique`: that error gets the
+  same answer, and the new identity is deleted.
 - **The second factor (comptes-2fa):** after her password, a professional or a founder types a
   six-digit code Berceo sent to her e-mail address; a family never does. Neon Auth has no managed
   factor yet, so the site makes, sends and checks the code itself: the rules (who, 10 minutes, five
@@ -271,6 +274,17 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   `/espace/famille`. A normal request is for the day after tomorrow up to day 56, an urgent one
   for tonight or tomorrow night (D-60), in Brussels time; the urgency and the commune are fixed
   at publication. Without a profile she is sent to `/espace/famille/profil?completer=1`.
+- **Children, feeding and hours (JAM-303):** a request holds 1 to 4 children, each with its own
+  age in weeks (0 to 12) or months (1 to 24). A child of more than 24 months is refused. The
+  feeding is one answer or more, and « diversification alimentaire » is one of them. The extra
+  hours go by half hours, 0 to 6. The form computes the end of the night and shows it large.
+  Each night of a regular request has its own start and its own extra hours: the form posts
+  them as `heure-<date>` and `heuresSupplementaires-<date>`, and `publishSeries` writes them to
+  each row. The columns are `child_ages` (jsonb), `feedings` (`feeding[]`) and `extra_hours`
+  (`numeric(3,1)`), from migration 0038, which moves each older request to them with the same
+  values. An e-mail or a digest line of a regular request whose nights differ says « à des
+  horaires différents selon la nuit ». « Modifier ma demande » on a regular request edits the
+  night of the page only.
 - **The night's address (demande-adresse-de-la-nuit, D-63 superseded):** the form asks for the
   commune, the rue, the numéro and the boîte, prefilled from her profile. She can change them
   for this request, and her profile does not change. The rue and the numéro are required. The
@@ -913,7 +927,8 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
   confirmed at once leave one, the last recorded. A file she removes, and the documents a new
   profession no longer asks for, leave the bucket before their row, and a row goes only once its
   object is gone (`src/lib/professionnelle/removals.ts`): an object that cannot be deleted keeps
-  its row, so the purge and the account deletion still find it. Files are
+  its row, so the purge and the account deletion still find it. She confirms each removal in a
+  dialog first (JAM-343, `src/components/professionnelle/remove-file.tsx`). Files are
   read only through `/api/fichiers/[id]`, streamed to their owner or an admin, 404 to anyone else.
   Environment: `DOCUMENTS_S3_ENDPOINT`, `DOCUMENTS_S3_REGION`, `DOCUMENTS_BUCKET`,
   `DOCUMENTS_S3_ACCESS_KEY_ID`, `DOCUMENTS_S3_SECRET_ACCESS_KEY` (not `AWS_*`: Vercel reserves
@@ -1091,13 +1106,28 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
   blocks on the stripes. It is indexed and in the sitemap.
 - **Placeholders**: the two legal pages wait for the founders' texts. Both are `noindex` and
   out of the sitemap; lifting that is part of the change that brings the text.
+- **The sleep consultation (JAM-305):** `/consultation-sommeil` presents the consultation with
+  the two founders and has one button that opens their calendar in a new tab. The address of
+  the calendar is the environment variable `SLEEP_CONSULTATION_URL`
+  (`src/lib/consultation-sommeil/config.ts`), never in git. Where the variable is empty or is
+  not an `https://` address, the page answers 404, and the footer, the family's home and the
+  sitemap do not name it. The page shows no price. Words in
+  `src/content/consultation-sommeil.ts`. `.icm/setup/sleep-consultation-url.md` has the setup
+  act.
 - **Contact is a form, and no address is published.** `/contact` has three required fields
   (name, e-mail address, message of 2,000 characters at most). `sendContact`
   (`src/lib/contact/send.ts`) sends one e-mail through Resend to the address of the
   environment variable `CONTACT_EMAIL`, with the writer's address in `Reply-To`. Nothing is
   stored. A hidden trap field keeps robots out. Where `CONTACT_EMAIL` is empty, the page
-  answers 404, and the header, the footer and the sitemap do not name it. The page does not
-  limit how many messages one visitor sends. `.icm/setup/contact-email.md` has the setup act.
+  answers 404, and the header, the footer and the sitemap do not name it. One visitor
+  sends 5 messages for each hour at most (JAM-341, `src/lib/contact/rate-limit.ts`): the sixth is
+  refused with one sentence, and no e-mail leaves. The counter is one row of `app_settings`,
+  written by one atomic statement of `src/lib/settings/`. Its key is an HMAC-SHA-256 of the
+  visitor's address (the first entry of `x-forwarded-for`), keyed with `NEON_AUTH_COOKIE_SECRET`
+  and a label of its own: the address is never stored or logged. A row lives for one hour at
+  most, and each read removes the rows whose hour is over. With no address or no secret, all
+  visitors share one counter. If the counter cannot be read, no e-mail leaves.
+  `.icm/setup/contact-email.md` has the setup act.
 - **Indexed on production only.** See AGENTS.md if that needs reversing.
 
 ## Notes

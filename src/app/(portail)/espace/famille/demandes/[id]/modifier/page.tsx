@@ -28,8 +28,8 @@ export const dynamic = "force-dynamic";
 
 /*
  * Editing an open request: the night (within its own kind's window, as of
- * today), the start time, the children, the age, the feeding, which a
- * request published before the field gets here, and the night's rue, numéro
+ * today), the start time, the extra hours, the children with their ages, the
+ * feedings, which a request published before the field gets here, and the night's rue, numéro
  * and boîte, the profile's for a request published before it had its own, and
  * the optional reason (demande-motif-facultatif). The
  * commune and the urgency stay as published. An answer waiting on it locks it (D-76).
@@ -67,10 +67,8 @@ export default async function ModifierDemandePage({ params }: { params: Promise<
           date: request.nightDate,
           heure: toHourMinute(request.startTime),
           heuresSupplementaires: String(request.extraHours),
-          enfants: request.children,
-          ageValeur: String(request.babyAgeValue),
-          ageUnite: request.babyAgeUnit,
-          alimentation: request.feeding ?? "",
+          enfants: request.childAges.map((child) => ({ ageValeur: String(child.value), ageUnite: child.unit })),
+          alimentation: [...request.feedings],
           rue: address?.street ?? "",
           numero: address?.houseNumber ?? "",
           boite: address?.box ?? "",

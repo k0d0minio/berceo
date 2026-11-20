@@ -67,6 +67,8 @@ export const demandes = catalogue({
         heure: "Heure de début",
         /** Le libellé des fondatrices (retour 1, demande-heures-supplementaires). */
         heuresSupplementaires: "Heures supplémentaires",
+        /** @relecture Surya — l'heure de début et les heures supplémentaires de chaque nuit régulière (retour 2, JAM-303). */
+        horaires: "Horaires de chaque nuit",
         enfants: "Nombre d'enfants",
         /** @relecture Surya — le libellé des fondatrices, retour 1 (2026-10-23). */
         age: "Âge du/des enfants",
@@ -85,6 +87,19 @@ export const demandes = catalogue({
 
       aides: {
         heuresSupplementaires: "La garde de nuit standard est de 11 heures.",
+        /** @relecture Surya — l'heure de fin calculée, affichée en grand (retour 2, JAM-303). */
+        fin: "Fin de la garde : {fin}, le lendemain",
+        /** @relecture Surya — l'heure de fin tant que l'heure de début manque (JAM-303). */
+        finInconnue: "Fin de la garde : choisissez l'heure de début",
+        /** @relecture Surya — chaque nuit régulière a ses propres horaires (retour 2, JAM-303). */
+        horaires:
+          "Choisissez l'heure de début et les heures supplémentaires de chaque nuit. Elles peuvent changer d'une nuit à l'autre.",
+        /** @relecture Surya — avant qu'une nuit régulière soit cochée (JAM-303). */
+        horairesVide: "Cochez d'abord vos nuits dans le calendrier.",
+        /** @relecture Surya — plusieurs enfants, jusqu'à 24 mois (retour 2, JAM-303). */
+        enfants: "Indiquez chaque enfant à garder cette nuit, 4 au maximum, chacun âgé de 24 mois au plus.",
+        /** @relecture Surya — plusieurs réponses possibles (retour 2, JAM-303). */
+        alimentation: "Vous pouvez cocher plusieurs réponses.",
         commune:
           "L'adresse exacte sera communiquée uniquement après confirmation de la réservation.",
         /** @relecture Surya — la fenêtre d'une demande normale (D-60). */
@@ -123,14 +138,35 @@ export const demandes = catalogue({
         reguliere: "Nuits régulières",
       },
 
+      /** Plusieurs enfants, chacun avec son âge (retour 2, JAM-303). */
       enfants: {
-        un_bebe: "Un bébé",
-        jumeaux: "Jumeaux",
-        /** @relecture Surya — le choix des fondatrices, retour 1 (2026-10-23). */
-        triples: "Triplés",
+        /** @relecture Surya — titre de la ligne d'un enfant. */
+        enfant: "Enfant {n}",
+        /** @relecture Surya — bouton qui ajoute un enfant. */
+        ajouter: "Ajouter un enfant",
+        /** @relecture Surya — bouton qui retire un enfant. */
+        retirer: "Retirer",
+        /** @relecture Surya — nom du bouton qui retire un enfant, pour les lecteurs d'écran. */
+        retirerEnfant: "Retirer l'enfant {n}",
       },
 
-      /** Les trois réponses des fondatrices, retour 1 (2026-10-23), dans leur ordre. */
+      /** Les choix des heures supplémentaires, par demi-heure (retour 2, JAM-303). */
+      heuresSupplementaires: {
+        /** @relecture Surya — aucune heure supplémentaire. */
+        aucune: "Aucune",
+        /** @relecture Surya — une demi-heure. */
+        demiHeure: "30 minutes",
+        /** @relecture Surya — une heure. */
+        uneHeure: "1 heure",
+        /** @relecture Surya — une heure et demie. */
+        uneHeureTrente: "1 heure 30",
+        /** @relecture Surya — des heures entières. */
+        heures: "{n} heures",
+        /** @relecture Surya — des heures et une demi-heure. */
+        heuresTrente: "{n} heures 30",
+      },
+
+      /** Les trois réponses des fondatrices, retour 1 (2026-10-23), dans leur ordre, puis celle du retour 2. */
       alimentation: {
         /** @relecture Surya — la majuscule d'un choix du formulaire. */
         allaitement_maternel: "Allaitement maternel",
@@ -138,6 +174,8 @@ export const demandes = catalogue({
         lait_infantile: "Lait infantile",
         /** @relecture Surya — la majuscule d'un choix du formulaire. */
         allaitement_mixte: "Allaitement mixte",
+        /** @relecture Surya — la réponse des fondatrices, retour 2 (JAM-303), avec la majuscule d'un choix. */
+        diversification_alimentaire: "Diversification alimentaire",
       },
 
       unites: {
@@ -176,15 +214,21 @@ export const demandes = catalogue({
       heurePassee: "Cette heure est déjà passée. Choisissez une heure plus tardive ou demain soir.",
       /** @relecture Surya — heure hors de la liste. */
       heure: "Choisissez une heure dans la liste.",
-      /** @relecture Surya — heures supplémentaires hors des bornes ou non entières. */
-      heuresSupplementaires: "Indiquez un nombre d'heures entier entre 0 et 6.",
-      /** @relecture Surya — ni bébé, ni jumeaux, ni triplés. */
-      enfants: "Indiquez s'il s'agit d'un bébé, de jumeaux ou de triplés.",
+      /** @relecture Surya — heures supplémentaires hors de la liste (JAM-303 : par demi-heure). */
+      heuresSupplementaires: "Choisissez les heures supplémentaires dans la liste, de 0 à 6 heures.",
+      /** @relecture Surya — une nuit régulière sans heure de début valable (JAM-303). */
+      horaires: "Choisissez l'heure de début et les heures supplémentaires de chaque nuit.",
+      /** @relecture Surya — plus de quatre enfants (JAM-303). */
+      enfantsTrop: "Une demande concerne 4 enfants au maximum.",
+      /** @relecture Surya — l'âge d'un enfant manque (JAM-303). */
+      ageRequis: "Indiquez l'âge de chaque enfant.",
       /** @relecture Surya — âge hors des bornes (D-64). */
       age: "Indiquez un âge entre 0 et 12 semaines, ou entre 1 et 24 mois.",
-      /** @relecture Surya — alimentation absente, nomme les trois réponses. */
-      alimentation:
-        "Indiquez s'il s'agit d'allaitement maternel, de lait infantile ou d'allaitement mixte.",
+      /** @relecture Surya — un enfant de plus de 24 mois est refusé (retour 2, JAM-303). */
+      ageTrop:
+        "Berceo accompagne les enfants jusqu'à 24 mois. Retirez de votre demande l'enfant de plus de 24 mois.",
+      /** @relecture Surya — aucune alimentation cochée (JAM-303 : plusieurs réponses). */
+      alimentation: "Cochez au moins une réponse.",
       /** @relecture Surya — motif trop long, comme le texte du profil. */
       motifLong: "Ce texte ne peut pas dépasser 300 caractères.",
       /** @relecture Surya — case non cochée (D-20). */
@@ -230,17 +274,21 @@ export const demandes = catalogue({
       nuit: "{date} de {debut} à {fin}",
       /** @relecture Surya — les heures de nuits régulières, dites une fois pour toutes. */
       horaire: "de {debut} à {fin}",
+      /** @relecture Surya — des nuits régulières dont les heures changent, en une ligne (JAM-303). */
+      horairesDifferents: "à des horaires différents selon la nuit",
+      /** @relecture Surya — le mot qui termine une liste. */
+      et: "et",
       /** @relecture Surya — marque d'une demande urgente. */
       urgente: "Urgente",
       /** @relecture Surya — date de publication. */
       publiee: "Publiée le {date}",
       enfants: {
         /** @relecture Surya — d'après l'exemple de la DA « Un bébé de trois mois ». */
-        un_bebe: "Un bébé",
-        /** @relecture Surya — jumeaux du même âge. */
-        jumeaux: "Jumeaux",
-        /** @relecture Surya — triplés du même âge. */
-        triples: "Triplés",
+        un: "Un bébé",
+        /** @relecture Surya — plusieurs enfants (retour 2, JAM-303) : « Deux enfants ». */
+        plusieurs: "{n} enfants",
+        /** Le nombre d'enfants en lettres, de 2 à 4. */
+        nombres: ["", "Un", "Deux", "Trois", "Quatre"],
       },
       /** La ligne de l'alimentation sur la carte. */
       alimentation: {
@@ -250,7 +298,11 @@ export const demandes = catalogue({
         lait_infantile: "Lait infantile",
         /** @relecture Surya — une des trois réponses des fondatrices. */
         allaitement_mixte: "Allaitement mixte",
+        /** @relecture Surya — la réponse des fondatrices, retour 2 (JAM-303). */
+        diversification_alimentaire: "Diversification alimentaire",
       },
+      /** @relecture Surya — des enfants d'âges différents : « Deux enfants : deux semaines et dix-huit mois » (JAM-303). */
+      enfantsAges: "{enfants} : {ages}",
       /** @relecture Surya — « Un bébé de trois mois ». */
       enfantsAge: "{enfants} de {age}",
       /** @relecture Surya — l'élision devant un et une : « Un bébé d'un mois ». */

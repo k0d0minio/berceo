@@ -16,9 +16,7 @@ type Row = {
   nightDate: string;
   startTime: string;
   extraHours: number;
-  children: "un_bebe" | "jumeaux" | "triples";
-  babyAgeValue: number;
-  babyAgeUnit: "semaines" | "mois";
+  childAges: { value: number; unit: "semaines" | "mois" }[];
   communeIns: string;
 };
 
@@ -29,9 +27,7 @@ function row(id: string, nightDate: string, seriesId: string | null = null, chan
     nightDate,
     startTime: "20:00:00",
     extraHours: 0,
-    children: "un_bebe",
-    babyAgeValue: 3,
-    babyAgeUnit: "mois",
+    childAges: [{ value: 3, unit: "mois" }],
     communeIns: "21009",
     ...changes,
   };
@@ -68,14 +64,23 @@ describe("the digest's lines", () => {
     expect(ids(groupForDigest([row("a", "2026-11-05"), row("b", "2026-11-06")]))).toEqual([["a"], ["b"]]);
   });
 
-  it("puts a night edited apart from its series on a line of its own", () => {
+  it("keeps the nights of one series on one line when their hours differ (JAM-303)", () => {
     const lines = groupForDigest([
       row("s1", "2026-11-05", "S"),
       row("s2", "2026-11-06", "S", { startTime: "21:00:00" }),
       row("s3", "2026-11-07", "S"),
-      row("s4", "2026-11-08", "S", { extraHours: 2 }),
+      row("s4", "2026-11-08", "S", { extraHours: 1.5 }),
     ]);
-    expect(ids(lines)).toEqual([["s1", "s3"], ["s2"], ["s4"]]);
+    expect(ids(lines)).toEqual([["s1", "s2", "s3", "s4"]]);
+  });
+
+  it("puts a night whose children were edited apart from its series on a line of its own", () => {
+    const lines = groupForDigest([
+      row("s1", "2026-11-05", "S"),
+      row("s2", "2026-11-06", "S", { childAges: [{ value: 3, unit: "mois" }, { value: 18, unit: "mois" }] }),
+      row("s3", "2026-11-07", "S"),
+    ]);
+    expect(ids(lines)).toEqual([["s1", "s3"], ["s2"]]);
   });
 
   it("orders the lines by their first night, a series among the one-off nights", () => {

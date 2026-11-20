@@ -4,6 +4,12 @@ Language: en
 
 These routes are in addition to `.icm/_system/ROUTER.md`. They belong to this repo.
 
+## The burst mode
+
+| You are asked to | Go to |
+|---|---|
+| build a ticket in a burst, or coordinate a burst | `.icm/local/BURSTS.md`, then `.icm/local/burst-check.sh` for the coordinator |
+
 ## The markdown backlog of before 2026-11-18
 
 Before the BAXTER blueprint, a ticket of this repo was a markdown stub:

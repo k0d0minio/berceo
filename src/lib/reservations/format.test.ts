@@ -40,6 +40,16 @@ describe("the answer and the booking, as they read", () => {
     expect(recapNight("2026-09-30", "19:00:00", 1).duree).toBe("11 heures et 1 heure supplémentaire");
   });
 
+  it("names the half hours in the duration (JAM-303)", () => {
+    expect(recapNight("2026-09-30", "19:00:00", 0.5)).toEqual({
+      date: "30/09/2026",
+      heures: "de 19h00 à 6h30",
+      duree: "11 heures et 30 minutes supplémentaires",
+    });
+    expect(recapNight("2026-09-30", "19:00:00", 1.5).duree).toBe("11 heures et 1 h 30 supplémentaires");
+    expect(recapNight("2026-09-30", "19:00:00", 5.5).duree).toBe("11 heures et 5 h 30 supplémentaires");
+  });
+
   it("writes a profession as a label and inside a sentence", () => {
     expect(professionLabel("sage_femme")).toBe("Sage-femme");
     expect(professionInSentence("sage_femme")).toBe("sage-femme");

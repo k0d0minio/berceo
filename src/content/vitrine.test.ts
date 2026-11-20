@@ -5,6 +5,7 @@ import { accueil } from "./accueil";
 import { charte } from "./charte";
 import { commentCaMarche } from "./comment-ca-marche";
 import { common } from "./common";
+import { consultationSommeil } from "./consultation-sommeil";
 import { contact } from "./contact";
 import { faq } from "./faq";
 import { legal } from "./legal";
@@ -29,6 +30,7 @@ const surfaces = {
   charte: words(charte),
   commentCaMarche: words(commentCaMarche),
   common: words(common),
+  consultationSommeil: words(consultationSommeil),
   contact: words(contact),
   faq: words(faq),
   legal: words(legal),
@@ -172,6 +174,7 @@ describe("the vitrine's titles and meta descriptions", () => {
     surfaces.faq.meta,
     surfaces.quiSommesNous.meta,
     surfaces.contact.meta,
+    surfaces.consultationSommeil.meta,
     surfaces.charte.meta,
     surfaces.legal.conditionsGenerales.meta,
     surfaces.legal.confidentialite.meta,

@@ -163,6 +163,14 @@ export const reservations = catalogue({
       dureeUneSupplementaire: "{n} heures et 1 heure supplémentaire",
       /** @relecture Surya — la durée avec des heures supplémentaires (retour 1). */
       dureeSupplementaires: "{n} heures et {extra} heures supplémentaires",
+      /** @relecture Surya — les heures d'une demande régulière dont les nuits diffèrent (JAM-303). */
+      heuresDifferentes: "Différentes selon la nuit, indiquées avec chaque date",
+      /** @relecture Surya — la durée d'une demande régulière dont les nuits diffèrent (JAM-303). */
+      dureeDifferente: "Différente selon la nuit",
+      /** @relecture Surya — la durée avec une demi-heure supplémentaire (retour 2, JAM-303). */
+      dureeDemiHeure: "{n} heures et 30 minutes supplémentaires",
+      /** @relecture Surya — la durée avec des heures et une demi-heure supplémentaires (retour 2, JAM-303). */
+      dureeSupplementairesTrente: "{n} heures et {extra} h 30 supplémentaires",
       /** @relecture Surya — la famille règle la garde directement, sans dire comment (D-1). */
       paiement: "Vous réglez la garde directement à la professionnelle.",
       /** @relecture Surya — réponse qui renonce (rouge, D-24). */

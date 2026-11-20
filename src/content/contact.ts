@@ -46,6 +46,8 @@ export const contact = catalogue({
       messageLong: "Votre message dépasse 2 000 caractères.",
       /** @relecture Surya — l'envoi a échoué. */
       envoi: "Votre message n'a pas pu être envoyé. Réessayez dans quelques minutes.",
+      /** @relecture Surya — trop de messages envoyés en une heure (JAM-341). */
+      limite: "Vous avez déjà envoyé plusieurs messages. Réessayez dans une heure.",
     },
     /** The e-mail the team receives. It is not client-facing. */
     courriel: {

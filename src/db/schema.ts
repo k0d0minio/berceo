@@ -56,6 +56,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   primaryKey,
@@ -507,17 +508,19 @@ export const careRequestStatusEnum = pgEnum("care_request_status", [
   "attribuee",
 ]);
 
-/** The guide's two options, « Un bébé », « Jumeaux », and the founders' « Triplés » (demande-retour-1). */
-export const careRequestChildrenEnum = pgEnum("care_request_children", ["un_bebe", "jumeaux", "triples"]);
-
-/** How the children are fed (demande-retour-1): a care instruction for the night, not health data. */
+/**
+ * How the children are fed (demande-retour-1): a care instruction for the night, not health data.
+ * « Diversification alimentaire » is the founders' fourth answer (feedback round 2, JAM-303).
+ */
 export const feedingEnum = pgEnum("feeding", [
   "allaitement_maternel",
   "lait_infantile",
   "allaitement_mixte",
+  "diversification_alimentaire",
 ]);
 
-export const babyAgeUnitEnum = pgEnum("baby_age_unit", ["semaines", "mois"]);
+/** One child of a request: its age in whole weeks (0 to 12) or whole months (1 to 24), JAM-303. */
+export type ChildAge = { value: number; unit: "semaines" | "mois" };
 
 /**
  * One night a family asks for (D-20). The commune and the night's address come
@@ -542,13 +545,18 @@ export const careRequests = pgTable(
     nightDate: date("night_date").notNull(),
     /** A half hour from 18:00 to 23:00, stored as `HH:MM:SS`. */
     startTime: time("start_time").notNull(),
-    /** Whole hours the family adds to the 11-hour night, 0 to 6 (feedback round 1). */
-    extraHours: smallint("extra_hours").notNull().default(0),
-    children: careRequestChildrenEnum("children").notNull(),
-    babyAgeValue: smallint("baby_age_value").notNull(),
-    babyAgeUnit: babyAgeUnitEnum("baby_age_unit").notNull(),
-    /** Asked from demande-retour-1 on; null on a request published before. */
-    feeding: feedingEnum("feeding"),
+    /** The hours the family adds to the 11-hour night, by half hours, 0 to 6 (feedback round 2, JAM-303). */
+    extraHours: numeric("extra_hours", { precision: 3, scale: 1, mode: "number" }).notNull().default(0),
+    /**
+     * The children of the night, 1 to 4, each with its own age (JAM-303). The
+     * rules hold each age to 24 months (`src/lib/demandes/rules.ts`).
+     */
+    childAges: jsonb("child_ages").$type<ChildAge[]>().notNull(),
+    /**
+     * How the children are fed, one answer or more (JAM-303). Asked from
+     * demande-retour-1 on: empty on a request published before.
+     */
+    feedings: feedingEnum("feedings").array().notNull().default(sql`'{}'`),
     communeIns: text("commune_ins").notNull(),
     postcode: text("postcode").notNull(),
     locality: text("locality").notNull(),
@@ -624,12 +632,15 @@ export const careRequests = pgTable(
       "care_requests_start_time_slot",
       sql`${table.startTime} BETWEEN '18:00' AND '23:00' AND date_part('minute', ${table.startTime}) IN (0, 30) AND date_part('second', ${table.startTime}) = 0`,
     ),
-    check("care_requests_extra_hours_range", sql`${table.extraHours} BETWEEN 0 AND 6`),
-    check("care_requests_reason_length", sql`char_length(${table.reason}) <= 300`),
     check(
-      "care_requests_baby_age_range",
-      sql`(${table.babyAgeUnit} = 'semaines' AND ${table.babyAgeValue} BETWEEN 0 AND 12) OR (${table.babyAgeUnit} = 'mois' AND ${table.babyAgeValue} BETWEEN 1 AND 24)`,
+      "care_requests_extra_hours_range",
+      sql`${table.extraHours} BETWEEN 0 AND 6 AND ${table.extraHours} * 2 = trunc(${table.extraHours} * 2)`,
     ),
+    check(
+      "care_requests_child_ages_count",
+      sql`jsonb_typeof(${table.childAges}) = 'array' AND jsonb_array_length(${table.childAges}) BETWEEN 1 AND 4`,
+    ),
+    check("care_requests_reason_length", sql`char_length(${table.reason}) <= 300`),
     check(
       "care_requests_cancelled_at",
       sql`(${table.status} = 'annulee') = (${table.cancelledAt} IS NOT NULL)`,
@@ -1430,8 +1441,6 @@ export type ProfessionalDocument = typeof professionalDocuments.$inferSelect;
 export type ProfessionalAvailability = typeof professionalAvailability.$inferSelect;
 export type CareRequest = typeof careRequests.$inferSelect;
 export type CareRequestStatus = (typeof careRequestStatusEnum.enumValues)[number];
-export type CareRequestChildren = (typeof careRequestChildrenEnum.enumValues)[number];
-export type BabyAgeUnit = (typeof babyAgeUnitEnum.enumValues)[number];
 export type Feeding = (typeof feedingEnum.enumValues)[number];
 export type CareRequestApplication = typeof careRequestApplications.$inferSelect;
 export type ApplicationStatus = (typeof applicationStatusEnum.enumValues)[number];
