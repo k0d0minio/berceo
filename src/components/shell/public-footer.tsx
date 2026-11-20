@@ -3,6 +3,7 @@ import Link from "next/link"
 import { BerceoWordmark } from "@/components/berceo-logo"
 import { common } from "@/content/common"
 import { words } from "@/content/locale"
+import { sleepConsultationEnabled } from "@/lib/consultation-sommeil/config"
 import { contactEnabled } from "@/lib/contact/config"
 
 /*
@@ -11,7 +12,8 @@ import { contactEnabled } from "@/lib/contact/config"
  * guide's URL map, the legal ones last. « Tarifs » and « FAQ » live here
  * since they left the header (JAM-327, question 5). « Contact » is a link to
  * the form, where the environment has a contact address: no address is ever
- * published.
+ * published. « Consultation sommeil » is a link where the environment has
+ * the address of the founders' calendar (JAM-305).
  */
 function PublicFooter() {
   const t = words(common)
@@ -20,6 +22,7 @@ function PublicFooter() {
     t.pages.tarifs,
     t.pages.quiSommesNous,
     t.pages.faq,
+    ...(sleepConsultationEnabled() ? [t.pages.consultationSommeil] : []),
     ...(contactEnabled() ? [t.nav.contact] : []),
     t.pages.inscriptionFamille,
     t.pages.inscriptionProfessionnelle,

@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 
 import { common } from "@/content/common";
 import { words } from "@/content/locale";
+import { sleepConsultationEnabled } from "@/lib/consultation-sommeil/config";
 import { CONTACT_PATH, contactEnabled } from "@/lib/contact/config";
 import { validProfessionals } from "@/lib/recherche/professionals";
 import { sitemapPaths } from "@/lib/recherche/sitemap";
@@ -34,7 +35,12 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // The contact page exists only where the environment has a contact address (JAM-327).
-  const pagesOfSite = contactEnabled() ? [...vitrine, CONTACT_PATH] : vitrine;
+  // The sleep consultation exists only where the environment has the calendar's address (JAM-305).
+  const pagesOfSite = [
+    ...vitrine,
+    ...(sleepConsultationEnabled() ? [pages.consultationSommeil.href] : []),
+    ...(contactEnabled() ? [CONTACT_PATH] : []),
+  ];
   return sitemapPaths(pagesOfSite, await professionals()).map((path) => ({
     url: new URL(path, siteUrl).toString(),
   }));
