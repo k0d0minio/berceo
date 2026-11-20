@@ -10,6 +10,7 @@ import { SeriesCard } from "@/components/demandes/series-card";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
 import { AdaptedTimes } from "@/components/reservations/adapted-times";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
+import { RepublishRequest } from "@/components/reservations/republish-request";
 import { Button } from "@/components/ui/button";
 import { CardField } from "@/components/ui/card-field";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -29,13 +30,14 @@ import { conversationsOfAnswers } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
 import { seriesFeeRecap } from "@/lib/paiements/format";
 import { feeCents } from "@/lib/paiements/rules";
-import { answersEver, familySeriesAnswers } from "@/lib/reservations/answers";
+import { answersEver, familySeriesAnswers, pendingCounts } from "@/lib/reservations/answers";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
 import { adaptedLines, extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import { adaptedNights, effectiveStart, proposalsSignature } from "@/lib/reservations/rules";
 import { familyBookingPath } from "@/lib/reservations/paths";
+import { canRepublishSeries } from "@/lib/reservations/republish-series-rules";
 
-import { acceptSeriesAction, cancelSeriesAction } from "../actions";
+import { acceptSeriesAction, cancelSeriesAction, republishSeriesAction } from "../actions";
 
 const t = words(demandes);
 const r = words(reservations);
@@ -46,9 +48,11 @@ const m = words(messagerie);
  * « Les professionnelles qui ont répondu à votre demande », each one for all
  * the open nights, with « Accepter et réserver » for all of them at once and
  * one service fee (Q1). « Modifier ma demande » until a professional answers
- * any night (Q4), « Annuler toutes les nuits » while a night is open. No
- * « Republier »: to change an answered request, she cancels it and publishes a
- * new one. Each booked night links to its garde, which lives on its own (Q2).
+ * any night (Q4), « Annuler toutes les nuits » while a night is open.
+ * « Republier ma demande » while an answer waits on an open night and no night
+ * is booked (JAM-353): it declines each waiting answer of each open night and
+ * changes no night. Each booked night links to its garde, which lives on its
+ * own (Q2).
  * The answers are white cards on a sage zone (slide 25; JAM-327). An answer
  * that proposes a different start for a night (JAM-306) names each such night
  * with the start asked for, the start proposed and the new end; its
@@ -72,13 +76,19 @@ export async function SeriesRequest({
   const openNights = nights.filter((night) => isChangeable(night, now));
   const open = openNights.length > 0;
   const mayBook = familyMay("reserver", { subscribed });
-  const [answers, hasAddress, answered, bookings] = await Promise.all([
+  const [answers, hasAddress, answered, bookings, pending] = await Promise.all([
     open ? familySeriesAnswers(userId, seriesId) : Promise.resolve([]),
     open ? requestHasAddress(userId, request.id) : Promise.resolve(false),
     answersEver(userId, request.id),
     Promise.all(nights.map((night) => (night.status !== "ouverte" ? bookingOfRequest(userId, night.id) : null))),
+    open ? pendingCounts(userId) : Promise.resolve(new Map<string, number>()),
   ]);
   const editable = isEditable(request, answered, now);
+  // Each answer that waits on an open night counts, also one that no longer covers every
+  // night and is not in the list below (Q5): the republication declines it too (JAM-353).
+  const waiting = openNights.reduce((sum, night) => sum + (pending.get(night.id) ?? 0), 0);
+  const republishable = canRepublishSeries(nights, waiting, now);
+  const mayRepublish = familyMay("publier", { subscribed });
   const [conversationIds, shares] = await Promise.all([
     conversationsOfAnswers(
       userId,
@@ -230,14 +240,23 @@ export async function SeriesRequest({
         </section>
       ) : null}
 
-      {open && answered > 0 ? <p className="max-w-2xl text-corps text-taupe">{r.famille.verrouSerie}</p> : null}
+      {open && answered > 0 ? (
+        <p className="max-w-2xl text-corps text-taupe">
+          {republishable ? t.serie.verrouRepubliable : r.famille.verrouSerie}
+        </p>
+      ) : null}
 
       {editable && !familyMay("modifier", { subscribed }) ? <SubscriptionRequired /> : null}
+      {/* The invitation line of the answers stands for the republication too. With no answer in the list, it is here. */}
+      {republishable && !mayRepublish && answers.length === 0 ? <SubscriptionRequired /> : null}
       <div className="flex flex-wrap gap-3">
         {editable && familyMay("modifier", { subscribed }) ? (
           <Button asChild>
             <Link href={`${familyRequestPath(request.id)}/modifier`}>{t.boutons.modifier}</Link>
           </Button>
+        ) : null}
+        {republishable && mayRepublish ? (
+          <RepublishRequest onRepublish={republishSeriesAction.bind(null, seriesId, request.id)} />
         ) : null}
         {open ? <CancelRequest serie onCancel={cancelSeriesAction.bind(null, seriesId)} /> : null}
         <Button asChild variant="raye">

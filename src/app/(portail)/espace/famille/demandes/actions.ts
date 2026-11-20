@@ -32,6 +32,8 @@ import { paymentDestination } from "@/lib/paiements/destination";
 import { startCheckout, startSeriesCheckout, type StartResult } from "@/lib/paiements/payments";
 import { notifyDeclined, notifyPriority, notifySeriesPriority } from "@/lib/reservations/notify";
 import { priorityPath } from "@/lib/reservations/paths";
+import { republishSeries } from "@/lib/reservations/republish-series";
+import type { RepublishSeriesResult } from "@/lib/reservations/republish-series-rules";
 import { publicProfile } from "@/lib/reservations/profiles";
 import {
   readRequestForm,
@@ -386,6 +388,42 @@ export async function republishRequestAction(requestId: string): Promise<void> {
     await notifyDeclined(declined, origin);
     if (urgent) await notifyUrgentRequest(id, origin);
   });
+
+  revalidatePath(SPACES.parent, "layout");
+  redirect(`${familyRequestPath(id)}?republiee=1`);
+}
+
+/**
+ * « Republier ma demande » on a regular request (JAM-353): the answers that
+ * wait on its open nights are declined, each professional is told one time,
+ * and the next digest carries the request again. A regular request is never
+ * urgent, so no e-mail goes at once. `requestId` is the night whose page she
+ * is on, for the way back. Each id is only a lookup key: the write is scoped
+ * to her own rows.
+ */
+export async function republishSeriesAction(seriesId: string, requestId: string): Promise<void> {
+  const user = await requireAccess(FAMILY_REQUESTS_PATH);
+  const series = String(seriesId);
+  const id = String(requestId);
+  if (!UUID.test(series) || !UUID.test(id)) notFound();
+  if (!(await familyMayNow(user.id, "publier", new Date()))) redirect(familyRequestPath(id));
+
+  let result: RepublishSeriesResult;
+  try {
+    result = await republishSeries(user.id, series, new Date());
+  } catch (error) {
+    logWriteError("series not republished", { userId: user.id, seriesId: series }, error);
+    redirect(`${familyRequestPath(id)}?erreur=generique`);
+  }
+
+  if (!result.ok) redirect(`${familyRequestPath(id)}?refus=republication`);
+
+  if (result.declined.length > 0) {
+    const origin = await siteOrigin();
+    const declined = result.declined;
+    // One e-mail for each professional: `notifyDeclined` tells a regular request one time (JAM-302).
+    after(() => notifyDeclined(declined, origin));
+  }
 
   revalidatePath(SPACES.parent, "layout");
   redirect(`${familyRequestPath(id)}?republiee=1`);
