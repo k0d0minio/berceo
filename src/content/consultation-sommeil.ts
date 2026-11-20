@@ -41,7 +41,11 @@ export const consultationSommeil = catalogue({
         "L'agenda est un service de Calendly. Il s'affiche sur cette page après votre clic, et Calendly reçoit alors les informations que vous y saisissez.",
       /** @relecture Surya — titre du cadre de l'agenda, lu par les lecteurs d'écran. */
       cadre: "Agenda de la consultation sommeil, sur Calendly",
-      /** Shown above the calendar when Calendly tells the page that a booking is made. */
+      /**
+       * Shown above the calendar when Calendly tells the page that a booking
+       * is made. If Calendly sends no message, the visitor sees Calendly's
+       * own confirmation in the frame, and these words do not show.
+       */
       confirme: {
         /** @relecture Surya — titre de la confirmation, après la réservation dans l'agenda. */
         title: "Votre rendez-vous est enregistré",
@@ -65,73 +69,13 @@ export const consultationSommeil = catalogue({
         },
         {
           title: "Recevez votre e-mail",
-          text: "Berceo vous confirme la prise du rendez-vous, et Calendly vous envoie un e-mail avec la date, l'heure et le lien.",
+          text: "Une fois votre créneau choisi, Calendly vous envoie un e-mail de confirmation avec la date, l'heure et le lien du rendez-vous.",
         },
         {
           title: "Échangez avec une sage-femme",
           text: "Vous parlez du sommeil de votre bébé et de vos nuits, à votre rythme et sans jugement.",
         },
       ],
-    },
-
-    /**
-     * `/consultation-sommeil/confirmation` (JAM-352): the page that Calendly
-     * can send the visitor back to after a booking (a setting of Calendly,
-     * the second path beside the confirmation in the page). The page cannot know whether
-     * its visitor made a booking: it reads nothing of its address and has no
-     * data. Each sentence is thus true for a visitor who comes straight to
-     * it. It names no person, no date and no price.
-     */
-    confirmation: {
-      meta: {
-        /** @relecture Surya — titre de la page de confirmation (50 à 60 caractères). */
-        title: "Consultation sommeil | La suite de votre rendez-vous Berceo",
-        /** @relecture Surya — description de la page de confirmation (140 à 160 caractères). */
-        description:
-          "Après le choix de votre créneau dans l'agenda d'Alix et Jordane, voici la suite de votre consultation sommeil : un e-mail de confirmation, puis le rendez-vous.",
-      },
-
-      /** @relecture Surya — titre de la page de confirmation. */
-      title: "Merci pour votre confiance",
-      /** @relecture Surya — introduction sous le titre de la page de confirmation. */
-      intro:
-        "Une fois votre créneau choisi dans l'agenda d'Alix et Jordane, votre rendez-vous pour la consultation sommeil est enregistré.",
-
-      suite: {
-        /** @relecture Surya — titre du bloc de confirmation. */
-        title: "Votre rendez-vous",
-        /** @relecture Surya — texte du bloc de confirmation. */
-        paragraphs: [
-          "Vous n'avez rien d'autre à faire sur Berceo. La confirmation de votre rendez-vous vous arrive par e-mail, à l'adresse que vous avez donnée dans l'agenda.",
-          "Si cet e-mail n'arrive pas, regardez dans vos courriers indésirables. Si vous n'avez pas encore choisi de créneau, vous pouvez le faire depuis la page de la consultation.",
-        ],
-        /** @relecture Surya — bouton vers l'accueil du site. */
-        accueil: "Retour à l'accueil",
-        /** @relecture Surya — bouton vers la connexion, qui mène une personne connectée à son espace. */
-        espace: "Accéder à mon espace",
-        /** @relecture Surya — lien vers la page de la consultation, pour qui n'a pas encore de créneau. */
-        consultation: "Choisir un créneau",
-      },
-
-      etapes: {
-        /** @relecture Surya — titre des trois étapes après la réservation. */
-        title: "La suite",
-        /** @relecture Surya — les trois étapes après la réservation. */
-        items: [
-          {
-            title: "Consultez vos e-mails",
-            text: "Calendly, l'agenda en ligne d'Alix et Jordane, vous envoie un e-mail de confirmation avec la date, l'heure et le lien du rendez-vous.",
-          },
-          {
-            title: "Gardez le lien",
-            text: "Conservez cet e-mail. Il contient ce qu'il vous faut pour rejoindre la consultation le moment venu.",
-          },
-          {
-            title: "Échangez avec une sage-femme",
-            text: "Vous parlez du sommeil de votre bébé et de vos nuits, à votre rythme et sans jugement.",
-          },
-        ],
-      },
     },
 
     /** The line on the family's home, in her space. */

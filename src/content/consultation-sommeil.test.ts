@@ -6,10 +6,10 @@ import { words } from "./locale";
 /**
  * Spec (JAM-352): the consultation page says how the booking goes (a slot on
  * Calendly, shown in the page after a click, then the e-mail), and names
- * Calendly before the click. The confirmation page says that the
- * appointment is made and what comes next, in words that are also true for a
- * visitor who comes straight to it. The two pages name no price and no
- * address. `vitrine.test.ts` holds the punctuation rules and the meta lengths.
+ * Calendly before the click. Berceo confirms a booking only in the block that
+ * Calendly's message shows: no other word promises it. The page names no
+ * price and no address. `vitrine.test.ts` holds the punctuation rules and the
+ * meta lengths.
  */
 const t = words(consultationSommeil);
 
@@ -22,7 +22,6 @@ function strings(value: unknown): string[] {
 }
 
 const all = strings(t);
-const confirmation = strings(t.confirmation);
 
 describe("the sleep consultation's words", () => {
   it("name no price and no amount", () => {
@@ -44,7 +43,7 @@ describe("the sleep consultation's words", () => {
     expect(steps[0].text).toContain("Calendly");
     expect(steps[0].text).toContain("sur cette page");
     expect(steps[1].title).toBe("Recevez votre e-mail");
-    expect(steps[1].text).toContain("Berceo vous confirme");
+    expect(steps[1].text).toMatch(/^Une fois votre créneau choisi, Calendly vous envoie un e-mail de confirmation/);
   });
 
   it("say, before the click, that the calendar is Calendly's and that Calendly gets what the visitor types", () => {
@@ -61,43 +60,18 @@ describe("the sleep consultation's words", () => {
   it("confirm the booking in the page, with the e-mail and the two ways on", () => {
     expect(t.rendezVous.confirme.title).toBe("Votre rendez-vous est enregistré");
     expect(t.rendezVous.confirme.text).toContain("e-mail de confirmation");
-    expect(t.rendezVous.confirme.accueil).toBe(t.confirmation.suite.accueil);
-    expect(t.rendezVous.confirme.espace).toBe(t.confirmation.suite.espace);
-  });
-});
-
-describe("the confirmation page's words", () => {
-  it("say that the appointment is made once a slot is chosen", () => {
-    expect(t.confirmation.intro).toMatch(/^Une fois votre créneau choisi/);
-    expect(t.confirmation.intro).toContain("votre rendez-vous pour la consultation sommeil est enregistré");
+    expect(t.rendezVous.confirme.accueil).toBe("Retour à l'accueil");
+    expect(t.rendezVous.confirme.espace).toBe("Accéder à mon espace");
   });
 
-  it("say what comes next: the calendar's e-mail with the date and the link", () => {
-    const [first] = t.confirmation.etapes.items;
-    expect(first.text).toContain("Calendly");
-    expect(first.text).toContain("e-mail de confirmation");
-    expect(first.text).toContain("la date");
-    expect(first.text).toContain("le lien");
-    expect(t.confirmation.etapes.items.length).toBeLessThanOrEqual(3);
+  it("promise no confirmation by Berceo outside the block that a booking's message shows", () => {
+    const { confirme, ...before } = t.rendezVous;
+    const promise = /Berceo vous confirme|revenez sur|vous ramène/i;
+    expect([...strings(before), ...strings(t.etapes), t.intro].filter((text) => promise.test(text))).toEqual([]);
+    expect(confirme.title).toBe("Votre rendez-vous est enregistré");
   });
 
-  it("speak to the visitor who has no slot yet", () => {
-    expect(t.confirmation.suite.paragraphs.join(" ")).toContain("Si vous n'avez pas encore choisi de créneau");
-    expect(t.confirmation.suite.consultation).toBe(t.rendezVous.bouton);
-  });
-
-  it("claim nothing that Berceo cannot know of this visitor", () => {
-    const claims = /nous avons (?:bien )?(?:reçu|enregistré)|a bien été|est confirmée?\b|vous avez réservé|félicitations/i;
-    expect(confirmation.filter((text) => claims.test(text))).toEqual([]);
-  });
-
-  it("has a way on to the home and to the visitor's space", () => {
-    expect(t.confirmation.suite.accueil).toBe("Retour à l'accueil");
-    expect(t.confirmation.suite.espace).toBe("Accéder à mon espace");
-  });
-
-  it("has its own title and description", () => {
-    expect(t.confirmation.meta.title).not.toBe(t.meta.title);
-    expect(t.confirmation.meta.description).not.toBe(t.meta.description);
+  it("have no words of a confirmation page", () => {
+    expect("confirmation" in t).toBe(false);
   });
 });
