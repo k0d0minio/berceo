@@ -43,7 +43,9 @@ step() {
 
 step "migration order" npx vitest run src/db/migrations-journal.test.ts
 step "typecheck" npm run typecheck
-step "lint" npm run lint
-step "unit tests" npm run test
+# The worktrees of the ticket sessions are in .claude/worktrees/: they are not part of the
+# branch, and CI does not have them.
+step "lint" npm run lint -- --ignore-pattern ".claude/**"
+step "unit tests" npm run test -- --exclude ".claude/**"
 
 echo "RESULT: OK $((SECONDS - start))s"
