@@ -10,6 +10,7 @@ import {
   requestUpload,
 } from "@/app/(portail)/espace/professionnelle/actions"
 import { FieldError } from "@/components/auth/field"
+import { RemoveFile } from "@/components/professionnelle/remove-file"
 import { words } from "@/content/locale"
 import { professionnelle } from "@/content/professionnelle"
 import type { DocumentKind } from "@/db/schema"
@@ -22,6 +23,10 @@ import { DOCUMENT_TYPES, FILES_PER_DOCUMENT_MAX, PHOTO_TYPES } from "@/lib/profe
  * bytes to the private bucket, then the server checks what arrived and records
  * it. The page re-renders from the server afterwards, so what is listed is
  * always what is stored. Files open through /api/fichiers/[id] only.
+ *
+ * A document leaves only after she confirms in the dialog (JAM-343). The row
+ * of a removed file leaves the page, and its button with it, so focus then
+ * goes to the slot's file input.
  */
 
 type Stored = { id: string; fileName: string }
@@ -53,6 +58,14 @@ function FileSlot({
   const photo = kind === "photo"
   const full = !photo && files.length >= FILES_PER_DOCUMENT_MAX
   const message = failure ? t.erreurs[failure] : error
+  const refocus = React.useRef(false)
+
+  // After a removal, once the slot is free again (and no longer full).
+  React.useEffect(() => {
+    if (!refocus.current || busy || !input.current || input.current.disabled) return
+    refocus.current = false
+    input.current.focus()
+  }, [busy, files.length])
 
   async function upload(file: File) {
     setBusy(true)
@@ -90,6 +103,7 @@ function FileSlot({
     try {
       const result = await removeFile(fileId)
       if (!result.ok) return setFailure(result.error)
+      refocus.current = true
       router.refresh()
     } catch {
       setFailure("echec")
@@ -131,14 +145,12 @@ function FileSlot({
               >
                 {t.justificatifs.voir}
               </a>
-              <button
-                type="button"
-                disabled={busy || disabled}
-                onClick={() => remove(file.id)}
-                className="text-sauge underline disabled:opacity-50"
-              >
-                {t.justificatifs.retirer}
-              </button>
+              <RemoveFile
+                fileName={file.fileName}
+                busy={busy}
+                disabled={disabled}
+                onRemove={() => void remove(file.id)}
+              />
             </li>
           ))}
         </ul>
