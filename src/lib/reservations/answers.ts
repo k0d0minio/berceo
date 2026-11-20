@@ -25,6 +25,7 @@ import {
   readProposal,
   type AnswerRefusal,
   type ApplicationStatus,
+  type ChangedNight,
   type ChangeRefusal,
   type Rates,
 } from "./rules";
@@ -397,8 +398,28 @@ export async function withdrawAnswer(userId: string, requestId: string, now: Dat
 // ---------------------------------------------------------------------------
 
 export type ChangeResult =
-  | { ok: true; applicationId: string; answerCount: number }
+  /** `nights` are the nights whose start the write changed, in night order: the family's e-mail names them. */
+  | { ok: true; applicationId: string; answerCount: number; nights: ChangedNight[] }
   | { ok: false; reason: ChangeRefusal | "introuvable" };
+
+/** A night as the two statements return it: text, so the driver's types do not matter. */
+type ChangedRow = {
+  id: string;
+  answer_count: number;
+  night_date: string;
+  start_time: string;
+  extra_hours: string | number;
+  proposed: string | null;
+};
+
+function changedNight(row: ChangedRow): ChangedNight {
+  return {
+    nightDate: row.night_date,
+    startTime: row.start_time,
+    extraHours: Number(row.extra_hours),
+    proposedStartTime: row.proposed,
+  };
+}
 
 /**
  * `changeProposal`'s statement, built and not run: her waiting answer on one
@@ -406,7 +427,7 @@ export type ChangeResult =
  * by her profile id. A booked, declined or withdrawn answer matches nothing.
  * The change is a new answer for the booking: `answered_at` moves, so a fee
  * opened on the proposal of before books nothing (`acceptAnswer`), and
- * `answer_count` moves, so the family's e-mail has a new key. A value equal to
+ * `answer_count` moves, so the family's e-mail of the change has a new key. A value equal to
  * the saved one writes nothing.
  */
 export function changeProposalStatement(profileId: string, requestId: string, proposed: string | null, at: string): SQL {
@@ -430,7 +451,8 @@ export function changeProposalStatement(profileId: string, requestId: string, pr
       and p.status = 'valide'
       and ${notSuspended(sql`p.user_id`)}
       and a.proposed_start_time is distinct from nullif(${proposed}::time, r.start_time)
-    returning a.id, a.answer_count
+    returning a.id, a.answer_count, r.night_date::text as night_date, r.start_time::text as start_time,
+              r.extra_hours, a.proposed_start_time::text as proposed
   `;
 }
 
@@ -440,7 +462,7 @@ export function changeProposalStatement(profileId: string, requestId: string, pr
  * older series. The rules are read first for a precise message
  * (`changeRefusal`), then held again by the UPDATE. `proposed` is read as an
  * answer reads it (`readProposal`): empty, or the family's own start, removes
- * the proposal. The caller tells the family (`notifyNewAnswer`).
+ * the proposal. The caller tells the family (`notifyProposalChanged`).
  */
 export async function changeProposal(
   userId: string,
@@ -483,13 +505,18 @@ export async function changeProposal(
   if (refusal) return { ok: false, reason: refusal };
   if (!proposalChanged(row.saved, proposal.proposed)) return { ok: false, reason: "inchange" };
 
-  const written = await db.execute<{ id: string; answer_count: number }>(
+  const written = await db.execute<ChangedRow>(
     changeProposalStatement(profile.id, requestId, proposal.proposed, now.toISOString()),
   );
   const [answer] = written.rows;
   // The answer moved between the read and the write: booked, declined, withdrawn.
   if (!answer) return { ok: false, reason: "modification" };
-  return { ok: true, applicationId: answer.id, answerCount: Number(answer.answer_count) };
+  return {
+    ok: true,
+    applicationId: answer.id,
+    answerCount: Number(answer.answer_count),
+    nights: [changedNight(answer)],
+  };
 }
 
 /**
@@ -509,7 +536,7 @@ export function changeSeriesProposalsStatement(
 ): SQL {
   return sql`
     with nights as (
-      select a.id, r.night_date, r.start_time, a.proposed_start_time as saved,
+      select a.id, r.night_date, r.start_time, r.extra_hours, a.proposed_start_time as saved,
              nullif(${seriesProposal(proposed, sql`r.id`)}, r.start_time) as wanted
       from care_request_applications a
       join care_requests r on r.id = a.request_id
@@ -535,7 +562,8 @@ export function changeSeriesProposalsStatement(
         select 1 from nights late
         where (late.night_date + coalesce(late.wanted, late.start_time)) <= (now() at time zone ${TIME_ZONE})
       )
-    returning a.id, a.answer_count, n.night_date::text as night_date
+    returning a.id, a.answer_count, n.night_date::text as night_date, n.start_time::text as start_time,
+              n.extra_hours, n.wanted::text as proposed, (n.wanted is distinct from n.saved) as changed
   `;
 }
 
@@ -593,13 +621,20 @@ export async function changeSeriesProposals(
   }
   if (!changed) return { ok: false, reason: "inchange" };
 
-  const written = await db.execute<{ id: string; answer_count: number; night_date: string }>(
+  const written = await db.execute<ChangedRow & { changed: boolean }>(
     changeSeriesProposalsStatement(profile.id, seriesId, proposed, now.toISOString()),
   );
-  const [first] = [...written.rows].sort((a, b) => a.night_date.localeCompare(b.night_date));
+  const rows = [...written.rows].sort((a, b) => a.night_date.localeCompare(b.night_date));
+  const [first] = rows;
   // A night moved between the read and the write: booked, declined, withdrawn, started.
   if (!first) return { ok: false, reason: "modification" };
-  return { ok: true, applicationId: first.id, answerCount: Number(first.answer_count) };
+  return {
+    ok: true,
+    applicationId: first.id,
+    answerCount: Number(first.answer_count),
+    // Each night's answer moved, and only the nights whose start changed are told.
+    nights: rows.filter((row) => row.changed).map(changedNight),
+  };
 }
 
 /**
