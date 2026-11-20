@@ -18,7 +18,7 @@ import {
   type ChangeResult,
   type SeriesAnswerResult,
 } from "@/lib/reservations/answers";
-import { notifyNewAnswer } from "@/lib/reservations/notify";
+import { notifyNewAnswer, notifyProposalChanged } from "@/lib/reservations/notify";
 import { proposalField } from "@/lib/reservations/rules";
 import { siteOrigin } from "@/lib/site-origin";
 
@@ -34,7 +34,8 @@ import { siteOrigin } from "@/lib/site-origin";
  * field `heure-<request id>`: the write reads it again and refuses a value
  * that is not a half hour of the request's range. While her answer waits, the
  * same field changes or removes her proposal in place (JAM-349): the family is
- * told with the e-mail of an answer, one time for each change.
+ * told with an e-mail of its own, one time for each change, with each night
+ * that changed.
  */
 
 /** Her proposed start for one night, from the answer's form: the field's text, or null. */
@@ -161,8 +162,8 @@ export async function withdrawSeriesAction(seriesId: string, requestId: string, 
 /**
  * « Enregistrer l'heure de début » on her waiting answer (JAM-349): the start
  * she proposes for the night is changed, or removed when the field holds the
- * family's own start. No withdrawal and no new answer. The family reads the
- * e-mail of an answer, which says whether the answer proposes another start.
+ * family's own start. No withdrawal and no new answer. The family reads
+ * « [Prénom] a modifié l'heure de début proposée », with the new start.
  */
 export async function changeProposalAction(requestId: string, from: string = "liste", form?: FormData): Promise<void> {
   const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);
@@ -180,9 +181,9 @@ export async function changeProposalAction(requestId: string, from: string = "li
   if (!result.ok) redirect(back(id, origin, `erreur=${result.reason}`));
 
   const site = await siteOrigin();
-  const { applicationId, answerCount } = result;
+  const { applicationId, answerCount, nights } = result;
   // The change moved the answer's count: this e-mail has its own key, and is sent one time.
-  after(() => notifyNewAnswer(applicationId, answerCount, site));
+  after(() => notifyProposalChanged(applicationId, answerCount, nights, false, site));
 
   revalidatePath(PROFESSIONAL_REQUESTS_PATH, "layout");
   redirect(back(id, origin, "modifie=1"));
@@ -216,9 +217,9 @@ export async function changeSeriesProposalsAction(
   if (!result.ok) redirect(back(id, origin, `erreur=${result.reason}`));
 
   const site = await siteOrigin();
-  const { applicationId, answerCount } = result;
-  // One e-mail to the family, for the first night's answer, as for the answer itself.
-  after(() => notifyNewAnswer(applicationId, answerCount, site));
+  const { applicationId, answerCount, nights } = result;
+  // One e-mail to the family for the change, with each night that changed.
+  after(() => notifyProposalChanged(applicationId, answerCount, nights, true, site));
 
   revalidatePath(PROFESSIONAL_REQUESTS_PATH, "layout");
   redirect(back(id, origin, "modifie=1"));

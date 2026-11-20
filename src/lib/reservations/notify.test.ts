@@ -2,7 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RequestCard } from "@/lib/demandes/requests";
 
-import { notifyBooking, notifyNewAnswer, notifyPriority, notifySeriesBooking, notifySeriesPriority } from "./notify";
+import {
+  notifyBooking,
+  notifyNewAnswer,
+  notifyPriority,
+  notifyProposalChanged,
+  notifySeriesBooking,
+  notifySeriesPriority,
+} from "./notify";
 
 /**
  * Spec (candidature-et-reservation): each answer e-mails the family with a
@@ -264,5 +271,116 @@ describe("regular nights sent in priority", () => {
     priorityNotice.mockResolvedValue(null);
     await notifySeriesPriority(["r1", "r2"], SITE);
     expect(sendEmail).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Spec (JAM-349): when a professional changes or removes her proposed start in
+ * place, the family gets one e-mail of its own, never the e-mail of a new
+ * answer. It gives, for each night that changed, the start the family asked
+ * for, the new start and the end that follows the start the line shows (the
+ * rule of JAM-351). A regular request is told in one e-mail. The key holds the
+ * answer's count, so each change sends one time.
+ */
+describe("a proposed start changed in place (JAM-349)", () => {
+  beforeEach(() => {
+    answerNotice.mockResolvedValue({
+      requestId: "r1",
+      nightDate: "2026-09-30",
+      adapted: true,
+      family: { email: "sophie@example.be", firstName: "Sophie" },
+      professional: { profileId: "p1", firstName: "Emma", profession: "sage_femme" },
+    });
+  });
+
+  it("tells the family the requested start, the new start and the new end, with its own key", async () => {
+    await notifyProposalChanged(
+      "a1",
+      3,
+      [{ nightDate: "2026-09-30", startTime: "20:00:00", extraHours: 1.5, proposedStartTime: "21:00:00" }],
+      false,
+      SITE,
+    );
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const [to, email, key] = sendEmail.mock.calls[0];
+    expect(to).toBe("sophie@example.be");
+    expect(email.subject).toBe("Emma a modifié l'heure de début proposée");
+    expect(email.text).toContain("Emma a modifié l'heure de début de sa réponse pour votre garde du 30/09/2026.");
+    // 21:00 + 11 hours + 1 h 30: the end follows the proposed start.
+    expect(email.text).toContain("Début à 21h00 au lieu de 20h00. Fin de la garde à 9h30.");
+    expect(email.text).toContain("Vous acceptez ou non cet horaire au moment de réserver.");
+    expect(email.text).toContain(`${SITE}/espace/famille/professionnelles/p1?demande=r1`);
+    expect(key).toBe("horaire-a1-3");
+    // Not the e-mail of a new answer, and no more about her than that e-mail gives.
+    expect(email.subject).not.toContain("a répondu");
+    expect(email.text).not.toContain("a postulé");
+    expect(email.text).not.toContain("sage-femme");
+  });
+
+  it("says she can start at the requested time when she removed her proposal", async () => {
+    await notifyProposalChanged(
+      "a1",
+      4,
+      [{ nightDate: "2026-09-30", startTime: "20:00:00", extraHours: 0, proposedStartTime: null }],
+      false,
+      SITE,
+    );
+    const [, email, key] = sendEmail.mock.calls[0];
+    // The end follows the family's start: 20:00 + 11 hours.
+    expect(email.text).toContain("Emma peut maintenant commencer à l'heure demandée, 20h00. Fin de la garde à 7h00.");
+    expect(email.text).not.toContain("au lieu de");
+    expect(email.text).not.toContain("Vous acceptez ou non cet horaire");
+    expect(key).toBe("horaire-a1-4");
+  });
+
+  it("tells a regular request in one e-mail, with each changed night in night order", async () => {
+    await notifyProposalChanged(
+      "a1",
+      2,
+      [
+        { nightDate: "2026-10-05", startTime: "19:00:00", extraHours: 0, proposedStartTime: null },
+        { nightDate: "2026-10-02", startTime: "19:00:00", extraHours: 0, proposedStartTime: "18:30:00" },
+      ],
+      true,
+      SITE,
+    );
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const [, email] = sendEmail.mock.calls[0];
+    expect(email.text).toContain("Emma a modifié l'heure de début de sa réponse pour votre demande régulière.");
+    const changed = "Nuit du 02/10/2026 : début à 18h30 au lieu de 19h00, fin de la garde à 5h30.";
+    const removed = "Nuit du 05/10/2026 : début à l'heure demandée, 19h00, fin de la garde à 6h00.";
+    expect(email.text).toContain(changed);
+    expect(email.text).toContain(removed);
+    expect(email.text.indexOf(changed)).toBeLessThan(email.text.indexOf(removed));
+  });
+
+  it("sends nothing when no night changed, or when the answer no longer waits", async () => {
+    await notifyProposalChanged("a1", 2, [], false, SITE);
+    expect(answerNotice).not.toHaveBeenCalled();
+    answerNotice.mockResolvedValue(null);
+    await notifyProposalChanged(
+      "a1",
+      2,
+      [{ nightDate: "2026-09-30", startTime: "20:00:00", extraHours: 0, proposedStartTime: "21:00:00" }],
+      false,
+      SITE,
+    );
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("leaves the change as it is when the send fails", async () => {
+    sendEmail.mockRejectedValue(new Error("resend down"));
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(
+      notifyProposalChanged(
+        "a1",
+        2,
+        [{ nightDate: "2026-09-30", startTime: "20:00:00", extraHours: 0, proposedStartTime: "21:00:00" }],
+        false,
+        SITE,
+      ),
+    ).resolves.toBeUndefined();
+    expect(error).toHaveBeenCalledTimes(1);
+    error.mockRestore();
   });
 });

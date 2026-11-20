@@ -106,8 +106,13 @@ describe("the writes of the two columns", () => {
       const body = actions.slice(start, actions.indexOf("\n}\n", start));
       expect(body).toContain("const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);");
       expect(body).toMatch(/await change(Series)?Proposals?\(\s*user\.id,/);
-      // The family is told with the e-mail of an answer, after the write.
-      expect(body).toContain("after(() => notifyNewAnswer(applicationId, answerCount, site));");
+      // A regular request is told as one, a night alone as one night.
+      expect(body).toContain(`nights, ${name === "changeSeriesProposalsAction"}, site`);
+      // The family is told with the e-mail of a change, after the write, with the nights the write changed.
+      expect(body).toContain("const { applicationId, answerCount, nights } = result;");
+      expect(body).toMatch(/after\(\(\) => notifyProposalChanged\(applicationId, answerCount, nights, (true|false), site\)\);/);
+      // Never the e-mail of a new answer: she did not answer again.
+      expect(body).not.toContain("notifyNewAnswer(");
     }
   });
 

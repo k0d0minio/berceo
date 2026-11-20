@@ -174,7 +174,7 @@ describe("the start of a booked night (JAM-306)", () => {
  * answer, in one statement. The row is hers by her profile id, and only an
  * answer that waits on an open night ahead is written. The change moves
  * `answered_at`, so the booking refuses a fee that the family opened on the
- * proposal of before, and `answer_count`, so the family's e-mail has a new
+ * proposal of before, and `answer_count`, so the family's e-mail of the change has a new
  * key. Each statement is built, never run.
  */
 describe("a proposed start changed in place (JAM-349)", () => {
@@ -208,7 +208,7 @@ describe("a proposed start changed in place (JAM-349)", () => {
       "and not exists (select 1 from users as su where su.id = p.user_id and su.suspended_at is not null)",
     );
     // The same start writes nothing: the family is told of a change only.
-    expect(q.sql).toMatch(/and a\.proposed_start_time is distinct from nullif\(\$\d+::time, r\.start_time\) returning a\.id, a\.answer_count$/);
+    expect(q.sql).toMatch(/and a\.proposed_start_time is distinct from nullif\(\$\d+::time, r\.start_time\) returning a\.id, a\.answer_count, r\.night_date::text as night_date, r\.start_time::text as start_time, r\.extra_hours, a\.proposed_start_time::text as proposed$/);
     // The form's value is bound each time: nothing of it reaches the SQL text.
     expect(q.params.filter((param) => param === "20:30")).toHaveLength(3);
     expect(q.sql).not.toContain("20:30");
@@ -228,7 +228,7 @@ describe("a proposed start changed in place (JAM-349)", () => {
     const OTHER = "6e1a3c5f-7b8d-4e0f-9a4b-5c6d7e8f9a05";
     const q = await built(changeSeriesProposalsStatement(PROFILE, SERIES, [[REQUEST, "20:30"], [OTHER, "18:30"]], AT));
     // Her waiting answers on the open nights ahead of this request, with the start asked for each.
-    expect(q.sql).toMatch(/^with nights as \( select a\.id, r\.night_date, r\.start_time, a\.proposed_start_time as saved, nullif\(\(select h\.start from \(values \(\$1::uuid, \$2::time\), \(\$3::uuid, \$4::time\)\) as h\(request_id, start\) where h\.request_id = r\.id\), r\.start_time\) as wanted/);
+    expect(q.sql).toMatch(/^with nights as \( select a\.id, r\.night_date, r\.start_time, r\.extra_hours, a\.proposed_start_time as saved, nullif\(\(select h\.start from \(values \(\$1::uuid, \$2::time\), \(\$3::uuid, \$4::time\)\) as h\(request_id, start\) where h\.request_id = r\.id\), r\.start_time\) as wanted/);
     expect(q.params.slice(0, 4)).toEqual([REQUEST, "20:30", OTHER, "18:30"]);
     expect(q.sql).toMatch(/where a\.profile_id = \$5 and a\.status = 'en_attente' and r\.series_id = \$6 and r\.series_whole and r\.status = 'ouverte'/);
     expect(q.params.slice(4, 6)).toEqual([PROFILE, SERIES]);
@@ -241,7 +241,10 @@ describe("a proposed start changed in place (JAM-349)", () => {
     // No night changes: nothing is written. One new start that has passed: nothing is written.
     expect(q.sql).toContain("and exists (select 1 from nights c where c.wanted is distinct from c.saved)");
     expect(q.sql).toMatch(/and not exists \( select 1 from nights late where \(late\.night_date \+ coalesce\(late\.wanted, late\.start_time\)\) <= \(now\(\) at time zone \$\d+\) \)/);
-    expect(q.sql).toMatch(/returning a\.id, a\.answer_count, n\.night_date::text as night_date$/);
+    // The statement returns each night with what it wrote, and whether the start changed: the e-mail names those nights.
+    expect(q.sql).toMatch(
+      /returning a\.id, a\.answer_count, n\.night_date::text as night_date, n\.start_time::text as start_time, n\.extra_hours, n\.wanted::text as proposed, \(n\.wanted is distinct from n\.saved\) as changed$/,
+    );
     for (const other of ["retenue", "non_retenue", "retiree"]) expect(q.sql).not.toContain(`'${other}'`);
   });
 

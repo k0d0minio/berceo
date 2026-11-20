@@ -5,6 +5,7 @@ import { paiement } from "@/content/paiement";
 import { formatDate, formatTime } from "@/lib/demandes/format";
 import { logFailures, seriesSummary, summary } from "@/lib/demandes/notify";
 import { PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths";
+import { endTime } from "@/lib/demandes/rules";
 import { sendEmail } from "@/lib/email/send";
 import { eurosFromCents } from "@/lib/paiements/rules";
 import {
@@ -13,11 +14,13 @@ import {
   newAnswerEmail,
   notRetainedEmail,
   priorityRequestEmail,
+  proposalChangedEmail,
 } from "@/lib/email/templates";
 
 import { professionInSentence } from "./format";
 import { answerNotice, bookingNotice, declinedNotices, priorityNotice } from "./notices";
 import { familyBookingPath, professionalBookingPath, professionalProfilePath } from "./paths";
+import { effectiveStart, requestedStart, type ChangedNight } from "./rules";
 
 /**
  * The e-mails of an answer and a booking. Each runs after the response
@@ -56,6 +59,56 @@ export async function notifyNewAnswer(applicationId: string, answerCount: number
     );
   } catch (error) {
     logError("answer e-mail not sent", { applicationId }, error);
+  }
+}
+
+/**
+ * She changed or removed the start she proposed, on her waiting answer
+ * (JAM-349): « [Prénom] a modifié l'heure de début proposée », to the family,
+ * one for each change. `nights` are the nights the write changed, as it
+ * returned them; a regular request (`ofSeries`) is told in one e-mail with each
+ * changed night. The request is open, so the start each line calls requested
+ * is the family's (`requestedStart`, the rule of JAM-351), and the end follows
+ * the start the line shows. The key holds the answer's count, which each
+ * change moves: a retry never sends twice, and the next change sends again.
+ */
+export async function notifyProposalChanged(
+  applicationId: string,
+  answerCount: number,
+  nights: readonly ChangedNight[],
+  ofSeries: boolean,
+  siteUrl: string,
+): Promise<void> {
+  if (nights.length === 0) return;
+  try {
+    const notice = await answerNotice(applicationId);
+    if (!notice) return;
+    const { family, professional } = notice;
+    await sendEmail(
+      family.email,
+      proposalChangedEmail({
+        siteUrl,
+        prenom: family.firstName,
+        professionnelle: professional.firstName,
+        nuits: [...nights]
+          .sort((a, b) => a.nightDate.localeCompare(b.nightDate))
+          .map((night) => {
+            const requested = requestedStart(night);
+            const shown = effectiveStart(requested, night.proposedStartTime);
+            return {
+              date: formatDate(night.nightDate),
+              demande: formatTime(requested),
+              propose: shown === requested ? null : formatTime(shown),
+              fin: formatTime(endTime(shown, night.extraHours)),
+            };
+          }),
+        serie: ofSeries,
+        url: `${siteUrl}${professionalProfilePath(professional.profileId, notice.requestId)}`,
+      }),
+      `horaire-${applicationId}-${answerCount}`,
+    );
+  } catch (error) {
+    logError("changed-start e-mail not sent", { applicationId }, error);
   }
 }
 

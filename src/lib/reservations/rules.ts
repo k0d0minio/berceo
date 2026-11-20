@@ -359,3 +359,16 @@ export function proposalChanged(saved: string | null | undefined, proposed: stri
   const after = proposed ? toHourMinute(proposed) : null;
   return before !== after;
 }
+
+/**
+ * One night whose proposed start a change in place wrote (JAM-349): what the
+ * family's e-mail says of it. `startTime` is the family's start, since only an
+ * open request is changed. `proposedStartTime` is null when she removed her
+ * proposal.
+ */
+export type ChangedNight = {
+  nightDate: string;
+  startTime: string;
+  extraHours: number;
+  proposedStartTime: string | null;
+};
