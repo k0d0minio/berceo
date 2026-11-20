@@ -15,6 +15,8 @@ import { withQuery } from "@/lib/auth/routing";
 import { PROFESSIONAL_REQUESTS_PATH, professionalRequestPath } from "@/lib/demandes/paths";
 import { professionalRequest, professionalRequests } from "@/lib/demandes/requests";
 import { conversationsOfRequests } from "@/lib/messagerie/conversations";
+import { savedRatesOfAnswers } from "@/lib/reservations/answers";
+import { seriesShownRates, shownRates, type Rates } from "@/lib/reservations/rules";
 
 import { AnswerFooter, answerNotice, type AnswerNotice } from "../answer-footer";
 import { SeriesEntry } from "../series-entry";
@@ -36,6 +38,8 @@ export const dynamic = "force-dynamic";
  * unvalidated profile, a request outside her communes and not sent to her in
  * priority, a declined one, a booked night, a cancelled or past request, and
  * an unknown id all read as not found. Nothing else about the family (D-15).
+ * Once she answered, the card shows the rate saved on her answer, the one the
+ * family reads (JAM-344).
  */
 export default async function DemandeProfessionnellePage({
   params,
@@ -53,6 +57,7 @@ export default async function DemandeProfessionnellePage({
   const { request } = view;
   const now = new Date();
   const notice = answerNotice(query);
+  const profileRates: Rates = { nightRateEur: view.nightRateEur, extraHourRateEur: view.extraHourRateEur };
 
   // A regular request answered as one (JAM-302): every night of it on her list, one answer.
   if (request.seriesWhole && request.seriesId) {
@@ -61,20 +66,21 @@ export default async function DemandeProfessionnellePage({
     const nights = (list.validated ? list.requests : [])
       .filter((night) => night.seriesId === seriesId)
       .sort((a, b) => a.nightDate.localeCompare(b.nightDate));
-    const ids = await conversationsOfRequests(
-      user.id,
-      nights.map((night) => night.id),
-    );
+    const shown = nights.length > 0 ? nights : [request];
+    const nightIds = shown.map((night) => night.id);
+    const [ids, savedRates] = await Promise.all([
+      conversationsOfRequests(user.id, nightIds),
+      savedRatesOfAnswers(user.id, nightIds),
+    ]);
     return (
       <SpaceShell user={user} title={t.professionnelle.titre}>
         {notice ? <FormMessage>{notice}</FormMessage> : null}
         <div className="max-w-2xl">
           <SeriesEntry
-            nights={nights.length > 0 ? nights : [request]}
+            nights={shown}
             seriesId={seriesId}
-            nightRateEur={view.nightRateEur}
-            extraHourRateEur={view.extraHourRateEur}
-            conversationId={nights.map((night) => ids.get(night.id)).find((id) => id !== undefined)}
+            rates={seriesShownRates(profileRates, shown, savedRates)}
+            conversationId={shown.map((night) => ids.get(night.id)).find((id) => id !== undefined)}
             from="demande"
           />
         </div>
@@ -88,7 +94,11 @@ export default async function DemandeProfessionnellePage({
     );
   }
 
-  const conversationIds = await conversationsOfRequests(user.id, [request.id]);
+  const [conversationIds, savedRates] = await Promise.all([
+    conversationsOfRequests(user.id, [request.id]),
+    savedRatesOfAnswers(user.id, [request.id]),
+  ]);
+  const rates = shownRates(profileRates, request.answer, savedRates.get(request.id));
 
   return (
     <SpaceShell user={user} title={t.professionnelle.titre}>
@@ -98,9 +108,9 @@ export default async function DemandeProfessionnellePage({
           request={request}
           showPublished
           priority={request.priority}
-          rate={view.nightRateEur}
-          extraHourRate={view.extraHourRateEur}
-          rateLabel={r.votreTarif}
+          rate={rates.nightRateEur}
+          extraHourRate={rates.extraHourRateEur}
+          rateLabel={rates.source === "reponse" ? r.tarifRepondu : r.votreTarif}
           note={request.answer === "en_attente" ? r.repondu : undefined}
         />
       </div>

@@ -110,15 +110,7 @@ function RequestCard({
         </Fact>
         {/* A request published before the field has no feeding. */}
         {request.feedings.length > 0 ? <Fact icon={BiberonIcon}>{feedingLine(request.feedings)}</Fact> : null}
-        {rate ? (
-          <Fact icon={EuroIcon}>
-            {rateLabel ? <span className="block text-legende">{rateLabel}</span> : null}
-            <span className="block font-semibold text-sauge">{rateLine(rate)}</span>
-            {extraHourRate ? (
-              <span className="block font-semibold text-sauge">{extraHourLine(extraHourRate)}</span>
-            ) : null}
-          </Fact>
-        ) : null}
+        <RateFact rate={rate} extraHourRate={extraHourRate} label={rateLabel} />
       </ul>
       {showPublished ? (
         <p className="text-legende">{fill(t.carte.publiee, { date: published })}</p>
@@ -155,4 +147,31 @@ function Fact({
   )
 }
 
-export { RequestCard }
+/**
+ * The professional's rate as the DA's price line: the euro icon, the label that
+ * says whose rate it is (JAM-307), the night's rate and the extra hour's. The
+ * request card and the regular request's card share it (JAM-344). Nothing
+ * without a rate.
+ */
+function RateFact({
+  rate,
+  extraHourRate,
+  label,
+}: {
+  rate?: number | null
+  extraHourRate?: number | null
+  label?: string
+}) {
+  if (!rate) return null
+  return (
+    <Fact icon={EuroIcon}>
+      {label ? <span className="block text-legende">{label}</span> : null}
+      <span className="block font-semibold text-sauge">{rateLine(rate)}</span>
+      {extraHourRate ? (
+        <span className="block font-semibold text-sauge">{extraHourLine(extraHourRate)}</span>
+      ) : null}
+    </Fact>
+  )
+}
+
+export { Fact, Mark, RateFact, RequestCard }
