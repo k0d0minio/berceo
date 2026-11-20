@@ -4,12 +4,15 @@ import { NoteDisplay } from "@/components/avis/stars";
 import { Button } from "@/components/ui/button";
 import { avis } from "@/content/avis";
 import { comptes } from "@/content/comptes";
-import { words } from "@/content/locale";
+import { fill, words } from "@/content/locale";
 import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
+import { formatDate, formatTime } from "@/lib/demandes/format";
 import type { ProfessionalRequest } from "@/lib/demandes/requests";
 import { conversationPath } from "@/lib/messagerie/paths";
-import { canWithdraw, type SeriesAnswerState } from "@/lib/reservations/rules";
+import type { SavedAnswer } from "@/lib/reservations/answers";
+import { ownProposalLine, proposalOptions } from "@/lib/reservations/format";
+import { adaptedNights, canWithdraw, proposalField, type SeriesAnswerState } from "@/lib/reservations/rules";
 
 import { answerRequestAction, answerSeriesAction, withdrawAnswerAction, withdrawSeriesAction } from "./actions";
 
@@ -18,12 +21,83 @@ import { answerRequestAction, answerSeriesAction, withdrawAnswerAction, withdraw
  * notice an answer comes back with, and the card's footer. The footer holds the
  * family's note, then « Je suis disponible pour cette garde », or, once she
  * answered, the conversation and « Retirer ma disponibilité ». `from` tells the
- * action where to send her back.
+ * action where to send her back. Above « Je suis disponible », « Proposer une
+ * autre heure de début » opens one list for each night (JAM-306): the family's
+ * own start is the first choice, so an answer she does not open is an answer
+ * at the family's times. Once she answered, a line says how to change her
+ * proposal: she withdraws, then answers again.
  */
 
 const r = words(reservations).professionnelle;
 const c = words(comptes);
 const m = words(messagerie);
+
+const h = r.horaires;
+
+/* The request form's select (`src/components/demandes/request-form.tsx`). */
+const selectClasses =
+  "flex min-h-12 w-full max-w-sm min-w-0 appearance-none rounded-capsule border border-solid border-input bg-blanc px-6 font-sans text-champ text-taupe transition-[border-color] duration-200 ease-out focus-visible:border-sauge focus-visible:outline-none";
+
+/**
+ * The line of her own waiting proposal on a request of one night (JAM-306),
+ * with how to change it; undefined when her answer proposes no other start,
+ * or does not wait.
+ */
+export function ownProposal(
+  request: ProfessionalRequest,
+  saved: ReadonlyMap<string, SavedAnswer>,
+): string | undefined {
+  if (request.answer !== "en_attente") return undefined;
+  const [night] = adaptedNights([
+    {
+      requestId: request.id,
+      nightDate: request.nightDate,
+      startTime: request.startTime,
+      extraHours: request.extraHours,
+      proposedStartTime: saved.get(request.id)?.proposedStartTime ?? null,
+    },
+  ]);
+  return night ? `${ownProposalLine(night, false)} ${h.changer}` : undefined;
+}
+
+/**
+ * « Proposer une autre heure de début » (JAM-306): closed by default. Each
+ * night has its list of half hours, the family's own start first, each other
+ * hour with the end it gives the night.
+ */
+function ProposalFields({ nights }: { nights: readonly ProfessionalRequest[] }) {
+  const many = nights.length > 1;
+  return (
+    <details className="w-full text-corps text-taupe">
+      <summary className="w-fit cursor-pointer rounded-md font-semibold text-sauge underline underline-offset-4">
+        {h.proposer}
+      </summary>
+      <div className="flex flex-col gap-4 pt-3">
+        <p className="text-legende">{h.aide}</p>
+        {nights.map((night) => {
+          const id = `champ-${proposalField(night.id)}`;
+          return (
+            <div key={night.id} className="flex flex-col gap-2">
+              <label htmlFor={id} className="text-legende font-semibold">
+                {many
+                  ? fill(h.champNuit, { date: formatDate(night.nightDate), heure: formatTime(night.startTime) })
+                  : h.champ}
+              </label>
+              <select id={id} name={proposalField(night.id)} defaultValue="" className={selectClasses}>
+                <option value="">{fill(h.demandee, { heure: formatTime(night.startTime) })}</option>
+                {proposalOptions(night.startTime, night.extraHours).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          );
+        })}
+      </div>
+    </details>
+  );
+}
 
 export type AnswerNotice = { repondu?: string; retiree?: string; erreur?: string };
 
@@ -69,7 +143,8 @@ export function AnswerFooter({
           ) : null}
         </>
       ) : (
-        <form action={answerRequestAction.bind(null, request.id, from)}>
+        <form action={answerRequestAction.bind(null, request.id, from)} className="flex w-full flex-col items-start gap-4">
+          <ProposalFields nights={[request]} />
           {/* The deck's filled sage capsule (slide 25, JAM-327). */}
           <Button type="submit" variant="sauge">
             {r.disponible}
@@ -88,6 +163,7 @@ export function AnswerFooter({
  */
 export function SeriesAnswerFooter({
   request,
+  nights,
   seriesId,
   state,
   conversationId,
@@ -95,6 +171,8 @@ export function SeriesAnswerFooter({
 }: {
   /** The first night: the family's note and the way back. */
   request: ProfessionalRequest;
+  /** Every open night of the request, in night order: one proposed start for each (JAM-306). */
+  nights?: readonly ProfessionalRequest[];
   seriesId: string;
   state: SeriesAnswerState;
   conversationId: string | undefined;
@@ -119,7 +197,11 @@ export function SeriesAnswerFooter({
           </form>
         </>
       ) : state === "repondre" ? (
-        <form action={answerSeriesAction.bind(null, seriesId, request.id, from)}>
+        <form
+          action={answerSeriesAction.bind(null, seriesId, request.id, from)}
+          className="flex w-full flex-col items-start gap-4"
+        >
+          <ProposalFields nights={nights ?? [request]} />
           <Button type="submit" variant="sauge">
             {r.disponibleSerie}
           </Button>

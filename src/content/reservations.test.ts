@@ -64,3 +64,43 @@ describe("the guide's and the DA's lines, verbatim", () => {
     expect(t.profil.verifie).toBe("Profil vérifié par Berceo");
   });
 });
+
+/**
+ * Spec (JAM-306): the adapted schedule has words for both sides. The family
+ * reads the start asked for, the start proposed and the new end, and accepts
+ * the proposal in words before the payment. The professional reads how to
+ * change her proposal. Every slot a line fills is in its text.
+ */
+describe("the adapted schedule's words (JAM-306)", () => {
+  const t = reservations.fr;
+
+  it("gives the family the three times of a proposal, on one night and on a regular request", () => {
+    for (const slot of ["{propose}", "{demande}", "{fin}"]) {
+      expect(t.famille.horaires.ligne).toContain(slot);
+      expect(t.famille.horaires.ligneNuit).toContain(slot);
+    }
+    expect(t.famille.horaires.ligneNuit).toContain("{date}");
+  });
+
+  it("asks the family for an explicit agreement, and says how to refuse", () => {
+    expect(t.famille.horaires.accepter).toBe("J'accepte l'horaire proposé par {prenom}.");
+    expect(t.famille.horaires.accepterRequis.length).toBeGreaterThan(0);
+    expect(t.famille.horaires.explication).toContain("ne réservez pas cette réponse");
+    expect(t.famille.erreurs.horaires.length).toBeGreaterThan(0);
+  });
+
+  it("gives the professional her own proposal, the choice of the family's start, and a refusal", () => {
+    for (const slot of ["{propose}", "{demande}", "{fin}"]) {
+      expect(t.professionnelle.horaires.votreProposition).toContain(slot);
+      expect(t.professionnelle.horaires.votrePropositionNuit).toContain(slot);
+    }
+    expect(t.professionnelle.horaires.demandee).toContain("{heure}");
+    expect(t.professionnelle.horaires.option).toContain("{fin}");
+    expect(t.professionnelle.erreurs.horaire.length).toBeGreaterThan(0);
+  });
+
+  it("keeps the start the family asked for readable after the booking", () => {
+    expect(t.horaireConvenu.ligne).toContain("{demande}");
+    expect(t.horaireConvenu.ligne).toContain("{convenu}");
+  });
+});

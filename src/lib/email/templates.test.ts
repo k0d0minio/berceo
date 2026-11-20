@@ -347,6 +347,23 @@ describe("the answer and the booking e-mails", () => {
       "Emma, sage-femme, a postulé pour votre garde du 30/09/2026. Consultez son profil et confirmez votre choix.",
     );
     expect(email.text).toContain(`Voir le profil de Emma : ${url}`);
+    // An answer at the family's times says nothing about the hours (JAM-306).
+    expect(email.text).not.toContain("heure de début");
+  });
+
+  it("adds one sentence when her answer proposes another start (JAM-306)", () => {
+    const email = newAnswerEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      professionnelle: { prenom: "Emma", profession: "sage-femme" },
+      date: "30/09/2026",
+      url: `${SITE}/espace/famille/professionnelles/p1?demande=r1`,
+      horaireAdapte: true,
+    });
+    expect(email.text).toContain("Emma, sage-femme, a postulé pour votre garde du 30/09/2026.");
+    expect(email.text).toContain(
+      "Emma propose une autre heure de début. Vous la verrez sur sa réponse, et vous l'acceptez ou non au moment de réserver.",
+    );
   });
 
   it("confirms the family's booking without the insurance sentence", () => {

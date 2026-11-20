@@ -8,6 +8,7 @@ import type { AdminBookingRow } from "@/lib/admin/lists"
 import { adminUserPath } from "@/lib/admin/paths"
 import { formatDate, formatTime } from "@/lib/demandes/format"
 import { eurosFromCents } from "@/lib/paiements/rules"
+import { agreedStartLine } from "@/lib/reservations/format"
 
 import { BerceoCancelButton } from "./berceo-cancel-button"
 
@@ -52,6 +53,8 @@ function BookingsTable({ rows }: { rows: AdminBookingRow[] }) {
             <TableRow key={row.id}>
               <TableCell>
                 {fill(a.demandes.nuit, { date: formatDate(row.nightDate), heure: formatTime(row.startTime) })}
+                {/* Booked at a start the professional proposed (JAM-306): the family's own start, as a record. */}
+                {agreedStartLine(row) ? <span className="block text-legende">{agreedStartLine(row)}</span> : null}
               </TableCell>
               <TableCell>{person(row.family)}</TableCell>
               <TableCell>{person(row.professional)}</TableCell>

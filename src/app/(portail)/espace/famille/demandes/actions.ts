@@ -272,7 +272,12 @@ export async function cancelSeriesAction(seriesId: string): Promise<void> {
  * refusal reads today's message; an earlier Checkout found paid is confirmed
  * instead of opening a second one.
  */
-export async function acceptAnswerAction(requestId: string, applicationId: string): Promise<void> {
+export async function acceptAnswerAction(
+  requestId: string,
+  applicationId: string,
+  /** The proposed start she read and confirmed on the récapitulatif (JAM-306); empty for none. */
+  confirmedProposals: string = "",
+): Promise<void> {
   const user = await requireAccess(FAMILY_REQUESTS_PATH);
   const id = String(requestId);
   if (!UUID.test(id)) notFound();
@@ -286,6 +291,7 @@ export async function acceptAnswerAction(requestId: string, applicationId: strin
       applicationId: String(applicationId),
       siteUrl: await siteOrigin(),
       now: new Date(),
+      confirmedProposals: String(confirmedProposals),
     });
   } catch (error) {
     logWriteError("checkout not opened", { userId: user.id, requestId: id }, error);
@@ -313,7 +319,13 @@ export async function acceptAnswerAction(requestId: string, applicationId: strin
  * webhook or the return page. `requestId` is the night whose page she is on,
  * for the way back; every id is only a lookup key.
  */
-export async function acceptSeriesAction(seriesId: string, requestId: string, profileId: string): Promise<void> {
+export async function acceptSeriesAction(
+  seriesId: string,
+  requestId: string,
+  profileId: string,
+  /** The proposed starts she read and confirmed on the récapitulatif (JAM-306); empty for none. */
+  confirmedProposals: string = "",
+): Promise<void> {
   const user = await requireAccess(FAMILY_REQUESTS_PATH);
   const series = String(seriesId);
   const id = String(requestId);
@@ -328,6 +340,7 @@ export async function acceptSeriesAction(seriesId: string, requestId: string, pr
       profileId: String(profileId),
       siteUrl: await siteOrigin(),
       now: new Date(),
+      confirmedProposals: String(confirmedProposals),
     });
   } catch (error) {
     logWriteError("series checkout not opened", { userId: user.id, seriesId: series }, error);

@@ -37,7 +37,7 @@ import { formatDate } from "@/lib/demandes/format";
 import { isUniqueViolation, UUID } from "@/lib/demandes/requests";
 import { acceptAnswer, acceptCheck, acceptSeriesCheck } from "@/lib/reservations/bookings";
 import { notifyBooking, notifySeriesBooking } from "@/lib/reservations/notify";
-import type { AcceptRefusal } from "@/lib/reservations/rules";
+import { proposalsSignature, type AcceptRefusal } from "@/lib/reservations/rules";
 
 import { notifyRefund } from "./notify";
 import { PAYMENT_ABANDON_PATH, PAYMENT_RETURN_PATH } from "./paths";
@@ -109,6 +109,9 @@ export type StartResult =
  * exactly as a booking reads them; then the request's open Checkout, if any,
  * is closed; then a new one is opened at Stripe for 3 % of the answer's rate,
  * and recorded `en_attente`. Nothing about the request or its answers changes.
+ * An answer that proposes a different start (JAM-306) opens a Checkout only
+ * when `confirmedProposals` is that proposal (`proposalsSignature`): the family
+ * confirmed the adapted time it read. Otherwise the refusal is « horaires ».
  */
 export async function startCheckout(input: {
   user: { id: string; email: string };
@@ -116,12 +119,18 @@ export async function startCheckout(input: {
   applicationId: string;
   siteUrl: string;
   now: Date;
+  /** The proposed starts the family confirmed on the récapitulatif; empty for none. */
+  confirmedProposals?: string;
 }): Promise<StartResult> {
   const { user, requestId, applicationId, siteUrl, now } = input;
   const check = await acceptCheck(user.id, requestId, applicationId, now);
   if (!check.ok) return { kind: "refus", reason: check.reason };
   // A night of a regular request is booked with all its nights (JAM-302, startSeriesCheckout).
   if (check.seriesWhole) return { kind: "refus", reason: "indisponible" };
+  // The family books the adapted time it confirmed, never one it did not read (JAM-306).
+  if (proposalsSignature([{ requestId, proposedStartTime: check.proposedStartTime }]) !== (input.confirmedProposals ?? "")) {
+    return { kind: "refus", reason: "horaires" };
+  }
 
   // A fee already paid for this request and still being settled: confirm it,
   // never charge a second one.
@@ -297,6 +306,8 @@ async function payWithCredit(input: {
  * cut over the nights (`splitCreditPart`); a balance that covers every fee
  * books at once, with no Checkout. The paid Checkout books every night through
  * `confirmPayment`. Nothing about the request or its answers changes here.
+ * As for one night, the nights' proposed starts must be the ones the family
+ * confirmed (JAM-306, `confirmedProposals`).
  */
 export async function startSeriesCheckout(input: {
   user: { id: string; email: string };
@@ -304,11 +315,14 @@ export async function startSeriesCheckout(input: {
   profileId: string;
   siteUrl: string;
   now: Date;
+  /** The proposed starts the family confirmed on the récapitulatif; empty for none. */
+  confirmedProposals?: string;
 }): Promise<StartResult> {
   const { user, seriesId, profileId, siteUrl, now } = input;
   const check = await acceptSeriesCheck(user.id, seriesId, profileId, now);
   if (!check.ok) return { kind: "refus", reason: check.reason };
   const { nights } = check;
+  if (proposalsSignature(nights) !== (input.confirmedProposals ?? "")) return { kind: "refus", reason: "horaires" };
   const requestIds = nights.map((night) => night.requestId);
 
   // Fees already paid for these nights and still being settled: confirm them, never charge twice.

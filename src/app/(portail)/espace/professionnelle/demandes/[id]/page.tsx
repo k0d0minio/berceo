@@ -18,7 +18,7 @@ import { conversationsOfRequests } from "@/lib/messagerie/conversations";
 import { savedRatesOfAnswers } from "@/lib/reservations/answers";
 import { seriesShownRates, shownRates, type Rates } from "@/lib/reservations/rules";
 
-import { AnswerFooter, answerNotice, type AnswerNotice } from "../answer-footer";
+import { AnswerFooter, answerNotice, ownProposal, type AnswerNotice } from "../answer-footer";
 import { SeriesEntry } from "../series-entry";
 
 const t = words(demandes);
@@ -80,6 +80,7 @@ export default async function DemandeProfessionnellePage({
             nights={shown}
             seriesId={seriesId}
             rates={seriesShownRates(profileRates, shown, savedRates)}
+            saved={savedRates}
             conversationId={shown.map((night) => ids.get(night.id)).find((id) => id !== undefined)}
             from="demande"
           />
@@ -112,6 +113,7 @@ export default async function DemandeProfessionnellePage({
           extraHourRate={rates.extraHourRateEur}
           rateLabel={rates.source === "reponse" ? r.tarifRepondu : r.votreTarif}
           note={request.answer === "en_attente" ? r.repondu : undefined}
+          proposal={ownProposal(request, savedRates)}
         />
       </div>
       {request.reason ? <RequestReason title={t.professionnelle.motif} reason={request.reason} /> : null}

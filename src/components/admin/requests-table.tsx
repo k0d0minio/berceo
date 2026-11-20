@@ -9,6 +9,7 @@ import type { AdminRequestRow } from "@/lib/admin/lists"
 import { adminUserPath } from "@/lib/admin/paths"
 import { formatDate, formatTime, placeLine } from "@/lib/demandes/format"
 import { displayStatus } from "@/lib/demandes/rules"
+import { agreedStartLine } from "@/lib/reservations/format"
 
 /*
  * Every care request (back-office-admin): the night, the commune, the family
@@ -40,6 +41,8 @@ function RequestsTable({ rows, now }: { rows: AdminRequestRow[]; now: Date }) {
               <TableRow className={row.reason ? "border-b-0" : undefined}>
                 <TableCell>
                   {fill(t.nuit, { date: formatDate(row.nightDate), heure: formatTime(row.startTime) })}
+                  {/* Booked at a start the professional proposed (JAM-306): the family's own start, as a record. */}
+                  {agreedStartLine(row) ? <span className="block text-legende">{agreedStartLine(row)}</span> : null}
                   {row.urgent ? <span className="block text-legende font-semibold">{t.urgente}</span> : null}
                 </TableCell>
                 <TableCell>{placeLine(row.postcode, row.locality)}</TableCell>

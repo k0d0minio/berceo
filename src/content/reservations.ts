@@ -87,6 +87,29 @@ export const reservations = catalogue({
         introuvable: "Cette demande n'existe plus.",
         /** @relecture Surya — retrait impossible. */
         retrait: "Votre disponibilité ne peut plus être retirée.",
+        /** @relecture Surya — l'heure de début proposée n'est pas une heure de la liste (JAM-306). */
+        horaire: "L'heure de début proposée n'est pas valable. Choisissez une heure de la liste.",
+      },
+      /** L'horaire adapté, côté professionnelle (retour 2 des fondatrices, JAM-306). */
+      horaires: {
+        /** @relecture Surya — ouvre le choix d'une autre heure de début. */
+        proposer: "Proposer une autre heure de début",
+        /** @relecture Surya — ce que la proposition change, et qui décide. */
+        aide: "Vous pouvez répondre même si vous ne pouvez pas commencer à l'heure demandée. Indiquez l'heure à laquelle vous pouvez commencer. La durée de la garde ne change pas. La famille accepte ou non votre proposition.",
+        /** @relecture Surya — le champ, pour une demande d'une nuit. */
+        champ: "Heure de début que vous proposez",
+        /** @relecture Surya — le champ d'une nuit d'une demande régulière. */
+        champNuit: "Nuit du {date}, demandée à {heure}",
+        /** @relecture Surya — le choix par défaut : l'heure de la famille. */
+        demandee: "L'heure demandée ({heure})",
+        /** @relecture Surya — une heure proposée, avec la fin de la garde qui en découle. */
+        option: "{heure}, fin de la garde à {fin}",
+        /** @relecture Surya — sa proposition enregistrée, sur la carte d'une demande d'une nuit. */
+        votreProposition: "Vous avez proposé de commencer à {propose} au lieu de {demande}. La garde se terminerait à {fin}.",
+        /** @relecture Surya — sa proposition enregistrée pour une nuit d'une demande régulière. */
+        votrePropositionNuit: "Vous avez proposé de commencer à {propose} au lieu de {demande}, fin à {fin}.",
+        /** @relecture Surya — comment modifier ou retirer sa proposition. */
+        changer: "Pour modifier ou retirer votre proposition, retirez votre disponibilité puis répondez de nouveau.",
       },
     },
 
@@ -135,7 +158,36 @@ export const reservations = catalogue({
           "Pour réserver, indiquez d'abord votre adresse dans votre profil. Elle ne sera communiquée qu'à la professionnelle choisie, une fois la réservation confirmée.",
         /** @relecture Surya — republication impossible. */
         republication: "Cette demande ne peut plus être republiée.",
+        /** @relecture Surya — l'horaire proposé n'est pas celui que la famille a confirmé (JAM-306). */
+        horaires:
+          "L'horaire proposé par cette professionnelle n'a pas été confirmé ou a changé. Relisez sa réponse, puis confirmez l'horaire proposé pour réserver.",
       },
+      /** L'horaire adapté, côté famille (retour 2 des fondatrices, JAM-306). */
+      horaires: {
+        /** @relecture Surya — marque d'une réponse qui propose une autre heure de début. */
+        marque: "Horaire adapté",
+        /** @relecture Surya — titre du bloc, sur la réponse et dans le récapitulatif. */
+        titre: "{prenom} propose une autre heure de début",
+        /** @relecture Surya — la proposition, pour une demande d'une nuit. */
+        ligne: "Début à {propose} au lieu de {demande}. Fin de la garde à {fin}.",
+        /** @relecture Surya — la proposition pour une nuit d'une demande régulière. */
+        ligneNuit: "Nuit du {date} : début à {propose} au lieu de {demande}, fin à {fin}.",
+        /** @relecture Surya — ce que la proposition change, et comment la refuser. */
+        explication:
+          "La durée de la garde ne change pas. Si vous réservez {prenom}, la garde aura lieu à cet horaire. Si cet horaire ne vous convient pas, ne réservez pas cette réponse : vous pouvez écrire à {prenom} ou choisir une autre professionnelle.",
+        /** @relecture Surya — la case à cocher du récapitulatif : l'accord explicite de la famille. */
+        accepter: "J'accepte l'horaire proposé par {prenom}.",
+        /** @relecture Surya — la case n'est pas cochée. */
+        accepterRequis: "Cochez la case pour accepter l'horaire proposé avant de confirmer.",
+      },
+    },
+
+    /** L'horaire d'une garde réservée avec une heure de début proposée par la professionnelle (JAM-306). */
+    horaireConvenu: {
+      /** @relecture Surya — sur la carte d'une garde, pour les deux côtés et les fondatrices. */
+      ligne: "Horaire adapté : début demandé à {demande}, début convenu à {convenu}.",
+      /** @relecture Surya — libellé du récapitulatif d'une réservation : l'heure de début que la famille avait demandée. */
+      demandee: "Heure de début demandée",
     },
 
     /** « Accepter et réserver » et la page de réservation. */

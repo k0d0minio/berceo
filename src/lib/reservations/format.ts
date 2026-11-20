@@ -3,7 +3,9 @@ import { professionnelle } from "@/content/professionnelle";
 import { reservations } from "@/content/reservations";
 import type { Profession } from "@/db/schema";
 import { formatDate, formatTime } from "@/lib/demandes/format";
-import { endTime, NIGHT_HOURS } from "@/lib/demandes/rules";
+import { endTime, NIGHT_HOURS, START_TIMES, toHourMinute } from "@/lib/demandes/rules";
+
+import { isAdapted, requestedStart, type AdaptedNight } from "./rules";
 
 /**
  * How an answer and a booking read: the price line of the DA's card
@@ -72,4 +74,60 @@ export function recapNight(
 /** « 1 réponse », « 3 réponses ». */
 export function answersCount(n: number): string {
   return n === 1 ? t.famille.uneReponse : fill(t.famille.reponses, { n: String(n) });
+}
+
+// ---------------------------------------------------------------------------
+// The adapted schedule (JAM-306)
+// ---------------------------------------------------------------------------
+
+type Slots = { demande: string; propose: string; fin: string };
+
+function slots(night: AdaptedNight): Slots {
+  return { demande: formatTime(night.requested), propose: formatTime(night.proposed), fin: formatTime(night.end) };
+}
+
+/**
+ * What the family reads of an answer's proposals: « Début à 20h00 au lieu de
+ * 19h00. Fin de la garde à 7h00. » for a request of one night, and one line
+ * for each night with its date for a regular request.
+ */
+export function adaptedLines(nights: readonly AdaptedNight[], withDates: boolean): string[] {
+  const h = t.famille.horaires;
+  return nights.map((night) =>
+    withDates
+      ? fill(h.ligneNuit, { ...slots(night), date: formatDate(night.nightDate) })
+      : fill(h.ligne, slots(night)),
+  );
+}
+
+/** What the professional reads of her own saved proposal, for one night or a night of a regular request. */
+export function ownProposalLine(night: AdaptedNight, ofSeries: boolean): string {
+  const h = t.professionnelle.horaires;
+  return fill(ofSeries ? h.votrePropositionNuit : h.votreProposition, slots(night));
+}
+
+/**
+ * The choices of « Proposer une autre heure de début » for a night: every half
+ * hour of the request's range but the family's own, each with the end it
+ * gives the night. The value is `HH:MM`.
+ */
+export function proposalOptions(familyStart: string, extraHours: number): { value: string; label: string }[] {
+  const h = t.professionnelle.horaires;
+  return START_TIMES.filter((slot) => slot !== toHourMinute(familyStart)).map((slot) => ({
+    value: slot,
+    label: fill(h.option, { heure: formatTime(slot), fin: formatTime(endTime(slot, extraHours)) }),
+  }));
+}
+
+/**
+ * « Horaire adapté : début demandé à 19h00, début convenu à 20h00. » on a
+ * booked night whose start is the professional's proposal; null on any other
+ * night.
+ */
+export function agreedStartLine(request: { startTime: string; requestedStartTime?: string | null }): string | null {
+  if (!isAdapted(request)) return null;
+  return fill(t.horaireConvenu.ligne, {
+    demande: formatTime(requestedStart(request)),
+    convenu: formatTime(request.startTime),
+  });
 }

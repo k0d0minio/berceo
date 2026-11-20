@@ -100,6 +100,9 @@ export const emails = catalogue({
       objet: "{prenom} a répondu à votre demande",
       corps: "{prenom}, {profession}, a postulé pour votre garde du {date}. Consultez son profil et confirmez votre choix.",
       cta: "Voir le profil de {prenom}",
+      /** @relecture Surya — sa réponse propose une autre heure de début (JAM-306). */
+      horaireAdapte:
+        "{prenom} propose une autre heure de début. Vous la verrez sur sa réponse, et vous l'acceptez ou non au moment de réserver.",
     },
 
     /** Confirmation de réservation (famille), le guide sans sa phrase sur l'assurance (D-8, D-78). */

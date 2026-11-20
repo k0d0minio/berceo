@@ -10,7 +10,7 @@ import { reservations } from "@/content/reservations"
 import { cardTitle, childrenLine, feedingLine, nightLine, placeLine } from "@/lib/demandes/format"
 import type { RequestCard as Request } from "@/lib/demandes/requests"
 import type { DisplayStatus } from "@/lib/demandes/rules"
-import { extraHourLine, rateLine } from "@/lib/reservations/format"
+import { agreedStartLine, extraHourLine, rateLine } from "@/lib/reservations/format"
 import { cn } from "@/lib/utils"
 
 /*
@@ -24,7 +24,10 @@ import { cn } from "@/lib/utils"
  * priority (butter yellow too, D-71), her rate as the DA's price line under a
  * label that says it is her own (JAM-307), and her answer's buttons below. It
  * never shows anything about the family (D-15): its props hold only the card
- * columns. A white card sits on a sage or pearl zone (`CardField`).
+ * columns. A white card sits on a sage or pearl zone (`CardField`). A night
+ * booked at a start the professional proposed (JAM-306) shows the agreed start
+ * as its night, and one line under it with the start the family asked for.
+ * `proposal` is the professional's own waiting proposal, under her answer's note.
  */
 
 const t = words(demandes)
@@ -53,6 +56,7 @@ function RequestCard({
   extraHourRate,
   rateLabel,
   note,
+  proposal,
   footer,
 }: {
   request: Request
@@ -74,6 +78,8 @@ function RequestCard({
   rateLabel?: string
   /** A short line under the card's facts: « 2 réponses », « Vous avez répondu ». */
   note?: string
+  /** The professional's view: the start she proposed with her waiting answer (JAM-306). */
+  proposal?: string
   /** The professional's view: her answer's buttons. */
   footer?: React.ReactNode
 }) {
@@ -83,6 +89,8 @@ function RequestCard({
     month: "2-digit",
     year: "numeric",
   }).format(request.createdAt)
+
+  const agreed = agreedStartLine(request)
 
   return (
     <article className="flex h-full min-w-0 flex-col gap-4 rounded-carte bg-blanc px-6 py-8 text-taupe md:px-10">
@@ -104,6 +112,7 @@ function RequestCard({
           <span className="font-semibold">
             {nightLine(request.nightDate, request.startTime, request.extraHours)}
           </span>
+          {agreed ? <span className="block text-legende">{agreed}</span> : null}
         </Fact>
         <Fact icon={BebeIcon}>
           {childrenLine(request.childAges)}
@@ -116,6 +125,7 @@ function RequestCard({
         <p className="text-legende">{fill(t.carte.publiee, { date: published })}</p>
       ) : null}
       {note ? <p className="text-corps font-semibold">{note}</p> : null}
+      {proposal ? <p className="text-corps">{proposal}</p> : null}
       {href ? (
         <Button asChild variant="sauge" className="mt-auto self-start">
           <Link href={href}>{t.boutons.voir}</Link>
