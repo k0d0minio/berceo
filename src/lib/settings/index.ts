@@ -1,6 +1,6 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import { appSettings, db } from "@/db";
 import { journalInsert, type Person } from "@/lib/admin/journal";
@@ -66,6 +66,46 @@ export async function studentsSetting(): Promise<{
     updatedAt: row?.updatedAt ?? null,
     updatedBy: row?.updatedBy ?? null,
   };
+}
+
+/**
+ * A counter in a time window (JAM-341, the contact form's send limit): rows
+ * whose key starts with `prefix`, whose `value` is the count and whose
+ * `updated_at` is the start of the window. They are not founders' settings:
+ * they have no author and no journal entry.
+ *
+ * Adds one to the counter of `key` and returns the new count. The count is one
+ * atomic statement (an upsert), so two requests at the same time get two
+ * different counts. A window that started at or before `expiredAt` is over:
+ * the batch first removes each such row of the prefix, so no key stays after
+ * its window, and the upsert starts a new window at 1. The caller gives both
+ * instants (`src/lib/contact/rate-limit.ts` has the rule).
+ */
+export async function countInWindow(input: {
+  key: string;
+  prefix: string;
+  now: Date;
+  expiredAt: Date;
+}): Promise<number> {
+  const { key, prefix, now, expiredAt } = input;
+  const over = sql`${appSettings.updatedAt} <= ${expiredAt.toISOString()}::timestamptz`;
+  const [, rows] = await db.batch([
+    db.delete(appSettings).where(and(sql`starts_with(${appSettings.key}, ${prefix})`, over)),
+    db
+      .insert(appSettings)
+      .values({ key, value: 1, updatedAt: now, updatedBy: null })
+      .onConflictDoUpdate({
+        target: appSettings.key,
+        set: {
+          value: sql`case when ${over} then '1'::jsonb else to_jsonb((${appSettings.value} #>> '{}')::int + 1) end`,
+          updatedAt: sql`case when ${over} then ${now.toISOString()}::timestamptz else ${appSettings.updatedAt} end`,
+        },
+      })
+      .returning({ value: appSettings.value }),
+  ]);
+  const count = rows[0]?.value;
+  if (typeof count !== "number") throw new Error("settings: the counter has no count");
+  return count;
 }
 
 /**
