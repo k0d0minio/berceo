@@ -74,7 +74,9 @@ describe("the list of communes", () => {
 
   it("a row holds the commune, a count and the link, and no name of a person", () => {
     const { rows } = communeRows("ixelles", 1, none, ORIGIN);
-    expect(Object.keys(rows[0]).sort()).toEqual(["ins", "name", "postcodes", "professionals", "shareUrl"]);
+    expect(Object.keys(rows[0]).sort()).toEqual(["ins", "name", "postcodes", "professionals", "shareUrl", "slug"]);
+    expect(rows[0].slug).toBe("ixelles");
+    expect(rows[0].shareUrl.endsWith(`/${rows[0].slug}`)).toBe(true);
   });
 });
 

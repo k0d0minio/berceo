@@ -1,7 +1,7 @@
 import { SPACES } from "@/lib/auth/routing";
 import { allCommunes, postcodesOf, searchLocalities } from "@/lib/communes";
 import type { ServingCounts } from "@/lib/recherche/professionals";
-import { communePath } from "@/lib/recherche/slugs";
+import { COMMUNE_PAGES_PATH, communePath } from "@/lib/recherche/slugs";
 
 /**
  * « Communes » (JAM-361): the founders' list of the 565 communes, each with its
@@ -21,6 +21,8 @@ export type CommuneRow = {
   /** The REFNIS code: the key of the row. */
   ins: string;
   name: string;
+  /** The slug of the public page: it names the commune in the address of its QR code. */
+  slug: string;
   postcodes: string[];
   /** The validated professionals who serve the commune. */
   professionals: number;
@@ -47,6 +49,12 @@ export function professionalsServing(counts: ServingCounts, ins: string): number
   return counts.everywhere + (counts.byCommune.get(ins) ?? 0);
 }
 
+/** The slug of a commune's public page, or null for an unknown code. */
+export function communeSlug(ins: string): string | null {
+  const path = communePath(ins);
+  return path ? path.slice(COMMUNE_PAGES_PATH.length + 1) : null;
+}
+
 /** The share link of a commune: this origin and the path of its public page, or null for an unknown code. */
 export function communeShareUrl(origin: string, ins: string): string | null {
   const path = communePath(ins);
@@ -66,9 +74,10 @@ export function communeRows(
 ): { rows: CommuneRow[]; page: number; pages: number; total: number } {
   const all: CommuneRow[] = [];
   for (const { ins, name } of matchingCommunes(q)) {
+    const slug = communeSlug(ins);
     const shareUrl = communeShareUrl(origin, ins);
-    if (!shareUrl) continue;
-    all.push({ ins, name, postcodes: postcodesOf(ins), professionals: professionalsServing(counts, ins), shareUrl });
+    if (!slug || !shareUrl) continue;
+    all.push({ ins, name, slug, postcodes: postcodesOf(ins), professionals: professionalsServing(counts, ins), shareUrl });
   }
   all.sort(
     (a, b) =>
