@@ -53,7 +53,12 @@ export function recapNight(
       ? fill(t.recapitulatif.duree, { n })
       : extraHours === 1
         ? fill(t.recapitulatif.dureeUneSupplementaire, { n })
-        : fill(t.recapitulatif.dureeSupplementaires, { n, extra: String(extraHours) });
+        : extraHours === 0.5
+          ? fill(t.recapitulatif.dureeDemiHeure, { n })
+          : Number.isInteger(extraHours)
+            ? fill(t.recapitulatif.dureeSupplementaires, { n, extra: String(extraHours) })
+            : // Half hours (JAM-303): « 11 heures et 1 h 30 supplémentaires ».
+              fill(t.recapitulatif.dureeSupplementairesTrente, { n, extra: String(Math.floor(extraHours)) });
   return {
     date: formatDate(nightDate),
     heures: fill(t.recapitulatif.heures, {

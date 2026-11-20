@@ -14,7 +14,8 @@ import type { DisplayStatus } from "@/lib/demandes/rules"
  * 32 px, the title in taupe capitals, one line for each fact with one of
  * Surya's icons in taupe, no shadow). The commune, the place, the count of nights, the children and their
  * feeding are the first night's: the series was published with one set of
- * details. Then one line per night, in date order, with its own hours, its
+ * details. Then one line per night, in date order, with its own start, extra
+ * hours and end (JAM-303: each night has its own), its
  * status, its answers and its link: each night of an older series is a
  * request of its own. A regular request answered as one (JAM-302) shows its
  * nights without a link of their own, or with the link to a night's garde. The
@@ -61,8 +62,8 @@ function SeriesCard({
         <Fact icon={CalendrierIcon}>
           <span className="font-semibold">{count}</span>
         </Fact>
-        <Fact icon={BebeIcon}>{childrenLine(first.children, first.babyAgeValue, first.babyAgeUnit)}</Fact>
-        {first.feeding ? <Fact icon={BiberonIcon}>{feedingLine(first.feeding)}</Fact> : null}
+        <Fact icon={BebeIcon}>{childrenLine(first.childAges)}</Fact>
+        {first.feedings.length > 0 ? <Fact icon={BiberonIcon}>{feedingLine(first.feedings)}</Fact> : null}
       </ul>
       {aside}
       <ul aria-label={t.serie.nuits} className="flex flex-col gap-3 pt-2">

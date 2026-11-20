@@ -18,10 +18,10 @@ import { messagerie } from "@/content/messagerie";
 import { reservations } from "@/content/reservations";
 import { familyMay } from "@/lib/abonnements/rules";
 import { creditShares } from "@/lib/credits/credits";
-import { formatDate } from "@/lib/demandes/format";
+import { formatDate, nightLine } from "@/lib/demandes/format";
 import { FAMILY_REQUESTS_PATH, familyRequestPath } from "@/lib/demandes/paths";
 import { ownSeriesNights, type OwnRequest } from "@/lib/demandes/requests";
-import { displayStatus, isChangeable, isEditable } from "@/lib/demandes/rules";
+import { displayStatus, isChangeable, isEditable, toHourMinute } from "@/lib/demandes/rules";
 import { PROFILE_PATH } from "@/lib/famille/paths";
 import { requestHasAddress } from "@/lib/famille/request-address";
 import { conversationsOfAnswers } from "@/lib/messagerie/conversations";
@@ -87,7 +87,26 @@ export async function SeriesRequest({
       : Promise.resolve(new Map<number, number>()),
   ]);
   const first = openNights.at(0) ?? nights.at(0) ?? request;
-  const night = recapNight(first.nightDate, first.startTime, first.extraHours);
+  // Each night has its own start and extra hours (JAM-303). When they are the same, the summary
+  // says them once. When they differ, each night's line carries its own hours and its end.
+  const byDate = new Map(nights.map((item) => [item.nightDate, item]));
+  const recapOf = (dates: readonly string[]) => {
+    const items = dates.flatMap((date) => {
+      const item = byDate.get(date);
+      return item ? [item] : [];
+    });
+    const head = items.at(0) ?? first;
+    const sameHours = items.every(
+      (item) => toHourMinute(item.startTime) === toHourMinute(head.startTime) && item.extraHours === head.extraHours,
+    );
+    return sameHours
+      ? { ...recapNight(head.nightDate, head.startTime, head.extraHours), date: dates.map(formatDate).join(", ") }
+      : {
+          heures: r.recapitulatif.heuresDifferentes,
+          duree: r.recapitulatif.dureeDifferente,
+          date: items.map((item) => nightLine(item.nightDate, item.startTime, item.extraHours)).join(", "),
+        };
+  };
 
   return (
     <>
@@ -163,8 +182,7 @@ export async function SeriesRequest({
                             {mayBook && hasAddress ? (
                               <AcceptAnswer
                                 recap={{
-                                  ...night,
-                                  date: answer.nights.map((item) => formatDate(item.nightDate)).join(", "),
+                                  ...recapOf(answer.nights.map((item) => item.nightDate)),
                                   nuits:
                                     answer.nights.length === 1
                                       ? t.serie.uneNuit

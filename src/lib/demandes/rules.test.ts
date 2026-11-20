@@ -15,9 +15,18 @@ import {
   isDateInWindow,
   isEditable,
   isDigestTime,
+  areFeedings,
+  EXTRA_HOURS,
+  FEEDINGS,
+  isChildCount,
   isExtraHours,
   isStartTime,
+  isTooOld,
+  MAX_AGE_MONTHS,
+  MAX_CHILDREN,
   MAX_SERIES_NIGHTS,
+  parseExtraHours,
+  sortFeedings,
   seriesWindow,
 } from "./rules";
 
@@ -158,10 +167,92 @@ describe("the end of the night", () => {
   });
 });
 
-describe("the extra hours", () => {
-  it("are whole hours from 0 to 6", () => {
-    for (const accepted of [0, 1, 2, 6]) expect(isExtraHours(accepted)).toBe(true);
-    for (const refused of [-1, 7, 1.5, Number.NaN]) expect(isExtraHours(refused)).toBe(false);
+describe("the extra hours (JAM-303)", () => {
+  it("go by half hours from 0 to 6", () => {
+    for (const accepted of [0, 0.5, 1, 1.5, 2, 5.5, 6]) expect(isExtraHours(accepted)).toBe(true);
+    for (const refused of [-1, -0.5, 6.5, 7, 1.25, 0.1, Number.NaN]) expect(isExtraHours(refused)).toBe(false);
+  });
+
+  it("are listed for the form: 13 choices, 0 first and 6 last", () => {
+    expect(EXTRA_HOURS).toHaveLength(13);
+    expect(EXTRA_HOURS.slice(0, 4)).toEqual([0, 0.5, 1, 1.5]);
+    expect(EXTRA_HOURS.at(-1)).toBe(6);
+    expect(EXTRA_HOURS.every(isExtraHours)).toBe(true);
+  });
+
+  it("are read from the form's value, with a point or a comma, empty as 0", () => {
+    expect(parseExtraHours("")).toBe(0);
+    expect(parseExtraHours("0")).toBe(0);
+    expect(parseExtraHours("0.5")).toBe(0.5);
+    expect(parseExtraHours("1,5")).toBe(1.5);
+    expect(parseExtraHours("6")).toBe(6);
+    expect(parseExtraHours("6.0")).toBe(6);
+    for (const refused of ["6.5", "7", "-1", "1.25", "1.", "deux", "10", "1.50"]) {
+      expect(parseExtraHours(refused)).toBeNaN();
+    }
+  });
+
+  it("move the end of the night by half an hour", () => {
+    expect(endTime("20:00", 0.5)).toBe("07:30");
+    expect(endTime("20:30", 0.5)).toBe("08:00");
+    expect(endTime("19:00:00", 1.5)).toBe("07:30");
+    expect(endTime("23:00", 5.5)).toBe("15:30");
+    expect(endTime("18:00", 6)).toBe("11:00");
+  });
+
+  it("end the night half an hour later", () => {
+    // 19:00 + 11 h + 0.5 h is 06:30 in Brussels, 04:30Z in summer time.
+    expect(hasNightEnded("2026-09-30", "19:00", 0.5, new Date("2026-10-01T04:29:00Z"))).toBe(false);
+    expect(hasNightEnded("2026-09-30", "19:00", 0.5, new Date("2026-10-01T04:30:00Z"))).toBe(true);
+  });
+});
+
+describe("the children (JAM-303)", () => {
+  it("are 1 to 4", () => {
+    expect(MAX_CHILDREN).toBe(4);
+    for (const accepted of [1, 2, 3, 4]) expect(isChildCount(accepted)).toBe(true);
+    for (const refused of [0, 5, 1.5, -1, Number.NaN]) expect(isChildCount(refused)).toBe(false);
+  });
+
+  it("are each 24 months at most: an older child is too old", () => {
+    expect(MAX_AGE_MONTHS).toBe(24);
+    expect(isTooOld(24, "mois")).toBe(false);
+    expect(isTooOld(25, "mois")).toBe(true);
+    expect(isTooOld(36, "mois")).toBe(true);
+    expect(isTooOld(12, "semaines")).toBe(false);
+    // 13 weeks is not too old: the family writes it in months.
+    expect(isTooOld(13, "semaines")).toBe(false);
+    expect(isTooOld(105, "semaines")).toBe(true);
+    expect(isAgeInRange(24, "mois")).toBe(true);
+    expect(isAgeInRange(25, "mois")).toBe(false);
+  });
+});
+
+describe("the feedings (JAM-303)", () => {
+  it("are the founders' three answers, then « diversification alimentaire »", () => {
+    expect(FEEDINGS).toEqual([
+      "allaitement_maternel",
+      "lait_infantile",
+      "allaitement_mixte",
+      "diversification_alimentaire",
+    ]);
+  });
+
+  it("are one answer or more, each of the list, none twice", () => {
+    expect(areFeedings(["lait_infantile"])).toBe(true);
+    expect(areFeedings(["lait_infantile", "diversification_alimentaire"])).toBe(true);
+    expect(areFeedings([...FEEDINGS])).toBe(true);
+    expect(areFeedings([])).toBe(false);
+    expect(areFeedings(["biberon"])).toBe(false);
+    expect(areFeedings(["lait_infantile", "biberon"])).toBe(false);
+    expect(areFeedings(["lait_infantile", "lait_infantile"])).toBe(false);
+  });
+
+  it("are stored in the list's order", () => {
+    expect(sortFeedings(["diversification_alimentaire", "lait_infantile"])).toEqual([
+      "lait_infantile",
+      "diversification_alimentaire",
+    ]);
   });
 });
 

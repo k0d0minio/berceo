@@ -13,26 +13,40 @@ import { demandes } from "@/content/demandes"
 import { famille } from "@/content/famille"
 import { fill, words } from "@/content/locale"
 import { parseLocalityValue } from "@/lib/communes"
-import { formatDate, formatTime } from "@/lib/demandes/format"
+import { endLine, extraHoursLabel, formatDate, formatTime } from "@/lib/demandes/format"
 import {
   AGE_UNITS,
-  CHILDREN,
+  EXTRA_HOURS,
   FEEDINGS,
-  MAX_EXTRA_HOURS,
+  isStartTime,
+  MAX_CHILDREN,
   MAX_SERIES_NIGHTS,
+  parseExtraHours,
   REASON_MAX,
   REQUEST_KINDS,
   START_TIMES,
   type RequestKind,
 } from "@/lib/demandes/rules"
-import type { RequestError, RequestField, RequestInput } from "@/lib/demandes/validation"
+import {
+  childError,
+  nightExtraField,
+  nightStartField,
+  splitNights,
+  type ChildInput,
+  type RequestError,
+  type RequestField,
+  type RequestInput,
+} from "@/lib/demandes/validation"
+import { nightName } from "@/lib/disponibilites/format"
 import { characterCount } from "@/lib/famille/validation"
 import { cn } from "@/lib/utils"
 
 /*
  * The request form (the guide, "Les annonces"): the date in a month calendar
- * a phone can read, the start time, the extra hours with the 11-hour note,
- * the number of children, their age, how they are fed, the night's commune
+ * a phone can read, the start time, the extra hours by half hours with the
+ * 11-hour note, the night's end computed and shown large (JAM-303), the
+ * children, one to four, each with its own age, how they are fed (one answer
+ * or more), the night's commune
  * and address with the address note, prefilled from her profile and hers to
  * change (demande-adresse-de-la-nuit), the optional reason with the founders'
  * help line and notice (demande-motif-facultatif), and the mandatory checkbox (D-20).
@@ -41,9 +55,11 @@ import { cn } from "@/lib/utils"
  * commune or the urgency: the rue, the numéro and the boîte change. Published from a professional's profile, it carries her id and says
  * the request goes to her in priority. A normal request is « Nuit ponctuelle »
  * or « Nuits régulières » (demande-nuits-regulieres): regular nights replace
- * the date with a calendar where she ticks each night, and every other field
- * applies to every night. Validation is the server's; a refused form keeps
- * what was typed.
+ * the date with a calendar where she ticks each night. Each night ticked then
+ * has its own start, its own extra hours and its own end (JAM-303): no value
+ * is copied from one night to another. The children, the feedings, the place
+ * and the reason apply to every night. Validation is the server's; a refused
+ * form keeps what was typed.
  */
 
 export type RequestFormMode = "normale" | "urgente" | "modification"
@@ -58,6 +74,54 @@ const selectClasses =
 const legend = "text-corps font-semibold text-taupe"
 const helpText = "px-6 text-legende text-taupe"
 const errorClasses = "px-6 text-legende font-semibold text-destructive"
+
+/** The start times, as the options of one select. */
+function StartOptions() {
+  return (
+    <>
+      <option value="" disabled>
+        {t.formulaire.choisirHeure}
+      </option>
+      {START_TIMES.map((time) => (
+        <option key={time} value={time}>
+          {formatTime(time)}
+        </option>
+      ))}
+    </>
+  )
+}
+
+/** The extra hours by half hours, as the options of one select: « Aucune », « 30 minutes », « 1 heure ». */
+function ExtraOptions() {
+  return (
+    <>
+      {EXTRA_HOURS.map((hours) => (
+        <option key={hours} value={String(hours)}>
+          {extraHoursLabel(hours)}
+        </option>
+      ))}
+    </>
+  )
+}
+
+/**
+ * The night's end, computed from its start and its extra hours and shown large
+ * (JAM-303), so a tired parent reads it in place of adding 11 hours herself.
+ * The same rule as the server's and the card's: `endTime`.
+ */
+function EndTime({ start, extra }: { start: string; extra: string }) {
+  const hours = parseExtraHours(extra)
+  const fin = isStartTime(start) && !Number.isNaN(hours) ? endLine(start, hours) : ""
+  return (
+    <p aria-live="polite" className="px-2 text-h3 font-bold text-sauge">
+      {fin ? fill(t.formulaire.aides.fin, { fin }) : t.formulaire.aides.finInconnue}
+    </p>
+  )
+}
+
+type NightHours = { heure: string; extra: string }
+const NO_HOURS: NightHours = { heure: "", extra: "0" }
+const NEW_CHILD: ChildInput = { ageValeur: "", ageUnite: "semaines" }
 
 /** The optional reason, with its live count, the way the profile counts its context line. */
 function ReasonField({ defaultValue, error }: { defaultValue: string; error?: string }) {
@@ -135,9 +199,37 @@ function RequestForm({
     mode === "normale" && seriesDates && v?.nature === "reguliere" ? "reguliere" : "ponctuelle"
   )
 
+  // One night: its start and its extra hours, held here so its end shows at once.
+  const [start, setStart] = useState(v?.heure ?? "")
+  const [extra, setExtra] = useState(v?.heuresSupplementaires || "0")
+  // Regular nights: the nights ticked, and each night's own start and extra hours.
+  const [nights, setNights] = useState<string[]>(() => splitNights(v?.nuits))
+  const [hours, setHours] = useState<Record<string, NightHours>>(() =>
+    Object.fromEntries(
+      (v?.horaires ?? []).map((night) => [
+        night.date,
+        { heure: night.heure, extra: night.heuresSupplementaires || "0" },
+      ])
+    )
+  )
+  const [children, setChildren] = useState<ChildInput[]>(() =>
+    v?.enfants && v.enfants.length > 0 ? v.enfants : [NEW_CHILD]
+  )
+
+  function setNightHours(date: string, change: Partial<NightHours>) {
+    setHours((current) => ({ ...current, [date]: { ...(current[date] ?? NO_HOURS), ...change } }))
+  }
+
+  function setChild(index: number, change: Partial<ChildInput>) {
+    setChildren((current) => current.map((child, i) => (i === index ? { ...child, ...change } : child)))
+  }
+
   function errorOf(field: RequestField): string | undefined {
     const error: RequestError | undefined = e[field]
     if (error === undefined) return undefined
+    // Each night's own hours and each child's own age have their own words.
+    if (field === "horaires") return t.erreurs.horaires
+    if (field === "enfants" && error === "requis") return t.erreurs.ageRequis
     if (error === "requis") return c.erreurs.requis
     if (error === "date") return fill(t.erreurs.date, bounds)
     if (field === "nuits") {
@@ -217,9 +309,11 @@ function RequestForm({
             labelId="champ-nuits-libelle"
             min={seriesDates.min}
             max={seriesDates.max}
-            defaultValue={v?.nuits ?? ""}
+            // The nights held here: the calendar comes back with them after « Nuit ponctuelle ».
+            defaultValue={nights.join(",")}
             multiple
             maxCount={MAX_SERIES_NIGHTS}
+            onChange={setNights}
             invalid={Boolean(e.nuits)}
             describedBy={["champ-nuits-aide", e.nuits ? "champ-nuits-erreur" : ""].filter(Boolean).join(" ")}
           />
@@ -259,89 +353,202 @@ function RequestForm({
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="champ-heure" className={legend}>
-          {t.formulaire.champs.heure}
-        </label>
-        <select
-          key={`heure-${v?.heure ?? ""}`}
-          id="champ-heure"
-          name="heure"
-          defaultValue={v?.heure ?? ""}
-          required
-          aria-invalid={e.heure ? true : undefined}
-          aria-describedby={e.heure ? "champ-heure-erreur" : undefined}
-          className={selectClasses}
-        >
-          <option value="" disabled>
-            {t.formulaire.choisirHeure}
-          </option>
-          {START_TIMES.map((time) => (
-            <option key={time} value={time}>
-              {formatTime(time)}
-            </option>
-          ))}
-        </select>
-        {e.heure ? (
-          <p id="champ-heure-erreur" className={errorClasses}>
-            {errorOf("heure")}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label htmlFor="champ-heures-supplementaires" className={legend}>
-          {t.formulaire.champs.heuresSupplementaires}
-        </label>
-        <Input
-          key={`heures-supplementaires-${v?.heuresSupplementaires ?? ""}`}
-          id="champ-heures-supplementaires"
-          name="heuresSupplementaires"
-          type="number"
-          inputMode="numeric"
-          min={0}
-          max={MAX_EXTRA_HOURS}
-          step={1}
-          defaultValue={v?.heuresSupplementaires || "0"}
-          aria-invalid={e.heuresSupplementaires ? true : undefined}
-          aria-describedby={[
-            "champ-heures-supplementaires-aide",
-            e.heuresSupplementaires ? "champ-heures-supplementaires-erreur" : "",
-          ]
+      {kind === "reguliere" && seriesDates ? (
+        <fieldset
+          className="flex flex-col gap-3"
+          aria-describedby={["champ-horaires-aide", e.horaires ? "champ-horaires-erreur" : ""]
             .filter(Boolean)
             .join(" ")}
-          className="max-w-32"
-        />
-        <p id="champ-heures-supplementaires-aide" className={helpText}>
-          {t.formulaire.aides.heuresSupplementaires}
-        </p>
-        {e.heuresSupplementaires ? (
-          <p id="champ-heures-supplementaires-erreur" className={errorClasses}>
-            {errorOf("heuresSupplementaires")}
+        >
+          <legend className={cn(legend, "mb-3")}>{t.formulaire.champs.horaires}</legend>
+          <p id="champ-horaires-aide" className={helpText}>
+            {nights.length > 0 ? t.formulaire.aides.horaires : t.formulaire.aides.horairesVide}{" "}
+            {t.formulaire.aides.heuresSupplementaires}
           </p>
-        ) : null}
-      </div>
+          <ul className="flex flex-col gap-6">
+            {nights.map((date) => {
+              const night = hours[date] ?? NO_HOURS
+              // The server refused the form: the nights without a start are the ones to correct.
+              const missing = Boolean(e.horaires) && !isStartTime(night.heure)
+              return (
+                <li
+                  key={date}
+                  className="flex flex-col gap-3 border-t border-solid border-taupe pt-4 first:border-t-0 first:pt-0"
+                >
+                  <p className="text-corps font-semibold text-taupe">{nightName(date)}</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor={`champ-${nightStartField(date)}`} className={helpText}>
+                        {t.formulaire.champs.heure}
+                      </label>
+                      <select
+                        id={`champ-${nightStartField(date)}`}
+                        name={nightStartField(date)}
+                        value={night.heure}
+                        onChange={(event) => setNightHours(date, { heure: event.target.value })}
+                        required
+                        aria-invalid={missing ? true : undefined}
+                        className={selectClasses}
+                      >
+                        <StartOptions />
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor={`champ-${nightExtraField(date)}`} className={helpText}>
+                        {t.formulaire.champs.heuresSupplementaires}
+                      </label>
+                      <select
+                        id={`champ-${nightExtraField(date)}`}
+                        name={nightExtraField(date)}
+                        value={night.extra}
+                        onChange={(event) => setNightHours(date, { extra: event.target.value })}
+                        className={selectClasses}
+                      >
+                        <ExtraOptions />
+                      </select>
+                    </div>
+                  </div>
+                  <EndTime start={night.heure} extra={night.extra} />
+                </li>
+              )
+            })}
+          </ul>
+          {e.horaires ? (
+            <p id="champ-horaires-erreur" className={errorClasses}>
+              {errorOf("horaires")}
+            </p>
+          ) : null}
+        </fieldset>
+      ) : (
+        <>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="champ-heure" className={legend}>
+              {t.formulaire.champs.heure}
+            </label>
+            <select
+              id="champ-heure"
+              name="heure"
+              value={start}
+              onChange={(event) => setStart(event.target.value)}
+              required
+              aria-invalid={e.heure ? true : undefined}
+              aria-describedby={e.heure ? "champ-heure-erreur" : undefined}
+              className={selectClasses}
+            >
+              <StartOptions />
+            </select>
+            {e.heure ? (
+              <p id="champ-heure-erreur" className={errorClasses}>
+                {errorOf("heure")}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="champ-heures-supplementaires" className={legend}>
+              {t.formulaire.champs.heuresSupplementaires}
+            </label>
+            <select
+              id="champ-heures-supplementaires"
+              name="heuresSupplementaires"
+              value={extra}
+              onChange={(event) => setExtra(event.target.value)}
+              aria-invalid={e.heuresSupplementaires ? true : undefined}
+              aria-describedby={[
+                "champ-heures-supplementaires-aide",
+                e.heuresSupplementaires ? "champ-heures-supplementaires-erreur" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              className={cn(selectClasses, "max-w-xs")}
+            >
+              <ExtraOptions />
+            </select>
+            <p id="champ-heures-supplementaires-aide" className={helpText}>
+              {t.formulaire.aides.heuresSupplementaires}
+            </p>
+            {e.heuresSupplementaires ? (
+              <p id="champ-heures-supplementaires-erreur" className={errorClasses}>
+                {errorOf("heuresSupplementaires")}
+              </p>
+            ) : null}
+            <EndTime start={start} extra={extra} />
+          </div>
+        </>
+      )}
 
       <fieldset
         className="flex flex-col gap-3"
-        aria-describedby={e.enfants ? "champ-enfants-erreur" : undefined}
+        aria-describedby={["champ-enfants-aide", e.enfants ? "champ-enfants-erreur" : ""]
+          .filter(Boolean)
+          .join(" ")}
       >
         <legend className={cn(legend, "mb-3")}>{t.formulaire.champs.enfants}</legend>
-        <div key={`enfants-${v?.enfants ?? ""}`} className="flex flex-wrap gap-6 px-2">
-          {CHILDREN.map((key) => (
-            <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-taupe">
-              <input
-                type="radio"
-                name="enfants"
-                value={key}
-                defaultChecked={v?.enfants === key}
-                required
-                className="size-5 shrink-0 accent-sauge"
-              />
-              {t.formulaire.enfants[key]}
-            </label>
-          ))}
-        </div>
+        <p id="champ-enfants-aide" className={helpText}>
+          {t.formulaire.aides.enfants} {t.formulaire.aides.age}
+        </p>
+        <ul className="flex flex-col gap-4">
+          {children.map((child, index) => {
+            const n = String(index + 1)
+            const name = fill(t.formulaire.enfants.enfant, { n })
+            // The server refused the form: the same rule marks the child to correct.
+            const invalid = Boolean(e.enfants) && childError(child) !== null
+            return (
+              // The rows hold no state of their own: the index is a stable key.
+              <li key={index} className="flex flex-col gap-2">
+                <p className="px-2 text-corps font-semibold text-taupe">{name}</p>
+                <div className="grid grid-cols-[6rem_1fr] items-center gap-3 sm:grid-cols-[6rem_1fr_auto]">
+                  <Input
+                    name="ageValeur"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    step={1}
+                    aria-label={`${name}, ${t.formulaire.champs.ageValeur}`}
+                    aria-invalid={invalid ? true : undefined}
+                    value={child.ageValeur}
+                    onChange={(event) => setChild(index, { ageValeur: event.target.value })}
+                    required
+                  />
+                  <select
+                    name="ageUnite"
+                    aria-label={`${name}, ${t.formulaire.champs.ageUnite}`}
+                    aria-invalid={invalid ? true : undefined}
+                    value={child.ageUnite || "semaines"}
+                    onChange={(event) => setChild(index, { ageUnite: event.target.value })}
+                    className={selectClasses}
+                  >
+                    {AGE_UNITS.map((unit) => (
+                      <option key={unit} value={unit}>
+                        {t.formulaire.unites[unit]}
+                      </option>
+                    ))}
+                  </select>
+                  {children.length > 1 ? (
+                    <button
+                      type="button"
+                      aria-label={fill(t.formulaire.enfants.retirerEnfant, { n })}
+                      onClick={() => setChildren((current) => current.filter((_, i) => i !== index))}
+                      className="col-span-2 min-h-11 w-fit rounded-md px-2 text-corps font-semibold text-sauge underline underline-offset-4 sm:col-span-1"
+                    >
+                      {t.formulaire.enfants.retirer}
+                    </button>
+                  ) : null}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+        {children.length < MAX_CHILDREN ? (
+          <Button
+            type="button"
+            variant="blanc"
+            className="self-start"
+            onClick={() => setChildren((current) => [...current, NEW_CHILD])}
+          >
+            {t.formulaire.enfants.ajouter}
+          </Button>
+        ) : null}
         {e.enfants ? (
           <p id="champ-enfants-erreur" className={errorClasses}>
             {errorOf("enfants")}
@@ -350,61 +557,23 @@ function RequestForm({
       </fieldset>
 
       <fieldset
-        className="flex flex-col gap-2"
-        aria-describedby={["champ-age-aide", e.age ? "champ-age-erreur" : ""].filter(Boolean).join(" ")}
-      >
-        <legend className={cn(legend, "mb-2")}>{t.formulaire.champs.age}</legend>
-        <div key={`age-${v?.ageValeur ?? ""}-${v?.ageUnite ?? ""}`} className="grid grid-cols-[6rem_1fr] gap-3">
-          <Input
-            name="ageValeur"
-            type="number"
-            inputMode="numeric"
-            min={0}
-            max={24}
-            step={1}
-            aria-label={t.formulaire.champs.ageValeur}
-            aria-invalid={e.age ? true : undefined}
-            defaultValue={v?.ageValeur ?? ""}
-            required
-          />
-          <select
-            name="ageUnite"
-            aria-label={t.formulaire.champs.ageUnite}
-            aria-invalid={e.age ? true : undefined}
-            defaultValue={v?.ageUnite || "semaines"}
-            className={selectClasses}
-          >
-            {AGE_UNITS.map((unit) => (
-              <option key={unit} value={unit}>
-                {t.formulaire.unites[unit]}
-              </option>
-            ))}
-          </select>
-        </div>
-        <p id="champ-age-aide" className={helpText}>
-          {t.formulaire.aides.age}
-        </p>
-        {e.age ? (
-          <p id="champ-age-erreur" className={errorClasses}>
-            {errorOf("age")}
-          </p>
-        ) : null}
-      </fieldset>
-
-      <fieldset
         className="flex flex-col gap-3"
-        aria-describedby={e.alimentation ? "champ-alimentation-erreur" : undefined}
+        aria-describedby={["champ-alimentation-aide", e.alimentation ? "champ-alimentation-erreur" : ""]
+          .filter(Boolean)
+          .join(" ")}
       >
         <legend className={cn(legend, "mb-3")}>{t.formulaire.champs.alimentation}</legend>
-        <div key={`alimentation-${v?.alimentation ?? ""}`} className="flex flex-wrap gap-6 px-2">
+        <p id="champ-alimentation-aide" className={helpText}>
+          {t.formulaire.aides.alimentation}
+        </p>
+        <div key={`alimentation-${(v?.alimentation ?? []).join("-")}`} className="flex flex-wrap gap-x-6 gap-y-1 px-2">
           {FEEDINGS.map((key) => (
             <label key={key} className="flex min-h-12 items-center gap-3 text-corps text-taupe">
               <input
-                type="radio"
+                type="checkbox"
                 name="alimentation"
                 value={key}
-                defaultChecked={v?.alimentation === key}
-                required
+                defaultChecked={v?.alimentation?.includes(key)}
                 className="size-5 shrink-0 accent-sauge"
               />
               {t.formulaire.alimentation[key]}

@@ -4,18 +4,20 @@ import { characterCount, checkAddress, checkCommune, type Address } from "@/lib/
 import {
   hasNightStarted,
   isAgeInRange,
+  areFeedings,
   isAgeUnit,
-  isChildren,
+  isChildCount,
   isDateInWindow,
-  isExtraHours,
-  isFeeding,
   isIsoDate,
   isStartTime,
+  isTooOld,
+  MAX_CHILDREN,
   MAX_SERIES_NIGHTS,
+  parseExtraHours,
   REASON_MAX,
   seriesWindow,
-  type AgeUnit,
-  type Children,
+  sortFeedings,
+  type ChildAge,
   type Feeding,
 } from "./rules";
 
@@ -33,7 +35,32 @@ import {
  * (demande-nuits-regulieres): regular nights replace the date with the nights
  * ticked in the calendar, each in `seriesWindow`, 31 at most. An urgent
  * publication and an edit are always one night.
+ * Each regular night has its own start and its own extra hours (JAM-303): the
+ * form posts them as `heure-<date>` and `heuresSupplementaires-<date>`, and no
+ * value of one night is read for another. The extra hours go by half hours.
+ * The children are 1 to 4, each with its own age, each 24 months at most; the
+ * feedings are one answer or more.
  */
+
+/** The form field of one regular night's start: `heure-2026-12-04`. */
+export function nightStartField(date: string): string {
+  return `heure-${date}`;
+}
+
+/** The form field of one regular night's extra hours: `heuresSupplementaires-2026-12-04`. */
+export function nightExtraField(date: string): string {
+  return `heuresSupplementaires-${date}`;
+}
+
+/** One regular night as the form posts it. */
+export type NightInput = { date: string; heure: string; heuresSupplementaires: string };
+
+/** One child as the form posts it. */
+export type ChildInput = { ageValeur: string; ageUnite: string };
+
+/** One regular night, checked. */
+export type SeriesNight = { nightDate: string; startTime: string; extraHours: number };
+
 
 export type RequestInput = {
   /** « ponctuelle » or « reguliere »: present only on the normal publish form. */
@@ -41,13 +68,16 @@ export type RequestInput = {
   date: string;
   /** The regular nights, `YYYY-MM-DD` joined by commas: present only on the normal publish form. */
   nuits?: string;
+  /** The start and the extra hours of each regular night, in the order of `nuits`. */
+  horaires?: NightInput[];
+  /** One night: its start. Not read on regular nights. */
   heure: string;
-  /** Whole extra hours beyond the 11-hour night. Empty reads as 0. */
+  /** One night: the extra hours beyond the 11-hour night, by half hours. Empty reads as 0. */
   heuresSupplementaires: string;
-  enfants: string;
-  ageValeur: string;
-  ageUnite: string;
-  alimentation: string;
+  /** The children, one entry each, in the form's order. */
+  enfants: ChildInput[];
+  /** Every feeding ticked. */
+  alimentation: string[];
   /** Present only on the publish form: an edit keeps the stored commune. */
   commune: string;
   rue: string;
@@ -63,10 +93,9 @@ export type RequestValues = {
   nightDate: string;
   startTime: string;
   extraHours: number;
-  children: Children;
-  babyAgeValue: number;
-  babyAgeUnit: AgeUnit;
-  feeding: Feeding;
+  childAges: ChildAge[];
+  /** Empty only on a request published before the field: the form always asks for one. */
+  feedings: Feeding[];
   /** Null when she left the question empty. */
   reason: string | null;
 };
@@ -77,10 +106,10 @@ export type RequestPlace = { locality: Locality | null; address: Address };
 export type RequestField =
   | "date"
   | "nuits"
+  | "horaires"
   | "heure"
   | "heuresSupplementaires"
   | "enfants"
-  | "age"
   | "alimentation"
   | "commune"
   | "rue"
@@ -100,8 +129,9 @@ export type RequestError =
   | "heurePassee"
   | "heure"
   | "heuresSupplementaires"
-  | "enfants"
+  | "enfantsTrop"
   | "age"
+  | "ageTrop"
   | "alimentation"
   | "motifLong"
   | "confirmation"
@@ -109,8 +139,11 @@ export type RequestError =
 export type RequestErrors = Partial<Record<RequestField, RequestError>>;
 
 export type Checked =
-  /** `nights` only on regular nights: every night, in order. `values.nightDate` is the first. */
-  | { ok: true; values: RequestValues; place: RequestPlace; nights?: string[] }
+  /**
+   * `nights` only on regular nights: every night with its own start and extra
+   * hours, in order. `values` then holds the first night's.
+   */
+  | { ok: true; values: RequestValues; place: RequestPlace; nights?: SeriesNight[] }
   | { ok: false; errors: RequestErrors };
 
 function text(form: FormData, name: string): string {
@@ -118,17 +151,36 @@ function text(form: FormData, name: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function texts(form: FormData, name: string): string[] {
+  return form.getAll(name).map((value) => (typeof value === "string" ? value.trim() : ""));
+}
+
+/** The nights of the `nuits` field, as posted: trimmed, no empty entry, in date order. */
+export function splitNights(nuits: string | undefined): string[] {
+  return (nuits ?? "").split(",").map((night) => night.trim()).filter(Boolean).sort();
+}
+
 export function readRequestForm(form: FormData): RequestInput {
+  const nuits = text(form, "nuits");
+  const ages = texts(form, "ageValeur");
+  const units = texts(form, "ageUnite");
   return {
     nature: text(form, "nature"),
     date: text(form, "date"),
-    nuits: text(form, "nuits"),
+    nuits,
+    // Each night's own fields. A posted list longer than a series is cut: the check refuses it by its count.
+    horaires: splitNights(nuits)
+      .slice(0, MAX_SERIES_NIGHTS + 1)
+      .map((date) => ({
+        date,
+        heure: text(form, nightStartField(date)),
+        heuresSupplementaires: text(form, nightExtraField(date)),
+      })),
     heure: text(form, "heure"),
     heuresSupplementaires: text(form, "heuresSupplementaires"),
-    enfants: text(form, "enfants"),
-    ageValeur: text(form, "ageValeur"),
-    ageUnite: text(form, "ageUnite"),
-    alimentation: text(form, "alimentation"),
+    // One more than the limit is kept, so the check names the limit.
+    enfants: ages.slice(0, MAX_CHILDREN + 1).map((ageValeur, i) => ({ ageValeur, ageUnite: units[i] ?? "" })),
+    alimentation: texts(form, "alimentation").filter(Boolean),
     commune: text(form, "commune"),
     rue: text(form, "rue"),
     numero: text(form, "numero"),
@@ -137,6 +189,19 @@ export function readRequestForm(form: FormData): RequestInput {
     motif: text(form, "motif").replace(/\r\n?/g, "\n"),
     confirmation: form.get("confirmation") === "oui",
   };
+}
+
+/**
+ * What is wrong with one child's age, or null. « ageTrop » is a child past 24
+ * months, said apart so the family reads why (JAM-303): 30 months, or 3 years
+ * typed as 36 months. The form marks the child's row with the same rule.
+ */
+export function childError(child: ChildInput): "requis" | "age" | "ageTrop" | null {
+  if (!child.ageValeur || !child.ageUnite) return "requis";
+  if (!isAgeUnit(child.ageUnite) || !/^\d{1,3}$/.test(child.ageValeur)) return "age";
+  const age = Number(child.ageValeur);
+  if (isTooOld(age, child.ageUnite)) return "ageTrop";
+  return isAgeInRange(age, child.ageUnite) ? null : "age";
 }
 
 /**
@@ -162,7 +227,7 @@ export function validateRequest(
 
   let nights: string[] = [];
   if (regular) {
-    nights = (input.nuits ?? "").split(",").map((night) => night.trim()).filter(Boolean).sort();
+    nights = splitNights(input.nuits);
     const { min, max } = seriesWindow(now);
     if (nights.length === 0) errors.nuits = "requis";
     else if (nights.length > MAX_SERIES_NIGHTS) errors.nuits = "nuitsTrop";
@@ -175,26 +240,43 @@ export function validateRequest(
   } else if (!input.date) errors.date = "requis";
   else if (input.date !== storedDate && !isDateInWindow(urgent, input.date, now)) errors.date = "date";
 
-  // A series starts the day after tomorrow at the earliest: its start is never past.
-  const firstNight = regular ? nights[0] : input.date;
-  if (!input.heure) errors.heure = "requis";
-  else if (!isStartTime(input.heure)) errors.heure = "heure";
-  else if (!regular && !errors.date && hasNightStarted(firstNight, input.heure, now)) errors.heure = "heurePassee";
+  let extraHours = 0;
+  const seriesNights: SeriesNight[] = [];
+  if (regular && !errors.nuits) {
+    // Each night is read from its own fields: a missing one is an error, never another night's value.
+    const posted = new Map((input.horaires ?? []).map((night) => [night.date, night]));
+    for (const nightDate of nights) {
+      const night = posted.get(nightDate);
+      const extra = parseExtraHours(night?.heuresSupplementaires ?? "");
+      if (!night?.heure) errors.horaires ??= "requis";
+      else if (!isStartTime(night.heure)) errors.horaires ??= "heure";
+      else if (Number.isNaN(extra)) errors.horaires ??= "heuresSupplementaires";
+      else seriesNights.push({ nightDate, startTime: night.heure, extraHours: extra });
+    }
+  } else if (!regular) {
+    // A series starts the day after tomorrow at the earliest: only one night can have a start already past.
+    if (!input.heure) errors.heure = "requis";
+    else if (!isStartTime(input.heure)) errors.heure = "heure";
+    else if (!errors.date && hasNightStarted(input.date, input.heure, now)) errors.heure = "heurePassee";
 
-  // Whole hours only: « 1.5 », « 1,5 », « -1 » and « 7 » are refused.
-  const extra = input.heuresSupplementaires;
-  const extraHours = extra === "" ? 0 : /^\d$/.test(extra) ? Number(extra) : NaN;
-  if (!isExtraHours(extraHours)) errors.heuresSupplementaires = "heuresSupplementaires";
+    // Half hours only: « 1.25 », « -1 » and « 6.5 » are refused.
+    extraHours = parseExtraHours(input.heuresSupplementaires);
+    if (Number.isNaN(extraHours)) errors.heuresSupplementaires = "heuresSupplementaires";
+  }
 
-  if (!input.enfants) errors.enfants = "requis";
-  else if (!isChildren(input.enfants)) errors.enfants = "enfants";
+  const childAges: ChildAge[] = [];
+  if (input.enfants.length === 0) errors.enfants = "requis";
+  else if (!isChildCount(input.enfants.length)) errors.enfants = "enfantsTrop";
+  else {
+    for (const child of input.enfants) {
+      const error = childError(child);
+      if (error) errors.enfants ??= error;
+      else childAges.push({ value: Number(child.ageValeur), unit: child.ageUnite as ChildAge["unit"] });
+    }
+  }
 
-  const age = /^\d{1,2}$/.test(input.ageValeur) ? Number(input.ageValeur) : NaN;
-  if (!input.ageValeur || !input.ageUnite) errors.age = "requis";
-  else if (!isAgeUnit(input.ageUnite) || !isAgeInRange(age, input.ageUnite)) errors.age = "age";
-
-  // Missing or unknown, the error names the three answers: required on a publication and on an edit.
-  if (!isFeeding(input.alimentation)) errors.alimentation = "alimentation";
+  // None ticked or one unknown, the error names the answers: required on a publication and on an edit.
+  if (!areFeedings(input.alimentation)) errors.alimentation = "alimentation";
 
   let locality: Locality | null = null;
   if (publishing) {
@@ -214,16 +296,14 @@ export function validateRequest(
   return {
     ok: true,
     values: {
-      nightDate: firstNight,
-      startTime: input.heure,
-      extraHours,
-      children: input.enfants as Children,
-      babyAgeValue: age,
-      babyAgeUnit: input.ageUnite as AgeUnit,
-      feeding: input.alimentation as Feeding,
+      nightDate: regular ? seriesNights[0].nightDate : input.date,
+      startTime: regular ? seriesNights[0].startTime : input.heure,
+      extraHours: regular ? seriesNights[0].extraHours : extraHours,
+      childAges,
+      feedings: sortFeedings(input.alimentation as Feeding[]),
       reason: input.motif === "" ? null : input.motif,
     },
     place: { locality, address },
-    ...(regular ? { nights } : {}),
+    ...(regular ? { nights: seriesNights } : {}),
   };
 }

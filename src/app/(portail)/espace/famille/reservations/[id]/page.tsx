@@ -137,9 +137,9 @@ export default async function ReservationPage({
     [l.date, night.date],
     [l.heure, night.heures],
     [l.duree, night.duree],
-    [l.enfants, childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)],
+    [l.enfants, childrenLine(request.childAges)],
     // A request published before the field has no feeding.
-    ...(request.feeding ? [[l.alimentation, feedingLine(request.feeding)] as [string, string]] : []),
+    ...(request.feedings.length > 0 ? [[l.alimentation, feedingLine(request.feedings)] as [string, string]] : []),
     [l.professionnelle, professional.firstName],
     [l.profession, professionLabel(professional.profession)],
     [l.tarif, rateLine(booking.nightRateEur)],

@@ -1,4 +1,4 @@
-import type { AgeUnit, Children } from "./rules";
+import type { ChildAge } from "./rules";
 
 /**
  * Regular nights (demande-nuits-regulieres) are one request per night with a
@@ -40,18 +40,17 @@ type DigestRow = {
   nightDate: string;
   startTime: string;
   extraHours: number;
-  children: Children;
-  babyAgeValue: number;
-  babyAgeUnit: AgeUnit;
+  childAges: readonly ChildAge[];
   communeIns: string;
 };
 
 /**
- * Groups one professional's digest into lines: the nights of one series that
- * read the same (the start, the extra hours, the children and their age) are
- * one line, in night order. A night edited apart from its series, a series of
- * one night here, and a one-off night are lines of their own. Lines follow
- * their first night.
+ * Groups one professional's digest into lines: the nights of one series with
+ * the same children and commune are one line, in night order, whatever their
+ * hours: each night has its own start and extra hours (JAM-303), and the line
+ * says when they differ (`hoursLine`). A night whose children were edited apart
+ * from its series, a series of one night here, and a one-off night are lines of
+ * their own. Lines follow their first night.
  */
 export function groupForDigest<T extends DigestRow>(rows: readonly T[]): T[][] {
   const lines = new Map<string, T[]>();
@@ -60,7 +59,7 @@ export function groupForDigest<T extends DigestRow>(rows: readonly T[]): T[][] {
   );
   sorted.forEach((row, i) => {
     const key = row.seriesId
-      ? [row.seriesId, row.startTime, row.extraHours, row.children, row.babyAgeValue, row.babyAgeUnit, row.communeIns].join("|")
+      ? [row.seriesId, JSON.stringify(row.childAges), row.communeIns].join("|")
       : `nuit:${i}`;
     const line = lines.get(key);
     if (line) line.push(row);

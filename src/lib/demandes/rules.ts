@@ -1,7 +1,7 @@
 /**
  * The rules of a care request that do not need the database: which nights a
- * request may be for, the start times, the baby's age, the children and
- * their feeding, when a night has
+ * request may be for, the start times, the extra half hours, the children
+ * (four at most, each 24 months at most) and their feedings, when a night has
  * started and when it has ended, the two sides of it, and when the daily
  * digest may leave. Pure and dependency-free, so the form, the server actions,
  * the digest route and the tests read the same rules; the conversation (D-89),
@@ -19,10 +19,14 @@ export const TIME_ZONE = "Europe/Brussels";
 export const NIGHT_HOURS = 11;
 
 /**
- * The family adds 0 to 6 whole extra hours to the night (feedback round 1).
- * The latest night ends the next day at 16:00: 23:00 + 11 + 6.
+ * The family adds 0 to 6 extra hours to the night, by half hours (feedback
+ * round 1; the half hours are feedback round 2, JAM-303). The latest night
+ * ends the next day at 16:00: 23:00 + 11 + 6.
  */
 export const MAX_EXTRA_HOURS = 6;
+
+/** Every choice of extra hours, in order: 0, 0.5, 1, and so on to 6. */
+export const EXTRA_HOURS: readonly number[] = Array.from({ length: MAX_EXTRA_HOURS * 2 + 1 }, (_, i) => i / 2);
 
 /** A normal request: from the day after tomorrow up to 8 weeks ahead (D-60). */
 export const NORMAL_FIRST_DAY = 2;
@@ -55,11 +59,26 @@ export const AGE_RANGES: Readonly<Record<AgeUnit, { min: number; max: number }>>
   mois: { min: 1, max: 24 },
 };
 
-export const CHILDREN = ["un_bebe", "jumeaux", "triples"] as const;
-export type Children = (typeof CHILDREN)[number];
+/** One child of the night: its age in whole weeks or whole months (JAM-303). */
+export type ChildAge = { value: number; unit: AgeUnit };
 
-/** How the children are fed, in the founders' order (demande-retour-1). */
-export const FEEDINGS = ["allaitement_maternel", "lait_infantile", "allaitement_mixte"] as const;
+/** A request is for 1 to 4 children (Jamie, JAM-303). */
+export const MAX_CHILDREN = 4;
+
+/** Berceo cares for children up to 24 months: an older child is refused (Jamie, JAM-303). */
+export const MAX_AGE_MONTHS = AGE_RANGES.mois.max;
+
+/**
+ * How the children are fed, in the founders' order (demande-retour-1), then
+ * « diversification alimentaire » (feedback round 2, JAM-303). The family
+ * ticks one answer or more.
+ */
+export const FEEDINGS = [
+  "allaitement_maternel",
+  "lait_infantile",
+  "allaitement_mixte",
+  "diversification_alimentaire",
+] as const;
 export type Feeding = (typeof FEEDINGS)[number];
 
 /**
@@ -185,9 +204,20 @@ export function otherSide(side: Side): Side {
   return side === "famille" ? "professionnelle" : "famille";
 }
 
-/** Whole extra hours, 0 to 6. */
+/** Extra hours by half hours, 0 to 6. */
 export function isExtraHours(value: number): boolean {
-  return Number.isInteger(value) && value >= 0 && value <= MAX_EXTRA_HOURS;
+  return Number.isInteger(value * 2) && value >= 0 && value <= MAX_EXTRA_HOURS;
+}
+
+/**
+ * The extra hours of a form value: « 0 », « 1 », « 1.5 » or « 1,5 ». Empty
+ * reads as 0. NaN for anything that is not a half hour from 0 to 6.
+ */
+export function parseExtraHours(value: string): number {
+  if (value === "") return 0;
+  if (!/^\d(?:[.,][05])?$/.test(value)) return NaN;
+  const hours = Number(value.replace(",", "."));
+  return isExtraHours(hours) ? hours : NaN;
 }
 
 /** The night's length: 11 hours plus the extra hours. */
@@ -204,12 +234,33 @@ export function isAgeInRange(value: number, unit: AgeUnit): boolean {
   return Number.isInteger(value) && value >= min && value <= max;
 }
 
-export function isChildren(value: string): value is Children {
-  return (CHILDREN as readonly string[]).includes(value);
+/**
+ * Whether an age is past what Berceo cares for: more than 24 months, or a
+ * number of weeks that no child under 24 months is counted in (more than 104).
+ * The form says so in its own words, apart from an age that is not a number.
+ */
+export function isTooOld(value: number, unit: AgeUnit): boolean {
+  if (!Number.isInteger(value)) return false;
+  return unit === "mois" ? value > MAX_AGE_MONTHS : value > 104;
+}
+
+/** One to four children. */
+export function isChildCount(count: number): boolean {
+  return Number.isInteger(count) && count >= 1 && count <= MAX_CHILDREN;
 }
 
 export function isFeeding(value: string): value is Feeding {
   return (FEEDINGS as readonly string[]).includes(value);
+}
+
+/** One answer or more, each of the list, none twice. */
+export function areFeedings(values: readonly string[]): values is Feeding[] {
+  return values.length > 0 && values.every(isFeeding) && new Set(values).size === values.length;
+}
+
+/** The answers in the list's order, whatever order the form posted them in. */
+export function sortFeedings(values: readonly Feeding[]): Feeding[] {
+  return FEEDINGS.filter((feeding) => values.includes(feeding));
 }
 
 /** Whether the digest may leave at `now`: 18:00 or later in Brussels, summer and winter. */

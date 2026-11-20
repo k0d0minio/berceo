@@ -281,7 +281,7 @@ export type RepublishResult =
 
 /**
  * « Republier ma demande » on one of her cancelled gardes (D-107): a new
- * request for the same night, start, extra hours, children, age, feeding,
+ * request for the same night, start, extra hours, children, ages, feedings,
  * reason, commune and address, published like any other (`publishRequest`), urgent when the night
  * is tonight or tomorrow (D-60), sent to nobody in priority. Refused once the
  * night has started; a live request of hers that night (open, or booked again)
@@ -299,10 +299,8 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
       extraHours: careRequests.extraHours,
-      children: careRequests.children,
-      babyAgeValue: careRequests.babyAgeValue,
-      babyAgeUnit: careRequests.babyAgeUnit,
-      feeding: careRequests.feeding,
+      childAges: careRequests.childAges,
+      feedings: careRequests.feedings,
       reason: careRequests.reason,
     })
     .from(bookings)
@@ -318,10 +316,8 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
     nightDate: row.nightDate,
     startTime: row.startTime,
     extraHours: row.extraHours,
-    children: row.children,
-    babyAgeValue: row.babyAgeValue,
-    babyAgeUnit: row.babyAgeUnit,
-    feeding: row.feeding,
+    childAges: row.childAges,
+    feedings: row.feedings,
     reason: row.reason,
   };
   const urgent = values.nightDate <= addDays(brusselsNow(now).date, URGENT_LAST_DAY);

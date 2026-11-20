@@ -12,13 +12,11 @@ describe("the columns a professional reads", () => {
     const columns = Object.values(cardColumns).map((column) => column.name);
     expect(columns.sort()).toEqual(
       [
-        "baby_age_unit",
-        "baby_age_value",
-        "children",
+        "child_ages",
         "commune_ins",
         "created_at",
         "extra_hours",
-        "feeding",
+        "feedings",
         "id",
         "locality",
         "night_date",
