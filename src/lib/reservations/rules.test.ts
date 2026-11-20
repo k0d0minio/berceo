@@ -2,10 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   acceptRefusal,
+  adaptedNights,
   answerRefusal,
   canRepublish,
   canWithdraw,
+  effectiveStart,
   hasAddress,
+  isAdapted,
+  proposalField,
+  proposalsSignature,
+  readProposal,
+  requestedStart,
   seriesAnswerState,
   seriesShownRates,
   shownRates,
@@ -241,5 +248,122 @@ describe("the rates she reads on a regular request (JAM-344)", () => {
 
   it("reads her profile's rates on an empty list", () => {
     expect(seriesShownRates(profile, [], saved)).toEqual({ source: "profil", ...profile });
+  });
+});
+
+/**
+ * Spec (JAM-306): a professional can answer a night with a start that differs
+ * from the family's. The proposal is a half hour from 18:00 to 23:00, never the
+ * family's own start. The length of the night does not change, so the end
+ * moves with the start. The family books the answer with its proposal only
+ * after it confirmed exactly that proposal. After the booking, the night's
+ * start is the proposed one, and the family's start stays as a record.
+ */
+describe("the adapted schedule (JAM-306)", () => {
+  // 25 September 2026, 18:15 in Brussels (CEST).
+  const EVENING = new Date("2026-09-25T16:15:00Z");
+  const tonight: RequestFacts = { ...request, nightDate: "2026-09-25", startTime: "19:00:00" };
+
+  it("reads no proposal from an empty field or from the family's own start", () => {
+    expect(readProposal("19:00:00", "")).toEqual({ ok: true, proposed: null });
+    expect(readProposal("19:00:00", null)).toEqual({ ok: true, proposed: null });
+    expect(readProposal("19:00:00", undefined)).toEqual({ ok: true, proposed: null });
+    expect(readProposal("19:00:00", "19:00")).toEqual({ ok: true, proposed: null });
+    expect(readProposal("19:00:00", "19:00:00")).toEqual({ ok: true, proposed: null });
+  });
+
+  it("reads a half hour of the request's range that differs from the family's start", () => {
+    expect(readProposal("19:00:00", "20:00")).toEqual({ ok: true, proposed: "20:00" });
+    expect(readProposal("19:00:00", "18:30:00")).toEqual({ ok: true, proposed: "18:30" });
+    expect(readProposal("19:00:00", "18:00")).toEqual({ ok: true, proposed: "18:00" });
+    expect(readProposal("19:00:00", "23:00")).toEqual({ ok: true, proposed: "23:00" });
+  });
+
+  it.each(["17:30", "23:30", "20:15", "20:00:30", "20h00", "8pm", "20:00; drop table", "24:00"])(
+    "refuses %s",
+    (value) => {
+      expect(readProposal("19:00:00", value)).toEqual({ ok: false });
+    },
+  );
+
+  it("names one form field for each night", () => {
+    expect(proposalField("2a7c9e1b-3d4f-4a6b-8c0d-1e2f3a4b5c61")).toBe("heure-2a7c9e1b-3d4f-4a6b-8c0d-1e2f3a4b5c61");
+  });
+
+  it("gives the night the proposed start, and the family's start when there is no proposal", () => {
+    expect(effectiveStart("19:00:00", "20:00:00")).toBe("20:00");
+    expect(effectiveStart("19:00:00", null)).toBe("19:00");
+    expect(effectiveStart("19:00:00", undefined)).toBe("19:00");
+  });
+
+  it("keeps the start the family asked for readable on a night booked at a proposed start", () => {
+    const booked = { startTime: "20:00:00", requestedStartTime: "19:00:00" };
+    expect(requestedStart(booked)).toBe("19:00");
+    expect(isAdapted(booked)).toBe(true);
+    // A night booked at the family's own time, an open request, a request read without the column.
+    for (const plain of [{ startTime: "19:00:00", requestedStartTime: null }, { startTime: "19:00:00" }]) {
+      expect(requestedStart(plain)).toBe("19:00");
+      expect(isAdapted(plain)).toBe(false);
+    }
+  });
+
+  it("lists only the nights with a proposal, in night order, with the end the proposed start gives", () => {
+    const nights = adaptedNights([
+      { requestId: "n3", nightDate: "2026-10-03", startTime: "19:00:00", extraHours: 1.5, proposedStartTime: "20:00:00" },
+      { requestId: "n1", nightDate: "2026-10-01", startTime: "19:00:00", extraHours: 0, proposedStartTime: null },
+      { requestId: "n2", nightDate: "2026-10-02", startTime: "19:00:00", extraHours: 0, proposedStartTime: "18:30:00" },
+      // A proposal equal to the family's start is no proposal.
+      { requestId: "n4", nightDate: "2026-10-04", startTime: "19:00:00", extraHours: 0, proposedStartTime: "19:00:00" },
+    ]);
+    expect(nights).toEqual([
+      // 18:30 + 11 hours: the length of the night does not change.
+      { requestId: "n2", nightDate: "2026-10-02", requested: "19:00", proposed: "18:30", end: "05:30" },
+      // 20:00 + 11 hours + 1 h 30.
+      { requestId: "n3", nightDate: "2026-10-03", requested: "19:00", proposed: "20:00", end: "08:30" },
+    ]);
+  });
+
+  it("has no adapted night on an answer at the family's times", () => {
+    expect(
+      adaptedNights([{ requestId: "n1", nightDate: "2026-10-01", startTime: "19:00:00", extraHours: 2, proposedStartTime: null }]),
+    ).toEqual([]);
+  });
+
+  it("signs what the family confirms: each proposed start, whatever the order, empty for none", () => {
+    expect(proposalsSignature([{ requestId: "n1", proposedStartTime: null }])).toBe("");
+    expect(proposalsSignature([])).toBe("");
+    const a = proposalsSignature([
+      { requestId: "n2", proposedStartTime: "20:00:00" },
+      { requestId: "n1", proposedStartTime: null },
+      { requestId: "n3", proposedStartTime: "18:30:00" },
+    ]);
+    expect(a).toBe("n2=20:00,n3=18:30");
+    expect(
+      proposalsSignature([
+        { requestId: "n3", proposedStartTime: "18:30" },
+        { requestId: "n2", proposedStartTime: "20:00" },
+      ]),
+    ).toBe(a);
+    // Another proposal is another signature: the checkout refuses it.
+    expect(proposalsSignature([{ requestId: "n2", proposedStartTime: "20:30:00" }])).not.toBe(
+      proposalsSignature([{ requestId: "n2", proposedStartTime: "20:00:00" }]),
+    );
+  });
+
+  it("refuses an answer whose proposed start has passed, while the family's start is ahead", () => {
+    expect(answerRefusal({ ...facts, request: tonight }, EVENING)).toBeNull();
+    expect(answerRefusal({ ...facts, request: tonight, proposedStartTime: "20:00" }, EVENING)).toBeNull();
+    expect(answerRefusal({ ...facts, request: tonight, proposedStartTime: "18:00" }, EVENING)).toBe("commencee");
+  });
+
+  it("refuses the booking of an answer whose proposed start has passed", () => {
+    const answer = { status: "en_attente" as const, profileStatus: "valide" };
+    expect(acceptRefusal({ request: tonight, answer, hasAddress: true }, EVENING)).toBeNull();
+    expect(
+      acceptRefusal({ request: tonight, answer: { ...answer, proposedStartTime: "20:00:00" }, hasAddress: true }, EVENING),
+    ).toBeNull();
+    expect(
+      acceptRefusal({ request: tonight, answer: { ...answer, proposedStartTime: "18:00:00" }, hasAddress: true }, EVENING),
+    ).toBe("nonModifiable");
   });
 });

@@ -66,6 +66,23 @@ describe("a new answer", () => {
     expect(key).toBe("reponse-a1-2");
   });
 
+  it("says so when her answer proposes another start, and says nothing otherwise (JAM-306)", async () => {
+    await notifyNewAnswer("a1", 1, SITE);
+    expect(sendEmail.mock.calls[0][1].text).not.toContain("propose une autre heure de début");
+
+    answerNotice.mockResolvedValue({
+      requestId: "r1",
+      nightDate: "2026-09-30",
+      adapted: true,
+      family: { email: "sophie@example.be", firstName: "Sophie" },
+      professional: { profileId: "p1", firstName: "Emma", profession: "sage_femme" },
+    });
+    await notifyNewAnswer("a1", 2, SITE);
+    expect(sendEmail.mock.calls[1][1].text).toContain(
+      "Emma propose une autre heure de début. Vous la verrez sur sa réponse, et vous l'acceptez ou non au moment de réserver.",
+    );
+  });
+
   it("logs a failed send and never throws", async () => {
     sendEmail.mockRejectedValue(new Error("Resend refused"));
     const logged = vi.spyOn(console, "error").mockImplementation(() => {});

@@ -109,7 +109,8 @@ describe("the rates saved on her answers (JAM-344)", () => {
     const { savedRatesQuery } = await import("./answers");
     const HER = "5d0f2b4e-6a7c-4d9e-8f3a-4b5c6d7e8f94";
     const q = savedRatesQuery(HER, [REQUEST]).toSQL();
-    expect(q.sql).toMatch(/^select "care_request_applications"\."request_id", "care_request_applications"\."night_rate_eur", "care_request_applications"\."extra_hour_rate_eur" from "care_request_applications"/);
+    // Her rates (JAM-344) and the start she proposed (JAM-306).
+    expect(q.sql).toMatch(/^select "care_request_applications"\."request_id", "care_request_applications"\."night_rate_eur", "care_request_applications"\."extra_hour_rate_eur", "care_request_applications"\."proposed_start_time" from "care_request_applications"/);
     expect(q.sql).toContain(
       'inner join "professional_profiles" on "professional_profiles"."id" = "care_request_applications"."profile_id"',
     );
@@ -117,5 +118,53 @@ describe("the rates saved on her answers (JAM-344)", () => {
     expect(bound(q, ANSWER_STATUS)).toEqual(["en_attente"]);
     expect(q.params).toContain(REQUEST);
     for (const other of ["retiree", "retenue", "non_retenue"]) expect(q.params).not.toContain(other);
+  });
+});
+
+/**
+ * Spec (JAM-306): the booking of an answer that proposes a different start
+ * gives the night that start, and keeps the start the family asked for. One
+ * statement does it, in the booking's own batch, and only for the booked
+ * answer of that request. An answer with no proposal changes neither column.
+ */
+describe("the start of a booked night (JAM-306)", () => {
+  it("takes the booked answer's proposed start and keeps the family's as a record", async () => {
+    const { bookingSetsTheStart } = await import("./bookings");
+    const q = bookingSetsTheStart(REQUEST, CHOSEN, NOW).toSQL();
+    const sql = q.sql.replace(/\s+/g, " ");
+    expect(sql).toMatch(/^update "care_requests" set /);
+    // The proposal is read from the booked answer of this request, nowhere else.
+    const proposed =
+      /\( select pa\.proposed_start_time from care_request_applications pa where pa\.id = \$\d+ and pa\.request_id = \$\d+ and pa\.status = 'retenue' \)/;
+    expect(sql.match(new RegExp(proposed, "g"))).toHaveLength(2);
+    // The new start is the proposal, or the old start. The right side reads the row as it was.
+    expect(sql).toMatch(/"start_time" = coalesce\(nullif\(\( select pa\.proposed_start_time .*?\), "start_time"\), "start_time"\)/);
+    // The record is the old start, written only when a proposal replaces it.
+    expect(sql).toMatch(
+      /"requested_start_time" = case when nullif\(\( select pa\.proposed_start_time .*?\), "start_time"\) is not null then "start_time" else "requested_start_time" end/,
+    );
+    expect(q.params).toContain("attribuee");
+    expect(q.params.filter((param) => param === CHOSEN)).toHaveLength(2);
+    // Only the open request of the booking, once the booking exists.
+    expect(bound(q, '"care_requests"."id"')).toEqual([REQUEST]);
+    expect(bound(q, '"care_requests"."status"')).toEqual(["ouverte"]);
+    expect(sql).toMatch(/exists \(select 1 from "bookings" where "bookings"\."request_id" = \$\d+\)/);
+  });
+
+  it("reads her proposal for each night of a regular request from the list of the form", async () => {
+    const { PgDialect } = await import("drizzle-orm/pg-core");
+    const { seriesProposal } = await import("./answers");
+    const dialect = new PgDialect();
+    const none = dialect.sqlToQuery(seriesProposal([]));
+    expect(none.sql).toBe("null::time");
+    expect(none.params).toEqual([]);
+
+    const OTHER = "6e1a3c5f-7b8d-4e0f-9a4b-5c6d7e8f9a05";
+    const q = dialect.sqlToQuery(seriesProposal([[REQUEST, "20:00"], [OTHER, "18:30"]]));
+    expect(q.sql.replace(/\s+/g, " ")).toBe(
+      "(select h.start from (values ($1::uuid, $2::time), ($3::uuid, $4::time)) as h(request_id, start) where h.request_id = ok.id)",
+    );
+    // Every value is bound: nothing of the form reaches the SQL text.
+    expect(q.params).toEqual([REQUEST, "20:00", OTHER, "18:30"]);
   });
 });
