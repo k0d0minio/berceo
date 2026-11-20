@@ -13,6 +13,7 @@ export type NightColumns = { nightDate: SQLWrapper; startTime: SQLWrapper; extra
  * with its own alias (`sql\`r.night_date\``).
  */
 export function nightEnd(columns: NightColumns): SQL {
-  const hours = sql`${NIGHT_HOURS}::int + ${columns.extraHours}`;
-  return sql`(${columns.nightDate} + ${columns.startTime} + make_interval(hours => ${hours}))`;
+  // The extra hours go by half hours (JAM-303): the interval is counted in minutes.
+  const minutes = sql`((${NIGHT_HOURS}::int + ${columns.extraHours}) * 60)::int`;
+  return sql`(${columns.nightDate} + ${columns.startTime} + make_interval(mins => ${minutes}))`;
 }

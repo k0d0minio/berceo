@@ -92,7 +92,7 @@ function List({
                     </span>
                   </Fact>
                   <Fact icon={BebeIcon}>
-                    {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
+                    {childrenLine(request.childAges)}
                   </Fact>
                   <Fact icon={EuroIcon}>
                     <span className="font-semibold text-sauge">{rateLine(nightRateEur)}</span>

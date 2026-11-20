@@ -39,14 +39,15 @@ export function summary(request: RequestCard): RequestSummary {
   return {
     commune: communeName(request.communeIns) ?? request.locality,
     nuit: nightLine(request.nightDate, request.startTime, request.extraHours),
-    enfants: childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit),
+    enfants: childrenLine(request.childAges),
     date: formatDate(request.nightDate),
   };
 }
 
 /**
- * Nights that read the same, as one e-mail line (demande-nuits-regulieres): the
- * first night's commune, hours and children, and every night's date in order.
+ * The nights of one series, as one e-mail line (demande-nuits-regulieres): the
+ * first night's commune and children, the hours when every night has the same,
+ * or one line that says they differ (JAM-303), and every night's date in order.
  * One night reads as `summary` does.
  */
 export function seriesSummary(nights: readonly RequestCard[]): RequestSummary | SeriesSummary {
@@ -54,9 +55,9 @@ export function seriesSummary(nights: readonly RequestCard[]): RequestSummary | 
   if (nights.length === 1) return summary(first);
   return {
     commune: communeName(first.communeIns) ?? first.locality,
-    horaire: hoursLine(first.startTime, first.extraHours),
+    horaire: hoursLine(nights),
     dates: nights.map((night) => formatDate(night.nightDate)),
-    enfants: childrenLine(first.children, first.babyAgeValue, first.babyAgeUnit),
+    enfants: childrenLine(first.childAges),
   };
 }
 

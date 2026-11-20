@@ -106,10 +106,10 @@ function RequestCard({
           </span>
         </Fact>
         <Fact icon={BebeIcon}>
-          {childrenLine(request.children, request.babyAgeValue, request.babyAgeUnit)}
+          {childrenLine(request.childAges)}
         </Fact>
         {/* A request published before the field has no feeding. */}
-        {request.feeding ? <Fact icon={BiberonIcon}>{feedingLine(request.feeding)}</Fact> : null}
+        {request.feedings.length > 0 ? <Fact icon={BiberonIcon}>{feedingLine(request.feedings)}</Fact> : null}
         {rate ? (
           <Fact icon={EuroIcon}>
             {rateLabel ? <span className="block text-legende">{rateLabel}</span> : null}
