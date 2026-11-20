@@ -20,7 +20,13 @@ import {
 import { sendSignInCode } from "@/lib/auth/second-factor-send";
 import { checkSignInCode, isDeviceTrusted, trustDevice, type CodeCheck } from "@/lib/auth/second-factor-store";
 import { getAuth } from "@/lib/auth/server";
-import { deleteOrphanIdentity, orphanByEmail, userByAuthId } from "@/lib/auth/users";
+import {
+  deleteOrphanIdentity,
+  isEmailTaken,
+  orphanByEmail,
+  userByAuthId,
+  userExistsByEmail,
+} from "@/lib/auth/users";
 import {
   isSignUpRole,
   isValidEmail,
@@ -63,6 +69,20 @@ export type SignUpState = {
   values?: { prenom: string; nom: string; email: string; telephone: string; formule: string };
 };
 
+/**
+ * The least time the answer for an address `users` already has takes (JAM-342).
+ * That path makes no identity, so it would answer much sooner than a sign-up
+ * that does; the wait hides most of that difference. It is not exact: the time
+ * of a real sign-up changes with Neon Auth's own.
+ */
+const KNOWN_ADDRESS_FLOOR_MS = 800;
+
+/** Resolves when `floorMs` have passed since `startedAt`; at once if they already have. */
+async function atLeast(startedAt: number, floorMs: number): Promise<void> {
+  const left = floorMs - (Date.now() - startedAt);
+  if (left > 0) await new Promise((resolve) => setTimeout(resolve, left));
+}
+
 export async function signUp(
   role: SignUpRole,
   retour: string | null,
@@ -90,6 +110,25 @@ export async function signUp(
   if (!checked.ok) return { errors: checked.errors, values };
 
   const { firstName, lastName, email, phone, password, plan } = checked.values;
+
+  // An address `users` already has makes no identity (JAM-342), and reads
+  // exactly like a new one (D-34). Neon Auth is not asked: it can lack the
+  // identity, and would then make one that the insert below refuses.
+  const startedAt = Date.now();
+  let known: boolean;
+  try {
+    known = await userExistsByEmail(email);
+  } catch (readError) {
+    console.error("[comptes] users not read before sign-up", {
+      error: readError instanceof Error ? readError.name : typeof readError,
+    });
+    return { message: "generique", values };
+  }
+  if (known) {
+    await atLeast(startedAt, KNOWN_ADDRESS_FLOOR_MS);
+    redirect("/verification-email");
+  }
+
   const createIdentity = () =>
     getAuth().signUp.email({
       email,
@@ -152,6 +191,9 @@ export async function signUp(
         deleteError,
       });
     }
+    // A second sign-up wrote the address's row in between: the same answer as
+    // an address that was known from the start (JAM-342, D-34).
+    if (isEmailTaken(writeError)) redirect("/verification-email");
     return { message: "generique", values };
   }
 

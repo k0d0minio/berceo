@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /*
  * Spec (comptes-orphaned-auth-identity, D-159, D-160, D-171, D-172): a sign-up whose
@@ -16,6 +16,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * device and a family land as before. The code page's action checks the six
  * digits, trusts the device, or sends a new code. The store and the sender
  * are mocked at their module boundary.
+ *
+ * Spec (JAM-342): a sign-up reads `users` by the address before it makes an
+ * identity. A known address makes none and gets the answer of D-34, not sooner
+ * than the floor. A unique violation on `users_email_unique` (a second sign-up
+ * in between) gets that answer too, after the new identity is deleted.
  */
 
 const m = vi.hoisted(() => {
@@ -31,6 +36,7 @@ const m = vi.hoisted(() => {
     signOut: vi.fn(async () => {}),
     batch: vi.fn(async (_statements: unknown[]) => {}),
     userByAuthId: vi.fn(),
+    userExistsByEmail: vi.fn(async (_email: string) => false),
     orphanByEmail: vi.fn(),
     deleteOrphanIdentity: vi.fn(async (_authUserId: string) => true),
     cookieGet: vi.fn((_name: string): { value: string } | undefined => undefined),
@@ -59,8 +65,11 @@ vi.mock("@/lib/auth/second-factor-send", () => ({ sendSignInCode: m.sendSignInCo
 vi.mock("@/lib/auth/server", () => ({
   getAuth: () => ({ signUp: { email: m.signUpEmail }, signIn: { email: m.signInEmail }, signOut: m.signOut }),
 }));
-vi.mock("@/lib/auth/users", () => ({
+vi.mock("@/lib/auth/users", async () => ({
+  // The pure predicate is the real one: the 23505 tests read it through the action.
+  isEmailTaken: (await vi.importActual<typeof import("@/lib/auth/users")>("@/lib/auth/users")).isEmailTaken,
   userByAuthId: m.userByAuthId,
+  userExistsByEmail: m.userExistsByEmail,
   orphanByEmail: m.orphanByEmail,
   deleteOrphanIdentity: m.deleteOrphanIdentity,
 }));
@@ -113,6 +122,7 @@ const errors = vi.spyOn(console, "error").mockImplementation(() => {});
 beforeEach(() => {
   vi.clearAllMocks();
   m.batch.mockResolvedValue(undefined);
+  m.userExistsByEmail.mockResolvedValue(false);
   m.deleteOrphanIdentity.mockResolvedValue(true);
   m.cookieGet.mockReturnValue(undefined);
   m.isDeviceTrusted.mockResolvedValue(false);
@@ -210,6 +220,93 @@ describe("a sign-up retry on an address Neon Auth already has (D-160, D-34)", ()
 
     expect(await signUpParent()).toMatchObject({ state: { errors: { motDePasse: "motDePasseCourt" } } });
     expect(m.signUpEmail).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("a sign-up with an address users already has (JAM-342, D-34)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("makes no identity, writes nothing, and lands on /verification-email exactly as a new sign-up", async () => {
+    vi.useFakeTimers();
+    m.userExistsByEmail.mockResolvedValue(true);
+
+    const pending = signUpParent();
+    await vi.runAllTimersAsync();
+
+    expect(await pending).toEqual({ redirect: "/verification-email" });
+    expect(m.userExistsByEmail).toHaveBeenCalledExactlyOnceWith(EMAIL);
+    expect(m.signUpEmail).not.toHaveBeenCalled();
+    expect(m.orphanByEmail).not.toHaveBeenCalled();
+    expect(m.deleteOrphanIdentity).not.toHaveBeenCalled();
+    expect(m.batch).not.toHaveBeenCalled();
+    expect(m.cookieSet).not.toHaveBeenCalled();
+  });
+
+  it("does not answer sooner than the floor of 800 ms", async () => {
+    vi.useFakeTimers();
+    m.userExistsByEmail.mockResolvedValue(true);
+
+    let answered = false;
+    const pending = signUpParent().finally(() => {
+      answered = true;
+    });
+    await vi.advanceTimersByTimeAsync(799);
+    expect(answered).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await pending).toEqual({ redirect: "/verification-email" });
+  });
+
+  it("reads users before Neon Auth on a new address, then signs up as before", async () => {
+    m.signUpEmail.mockResolvedValue(created("auth-1"));
+
+    expect(await signUpParent()).toEqual({ redirect: "/verification-email" });
+    expect(m.userExistsByEmail).toHaveBeenCalledExactlyOnceWith(EMAIL);
+    expect(m.userExistsByEmail.mock.invocationCallOrder[0]).toBeLessThan(m.signUpEmail.mock.invocationCallOrder[0]);
+    expect(m.batch).toHaveBeenCalledTimes(1);
+  });
+
+  it("answers « generique » and makes no identity when users cannot be read", async () => {
+    m.userExistsByEmail.mockRejectedValue(new Error("connection reset"));
+
+    expect(await signUpParent()).toMatchObject({ state: { message: "generique" } });
+    expect(m.signUpEmail).not.toHaveBeenCalled();
+    expect(m.batch).not.toHaveBeenCalled();
+  });
+});
+
+describe("a sign-up whose users row breaks the address's unique constraint (JAM-342)", () => {
+  /** Drizzle's wrapped error: Postgres' code and constraint are on the cause. */
+  const uniqueViolation = (constraint: string) =>
+    Object.assign(new Error("Failed query"), { cause: { code: "23505", constraint } });
+
+  beforeEach(() => {
+    m.signUpEmail.mockResolvedValue(created("auth-1"));
+  });
+
+  it("deletes the identity it just created and lands on /verification-email as a known address does", async () => {
+    m.batch.mockRejectedValue(uniqueViolation("users_email_unique"));
+
+    expect(await signUpParent()).toEqual({ redirect: "/verification-email" });
+    expect(m.deleteOrphanIdentity).toHaveBeenCalledExactlyOnceWith("auth-1");
+    expect(m.signUpEmail).toHaveBeenCalledTimes(1);
+    expect(m.cookieSet).not.toHaveBeenCalled();
+  });
+
+  it("gives the same answer when that delete fails, and logs it", async () => {
+    m.batch.mockRejectedValue(uniqueViolation("users_email_unique"));
+    m.deleteOrphanIdentity.mockRejectedValue(new Error("connection reset"));
+
+    expect(await signUpParent()).toEqual({ redirect: "/verification-email" });
+    expect(errors.mock.calls.some(([line]) => String(line).includes("not removed"))).toBe(true);
+  });
+
+  it("keeps « generique » for a unique violation on a different constraint", async () => {
+    m.batch.mockRejectedValue(uniqueViolation("users_auth_user_id_unique"));
+
+    expect(await signUpParent()).toMatchObject({ state: { message: "generique" } });
+    expect(m.deleteOrphanIdentity).toHaveBeenCalledExactlyOnceWith("auth-1");
   });
 });
 

@@ -15,6 +15,37 @@ export async function userByAuthId(authUserId: string): Promise<User | null> {
   return row ?? null;
 }
 
+/**
+ * Whether a `users` row carries the address (lower-cased, as the sign-up
+ * stores it). The sign-up asks before it makes an identity, so a known address
+ * makes none (JAM-342). Every row counts, a suspended one too: only a deleted
+ * account frees its address, because its row no longer carries it (D-136).
+ */
+export async function userExistsByEmail(email: string): Promise<boolean> {
+  const [row] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
+  return row !== undefined;
+}
+
+/** The constraint a second `users` row for one address breaks (drizzle/0000_users.sql). */
+const USERS_EMAIL_UNIQUE = "users_email_unique";
+
+/**
+ * True when a write failed on Postgres' unique_violation (23505) for the
+ * address: a second sign-up wrote the row between this one's read and its
+ * insert (JAM-342). Drizzle may wrap the driver's error, so the cause is read
+ * too. A 23505 on a different constraint is not this.
+ */
+export function isEmailTaken(error: unknown): boolean {
+  const cause = error && typeof error === "object" && "cause" in error ? error.cause : undefined;
+  return [error, cause].some((candidate) => {
+    if (!candidate || typeof candidate !== "object") return false;
+    const { code, constraint, message } = candidate as { code?: unknown; constraint?: unknown; message?: unknown };
+    if (code !== "23505") return false;
+    if (typeof constraint === "string") return constraint === USERS_EMAIL_UNIQUE;
+    return typeof message === "string" && message.includes(USERS_EMAIL_UNIQUE);
+  });
+}
+
 /*
  * An orphan is a Neon Auth identity with no `users` row: its sign-up created
  * the identity, then the row's batch failed. It opens nothing and cannot be
