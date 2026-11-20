@@ -47,6 +47,8 @@ export const cardColumns = {
   urgent: careRequests.urgent,
   nightDate: careRequests.nightDate,
   startTime: careRequests.startTime,
+  // The start the family asked for, when the booked answer proposed another (JAM-306).
+  requestedStartTime: careRequests.requestedStartTime,
   extraHours: careRequests.extraHours,
   childAges: careRequests.childAges,
   feedings: careRequests.feedings,
@@ -63,7 +65,13 @@ export type RequestCard = {
   id: string;
   urgent: boolean;
   nightDate: string;
+  /** The night's start. On a booked night, the start the two sides agreed on (JAM-306). */
   startTime: string;
+  /**
+   * The start the family asked for, kept when the booked answer proposed
+   * another (JAM-306). Null or absent on any other request.
+   */
+  requestedStartTime?: string | null;
   extraHours: number;
   /** One to four children, each with its own age (JAM-303). */
   childAges: readonly ChildAge[];

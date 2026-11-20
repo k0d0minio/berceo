@@ -1,4 +1,11 @@
-import { hasNightStarted, isChangeable, type RequestStatus } from "@/lib/demandes/rules";
+import {
+  endTime,
+  hasNightStarted,
+  isChangeable,
+  isStartTime,
+  toHourMinute,
+  type RequestStatus,
+} from "@/lib/demandes/rules";
 
 /**
  * The rules of an answer and a booking that do not need the database: who may
@@ -31,7 +38,8 @@ export type AnswerRefusal =
   | "horsZone"
   | "declinee"
   | "dejaReservee"
-  | "dejaRepondu";
+  | "dejaRepondu"
+  | "horaire";
 
 export type AnswerFacts = {
   /** Her profile: only a validated one with a rate answers (D-5, D-4). */
@@ -43,6 +51,8 @@ export type AnswerFacts = {
   answer: ApplicationStatus | null;
   /** Whether she holds a booking on the request's night already (D-73). */
   bookedThatNight: boolean;
+  /** The start she proposes for this night in place of the family's (JAM-306); absent or null for none. */
+  proposedStartTime?: string | null;
 };
 
 /** Whether the request was sent to this professional « en priorité » (D-71). */
@@ -61,6 +71,8 @@ export function answerRefusal(facts: AnswerFacts, now: Date): AnswerRefusal | nu
   if (profile.status !== "valide" || profile.nightRateEur === null) return "nonValide";
   if (request.status !== "ouverte") return "fermee";
   if (hasNightStarted(request.nightDate, request.startTime, now)) return "commencee";
+  // A start she proposes before the family's (JAM-306) must be ahead too.
+  if (facts.proposedStartTime && hasNightStarted(request.nightDate, facts.proposedStartTime, now)) return "commencee";
   if (!facts.servesCommune && !isPriorityFor(request, profile.id)) return "horsZone";
   if (answer === "non_retenue") return "declinee";
   if (facts.bookedThatNight) return "dejaReservee";
@@ -78,18 +90,21 @@ export function canWithdraw(
 }
 
 /** Why « Accepter et réserver » is refused, or null. */
-export type AcceptRefusal = "adresse" | "nonModifiable" | "indisponible";
+export type AcceptRefusal = "adresse" | "nonModifiable" | "indisponible" | "horaires";
 
 export type AcceptFacts = {
   request: RequestFacts;
   /** The answer chosen, and whether its professional is still validated. */
-  answer: { status: ApplicationStatus; profileStatus: string };
+  answer: { status: ApplicationStatus; profileStatus: string; proposedStartTime?: string | null };
   /** Whether the family's profile holds a street and a house number (D-77). */
   hasAddress: boolean;
 };
 
 export function acceptRefusal(facts: AcceptFacts, now: Date): AcceptRefusal | null {
   if (!isChangeable(facts.request, now)) return "nonModifiable";
+  // An answer that proposes an earlier start (JAM-306) is booked only before that start.
+  const proposed = facts.answer.proposedStartTime;
+  if (proposed && hasNightStarted(facts.request.nightDate, proposed, now)) return "nonModifiable";
   if (facts.answer.status !== "en_attente" || facts.answer.profileStatus !== "valide") return "indisponible";
   if (!facts.hasAddress) return "adresse";
   return null;
@@ -176,4 +191,118 @@ export function seriesAnswerState(
   const complete = nights.length === openNights;
   if (complete && nights.every((night) => night.answer === null || night.answer === "retiree")) return "repondre";
   return "aucun";
+}
+
+// ---------------------------------------------------------------------------
+// The adapted schedule (JAM-306)
+// ---------------------------------------------------------------------------
+
+/*
+ * A professional can answer a night with a start that differs from the
+ * family's. The proposal lives on her answer (`proposed_start_time`). The
+ * length of the night does not change, so the end moves with the start. The
+ * family books the answer with its proposal or does not book it. The booking
+ * writes the proposed start in the request's `start_time` and keeps the
+ * family's in `requested_start_time` (`acceptAnswer`), so each reader of a
+ * booked night reads the start the two sides agreed on. The functions below
+ * are the only place that says which start is which.
+ */
+
+/** The name of the form field that carries her proposal for one night. */
+export function proposalField(requestId: string): string {
+  return `heure-${requestId}`;
+}
+
+export type ProposalRead = { ok: true; proposed: string | null } | { ok: false };
+
+/**
+ * Her proposal for a night, read from a form value: a half hour from 18:00 to
+ * 23:00 that differs from the family's start. Empty, absent, or the family's
+ * own start means no proposal. Any other value is refused.
+ */
+export function readProposal(familyStart: string, value: string | null | undefined): ProposalRead {
+  const typed = (value ?? "").trim();
+  if (typed === "") return { ok: true, proposed: null };
+  const proposed = toHourMinute(typed);
+  if (!/^\d{2}:\d{2}(:00)?$/.test(typed) || !isStartTime(proposed)) return { ok: false };
+  if (proposed === toHourMinute(familyStart)) return { ok: true, proposed: null };
+  return { ok: true, proposed };
+}
+
+/**
+ * The start of a night under an answer: her proposed start, or the family's
+ * when she proposed none. This is the start a booking of that answer gives the
+ * night.
+ */
+export function effectiveStart(familyStart: string, proposedStart: string | null | undefined): string {
+  return toHourMinute(proposedStart || familyStart);
+}
+
+/**
+ * The start the family asked for. On a booked request whose answer proposed a
+ * different start, `startTime` is the agreed start and `requestedStartTime`
+ * the record. On any other request, `startTime` is the family's.
+ */
+export function requestedStart(request: { startTime: string; requestedStartTime?: string | null }): string {
+  return toHourMinute(request.requestedStartTime || request.startTime);
+}
+
+/** Whether a booked night runs at a start that differs from the one the family asked for. */
+export function isAdapted(request: { startTime: string; requestedStartTime?: string | null }): boolean {
+  return Boolean(request.requestedStartTime) && requestedStart(request) !== toHourMinute(request.startTime);
+}
+
+/** One night whose answer proposes a different start. */
+export type AdaptedNight = {
+  requestId: string;
+  nightDate: string;
+  /** The family's start, `HH:MM`. */
+  requested: string;
+  /** Her proposed start, `HH:MM`. */
+  proposed: string;
+  /** The end of the night from the proposed start: the length does not change. */
+  end: string;
+};
+
+/** A night as an answer reads it: the request's night and her proposal for it. */
+export type AnsweredNight = {
+  requestId: string;
+  nightDate: string;
+  startTime: string;
+  extraHours: number;
+  proposedStartTime: string | null;
+};
+
+/** The nights of an answer that carry a proposal, in night order. None for an answer at the family's times. */
+export function adaptedNights(nights: readonly AnsweredNight[]): AdaptedNight[] {
+  return nights
+    .filter((night) => night.proposedStartTime && toHourMinute(night.proposedStartTime) !== toHourMinute(night.startTime))
+    .map((night) => {
+      const proposed = toHourMinute(night.proposedStartTime!);
+      return {
+        requestId: night.requestId,
+        nightDate: night.nightDate,
+        requested: toHourMinute(night.startTime),
+        proposed,
+        end: endTime(proposed, night.extraHours),
+      };
+    })
+    .sort((a, b) => a.nightDate.localeCompare(b.nightDate));
+}
+
+/**
+ * What the family confirms when it books an answer: each night's proposed
+ * start, as one string. The page binds it to « Accepter et réserver », and the
+ * checkout opens only when it is still what the answer holds, so a proposal
+ * the family did not read is never booked. Empty for an answer with no
+ * proposal.
+ */
+export function proposalsSignature(
+  nights: readonly { requestId: string; proposedStartTime: string | null }[],
+): string {
+  return nights
+    .filter((night) => night.proposedStartTime)
+    .map((night) => `${night.requestId}=${toHourMinute(night.proposedStartTime!)}`)
+    .sort()
+    .join(",");
 }

@@ -27,7 +27,7 @@ import { canRate } from "@/lib/avis/rules";
 import { gardeCredits } from "@/lib/credits/credits";
 import { conversationOfBooking } from "@/lib/messagerie/conversations";
 import { conversationPath } from "@/lib/messagerie/paths";
-import { cardTitle, childrenLine, feedingLine, formatDate } from "@/lib/demandes/format";
+import { cardTitle, childrenLine, feedingLine, formatDate, formatTime } from "@/lib/demandes/format";
 import { brusselsNow } from "@/lib/demandes/rules";
 import { familyRequestPath } from "@/lib/demandes/paths";
 import { liveRequestOn } from "@/lib/demandes/requests";
@@ -44,6 +44,7 @@ import {
 } from "@/lib/gardes/rules";
 import { familyBooking } from "@/lib/reservations/bookings";
 import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { isAdapted, requestedStart } from "@/lib/reservations/rules";
 import { cancellationDelayHours } from "@/lib/settings";
 import {
   FAMILY_BOOKINGS_PATH,
@@ -136,6 +137,10 @@ export default async function ReservationPage({
   const rows: [string, string][] = [
     [l.date, night.date],
     [l.heure, night.heures],
+    // Booked at a start the professional proposed (JAM-306): the start the family asked for stays readable.
+    ...(isAdapted(request)
+      ? [[t.horaireConvenu.demandee, formatTime(requestedStart(request))] as [string, string]]
+      : []),
     [l.duree, night.duree],
     [l.enfants, childrenLine(request.childAges)],
     // A request published before the field has no feeding.

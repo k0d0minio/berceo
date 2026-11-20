@@ -156,7 +156,10 @@ export function bookingCondition(filter: BookingFilter | null, accountId: string
 export type AdminBookingRow = {
   id: string;
   nightDate: string;
+  /** The garde's start: the start the two sides agreed on (JAM-306). */
   startTime: string;
+  /** The start the family asked for, when the booked answer proposed another (JAM-306). */
+  requestedStartTime?: string | null;
   nightRateEur: number;
   state: GardeState;
   family: { id: string; name: string; suspended: boolean };
@@ -169,6 +172,7 @@ const bookingColumns = {
   status: bookings.status,
   nightDate: careRequests.nightDate,
   startTime: careRequests.startTime,
+  requestedStartTime: careRequests.requestedStartTime,
   extraHours: careRequests.extraHours,
   nightRateEur: bookings.nightRateEur,
   familyId: familyUser.id,
@@ -223,6 +227,7 @@ export async function readBookings(
       id: row.id,
       nightDate: row.nightDate,
       startTime: row.startTime,
+      requestedStartTime: row.requestedStartTime,
       nightRateEur: row.nightRateEur,
       state: gardeState(row, now),
       family: {

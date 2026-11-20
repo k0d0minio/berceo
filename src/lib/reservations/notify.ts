@@ -50,6 +50,7 @@ export async function notifyNewAnswer(applicationId: string, answerCount: number
         },
         date: formatDate(notice.nightDate),
         url: `${siteUrl}${professionalProfilePath(professional.profileId, notice.requestId)}`,
+        horaireAdapte: notice.adapted,
       }),
       `reponse-${applicationId}-${answerCount}`,
     );

@@ -173,6 +173,15 @@ export function bonneGardeStatement(applicationId: string, at: string): SQL {
 // Reads
 // ---------------------------------------------------------------------------
 
+/**
+ * The start of the night as a conversation reads it (JAM-306): the start its
+ * own answer proposes, else the start the family asked for. A conversation
+ * belongs to one answer, so it never shows the start another professional
+ * proposed and the family booked. On its booked answer this is the request's
+ * `start_time`, the start the two sides agreed on.
+ */
+export const conversationStart = sql<string>`coalesce(${careRequestApplications.proposedStartTime}, ${careRequests.requestedStartTime}, ${careRequests.startTime})`;
+
 /** The last message of a conversation, as the list previews it. */
 export type LastMessage = { author: Author; body: string | null; berceoKey: BerceoMessage | null };
 
@@ -201,7 +210,7 @@ export async function conversationList(userId: string, side: Side): Promise<Conv
       firstName: users.firstName,
       profession: professionalProfiles.profession,
       nightDate: careRequests.nightDate,
-      startTime: careRequests.startTime,
+      startTime: conversationStart,
       extraHours: careRequests.extraHours,
       status: careRequests.status,
       profileStatus: professionalProfiles.status,
@@ -273,7 +282,7 @@ export async function conversationFor(userId: string, side: Side, id: string): P
       firstName: users.firstName,
       profession: professionalProfiles.profession,
       nightDate: careRequests.nightDate,
-      startTime: careRequests.startTime,
+      startTime: conversationStart,
       extraHours: careRequests.extraHours,
       status: careRequests.status,
       profileStatus: professionalProfiles.status,
@@ -392,7 +401,7 @@ export async function sendMessage(
     .select({
       status: careRequests.status,
       nightDate: careRequests.nightDate,
-      startTime: careRequests.startTime,
+      startTime: conversationStart,
       extraHours: careRequests.extraHours,
       profileStatus: professionalProfiles.status,
       answerStatus: careRequestApplications.status,

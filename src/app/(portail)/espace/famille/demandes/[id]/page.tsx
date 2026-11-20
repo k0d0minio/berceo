@@ -12,6 +12,7 @@ import { EuroIcon } from "@/components/icons";
 import { RequestCard } from "@/components/demandes/request-card";
 import { RequestReason } from "@/components/demandes/request-reason";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
+import { AdaptedTimes } from "@/components/reservations/adapted-times";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { RepublishRequest } from "@/components/reservations/republish-request";
 import { SpaceShell } from "@/components/shell/space-shell";
@@ -42,9 +43,9 @@ import { feeCents, isSessionId } from "@/lib/paiements/rules";
 import { answersEver, familyAnswers } from "@/lib/reservations/answers";
 import { gardeState } from "@/lib/gardes/rules";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
-import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { adaptedLines, extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import { familyBookingPath, professionalProfilePath } from "@/lib/reservations/paths";
-import { canRepublish } from "@/lib/reservations/rules";
+import { adaptedNights, canRepublish, effectiveStart, proposalsSignature } from "@/lib/reservations/rules";
 
 import { acceptAnswerAction, cancelRequestAction, republishRequestAction } from "../actions";
 
@@ -110,7 +111,10 @@ function message(notice: Notice): string | null {
  * the place of « Accepter et réserver », « Modifier ma demande » and
  * « Republier ma demande » (abonnements-acces). The answers are white cards
  * on a sage zone, her rate a line with an icon (slide 25; JAM-327), and no
- * answer yet is the taupe empty state.
+ * answer yet is the taupe empty state. An answer that proposes a different
+ * start (JAM-306) carries the mark « Horaire adapté » and the start asked for,
+ * the start proposed and the new end; its récapitulatif gives the adapted
+ * hours and asks the family to accept them before the payment.
  */
 export default async function DemandePage({
   params,
@@ -172,7 +176,19 @@ export default async function DemandePage({
   const editable = isEditable(request, answered, now);
   // Republishing needs a waiting answer, so the answers' invitation line stands for it too.
   const republishable = canRepublish(facts, answers.length, now);
-  const night = recapNight(request.nightDate, request.startTime, request.extraHours);
+  // What each answer proposes for the night (JAM-306): its lines, and what the family confirms.
+  const scheduleOf = (answer: (typeof answers)[number]) => {
+    const nights = [{ ...request, requestId: request.id, proposedStartTime: answer.proposedStartTime }];
+    return {
+      lignes: adaptedLines(adaptedNights(nights), false),
+      confirmed: proposalsSignature(nights),
+      night: recapNight(
+        request.nightDate,
+        effectiveStart(request.startTime, answer.proposedStartTime),
+        request.extraHours,
+      ),
+    };
+  };
   const [conversationIds, shares] = await Promise.all([
     conversationsOfAnswers(user.id, answers.map((answer) => answer.applicationId)),
     // The part her Berceo credit would pay on each answer's fee, for the récapitulatif (credits-au-paiement).
@@ -230,62 +246,72 @@ export default async function DemandePage({
               ) : null}
               <CardField>
                 <ul className="grid gap-6 md:grid-cols-2">
-                  {answers.map((answer) => (
-                    <li key={answer.applicationId}>
-                      <article className="flex h-full flex-col gap-4 rounded-carte bg-blanc px-6 py-8 md:px-10">
-                        <div className="flex items-center gap-4">
-                          <ProfessionalPhoto photoId={answer.photoId} prenom={answer.firstName} className="size-16" />
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-h3 font-bold text-sauge">{answer.firstName}</h3>
-                            <p className="text-corps text-taupe">{professionLabel(answer.profession)}</p>
+                  {answers.map((answer) => {
+                    const schedule = scheduleOf(answer);
+                    return (
+                      <li key={answer.applicationId}>
+                        <article className="flex h-full flex-col gap-4 rounded-carte bg-blanc px-6 py-8 md:px-10">
+                          <div className="flex items-center gap-4">
+                            <ProfessionalPhoto photoId={answer.photoId} prenom={answer.firstName} className="size-16" />
+                            <div className="flex flex-col gap-1">
+                              <h3 className="text-h3 font-bold text-sauge">{answer.firstName}</h3>
+                              <p className="text-corps text-taupe">{professionLabel(answer.profession)}</p>
+                            </div>
                           </div>
-                        </div>
-                        <NoteDisplay note={answer.note} />
-                        <div className="flex items-start gap-3 text-corps">
-                          <EuroIcon aria-hidden className="mt-0.5 size-6 shrink-0 text-taupe" />
-                          <div className="flex min-w-0 flex-col">
-                            <p className="font-semibold text-sauge">{rateLine(answer.nightRateEur)}</p>
-                            {answer.extraHourRateEur ? (
-                              <p className="font-semibold text-sauge">{extraHourLine(answer.extraHourRateEur)}</p>
-                            ) : null}
+                          <NoteDisplay note={answer.note} />
+                          <div className="flex items-start gap-3 text-corps">
+                            <EuroIcon aria-hidden className="mt-0.5 size-6 shrink-0 text-taupe" />
+                            <div className="flex min-w-0 flex-col">
+                              <p className="font-semibold text-sauge">{rateLine(answer.nightRateEur)}</p>
+                              {answer.extraHourRateEur ? (
+                                <p className="font-semibold text-sauge">{extraHourLine(answer.extraHourRateEur)}</p>
+                              ) : null}
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3">
-                          <Link
-                            href={professionalProfilePath(answer.profileId, request.id)}
-                            className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
-                          >
-                            {r.famille.voirProfil}
-                          </Link>
-                          {conversationIds.has(answer.applicationId) ? (
+                          <AdaptedTimes prenom={answer.firstName} lignes={schedule.lignes} />
+                          <div className="flex flex-wrap items-center gap-3">
                             <Link
-                              href={conversationPath("famille", conversationIds.get(answer.applicationId)!)}
-                              prefetch={false}
+                              href={professionalProfilePath(answer.profileId, request.id)}
                               className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
                             >
-                              {fill(m.liens.ecrire, { prenom: answer.firstName })}
+                              {r.famille.voirProfil}
                             </Link>
-                          ) : null}
-                          {mayBook && hasAddress ? (
-                            <AcceptAnswer
-                              recap={{
-                                ...night,
-                                prenom: answer.firstName,
-                                profession: professionLabel(answer.profession),
-                                tarif: rateLine(answer.nightRateEur),
-                                tarifHeure: answer.extraHourRateEur
-                                  ? extraHourLine(answer.extraHourRateEur)
-                                  : undefined,
-                                frais: feeLine(answer.nightRateEur),
-                                ...creditRecap(answer.nightRateEur, shares),
-                              }}
-                              onAccept={acceptAnswerAction.bind(null, request.id, answer.applicationId)}
-                            />
-                          ) : null}
-                        </div>
-                      </article>
-                    </li>
-                  ))}
+                            {conversationIds.has(answer.applicationId) ? (
+                              <Link
+                                href={conversationPath("famille", conversationIds.get(answer.applicationId)!)}
+                                prefetch={false}
+                                className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+                              >
+                                {fill(m.liens.ecrire, { prenom: answer.firstName })}
+                              </Link>
+                            ) : null}
+                            {mayBook && hasAddress ? (
+                              <AcceptAnswer
+                                recap={{
+                                  ...schedule.night,
+                                  horairesAdaptes: schedule.lignes,
+                                  prenom: answer.firstName,
+                                  profession: professionLabel(answer.profession),
+                                  tarif: rateLine(answer.nightRateEur),
+                                  tarifHeure: answer.extraHourRateEur
+                                    ? extraHourLine(answer.extraHourRateEur)
+                                    : undefined,
+                                  frais: feeLine(answer.nightRateEur),
+                                  ...creditRecap(answer.nightRateEur, shares),
+                                }}
+                                onAccept={acceptAnswerAction.bind(
+                                  null,
+                                  request.id,
+                                  answer.applicationId,
+                                  schedule.confirmed,
+                                )}
+                              />
+                            ) : null}
+                          </div>
+                        </article>
+                      </li>
+                    );
+                  })}
                 </ul>
               </CardField>
             </>

@@ -30,9 +30,25 @@ const professionalUser = alias(users, "professional_user");
 export type AnswerNotice = {
   requestId: string;
   nightDate: string;
+  /** Her answer proposes a different start (JAM-306), on this night or on a night of the same regular request. */
+  adapted: boolean;
   family: { email: string; firstName: string };
   professional: { profileId: string; firstName: string; profession: Profession | null };
 };
+
+/**
+ * Whether the answer's professional proposes a different start (JAM-306) on
+ * its night, or on a night of the same regular request answered as one: her
+ * waiting answers only.
+ */
+const answerIsAdapted = sql<boolean>`exists (
+  select 1 from care_request_applications xa
+  join care_requests xr on xr.id = xa.request_id
+  where xa.profile_id = ${careRequestApplications.profileId}
+    and xa.status = 'en_attente'
+    and xa.proposed_start_time is not null
+    and (xr.id = ${careRequests.id} or (${careRequests.seriesWhole} and xr.series_id = ${careRequests.seriesId}))
+)`;
 
 /** A new answer: to the family who published the request. */
 export async function answerNotice(applicationId: string): Promise<AnswerNotice | null> {
@@ -40,6 +56,7 @@ export async function answerNotice(applicationId: string): Promise<AnswerNotice 
     .select({
       requestId: careRequests.id,
       nightDate: careRequests.nightDate,
+      adapted: answerIsAdapted,
       family: { email: familyUser.email, firstName: familyUser.firstName },
       professional: {
         profileId: professionalProfiles.id,
