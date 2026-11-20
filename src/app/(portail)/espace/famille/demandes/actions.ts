@@ -39,6 +39,7 @@ import {
   type RequestErrors,
   type RequestInput,
   type RequestValues,
+  type SeriesNight,
 } from "@/lib/demandes/validation";
 
 /*
@@ -136,7 +137,7 @@ export async function publishRequestAction(
 async function publishSeriesOf(
   userId: string,
   values: RequestValues,
-  nights: string[],
+  nights: readonly SeriesNight[],
   place: PublishPlace,
   now: Date,
   priorityId: string | null,

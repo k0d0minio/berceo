@@ -68,7 +68,7 @@ export default async function ModifierDemandePage({ params }: { params: Promise<
           heure: toHourMinute(request.startTime),
           heuresSupplementaires: String(request.extraHours),
           enfants: request.childAges.map((child) => ({ ageValeur: String(child.value), ageUnite: child.unit })),
-          alimentation: request.feedings,
+          alimentation: [...request.feedings],
           rue: address?.street ?? "",
           numero: address?.houseNumber ?? "",
           boite: address?.box ?? "",
