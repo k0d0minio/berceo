@@ -47,18 +47,22 @@ describe("the guide's lines, verbatim", () => {
     expect(t.formulaire.aides.commune).toBe(
       "L'adresse exacte sera communiquée uniquement après confirmation de la réservation.",
     );
-    expect(t.formulaire.enfants).toMatchObject({ un_bebe: "Un bébé", jumeaux: "Jumeaux" });
   });
 
   it("keeps the founders' words from feedback round 1 (demande-enfants-alimentation)", () => {
-    expect(Object.values(t.formulaire.enfants)).toEqual(["Un bébé", "Jumeaux", "Triplés"]);
     expect(t.formulaire.champs.age).toBe("Âge du/des enfants");
     expect(t.formulaire.champs.alimentation).toBe("Alimentation du/des enfants");
-    expect(Object.values(t.formulaire.alimentation)).toEqual([
+    expect(Object.values(t.formulaire.alimentation).slice(0, 3)).toEqual([
       "Allaitement maternel",
       "Lait infantile",
       "Allaitement mixte",
     ]);
+  });
+
+  it("keeps the founders' words from feedback round 2 (JAM-303)", () => {
+    expect(t.formulaire.alimentation.diversification_alimentaire).toBe("Diversification alimentaire");
+    expect(t.carte.alimentation.diversification_alimentaire).toBe("Diversification alimentaire");
+    expect(t.carte.enfants.nombres).toHaveLength(5);
   });
 
   it("keeps the mandatory checkbox (D-20)", () => {

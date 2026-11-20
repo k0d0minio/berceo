@@ -242,7 +242,7 @@ export function validateRequest(
 
   let extraHours = 0;
   const seriesNights: SeriesNight[] = [];
-  if (regular) {
+  if (regular && !errors.nuits) {
     // Each night is read from its own fields: a missing one is an error, never another night's value.
     const posted = new Map((input.horaires ?? []).map((night) => [night.date, night]));
     for (const nightDate of nights) {
@@ -253,7 +253,7 @@ export function validateRequest(
       else if (Number.isNaN(extra)) errors.horaires ??= "heuresSupplementaires";
       else seriesNights.push({ nightDate, startTime: night.heure, extraHours: extra });
     }
-  } else {
+  } else if (!regular) {
     // A series starts the day after tomorrow at the earliest: only one night can have a start already past.
     if (!input.heure) errors.heure = "requis";
     else if (!isStartTime(input.heure)) errors.heure = "heure";

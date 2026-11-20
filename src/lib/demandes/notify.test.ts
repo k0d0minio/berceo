@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { notifyUrgentRequest, sendRequestDigest } from "./notify";
+import { notifyUrgentRequest, sendRequestDigest, seriesSummary } from "./notify";
 import type { DigestRequest, Recipient } from "./requests";
 
 /**
@@ -43,10 +43,8 @@ function request(id: string, communeIns: string, nightDate = "2026-09-30", serie
     nightDate,
     startTime: "20:00:00",
     extraHours: 0,
-    children: "un_bebe",
-    babyAgeValue: 3,
-    babyAgeUnit: "mois",
-    feeding: "allaitement_maternel",
+    childAges: [{ value: 3, unit: "mois" }],
+    feedings: ["allaitement_maternel"],
     communeIns,
     postcode: "1050",
     locality: "Ixelles",
@@ -233,5 +231,33 @@ describe("the urgent e-mail", () => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     await expect(notifyUrgentRequest("r9", SITE)).resolves.toBeUndefined();
     expect(logged).toHaveBeenCalled();
+  });
+});
+
+/**
+ * Spec (JAM-303): each night of a regular request has its own hours. The
+ * e-mails keep one line for the request: the hours when every night has the
+ * same, one clear line when they differ.
+ */
+describe("a regular request in an e-mail", () => {
+  const first = request("s1", "21009", "2026-10-02", "S");
+  const second = request("s2", "21009", "2026-10-05", "S");
+
+  it("says the hours once when every night has the same", () => {
+    expect(seriesSummary([first, second])).toEqual({
+      commune: "Ixelles",
+      horaire: "de 20h00 à 7h00",
+      dates: ["02/10/2026", "05/10/2026"],
+      enfants: "Un bébé de trois mois",
+    });
+  });
+
+  it("says that the hours differ, in one line, when a night has its own", () => {
+    expect(seriesSummary([first, { ...second, startTime: "21:00:00", extraHours: 1.5 }])).toEqual({
+      commune: "Ixelles",
+      horaire: "à des horaires différents selon la nuit",
+      dates: ["02/10/2026", "05/10/2026"],
+      enfants: "Un bébé de trois mois",
+    });
   });
 });

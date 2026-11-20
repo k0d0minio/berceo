@@ -1,15 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { readRequestForm, validateRequest, type RequestInput } from "./validation";
+import { childError, readRequestForm, validateRequest, type NightInput, type RequestInput } from "./validation";
 
 /**
  * Spec (demande-de-garde): the checkbox is required to publish (D-20); a
  * normal request is for the day after tomorrow up to day 56, an urgent one for
  * tonight or tomorrow night and never a start already past (D-60); the start
  * time, the children and the age are checked against their lists (D-64, D-65);
- * the extra hours are whole hours from 0 to 6 (demande-heures-supplementaires).
- * Spec (demande-enfants-alimentation): « Triplés » is a third choice, and one
- * of the three feedings is required to publish and to edit.
+ * the extra hours go from 0 to 6 (demande-heures-supplementaires).
+ * Spec (JAM-303, feedback round 2): the extra hours go by half hours; a request
+ * is for 1 to 4 children, each with its own age, each 24 months at most, and an
+ * older child is refused with its own error; one feeding or more is required
+ * to publish and to edit, « diversification alimentaire » among them; each
+ * regular night has its own start and its own extra hours.
  * Spec (demande-adresse-de-la-nuit): the night's commune and its rue with its
  * numéro are required to publish, by the profile's rules; an edit changes the
  * rue, the numéro and the boîte, never the commune.
@@ -26,10 +29,8 @@ const valid: RequestInput = {
   date: "2026-09-30",
   heure: "20:00",
   heuresSupplementaires: "0",
-  enfants: "un_bebe",
-  ageValeur: "3",
-  ageUnite: "mois",
-  alimentation: "allaitement_maternel",
+  enfants: [{ ageValeur: "3", ageUnite: "mois" }],
+  alimentation: ["allaitement_maternel"],
   commune: "1050|Ixelles",
   rue: "Rue du Bailli",
   numero: "12",
@@ -50,10 +51,8 @@ describe("publishing a normal request", () => {
         nightDate: "2026-09-30",
         startTime: "20:00",
         extraHours: 0,
-        children: "un_bebe",
-        babyAgeValue: 3,
-        babyAgeUnit: "mois",
-        feeding: "allaitement_maternel",
+        childAges: [{ value: 3, unit: "mois" }],
+        feedings: ["allaitement_maternel"],
         reason: null,
       },
       place: {
@@ -86,10 +85,8 @@ describe("publishing a normal request", () => {
         date: "",
         heure: "",
         heuresSupplementaires: "",
-        enfants: "",
-        ageValeur: "",
-        ageUnite: "",
-        alimentation: "",
+        enfants: [],
+        alimentation: [],
         commune: "",
         rue: "",
         numero: "",
@@ -105,7 +102,6 @@ describe("publishing a normal request", () => {
         date: "requis",
         heure: "requis",
         enfants: "requis",
-        age: "requis",
         alimentation: "alimentation",
         commune: "requis",
         rue: "requis",
@@ -114,7 +110,7 @@ describe("publishing a normal request", () => {
     });
   });
 
-  it("refuses a start time off the list, an unknown children value and an age out of range", () => {
+  it("refuses a start time off the list", () => {
     const refused = (input: Partial<RequestInput>) => {
       const checked = validateRequest({ ...valid, ...input }, publishNormal);
       return checked.ok ? {} : checked.errors;
@@ -122,65 +118,139 @@ describe("publishing a normal request", () => {
     expect(refused({ heure: "17:30" })).toEqual({ heure: "heure" });
     expect(refused({ heure: "23:30" })).toEqual({ heure: "heure" });
     expect(refused({ heure: "20:15" })).toEqual({ heure: "heure" });
-    expect(refused({ enfants: "quadruples" })).toEqual({ enfants: "enfants" });
-    expect(refused({ ageValeur: "13", ageUnite: "semaines" })).toEqual({ age: "age" });
-    expect(refused({ ageValeur: "0", ageUnite: "mois" })).toEqual({ age: "age" });
-    expect(refused({ ageValeur: "25", ageUnite: "mois" })).toEqual({ age: "age" });
-    expect(refused({ ageValeur: "2.5", ageUnite: "mois" })).toEqual({ age: "age" });
-    expect(refused({ ageValeur: "3", ageUnite: "ans" })).toEqual({ age: "age" });
-    expect(refused({ ageValeur: "0", ageUnite: "semaines" })).toEqual({});
-    expect(refused({ ageValeur: "24", ageUnite: "mois" })).toEqual({});
   });
 
-  it("stores 0 to 6 extra hours, and reads an empty field as 0", () => {
+  it("stores 0 to 6 extra hours by half hours, and reads an empty field as 0", () => {
     const extra = (heuresSupplementaires: string) => {
       const checked = validateRequest({ ...valid, heuresSupplementaires }, publishNormal);
       return checked.ok ? checked.values.extraHours : undefined;
     };
     expect(extra("0")).toBe(0);
+    expect(extra("0.5")).toBe(0.5);
+    expect(extra("1.5")).toBe(1.5);
+    expect(extra("1,5")).toBe(1.5);
     expect(extra("2")).toBe(2);
+    expect(extra("5.5")).toBe(5.5);
     expect(extra("6")).toBe(6);
     expect(extra("")).toBe(0);
   });
 
-  it("refuses extra hours outside 0 to 6, or a half hour, at the field", () => {
+  it("refuses extra hours outside 0 to 6, or off the half hour, at the field", () => {
     const refused = (heuresSupplementaires: string) => {
       const checked = validateRequest({ ...valid, heuresSupplementaires }, publishNormal);
       return checked.ok ? {} : checked.errors;
     };
-    for (const value of ["7", "-1", "1.5", "1,5", "10", "deux"]) {
+    for (const value of ["6.5", "7", "-1", "1.25", "0.3", "10", "deux"]) {
       expect(refused(value)).toEqual({ heuresSupplementaires: "heuresSupplementaires" });
     }
   });
 });
 
-describe("the children and their feeding", () => {
-  const values = (input: Partial<RequestInput>) => {
-    const checked = validateRequest({ ...valid, ...input }, publishNormal);
-    return checked.ok ? checked.values : checked.errors;
+describe("the children (JAM-303)", () => {
+  const child = (ageValeur: string, ageUnite: string) => ({ ageValeur, ageUnite });
+  const values = (enfants: RequestInput["enfants"]) => {
+    const checked = validateRequest({ ...valid, enfants }, publishNormal);
+    return checked.ok ? checked.values.childAges : checked.errors;
   };
 
-  it("accepts triplets", () => {
-    expect(values({ enfants: "triples" })).toMatchObject({ children: "triples" });
+  it("stores each child with its own age, in the form's order", () => {
+    expect(values([child("1", "semaines"), child("18", "mois")])).toEqual([
+      { value: 1, unit: "semaines" },
+      { value: 18, unit: "mois" },
+    ]);
+    expect(values([child("0", "semaines")])).toEqual([{ value: 0, unit: "semaines" }]);
+    expect(values([child("24", "mois")])).toEqual([{ value: 24, unit: "mois" }]);
   });
 
-  it("accepts each of the three feedings and stores it", () => {
-    expect(values({ alimentation: "allaitement_maternel" })).toMatchObject({ feeding: "allaitement_maternel" });
-    expect(values({ alimentation: "lait_infantile" })).toMatchObject({ feeding: "lait_infantile" });
-    expect(values({ alimentation: "allaitement_mixte" })).toMatchObject({ feeding: "allaitement_mixte" });
+  it("accepts four children and refuses a fifth", () => {
+    const four = [child("2", "semaines"), child("2", "semaines"), child("12", "mois"), child("24", "mois")];
+    expect(values(four)).toHaveLength(4);
+    expect(values([...four, child("3", "mois")])).toEqual({ enfants: "enfantsTrop" });
   });
 
-  it("refuses a request without a feeding, or with an unknown one", () => {
-    expect(values({ alimentation: "" })).toEqual({ alimentation: "alimentation" });
-    expect(values({ alimentation: "biberon" })).toEqual({ alimentation: "alimentation" });
+  it("asks for one child at least, and for the age of each child", () => {
+    expect(values([])).toEqual({ enfants: "requis" });
+    expect(values([child("3", "mois"), child("", "mois")])).toEqual({ enfants: "requis" });
+    expect(values([child("3", "")])).toEqual({ enfants: "requis" });
   });
 
-  it("asks for the feeding on an edit too", () => {
+  it("refuses a child of more than 24 months with its own error", () => {
+    expect(values([child("25", "mois")])).toEqual({ enfants: "ageTrop" });
+    expect(values([child("1", "semaines"), child("36", "mois")])).toEqual({ enfants: "ageTrop" });
+    expect(values([child("120", "semaines")])).toEqual({ enfants: "ageTrop" });
+  });
+
+  it("refuses an age out of its range, or one that is not a whole number", () => {
+    expect(values([child("13", "semaines")])).toEqual({ enfants: "age" });
+    expect(values([child("0", "mois")])).toEqual({ enfants: "age" });
+    expect(values([child("2.5", "mois")])).toEqual({ enfants: "age" });
+    expect(values([child("3", "ans")])).toEqual({ enfants: "age" });
+    expect(values([child("-1", "mois")])).toEqual({ enfants: "age" });
+  });
+
+  it("names what is wrong with one child, for the form's row", () => {
+    expect(childError(child("18", "mois"))).toBeNull();
+    expect(childError(child("", "mois"))).toBe("requis");
+    expect(childError(child("30", "mois"))).toBe("ageTrop");
+    expect(childError(child("13", "semaines"))).toBe("age");
+  });
+
+  it("reads each child from the form's repeated fields, one more than the limit at most", () => {
+    const form = new FormData();
+    for (const [age, unit] of [["1", "semaines"], ["18", "mois"]]) {
+      form.append("ageValeur", age);
+      form.append("ageUnite", unit);
+    }
+    expect(readRequestForm(form).enfants).toEqual([child("1", "semaines"), child("18", "mois")]);
+    for (let i = 0; i < 6; i += 1) {
+      form.append("ageValeur", "3");
+      form.append("ageUnite", "mois");
+    }
+    expect(readRequestForm(form).enfants).toHaveLength(5);
+  });
+});
+
+describe("the feedings (JAM-303)", () => {
+  const values = (alimentation: string[]) => {
+    const checked = validateRequest({ ...valid, alimentation }, publishNormal);
+    return checked.ok ? checked.values.feedings : checked.errors;
+  };
+
+  it("accepts each feeding alone and stores it", () => {
+    expect(values(["allaitement_maternel"])).toEqual(["allaitement_maternel"]);
+    expect(values(["lait_infantile"])).toEqual(["lait_infantile"]);
+    expect(values(["allaitement_mixte"])).toEqual(["allaitement_mixte"]);
+    expect(values(["diversification_alimentaire"])).toEqual(["diversification_alimentaire"]);
+  });
+
+  it("accepts several feedings and stores them in the list's order", () => {
+    expect(values(["diversification_alimentaire", "lait_infantile"])).toEqual([
+      "lait_infantile",
+      "diversification_alimentaire",
+    ]);
+  });
+
+  it("refuses a request without a feeding, with an unknown one, or with one twice", () => {
+    expect(values([])).toEqual({ alimentation: "alimentation" });
+    expect(values(["biberon"])).toEqual({ alimentation: "alimentation" });
+    expect(values(["lait_infantile", "biberon"])).toEqual({ alimentation: "alimentation" });
+    expect(values(["lait_infantile", "lait_infantile"])).toEqual({ alimentation: "alimentation" });
+  });
+
+  it("asks for a feeding on an edit too", () => {
     const checked = validateRequest(
-      { ...valid, alimentation: "" },
+      { ...valid, alimentation: [] },
       { urgent: false, now: NOON, publishing: false, storedDate: "2026-09-30" },
     );
     expect(checked).toEqual({ ok: false, errors: { alimentation: "alimentation" } });
+  });
+
+  it("reads every ticked box from the form", () => {
+    const form = new FormData();
+    form.append("alimentation", "lait_infantile");
+    form.append("alimentation", "diversification_alimentaire");
+    expect(readRequestForm(form).alimentation).toEqual(["lait_infantile", "diversification_alimentaire"]);
+    expect(readRequestForm(new FormData()).alimentation).toEqual([]);
   });
 });
 
@@ -252,7 +322,9 @@ describe("editing a request", () => {
 
   it("keeps its stored night even when that night is now inside the last two days", () => {
     // Published for the 26th two days ago; edited on the 25th, only the age changes.
-    expect(validateRequest({ ...valid, date: "2026-09-26", ageValeur: "4" }, edit).ok).toBe(true);
+    expect(
+      validateRequest({ ...valid, date: "2026-09-26", enfants: [{ ageValeur: "4", ageUnite: "mois" }] }, edit).ok,
+    ).toBe(true);
   });
 
   it("holds a new night to today's window", () => {
@@ -317,31 +389,90 @@ describe("the optional reason", () => {
 /**
  * Spec (demande-nuits-regulieres): « Nuits régulières » replaces the date with
  * the nights ticked in the calendar, from the day after tomorrow to the last
- * day of next month, 31 at most. The other fields apply to every night. The
- * urgent form and an edit are always one night.
+ * day of next month, 31 at most. The urgent form and an edit are always one
+ * night.
+ * Spec (JAM-303): each night has its own start and its own extra hours. No
+ * value of one night is read for another, and the one-night fields are not
+ * read. The children, the feedings, the place and the reason apply to every night.
  */
 describe("regular nights", () => {
   // 25 September 2026: the window runs from 27 September to 31 October.
+  const hoursOf = (nuits: string, heure = "20:00", heuresSupplementaires = "0"): NightInput[] =>
+    nuits
+      .split(",")
+      .filter(Boolean)
+      .map((date) => ({ date, heure, heuresSupplementaires }));
   const regular = (nuits: string, input: Partial<RequestInput> = {}) =>
-    validateRequest({ ...valid, date: "", nature: "reguliere", nuits, ...input }, publishNormal);
+    validateRequest(
+      { ...valid, date: "", heure: "", nature: "reguliere", nuits, horaires: hoursOf(nuits), ...input },
+      publishNormal,
+    );
   const nightsError = (nuits: string) => {
     const checked = regular(nuits);
     return checked.ok ? undefined : checked.errors.nuits;
   };
 
-  it("returns every night in order, the first as the night of the values", () => {
+  it("returns every night in order with its hours, the first as the night of the values", () => {
     const checked = regular("2026-10-09,2026-10-02,2026-10-05");
-    expect(checked.ok && checked.nights).toEqual(["2026-10-02", "2026-10-05", "2026-10-09"]);
+    expect(checked.ok && checked.nights).toEqual([
+      { nightDate: "2026-10-02", startTime: "20:00", extraHours: 0 },
+      { nightDate: "2026-10-05", startTime: "20:00", extraHours: 0 },
+      { nightDate: "2026-10-09", startTime: "20:00", extraHours: 0 },
+    ]);
     expect(checked.ok && checked.values.nightDate).toBe("2026-10-02");
     expect(checked.ok && checked.values.startTime).toBe("20:00");
   });
 
-  it("asks for one night at least, and needs no date", () => {
+  it("keeps each night's own start and extra hours, by half hours", () => {
+    const checked = regular("2026-10-02,2026-10-05,2026-10-09", {
+      horaires: [
+        { date: "2026-10-09", heure: "22:30", heuresSupplementaires: "" },
+        { date: "2026-10-02", heure: "19:00", heuresSupplementaires: "1.5" },
+        { date: "2026-10-05", heure: "21:00", heuresSupplementaires: "6" },
+      ],
+    });
+    expect(checked.ok && checked.nights).toEqual([
+      { nightDate: "2026-10-02", startTime: "19:00", extraHours: 1.5 },
+      { nightDate: "2026-10-05", startTime: "21:00", extraHours: 6 },
+      { nightDate: "2026-10-09", startTime: "22:30", extraHours: 0 },
+    ]);
+    expect(checked.ok && checked.values).toMatchObject({ nightDate: "2026-10-02", startTime: "19:00", extraHours: 1.5 });
+  });
+
+  it("never copies one night's hours to a night without its own", () => {
+    const checked = regular("2026-10-02,2026-10-05", {
+      // The one-night fields are posted too: they are not read for a regular night.
+      heure: "20:00",
+      heuresSupplementaires: "2",
+      horaires: [{ date: "2026-10-02", heure: "19:00", heuresSupplementaires: "1" }],
+    });
+    expect(checked).toEqual({ ok: false, errors: { horaires: "requis" } });
+  });
+
+  it("refuses a night whose start is off the list, or whose extra hours are off the half hour", () => {
+    const refused = (heure: string, heuresSupplementaires: string) => {
+      const checked = regular("2026-10-02,2026-10-05", {
+        horaires: [
+          { date: "2026-10-02", heure: "20:00", heuresSupplementaires: "0" },
+          { date: "2026-10-05", heure, heuresSupplementaires },
+        ],
+      });
+      return checked.ok ? {} : checked.errors;
+    };
+    expect(refused("", "0")).toEqual({ horaires: "requis" });
+    expect(refused("17:00", "0")).toEqual({ horaires: "heure" });
+    expect(refused("20:00", "6.5")).toEqual({ horaires: "heuresSupplementaires" });
+    expect(refused("20:00", "1.25")).toEqual({ horaires: "heuresSupplementaires" });
+    expect(refused("20:00", "5.5")).toEqual({});
+  });
+
+  it("asks for one night at least, and needs no date and no one-night start", () => {
     expect(regular("")).toEqual({ ok: false, errors: { nuits: "requis" } });
   });
 
   it("accepts the day after tomorrow and the last day of next month, nothing outside", () => {
     expect(nightsError("2026-09-27,2026-10-31")).toBeUndefined();
+    expect(regular("2026-09-27,2026-10-31").ok).toBe(true);
     expect(nightsError("2026-09-26")).toBe("nuits");
     expect(nightsError("2026-10-02,2026-11-01")).toBe("nuits");
     expect(nightsError("2026-10-32")).toBe("nuits");
@@ -352,14 +483,14 @@ describe("regular nights", () => {
     expect(nightsError("2026-10-02,2026-10-02")).toBe("nuits");
     const days = (count: number) =>
       Array.from({ length: count }, (_, i) => `2026-10-${String(i + 1).padStart(2, "0")}`).join(",");
-    expect(nightsError(days(31))).toBeUndefined();
+    expect(regular(days(31)).ok).toBe(true);
     expect(nightsError(`${days(31)},2026-09-30`)).toBe("nuitsTrop");
   });
 
   it("checks the other fields as for one night", () => {
-    expect(regular("2026-10-02", { heure: "", confirmation: false })).toEqual({
+    expect(regular("2026-10-02", { enfants: [], confirmation: false })).toEqual({
       ok: false,
-      errors: { heure: "requis", confirmation: "confirmation" },
+      errors: { enfants: "requis", confirmation: "confirmation" },
     });
   });
 
@@ -371,11 +502,11 @@ describe("regular nights", () => {
     expect(urgent.ok && urgent.nights).toBeUndefined();
     expect(urgent.ok && urgent.values.nightDate).toBe("2026-09-25");
     const edit = validateRequest(
-      { ...valid, nature: "reguliere", nuits: "2026-10-02,2026-10-05" },
+      { ...valid, heuresSupplementaires: "2.5", nature: "reguliere", nuits: "2026-10-02,2026-10-05" },
       { urgent: false, now: NOON, publishing: false, storedDate: "2026-09-30" },
     );
     expect(edit.ok && edit.nights).toBeUndefined();
-    expect(edit.ok && edit.values.nightDate).toBe("2026-09-30");
+    expect(edit.ok && edit.values).toMatchObject({ nightDate: "2026-09-30", startTime: "20:00", extraHours: 2.5 });
   });
 
   it("leaves a one-off night as it was", () => {
@@ -384,10 +515,20 @@ describe("regular nights", () => {
     expect(checked.ok && checked.nights).toBeUndefined();
   });
 
-  it("reads the kind and the nights from the form", () => {
+  it("reads the kind, the nights and each night's own fields from the form", () => {
     const form = new FormData();
     form.set("nature", "reguliere");
-    form.set("nuits", "2026-10-02,2026-10-05");
-    expect(readRequestForm(form)).toMatchObject({ nature: "reguliere", nuits: "2026-10-02,2026-10-05" });
+    form.set("nuits", "2026-10-05,2026-10-02");
+    form.set("heure-2026-10-02", "19:00");
+    form.set("heuresSupplementaires-2026-10-02", "1.5");
+    form.set("heure-2026-10-05", "21:30");
+    expect(readRequestForm(form)).toMatchObject({
+      nature: "reguliere",
+      nuits: "2026-10-05,2026-10-02",
+      horaires: [
+        { date: "2026-10-02", heure: "19:00", heuresSupplementaires: "1.5" },
+        { date: "2026-10-05", heure: "21:30", heuresSupplementaires: "" },
+      ],
+    });
   });
 });
