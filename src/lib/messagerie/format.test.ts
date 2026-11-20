@@ -9,11 +9,35 @@ import { conversationNight, conversationTitle, listNight, messageDay, messageTim
  */
 
 describe("how a conversation reads", () => {
-  it("names the other person in capitals (round 2, JAM-301)", () => {
-    expect(conversationTitle({ firstName: "Alix", profession: "sage_femme" })).toBe(
-      "Conversation avec ALIX, SAGE-FEMME",
+  it("names the other person with a capital first letter (round 2, JAM-345)", () => {
+    expect(conversationTitle({ firstName: "alix", profession: "sage_femme" })).toBe(
+      "Conversation avec Alix, Sage-femme",
     );
-    expect(conversationTitle({ firstName: "Élodie", profession: null })).toBe("Conversation avec ÉLODIE");
+    expect(conversationTitle({ firstName: "Alix", profession: "sage_femme" })).toBe(
+      "Conversation avec Alix, Sage-femme",
+    );
+    expect(conversationTitle({ firstName: "élodie", profession: null })).toBe("Conversation avec Élodie");
+  });
+
+  it("keeps each part of a compound first name", () => {
+    expect(conversationTitle({ firstName: "marie-claire", profession: null })).toBe(
+      "Conversation avec Marie-Claire",
+    );
+    expect(conversationTitle({ firstName: "anne sophie", profession: null })).toBe("Conversation avec Anne Sophie");
+    expect(conversationTitle({ firstName: "jean-françois", profession: "puericultrice" })).toBe(
+      "Conversation avec Jean-François, Puéricultrice",
+    );
+  });
+
+  it("does not change a letter that is already a capital", () => {
+    expect(conversationTitle({ firstName: "McKenzie", profession: null })).toBe("Conversation avec McKenzie");
+    expect(conversationTitle({ firstName: "ALIX", profession: null })).toBe("Conversation avec ALIX");
+  });
+
+  it("gives the profession one capital, on its first word", () => {
+    expect(conversationTitle({ firstName: "emma", profession: "etudiante_sage_femme_3e" })).toBe(
+      "Conversation avec Emma, Étudiante sage-femme, 3e année",
+    );
   });
 
   it("names the night", () => {

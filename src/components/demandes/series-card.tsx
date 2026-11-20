@@ -1,12 +1,15 @@
 import type * as React from "react"
 import Link from "next/link"
 
-import { BebeIcon, BiberonIcon, CalendrierIcon, LieuIcon, type IconComponent } from "@/components/berceo-icons"
+import { BebeIcon, BiberonIcon, CalendrierIcon, LieuIcon } from "@/components/berceo-icons"
 import { demandes } from "@/content/demandes"
 import { fill, words } from "@/content/locale"
+import { reservations } from "@/content/reservations"
 import { cardTitle, childrenLine, feedingLine, nightLine, placeLine } from "@/lib/demandes/format"
 import type { RequestCard } from "@/lib/demandes/requests"
 import type { DisplayStatus } from "@/lib/demandes/rules"
+
+import { Fact, Mark, RateFact } from "./request-card"
 
 /*
  * Regular nights in « Mes demandes » (demande-nuits-regulieres): one card for
@@ -20,9 +23,12 @@ import type { DisplayStatus } from "@/lib/demandes/rules"
  * request of its own. A regular request answered as one (JAM-302) shows its
  * nights without a link of their own, or with the link to a night's garde. The
  * page passes « Annuler toutes les nuits » as the footer while a night is open.
+ * A professional's card shows a request sent to her in priority and her rate
+ * with the request card's own mark and price line (JAM-344).
  */
 
 const t = words(demandes)
+const r = words(reservations)
 
 type Night = {
   request: RequestCard
@@ -38,12 +44,24 @@ type Night = {
 
 function SeriesCard({
   nights,
+  priority = false,
+  rate,
+  extraHourRate,
+  rateLabel,
   footer,
   aside,
 }: {
   nights: readonly Night[]
+  /** The professional's view: sent to her « en priorité » (D-71), the request card's mark. */
+  priority?: boolean
+  /** The professional's view: her rate, the request card's price line. */
+  rate?: number | null
+  /** The professional's view: her rate for each extra hour. */
+  extraHourRate?: number | null
+  /** The professional's view: the line above her rates that says whose they are (JAM-307, JAM-344). */
+  rateLabel?: string
   footer?: React.ReactNode
-  /** Under the details, before the nights: a professional's rate line (JAM-302). */
+  /** Under the details, before the nights: a professional's answer line and link (JAM-302). */
   aside?: React.ReactNode
 }) {
   const first = nights[0].request
@@ -51,9 +69,10 @@ function SeriesCard({
 
   return (
     <article className="flex h-full flex-col gap-4 rounded-carte bg-blanc px-6 py-8 text-taupe md:px-10">
-      <span className="inline-flex w-fit items-center rounded-capsule border border-solid border-taupe bg-blanc px-3 py-1 text-legende font-semibold text-taupe">
-        {t.serie.marque}
-      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        {priority ? <Mark className="bg-beurre">{r.professionnelle.prioritaire}</Mark> : null}
+        <Mark className="border border-solid border-taupe bg-blanc">{t.serie.marque}</Mark>
+      </div>
       <h2 className="font-display text-intro text-balance text-taupe">
         {cardTitle(first.communeIns, first.locality)}
       </h2>
@@ -64,6 +83,7 @@ function SeriesCard({
         </Fact>
         <Fact icon={BebeIcon}>{childrenLine(first.childAges)}</Fact>
         {first.feedings.length > 0 ? <Fact icon={BiberonIcon}>{feedingLine(first.feedings)}</Fact> : null}
+        <RateFact rate={rate} extraHourRate={extraHourRate} label={rateLabel} />
       </ul>
       {aside}
       <ul aria-label={t.serie.nuits} className="flex flex-col gap-3 pt-2">
@@ -96,16 +116,6 @@ function SeriesCard({
       </ul>
       {footer ? <div className="mt-auto flex flex-wrap gap-3 pt-2">{footer}</div> : null}
     </article>
-  )
-}
-
-/** One fact of the card, as on the request card: an icon of 24 px in taupe, then its line. */
-function Fact({ icon: Icon, children }: { icon: IconComponent; children: React.ReactNode }) {
-  return (
-    <li className="flex items-start gap-3 text-corps">
-      <Icon aria-hidden className="mt-0.5 size-6 shrink-0 text-taupe" />
-      <span className="min-w-0">{children}</span>
-    </li>
   )
 }
 

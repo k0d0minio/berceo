@@ -59,6 +59,13 @@ export const reservations = catalogue({
        * (JAM-307, le libellé à approuver).
        */
       votreTarif: "Votre tarif, indiqué à la famille si vous répondez",
+      /**
+       * @relecture Surya et les fondatrices — au-dessus de son tarif sur une
+       * demande à laquelle elle a répondu : le tarif enregistré avec sa
+       * réponse, celui que la famille voit, même si elle a modifié son profil
+       * depuis (JAM-344, le libellé à approuver).
+       */
+      tarifRepondu: "Votre tarif, indiqué à la famille avec votre réponse",
       /** @relecture Surya — lien de l'accueil vers ses gardes. */
       lienGardes: "Voir mes gardes",
       erreurs: {

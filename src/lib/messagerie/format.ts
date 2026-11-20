@@ -17,18 +17,38 @@ import type { LastMessage } from "./conversations";
 const t = words(messagerie);
 
 /**
- * The page's title: « Conversation avec ALIX, SAGE-FEMME » for the family,
- * « Conversation avec CAMILLE » for the professional. The name and the
- * profession are in capitals (round 2, JAM-301).
+ * A capital first letter for a word, in `fr-BE`. The other letters stay as
+ * they are: a letter that is already a capital is not changed.
+ */
+function capitalFirst(text: string): string {
+  return text.charAt(0).toLocaleUpperCase("fr-BE") + text.slice(1);
+}
+
+/**
+ * A first name as the title shows it: a capital first letter for each part of
+ * the name. A space or a hyphen starts a part: « marie-claire » reads
+ * « Marie-Claire », « anne sophie » reads « Anne Sophie ».
+ */
+function capitalName(firstName: string): string {
+  return firstName.replace(/[^\s-]+/g, capitalFirst);
+}
+
+/**
+ * The page's title: « Conversation avec Alix, Sage-femme » for the family,
+ * « Conversation avec Camille » for the professional. The first name and the
+ * profession have a capital first letter, as in the client's example, and
+ * their other letters stay as they are stored (round 2, JAM-345, which
+ * replaces the capitals of JAM-301). Only the first word of the profession
+ * gets the capital: « Sage-femme », not « Sage-Femme ».
  */
 export function conversationTitle(other: { firstName: string; profession: Profession | null }): string {
-  const caps = (text: string) => text.toLocaleUpperCase("fr-BE");
+  const prenom = capitalName(other.firstName);
   return other.profession
     ? fill(t.conversation.titreProfession, {
-        prenom: caps(other.firstName),
-        profession: caps(professionLabel(other.profession)),
+        prenom,
+        profession: capitalFirst(professionLabel(other.profession)),
       })
-    : fill(t.conversation.titre, { prenom: caps(other.firstName) });
+    : fill(t.conversation.titre, { prenom });
 }
 
 /** « Garde du 30/09/2026 », in the list. */

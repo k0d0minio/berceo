@@ -410,6 +410,12 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   `bookingAddress` in `src/lib/famille/profile.ts`, still the only reader of `family_profiles`:
   the request's own address, or the profile's for a request published before it had one.
 - **Words:** `src/content/reservations.ts`; e-mails in `src/content/emails.ts`.
+- **The rate she reads on a request (JAM-344):** in the professional's list and on a request page, a
+  regular request shows « en priorité » and her rate as a single request does (`Mark` and `Fact` of
+  `request-card.tsx`). While her answer waits, she reads the rate saved on the answer, the one the
+  family reads, under « Votre tarif, indiqué à la famille avec votre réponse ». Before an answer and
+  after a withdrawal, she reads the current rate of her profile. `shownRates` and `seriesShownRates`
+  (`src/lib/reservations/rules.ts`) hold the rule.
 
 ## The garde's life
 
@@ -796,6 +802,9 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
   open again by themselves if she is validated before the night ends, since the rule reads her
   current status (D-158).
 - **Words:** `src/content/messagerie.ts`; the e-mail in `src/content/emails.ts`.
+- **The title (JAM-345):** `conversationTitle` gives « Conversation avec Alix, Sage-femme », with a
+  capital first letter on the first name and the profession, as the founders' example shows. The
+  page heading is an H1, and the DA puts each H1 in capitals by CSS, so the page shows capitals.
 
 ## The professional's availability
 

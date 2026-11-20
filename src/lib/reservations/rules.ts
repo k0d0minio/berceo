@@ -108,6 +108,54 @@ export function canRepublish(request: RequestFacts, pendingAnswers: number, now:
   return isChangeable(request, now) && pendingAnswers > 0;
 }
 
+/** A night's rate and an extra hour's, in euros. */
+export type Rates = { nightRateEur: number | null; extraHourRateEur: number | null };
+
+/**
+ * The rates a professional reads on a family's request, and where they come
+ * from: `reponse` is the rate saved on her waiting answer, the one the family
+ * reads; `profil` is her profile's current rate, which an answer would carry.
+ */
+export type ShownRates = Rates & { source: "reponse" | "profil" };
+
+/**
+ * The rates she reads on a request of one night (JAM-344). While her answer
+ * waits, the rates saved on it: the family compares those, so the two sides
+ * read one amount when she changed her profile's rate after she answered. An
+ * answer saved with no extra hour's rate shows none. Before an answer, after a
+ * withdrawal, or when the saved rates are not read, her profile's current
+ * rates: a new answer carries those (D-74).
+ */
+export function shownRates(
+  profile: Rates,
+  answer: ApplicationStatus | null,
+  saved: Rates | undefined,
+): ShownRates {
+  if (answer === "en_attente" && saved && saved.nightRateEur !== null) {
+    return { source: "reponse", nightRateEur: saved.nightRateEur, extraHourRateEur: saved.extraHourRateEur };
+  }
+  return { source: "profil", nightRateEur: profile.nightRateEur, extraHourRateEur: profile.extraHourRateEur };
+}
+
+/**
+ * The rates she reads on a regular request answered as one (JAM-302, JAM-344).
+ * Her answer is one row for each night, written all or none at one rate. Once
+ * every night her list holds carries her waiting answer, the rates saved on
+ * the earliest night: the family's page reads the same row
+ * (`familySeriesAnswers`). Otherwise her profile's current rates. `saved` is
+ * her saved rates by request id.
+ */
+export function seriesShownRates(
+  profile: Rates,
+  nights: readonly { id: string; nightDate: string; answer: ApplicationStatus | null }[],
+  saved: ReadonlyMap<string, Rates>,
+): ShownRates {
+  const current = shownRates(profile, null, undefined);
+  if (seriesAnswerState(nights, nights.length) !== "repondu") return current;
+  const [first] = [...nights].sort((a, b) => a.nightDate.localeCompare(b.nightDate));
+  return shownRates(profile, first.answer, saved.get(first.id));
+}
+
 /** What she can do on a regular request answered as one (JAM-302). */
 export type SeriesAnswerState = "repondre" | "repondu" | "aucun";
 

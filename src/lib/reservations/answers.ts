@@ -18,7 +18,7 @@ import { nightAhead, professionalProfileOf, UUID } from "@/lib/demandes/requests
 import { TIME_ZONE } from "@/lib/demandes/rules";
 import { withConversation, withSeriesConversation } from "@/lib/messagerie/conversations";
 
-import { answerRefusal, type AnswerRefusal, type ApplicationStatus } from "./rules";
+import { answerRefusal, type AnswerRefusal, type ApplicationStatus, type Rates } from "./rules";
 
 /**
  * Every read and write of an answer (« Je suis disponible pour cette garde »).
@@ -384,6 +384,45 @@ export function reopeningWithdrawsAnswers(profileId: string, at: Date) {
       ),
     )
     .returning({ id: careRequestApplications.id });
+}
+
+/**
+ * The rates saved on her own waiting answers to these requests, by request id
+ * (JAM-344): what the family reads of her, so her list and the request page
+ * show her the same amount. Only her answers, by her user id, and only those
+ * still `en_attente`: a withdrawn answer is given again at her current rate
+ * (D-74). For a regular request, pass each night's id: an answer is one row for
+ * each night.
+ */
+export async function savedRatesOfAnswers(
+  userId: string,
+  requestIds: readonly string[],
+): Promise<Map<string, Rates>> {
+  const ids = requestIds.filter((id) => UUID.test(id));
+  if (ids.length === 0) return new Map();
+  const rows = await savedRatesQuery(userId, ids);
+  return new Map(
+    rows.map((row) => [row.requestId, { nightRateEur: row.nightRateEur, extraHourRateEur: row.extraHourRateEur }]),
+  );
+}
+
+/** `savedRatesOfAnswers`' query, built and not run. */
+export function savedRatesQuery(userId: string, requestIds: string[]) {
+  return db
+    .select({
+      requestId: careRequestApplications.requestId,
+      nightRateEur: careRequestApplications.nightRateEur,
+      extraHourRateEur: careRequestApplications.extraHourRateEur,
+    })
+    .from(careRequestApplications)
+    .innerJoin(professionalProfiles, eq(professionalProfiles.id, careRequestApplications.profileId))
+    .where(
+      and(
+        eq(professionalProfiles.userId, userId),
+        eq(careRequestApplications.status, "en_attente"),
+        inArray(careRequestApplications.requestId, requestIds),
+      ),
+    );
 }
 
 /** An answer as the family compares it. */

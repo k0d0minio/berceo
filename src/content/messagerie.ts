@@ -52,7 +52,9 @@ export const messagerie = catalogue({
     conversation: {
       /**
        * @relecture Surya — titre de la page, avec le prénom de l'autre personne.
-       * Le prénom et la profession s'écrivent en capitales (retour 2, JAM-301).
+       * Le prénom et la profession prennent une majuscule initiale, comme dans
+       * l'exemple des fondatrices : « Conversation avec Alix, Sage-femme »
+       * (retour 2, JAM-345, qui remplace les capitales de JAM-301).
        */
       titre: "Conversation avec {prenom}",
       /** @relecture Surya — idem, côté famille : le prénom et la profession de la professionnelle. */
