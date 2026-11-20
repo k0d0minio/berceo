@@ -29,6 +29,16 @@ export const common = catalogue({
         label: "Charte des professionnelles Berceo",
         href: "/charte-des-professionnelles",
       },
+      /**
+       * The sleep consultation with the two founders (feedback round 2,
+       * JAM-305). The page exists only where the environment has the
+       * calendar's address (`src/lib/consultation-sommeil/config.ts`).
+       */
+      consultationSommeil: {
+        /** @relecture Surya — nom de la page de la consultation sommeil. */
+        label: "Consultation sommeil",
+        href: "/consultation-sommeil",
+      },
       inscriptionFamille: {
         label: "Inscription famille",
         href: "/inscription-famille",
