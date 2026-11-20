@@ -16,6 +16,7 @@ import {
   type SeriesAnswerResult,
 } from "@/lib/reservations/answers";
 import { notifyNewAnswer } from "@/lib/reservations/notify";
+import { proposalField } from "@/lib/reservations/rules";
 import { siteOrigin } from "@/lib/site-origin";
 
 /*
@@ -25,8 +26,31 @@ import { siteOrigin } from "@/lib/site-origin";
  * (a bound argument can be rewritten by the caller). Every rule is held by the
  * write itself. The page reads the outcome from the query string: her list, at
  * the request's card, or the request's own page when she answered from there
- * (`from` is `demande`, demande-motif-facultatif).
+ * (`from` is `demande`, demande-motif-facultatif). The answer's form can carry
+ * a start she proposes for a night in place of the family's (JAM-306), in the
+ * field `heure-<request id>`: the write reads it again and refuses a value
+ * that is not a half hour of the request's range.
  */
+
+/** Her proposed start for one night, from the answer's form: the field's text, or null. */
+function proposalOf(form: FormData | undefined, requestId: string): string | null {
+  const value = form?.get(proposalField(requestId));
+  return typeof value === "string" && value !== "" ? value : null;
+}
+
+/** Her proposed starts for the nights of a regular request, by request id. */
+function proposalsOf(form: FormData | undefined): Map<string, string> {
+  const proposals = new Map<string, string>();
+  if (!form) return proposals;
+  const prefix = proposalField("");
+  for (const [name, value] of form.entries()) {
+    if (!name.startsWith(prefix) || typeof value !== "string" || value === "") continue;
+    const id = name.slice(prefix.length);
+    if (UUID.test(id)) proposals.set(id, value);
+  }
+  return proposals;
+}
+
 
 /** Where an answer sends her back: the request's page, or her list at its card. */
 function back(id: string, from: string, query: string): string {
@@ -34,14 +58,14 @@ function back(id: string, from: string, query: string): string {
   return `${PROFESSIONAL_REQUESTS_PATH}?${query}#demande-${id}`;
 }
 
-export async function answerRequestAction(requestId: string, from: string = "liste"): Promise<void> {
+export async function answerRequestAction(requestId: string, from: string = "liste", form?: FormData): Promise<void> {
   const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);
   const id = String(requestId);
   const origin = String(from);
 
   let result: AnswerResult;
   try {
-    result = await answerRequest(user.id, id, new Date());
+    result = await answerRequest(user.id, id, new Date(), proposalOf(form instanceof FormData ? form : undefined, id));
   } catch (error) {
     logWriteError("answer not recorded", { userId: user.id, requestId: id }, error);
     redirect(back(id, origin, "erreur=generique"));
@@ -80,7 +104,12 @@ export async function withdrawAnswerAction(requestId: string, from: string = "li
  * one answer for all its open nights. `requestId` is the night her card or page
  * stands for, for the way back.
  */
-export async function answerSeriesAction(seriesId: string, requestId: string, from: string = "liste"): Promise<void> {
+export async function answerSeriesAction(
+  seriesId: string,
+  requestId: string,
+  from: string = "liste",
+  form?: FormData,
+): Promise<void> {
   const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);
   const series = String(seriesId);
   const id = String(requestId);
@@ -88,7 +117,7 @@ export async function answerSeriesAction(seriesId: string, requestId: string, fr
 
   let result: SeriesAnswerResult;
   try {
-    result = await answerSeries(user.id, series, new Date());
+    result = await answerSeries(user.id, series, new Date(), proposalsOf(form instanceof FormData ? form : undefined));
   } catch (error) {
     logWriteError("series answer not recorded", { userId: user.id, seriesId: series }, error);
     redirect(back(id, origin, "erreur=generique"));

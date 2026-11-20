@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  adaptedLines,
+  agreedStartLine,
   answersCount,
   extraHourLine,
+  ownProposalLine,
+  proposalOptions,
   professionInSentence,
   professionLabel,
   rateLine,
@@ -60,5 +64,47 @@ describe("the answer and the booking, as they read", () => {
   it("counts the answers", () => {
     expect(answersCount(1)).toBe("1 réponse");
     expect(answersCount(2)).toBe("2 réponses");
+  });
+});
+
+/**
+ * Spec (JAM-306): the family reads, for each night with a proposal, the start
+ * it asked for, the start proposed and the new end. The professional reads her
+ * own proposal, and chooses it from the half hours of the request's range. A
+ * night booked at a proposed start says which start was asked for.
+ */
+describe("the adapted schedule, as it reads (JAM-306)", () => {
+  const night = { requestId: "n1", nightDate: "2026-10-02", requested: "19:00", proposed: "20:00", end: "07:00" };
+
+  it("tells the family the start asked for, the start proposed and the new end", () => {
+    expect(adaptedLines([night], false)).toEqual(["Début à 20h00 au lieu de 19h00. Fin de la garde à 7h00."]);
+    expect(adaptedLines([night, { ...night, requestId: "n2", nightDate: "2026-10-03", proposed: "18:30", end: "05:30" }], true)).toEqual([
+      "Nuit du 02/10/2026 : début à 20h00 au lieu de 19h00, fin à 7h00.",
+      "Nuit du 03/10/2026 : début à 18h30 au lieu de 19h00, fin à 5h30.",
+    ]);
+    expect(adaptedLines([], true)).toEqual([]);
+  });
+
+  it("tells the professional what she proposed", () => {
+    expect(ownProposalLine(night, false)).toBe(
+      "Vous avez proposé de commencer à 20h00 au lieu de 19h00. La garde se terminerait à 7h00.",
+    );
+    expect(ownProposalLine(night, true)).toBe("Vous avez proposé de commencer à 20h00 au lieu de 19h00, fin à 7h00.");
+  });
+
+  it("offers every half hour from 18:00 to 23:00 but the family's own, with the end each gives", () => {
+    const options = proposalOptions("19:00:00", 1.5);
+    expect(options).toHaveLength(10);
+    expect(options.map((option) => option.value)).not.toContain("19:00");
+    expect(options[0]).toEqual({ value: "18:00", label: "18h00, fin de la garde à 6h30" });
+    expect(options.at(-1)).toEqual({ value: "23:00", label: "23h00, fin de la garde à 11h30" });
+  });
+
+  it("says which start the family asked for on a night booked at a proposed start, and nothing otherwise", () => {
+    expect(agreedStartLine({ startTime: "20:00:00", requestedStartTime: "19:00:00" })).toBe(
+      "Horaire adapté : début demandé à 19h00, début convenu à 20h00.",
+    );
+    expect(agreedStartLine({ startTime: "19:00:00", requestedStartTime: null })).toBeNull();
+    expect(agreedStartLine({ startTime: "19:00:00" })).toBeNull();
   });
 });

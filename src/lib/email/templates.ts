@@ -313,6 +313,8 @@ export function newAnswerEmail(input: {
   professionnelle: { prenom: string; profession: string };
   date: string;
   url: string;
+  /** Her answer proposes a different start for a night (JAM-306): one more sentence says so. */
+  horaireAdapte?: boolean;
 }): RenderedEmail {
   const r = t.nouvelleReponse;
   const { prenom, profession } = input.professionnelle;
@@ -321,7 +323,10 @@ export function newAnswerEmail(input: {
     ...layout({
       siteUrl: input.siteUrl,
       prenom: input.prenom,
-      paragraphs: [fill(r.corps, { prenom, profession, date: input.date })],
+      paragraphs: [
+        fill(r.corps, { prenom, profession, date: input.date }),
+        ...(input.horaireAdapte ? [fill(r.horaireAdapte, { prenom })] : []),
+      ],
       cta: { label: fill(r.cta, { prenom }), href: input.url },
     }),
   };

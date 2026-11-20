@@ -545,6 +545,15 @@ export const careRequests = pgTable(
     nightDate: date("night_date").notNull(),
     /** A half hour from 18:00 to 23:00, stored as `HH:MM:SS`. */
     startTime: time("start_time").notNull(),
+    /**
+     * The start the family asked for, kept as a record when the booked answer
+     * proposed a different one (JAM-306). The booking then writes the proposed
+     * start in `start_time`, so each reader of the night reads the start that
+     * the two sides agreed on. Null on a request booked at its own time, and on
+     * a request not booked. `requestedStart` in `src/lib/reservations/rules.ts`
+     * reads it.
+     */
+    requestedStartTime: time("requested_start_time"),
     /** The hours the family adds to the 11-hour night, by half hours, 0 to 6 (feedback round 2, JAM-303). */
     extraHours: numeric("extra_hours", { precision: 3, scale: 1, mode: "number" }).notNull().default(0),
     /**
@@ -633,6 +642,10 @@ export const careRequests = pgTable(
       sql`${table.startTime} BETWEEN '18:00' AND '23:00' AND date_part('minute', ${table.startTime}) IN (0, 30) AND date_part('second', ${table.startTime}) = 0`,
     ),
     check(
+      "care_requests_requested_start_time_slot",
+      sql`${table.requestedStartTime} IS NULL OR (${table.requestedStartTime} BETWEEN '18:00' AND '23:00' AND date_part('minute', ${table.requestedStartTime}) IN (0, 30) AND date_part('second', ${table.requestedStartTime}) = 0 AND ${table.requestedStartTime} <> ${table.startTime})`,
+    ),
+    check(
       "care_requests_extra_hours_range",
       sql`${table.extraHours} BETWEEN 0 AND 6 AND ${table.extraHours} * 2 = trunc(${table.extraHours} * 2)`,
     ),
@@ -692,6 +705,14 @@ export const careRequestApplications = pgTable(
     nightRateEur: integer("night_rate_eur").notNull(),
     /** Her extra hour's rate when she answered; null when her profile had none. */
     extraHourRateEur: integer("extra_hour_rate_eur"),
+    /**
+     * The start she proposes for this night in place of the family's (JAM-306):
+     * a half hour from 18:00 to 23:00, different from the request's start. Null
+     * when she takes the night at the family's time. A re-answer writes it
+     * again. The booking of this answer copies it to the request's
+     * `start_time`.
+     */
+    proposedStartTime: time("proposed_start_time"),
     /** Her latest « Je suis disponible », a re-answer included. */
     answeredAt: timestamp("answered_at", { withTimezone: true }).notNull().defaultNow(),
     /** How many times she answered; keys the family's e-mail per answer. */
@@ -707,6 +728,10 @@ export const careRequestApplications = pgTable(
       .on(table.requestId)
       .where(sql`${table.status} = 'retenue'`),
     check("care_request_applications_night_rate_min", sql`${table.nightRateEur} >= 100`),
+    check(
+      "care_request_applications_proposed_start_time_slot",
+      sql`${table.proposedStartTime} IS NULL OR (${table.proposedStartTime} BETWEEN '18:00' AND '23:00' AND date_part('minute', ${table.proposedStartTime}) IN (0, 30) AND date_part('second', ${table.proposedStartTime}) = 0)`,
+    ),
     check(
       "care_request_applications_extra_hour_rate_min",
       sql`${table.extraHourRateEur} IS NULL OR ${table.extraHourRateEur} >= 1`,

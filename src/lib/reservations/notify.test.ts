@@ -66,6 +66,23 @@ describe("a new answer", () => {
     expect(key).toBe("reponse-a1-2");
   });
 
+  it("says so when her answer proposes another start, and says nothing otherwise (JAM-306)", async () => {
+    await notifyNewAnswer("a1", 1, SITE);
+    expect(sendEmail.mock.calls[0][1].text).not.toContain("propose une autre heure de début");
+
+    answerNotice.mockResolvedValue({
+      requestId: "r1",
+      nightDate: "2026-09-30",
+      adapted: true,
+      family: { email: "sophie@example.be", firstName: "Sophie" },
+      professional: { profileId: "p1", firstName: "Emma", profession: "sage_femme" },
+    });
+    await notifyNewAnswer("a1", 2, SITE);
+    expect(sendEmail.mock.calls[1][1].text).toContain(
+      "Emma propose une autre heure de début. Vous la verrez sur sa réponse, et vous l'acceptez ou non au moment de réserver.",
+    );
+  });
+
   it("logs a failed send and never throws", async () => {
     sendEmail.mockRejectedValue(new Error("Resend refused"));
     const logged = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -116,6 +133,35 @@ describe("a booking", () => {
       "Vos frais de service de 4,50 € sont réglés : 2,00 € avec votre crédit Berceo et 2,50 € par Stripe.",
     );
     expect(by("emma@example.be")[1].text).not.toContain("avec votre crédit Berceo");
+  });
+});
+
+describe("a booking at a proposed start (JAM-306)", () => {
+  it("tells the other applicants the night at the start the family asked for, not at the booked professional's", async () => {
+    bookingNotice.mockResolvedValue({
+      id: "b1",
+      nightDate: "2026-09-30",
+      startTime: "21:00:00",
+      family: { email: "sophie@example.be", firstName: "Sophie" },
+      professional: { email: "emma@example.be", firstName: "Emma" },
+    });
+    // The request is booked: its start is Emma's proposal, and it keeps the family's 20:00.
+    declinedNotices.mockResolvedValue([
+      {
+        key: "a2",
+        email: "julie@example.be",
+        firstName: "Julie",
+        request: { ...card, startTime: "21:00:00", requestedStartTime: "20:00:00" },
+      },
+    ]);
+
+    await notifyBooking("b1", ["a2"], SITE);
+
+    const by = (to: string) => sendEmail.mock.calls.find(([address]) => address === to)!;
+    expect(by("julie@example.be")[1].text).toContain("30/09/2026 de 20h00 à 7h00");
+    expect(by("julie@example.be")[1].text).not.toContain("21h00");
+    // The family's confirmation gives the agreed start.
+    expect(by("sophie@example.be")[1].text).toContain("à partir de 21h00");
   });
 });
 

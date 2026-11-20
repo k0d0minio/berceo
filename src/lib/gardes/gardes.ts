@@ -4,7 +4,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { bookings, careRequests, db, type BookingSide, type CancellationReason } from "@/db";
 import { nightEnd } from "@/lib/demandes/night-end";
-import { addDays, brusselsNow, otherSide, TIME_ZONE, URGENT_LAST_DAY } from "@/lib/demandes/rules";
+import { addDays, brusselsNow, hasNightStarted, otherSide, TIME_ZONE, URGENT_LAST_DAY } from "@/lib/demandes/rules";
 import {
   cancelBookedRequestStatement,
   liveRequestOn,
@@ -16,6 +16,7 @@ import { journalInsertAfter, type Person } from "@/lib/admin/journal";
 import { gardeCreditStatement, voidGardeCreditStatement } from "@/lib/credits/credits";
 import { nightAddressOf } from "@/lib/famille/request-address";
 import { bookingFees, type BookingFee } from "@/lib/paiements/payments";
+import { requestedStart } from "@/lib/reservations/rules";
 import { cancellationDelayHours } from "@/lib/settings";
 
 import { ABSENCE_HOURS_AFTER_END, canRepublish, CONTEST_HOURS, creditOriginOf, isReasonOf, reminderNight } from "./rules";
@@ -283,8 +284,10 @@ export type RepublishResult =
  * « Republier ma demande » on one of her cancelled gardes (D-107): a new
  * request for the same night, start, extra hours, children, ages, feedings,
  * reason, commune and address, published like any other (`publishRequest`), urgent when the night
- * is tonight or tomorrow (D-60), sent to nobody in priority. Refused once the
- * night has started; a live request of hers that night (open, or booked again)
+ * is tonight or tomorrow (D-60), sent to nobody in priority. The start is the
+ * one the family asked for: a start the cancelled garde's professional had
+ * proposed (JAM-306) was hers alone. Refused once the night has started, at the
+ * agreed start or at the family's; a live request of hers that night (open, or booked again)
  * is returned instead, so she never holds two for one night.
  */
 export async function republishGarde(userId: string, bookingId: string, now: Date): Promise<RepublishResult> {
@@ -298,6 +301,7 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
       locality: careRequests.locality,
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
+      requestedStartTime: careRequests.requestedStartTime,
       extraHours: careRequests.extraHours,
       childAges: careRequests.childAges,
       feedings: careRequests.feedings,
@@ -308,13 +312,16 @@ export async function republishGarde(userId: string, bookingId: string, now: Dat
     .where(and(eq(bookings.id, bookingId), eq(bookings.familyUserId, userId)))
     .limit(1);
   if (!row || !canRepublish(row, now)) return { ok: false, reason: "nonModifiable" };
+  // The new request goes out at the family's own start (JAM-306), which must be ahead too.
+  const startTime = requestedStart(row);
+  if (hasNightStarted(row.nightDate, startTime, now)) return { ok: false, reason: "nonModifiable" };
   // Her night already has a live request (open, or booked again since): she lands on it.
   const live = await liveRequestOn(userId, row.nightDate);
   if (live) return { ok: false, reason: "doublon", existing: live };
 
   const values = {
     nightDate: row.nightDate,
-    startTime: row.startTime,
+    startTime,
     extraHours: row.extraHours,
     childAges: row.childAges,
     feedings: row.feedings,

@@ -18,7 +18,7 @@ import { nightAhead, professionalProfileOf, UUID } from "@/lib/demandes/requests
 import { TIME_ZONE } from "@/lib/demandes/rules";
 import { withConversation, withSeriesConversation } from "@/lib/messagerie/conversations";
 
-import { answerRefusal, type AnswerRefusal, type ApplicationStatus, type Rates } from "./rules";
+import { answerRefusal, readProposal, type AnswerRefusal, type ApplicationStatus, type Rates } from "./rules";
 
 /**
  * Every read and write of an answer (« Je suis disponible pour cette garde »).
@@ -58,9 +58,18 @@ export type AnswerResult =
  * Records her answer, or says why not. The rules are read first for a precise
  * message (`answerRefusal`), then held again by the INSERT itself, so a request
  * booked or cancelled a moment earlier is never answered. A withdrawn answer is
- * given again on the same row, at her current rate (D-73, D-74).
+ * given again on the same row, at her current rate (D-73, D-74). `proposed` is
+ * the start she proposes in place of the family's (JAM-306): a half hour of
+ * the request's range, refused as « horaire » otherwise. None, or the
+ * family's own start, saves no proposal. A re-answer writes it again, so she
+ * changes or removes her proposal by answering again.
  */
-export async function answerRequest(userId: string, requestId: string, now: Date): Promise<AnswerResult> {
+export async function answerRequest(
+  userId: string,
+  requestId: string,
+  now: Date,
+  proposed: string | null = null,
+): Promise<AnswerResult> {
   if (!UUID.test(requestId)) return { ok: false, reason: "introuvable" };
   const profile = await professionalProfileOf(userId);
   if (!profile) return { ok: false, reason: "nonValide" };
@@ -91,6 +100,8 @@ export async function answerRequest(userId: string, requestId: string, now: Date
     .limit(1);
   if (!row) return { ok: false, reason: "introuvable" };
 
+  const proposal = readProposal(row.startTime, proposed);
+  if (!proposal.ok) return { ok: false, reason: "horaire" };
   const refusal = answerRefusal(
     {
       profile,
@@ -98,6 +109,7 @@ export async function answerRequest(userId: string, requestId: string, now: Date
       servesCommune: row.servesCommune,
       answer: row.answer,
       bookedThatNight: row.bookedThatNight,
+      proposedStartTime: proposal.proposed,
     },
     now,
   );
@@ -107,8 +119,11 @@ export async function answerRequest(userId: string, requestId: string, now: Date
   // The answer and its conversation, with Berceo's amorce, in one statement (messagerie, D-87).
   const written = await db.execute<{ id: string; answer_count: number }>(withConversation(sql`
     insert into care_request_applications
-      (request_id, profile_id, night_rate_eur, extra_hour_rate_eur, answered_at, created_at, updated_at)
-    select r.id, p.id, p.night_rate_eur, p.extra_hour_rate_eur, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
+      (request_id, profile_id, night_rate_eur, extra_hour_rate_eur, proposed_start_time, answered_at, created_at, updated_at)
+    select r.id, p.id, p.night_rate_eur, p.extra_hour_rate_eur,
+           -- Her proposed start (JAM-306): never the family's own start.
+           nullif(${proposal.proposed}::time, r.start_time),
+           ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
     from care_requests r, professional_profiles p
     where r.id = ${requestId}
       and p.id = ${profile.id}
@@ -119,6 +134,7 @@ export async function answerRequest(userId: string, requestId: string, now: Date
       -- A night of a regular request is answered with all its nights (JAM-302, answerSeries).
       and not r.series_whole
       and (r.night_date + r.start_time) > (now() at time zone ${TIME_ZONE})
+      and (r.night_date + coalesce(${proposal.proposed}::time, r.start_time)) > (now() at time zone ${TIME_ZONE})
       and (
         r.priority_profile_id = p.id
         or ${reachesCommune(sql`p.id`, sql`r.commune_ins`)}
@@ -131,6 +147,7 @@ export async function answerRequest(userId: string, requestId: string, now: Date
       set status = 'en_attente',
           night_rate_eur = excluded.night_rate_eur,
           extra_hour_rate_eur = excluded.extra_hour_rate_eur,
+          proposed_start_time = excluded.proposed_start_time,
           answered_at = excluded.answered_at,
           answer_count = care_request_applications.answer_count + 1,
           updated_at = excluded.updated_at
@@ -146,6 +163,19 @@ export async function answerRequest(userId: string, requestId: string, now: Date
 export type SeriesAnswerResult =
   | { ok: true; applicationId: string; answerCount: number }
   | { ok: false; reason: AnswerRefusal | "introuvable" };
+
+/**
+ * Her proposed start for the night `nightId` of a regular request (JAM-306),
+ * as SQL: the value of the list for that night, or null. Exported for its test.
+ */
+export function seriesProposal(proposed: readonly (readonly [string, string])[], nightId: SQL = sql`ok.id`): SQL {
+  if (proposed.length === 0) return sql`null::time`;
+  const values = sql.join(
+    proposed.map(([id, start]) => sql`(${id}::uuid, ${start}::time)`),
+    sql`, `,
+  );
+  return sql`(select h.start from (values ${values}) as h(request_id, start) where h.request_id = ${nightId})`;
+}
 
 /** The open nights ahead of a regular request answered as one (JAM-302), as a subquery. */
 function openSeriesNights(seriesId: string): SQL {
@@ -168,13 +198,20 @@ function openSeriesNights(seriesId: string): SQL {
  * (messagerie, D-87). The returned answer is the first night's: the family's
  * e-mail names it.
  */
-export async function answerSeries(userId: string, seriesId: string, now: Date): Promise<SeriesAnswerResult> {
+export async function answerSeries(
+  userId: string,
+  seriesId: string,
+  now: Date,
+  /** The start she proposes for a night, by request id (JAM-306). A night with none keeps the family's. */
+  proposals: ReadonlyMap<string, string> = new Map(),
+): Promise<SeriesAnswerResult> {
   if (!UUID.test(seriesId)) return { ok: false, reason: "introuvable" };
   const profile = await professionalProfileOf(userId);
   if (!profile) return { ok: false, reason: "nonValide" };
 
   const nights = await db
     .select({
+      id: careRequests.id,
       status: careRequests.status,
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
@@ -198,7 +235,12 @@ export async function answerSeries(userId: string, seriesId: string, now: Date):
     .where(and(eq(careRequests.seriesId, seriesId), eq(careRequests.seriesWhole, true), eq(careRequests.status, "ouverte"), nightAhead));
   if (nights.length === 0) return { ok: false, reason: "introuvable" };
 
+  // Her proposals, read night by night (JAM-306). A proposal for a night that is not of this request is ignored.
+  const proposed: [string, string][] = [];
   for (const night of nights) {
+    const proposal = readProposal(night.startTime, proposals.get(night.id));
+    if (!proposal.ok) return { ok: false, reason: "horaire" };
+    if (proposal.proposed) proposed.push([night.id, proposal.proposed]);
     const refusal = answerRefusal(
       {
         profile,
@@ -206,6 +248,7 @@ export async function answerSeries(userId: string, seriesId: string, now: Date):
         servesCommune: night.servesCommune,
         answer: night.answer,
         bookedThatNight: night.bookedThatNight,
+        proposedStartTime: proposal.proposed,
       },
       now,
     );
@@ -216,7 +259,7 @@ export async function answerSeries(userId: string, seriesId: string, now: Date):
   const open = openSeriesNights(seriesId);
   // The nights she may answer: the same rules as `answerRequest`'s INSERT, night by night.
   const answerable = sql`
-    select n.id from (${open}) n, professional_profiles p
+    select n.id, n.night_date, n.start_time from (${open}) n, professional_profiles p
     where p.id = ${profile.id}
       and p.status = 'valide'
       and ${notSuspended(sql`p.user_id`)}
@@ -236,15 +279,23 @@ export async function answerSeries(userId: string, seriesId: string, now: Date):
     withSeriesConversation(
       sql`
         insert into care_request_applications
-          (request_id, profile_id, night_rate_eur, extra_hour_rate_eur, answered_at, created_at, updated_at)
-        select ok.id, p.id, p.night_rate_eur, p.extra_hour_rate_eur, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
+          (request_id, profile_id, night_rate_eur, extra_hour_rate_eur, proposed_start_time, answered_at, created_at, updated_at)
+        select ok.id, p.id, p.night_rate_eur, p.extra_hour_rate_eur,
+               nullif(${seriesProposal(proposed)}, ok.start_time),
+               ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz
         from (${answerable}) ok, professional_profiles p
         where p.id = ${profile.id}
           and (select count(*) from (${answerable}) a) = (select count(*) from (${open}) n)
+          -- A start she proposes before the family's must be ahead too: one such night refuses the whole answer.
+          and not exists (
+            select 1 from (${answerable}) late
+            where (late.night_date + coalesce(${seriesProposal(proposed, sql`late.id`)}, late.start_time)) <= (now() at time zone ${TIME_ZONE})
+          )
         on conflict (request_id, profile_id) do update
           set status = 'en_attente',
               night_rate_eur = excluded.night_rate_eur,
               extra_hour_rate_eur = excluded.extra_hour_rate_eur,
+              proposed_start_time = excluded.proposed_start_time,
               answered_at = excluded.answered_at,
               answer_count = care_request_applications.answer_count + 1,
               updated_at = excluded.updated_at
@@ -386,8 +437,11 @@ export function reopeningWithdrawsAnswers(profileId: string, at: Date) {
     .returning({ id: careRequestApplications.id });
 }
 
+/** What her waiting answer saved: its rates (JAM-344) and the start she proposed, if any (JAM-306). */
+export type SavedAnswer = Rates & { proposedStartTime: string | null };
+
 /**
- * The rates saved on her own waiting answers to these requests, by request id
+ * The rates and the proposed start saved on her own waiting answers to these requests, by request id
  * (JAM-344): what the family reads of her, so her list and the request page
  * show her the same amount. Only her answers, by her user id, and only those
  * still `en_attente`: a withdrawn answer is given again at her current rate
@@ -397,12 +451,19 @@ export function reopeningWithdrawsAnswers(profileId: string, at: Date) {
 export async function savedRatesOfAnswers(
   userId: string,
   requestIds: readonly string[],
-): Promise<Map<string, Rates>> {
+): Promise<Map<string, SavedAnswer>> {
   const ids = requestIds.filter((id) => UUID.test(id));
   if (ids.length === 0) return new Map();
   const rows = await savedRatesQuery(userId, ids);
   return new Map(
-    rows.map((row) => [row.requestId, { nightRateEur: row.nightRateEur, extraHourRateEur: row.extraHourRateEur }]),
+    rows.map((row) => [
+      row.requestId,
+      {
+        nightRateEur: row.nightRateEur,
+        extraHourRateEur: row.extraHourRateEur,
+        proposedStartTime: row.proposedStartTime,
+      },
+    ]),
   );
 }
 
@@ -413,6 +474,7 @@ export function savedRatesQuery(userId: string, requestIds: string[]) {
       requestId: careRequestApplications.requestId,
       nightRateEur: careRequestApplications.nightRateEur,
       extraHourRateEur: careRequestApplications.extraHourRateEur,
+      proposedStartTime: careRequestApplications.proposedStartTime,
     })
     .from(careRequestApplications)
     .innerJoin(professionalProfiles, eq(professionalProfiles.id, careRequestApplications.profileId))
@@ -435,6 +497,8 @@ export type Applicant = {
   extraHourRateEur: number | null;
   photoId: string | null;
   answeredAt: Date;
+  /** The start she proposes for the night in place of the family's (JAM-306); null for none. */
+  proposedStartTime: string | null;
   /** Her note and gardes count (avis-etoiles, D-119). */
   note: Note;
 };
@@ -465,6 +529,7 @@ export async function familyAnswers(userId: string, requestId: string): Promise<
       extraHourRateEur: careRequestApplications.extraHourRateEur,
       photoId,
       answeredAt: careRequestApplications.answeredAt,
+      proposedStartTime: careRequestApplications.proposedStartTime,
     })
     .from(careRequestApplications)
     .innerJoin(careRequests, eq(careRequests.id, careRequestApplications.requestId))
@@ -478,8 +543,16 @@ export async function familyAnswers(userId: string, requestId: string): Promise<
 
 /** An answer to a regular request (JAM-302): one professional for all its open nights ahead. */
 export type SeriesApplicant = Applicant & {
-  /** Her answer on each open night ahead, in night order. */
-  nights: { requestId: string; applicationId: string; nightDate: string; nightRateEur: number }[];
+  /** Her answer on each open night ahead, in night order, with the start she proposes for it (JAM-306). */
+  nights: {
+    requestId: string;
+    applicationId: string;
+    nightDate: string;
+    nightRateEur: number;
+    startTime: string;
+    extraHours: number;
+    proposedStartTime: string | null;
+  }[];
 };
 
 /**
@@ -503,6 +576,9 @@ export async function familySeriesAnswers(userId: string, seriesId: string): Pro
         applicationId: careRequestApplications.id,
         requestId: careRequests.id,
         nightDate: careRequests.nightDate,
+        startTime: careRequests.startTime,
+        extraHours: careRequests.extraHours,
+        proposedStartTime: careRequestApplications.proposedStartTime,
         profileId: professionalProfiles.id,
         firstName: users.firstName,
         profession: professionalProfiles.profession,
@@ -540,12 +616,16 @@ export async function familySeriesAnswers(userId: string, seriesId: string): Pro
       extraHourRateEur: first.extraHourRateEur,
       photoId: first.photoId,
       answeredAt: first.answeredAt,
+      proposedStartTime: first.proposedStartTime,
       note: notes.get(first.profileId) ?? NO_NOTE,
       nights: sorted.map((row) => ({
         requestId: row.requestId,
         applicationId: row.applicationId,
         nightDate: row.nightDate,
         nightRateEur: row.nightRateEur,
+        startTime: row.startTime,
+        extraHours: row.extraHours,
+        proposedStartTime: row.proposedStartTime,
       })),
     };
   });
@@ -593,6 +673,8 @@ export async function waitingAnswerOf(
   status: ApplicationStatus;
   nightRateEur: number;
   extraHourRateEur: number | null;
+  /** The start she proposes in place of the family's (JAM-306); null for none. */
+  proposedStartTime: string | null;
 } | null> {
   if (!UUID.test(requestId) || !UUID.test(profileId)) return null;
   const [row] = await db
@@ -601,6 +683,7 @@ export async function waitingAnswerOf(
       status: careRequestApplications.status,
       nightRateEur: careRequestApplications.nightRateEur,
       extraHourRateEur: careRequestApplications.extraHourRateEur,
+      proposedStartTime: careRequestApplications.proposedStartTime,
     })
     .from(careRequestApplications)
     .innerJoin(careRequests, eq(careRequests.id, careRequestApplications.requestId))

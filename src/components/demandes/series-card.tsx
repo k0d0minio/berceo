@@ -8,6 +8,7 @@ import { reservations } from "@/content/reservations"
 import { cardTitle, childrenLine, feedingLine, nightLine, placeLine } from "@/lib/demandes/format"
 import type { RequestCard } from "@/lib/demandes/requests"
 import type { DisplayStatus } from "@/lib/demandes/rules"
+import { agreedStartLine } from "@/lib/reservations/format"
 
 import { Fact, Mark, RateFact } from "./request-card"
 
@@ -38,7 +39,7 @@ type Night = {
   href?: string
   /** The link's words, « Voir la nuit » by default. */
   linkLabel?: string
-  /** « 2 réponses ». */
+  /** « 2 réponses », or the start a professional proposed for this night (JAM-306). */
   note?: string
 }
 
@@ -102,6 +103,10 @@ function SeriesCard({
                 </span>
               ) : null}
             </div>
+            {/* A night booked at a start the professional proposed (JAM-306): the start the family asked for. */}
+            {agreedStartLine(request) ? (
+              <p className="text-legende text-taupe">{agreedStartLine(request)}</p>
+            ) : null}
             {note ? <p className="text-corps text-taupe">{note}</p> : null}
             {href ? (
               <Link

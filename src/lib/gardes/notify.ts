@@ -2,7 +2,6 @@ import "server-only";
 
 import { gardeCredits } from "@/lib/credits/credits";
 import { formatDate, formatTime } from "@/lib/demandes/format";
-import { hasNightStarted } from "@/lib/demandes/rules";
 import { sendEmail } from "@/lib/email/send";
 import {
   absenceReportedEmail,
@@ -17,6 +16,7 @@ import { bookingNotice, type BookingNotice } from "@/lib/reservations/notices";
 import { familyBookingPath, PROFESSIONAL_BOOKINGS_PATH, professionalBookingPath } from "@/lib/reservations/paths";
 
 import { claimReminder, logError, pendingReminders, releaseReminder } from "./gardes";
+import { canRepublish } from "./rules";
 
 /**
  * The e-mails of a garde's life. Each runs after the write it follows
@@ -84,7 +84,8 @@ async function notifyBerceoCancellation(
   siteUrl: string,
 ): Promise<void> {
   const credited = (await gardeCredits([bookingId])).has(bookingId);
-  const republish = !hasNightStarted(notice.nightDate, notice.startTime, new Date());
+  // The new request goes out at the family's own start (JAM-306): `canRepublish` reads both starts.
+  const republish = canRepublish({ ...notice, status: "annulee" }, new Date());
   const results = await Promise.allSettled([
     sendEmail(
       notice.family.email,

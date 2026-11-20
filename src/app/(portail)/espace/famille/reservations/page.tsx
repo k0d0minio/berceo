@@ -23,7 +23,7 @@ import { cardTitle, childrenLine, nightLine, placeLine } from "@/lib/demandes/fo
 import { hasNightStarted } from "@/lib/demandes/rules";
 import { gardeState } from "@/lib/gardes/rules";
 import { familyBookings, type FamilyBooking } from "@/lib/reservations/bookings";
-import { professionLabel, rateLine } from "@/lib/reservations/format";
+import { agreedStartLine, professionLabel, rateLine } from "@/lib/reservations/format";
 import { FAMILY_BOOKINGS_PATH, familyBookingPath, priorityPath } from "@/lib/reservations/paths";
 
 const t = words(reservations);
@@ -90,6 +90,10 @@ function List({
                     <span className="font-semibold">
                       {nightLine(request.nightDate, request.startTime, request.extraHours)}
                     </span>
+                    {/* Booked at a start the professional proposed (JAM-306). */}
+                    {agreedStartLine(request) ? (
+                      <span className="block text-legende">{agreedStartLine(request)}</span>
+                    ) : null}
                   </Fact>
                   <Fact icon={BebeIcon}>
                     {childrenLine(request.childAges)}

@@ -17,13 +17,14 @@ import {
   type Profession,
 } from "@/db";
 import { cardColumns, isUniqueViolation, nightAhead, UUID, type RequestCard } from "@/lib/demandes/requests";
+import { TIME_ZONE } from "@/lib/demandes/rules";
 import { bookingAddress, type BookingAddress } from "@/lib/famille/profile";
 import { requestHasAddress } from "@/lib/famille/request-address";
 import { notSuspended, suspended } from "@/lib/auth/suspension";
 import { bonneGardeStatement } from "@/lib/messagerie/conversations";
 
 import { photoId } from "./answers";
-import { acceptRefusal, type AcceptRefusal } from "./rules";
+import { acceptRefusal, effectiveStart, type AcceptRefusal } from "./rules";
 
 /**
  * Every read and write of a booking. Accepting an answer is the one write, in
@@ -38,7 +39,10 @@ export type AcceptCheck =
   | {
       ok: true;
       nightDate: string;
+      /** The start a booking of this answer gives the night: her proposed start, or the family's (JAM-306). */
       startTime: string;
+      /** The start she proposes in place of the family's (JAM-306); null for none. */
+      proposedStartTime: string | null;
       nightRateEur: number;
       /** A night of a regular request answered as one (JAM-302): it is booked with all its nights. */
       seriesWhole: boolean;
@@ -66,6 +70,7 @@ export async function acceptCheck(
       priorityProfileId: careRequests.priorityProfileId,
       seriesWhole: careRequests.seriesWhole,
       answerStatus: careRequestApplications.status,
+      proposedStartTime: careRequestApplications.proposedStartTime,
       nightRateEur: careRequestApplications.nightRateEur,
       profileStatus: professionalProfiles.status,
       // Her account suspended since she answered (D-134): she is no longer bookable.
@@ -87,7 +92,11 @@ export async function acceptCheck(
   const refusal = acceptRefusal(
     {
       request: facts,
-      answer: { status: facts.answerStatus, profileStatus: facts.suspended ? "suspendu" : facts.profileStatus },
+      answer: {
+        status: facts.answerStatus,
+        profileStatus: facts.suspended ? "suspendu" : facts.profileStatus,
+        proposedStartTime: facts.proposedStartTime,
+      },
       hasAddress: await requestHasAddress(userId, requestId),
     },
     now,
@@ -96,7 +105,8 @@ export async function acceptCheck(
   return {
     ok: true,
     nightDate: facts.nightDate,
-    startTime: facts.startTime,
+    startTime: effectiveStart(facts.startTime, facts.proposedStartTime),
+    proposedStartTime: facts.proposedStartTime,
     nightRateEur: facts.nightRateEur,
     seriesWhole: facts.seriesWhole,
   };
@@ -107,6 +117,8 @@ export type SeriesNight = {
   applicationId: string;
   nightDate: string;
   startTime: string;
+  /** The start she proposes for this night (JAM-306); null for none. */
+  proposedStartTime: string | null;
   nightRateEur: number;
 };
 
@@ -160,6 +172,7 @@ export async function acceptSeriesCheck(
       applicationId: row.applicationId,
       nightDate: check.nightDate,
       startTime: check.startTime,
+      proposedStartTime: check.proposedStartTime,
       nightRateEur: check.nightRateEur,
     });
   }
@@ -177,11 +190,15 @@ export type AcceptResult =
  *
  * 1. the chosen answer becomes `retenue`, only if it still waits, its
  *    professional is still validated and not suspended (D-134), the request is hers, open and ahead,
- *    and `paymentId` is her fee for this very answer, paid;
+ *    its proposed start is ahead too, and `paymentId` is her fee for this very
+ *    answer, paid, and opened after she last answered: an answer given again
+ *    since, with a proposal the family did not confirm, is not booked (JAM-306);
  * 2. the booking is made from that answer (its rate, D-74), only if step 1
  *    took; the unique indexes refuse a second booking for the request or for
  *    her that night, which rolls the whole batch back;
- * 3. the request becomes `attribuee`, 4. the other waiting answers on it
+ * 3. the request becomes `attribuee`, and takes the booked answer's proposed
+ *    start: `start_time` becomes the start the two sides agreed on, and
+ *    `requested_start_time` keeps the family's (JAM-306), 4. the other waiting answers on it
  *    `non_retenue` (returned, to be told), 5. her waiting answers on other
  *    requests that night `retiree` (D-73), 6. the payment points at the
  *    booking: each only if the booking exists; 7. Berceo's « excellente
@@ -202,7 +219,6 @@ export async function acceptAnswer(
   const check = await acceptCheck(userId, requestId, applicationId, now);
   if (!check.ok) return check;
 
-  const booked = bookingMade(requestId);
   const at = now.toISOString();
 
   try {
@@ -243,6 +259,8 @@ export async function acceptAnswer(
                   ),
                 ),
             ),
+            // A start she proposed before the family's must be ahead too (JAM-306).
+            proposedStartAhead(requestId),
             // The click never books: only her paid fee for this answer (D-102).
             exists(
               db
@@ -256,6 +274,8 @@ export async function acceptAnswer(
                     eq(payments.applicationId, applicationId),
                     eq(payments.familyUserId, userId),
                     isNull(payments.bookingId),
+                    // The fee was opened on the answer as it stands: she has not answered again since (JAM-306).
+                    sql`${careRequestApplications.answeredAt} <= ${payments.createdAt}`,
                   ),
                 ),
             ),
@@ -274,10 +294,7 @@ export async function acceptAnswer(
           and r.id = ${requestId} and r.family_user_id = ${userId}
         returning id
       `),
-      db
-        .update(careRequests)
-        .set({ status: "attribuee", updatedAt: now })
-        .where(and(eq(careRequests.id, requestId), eq(careRequests.status, "ouverte"), booked)),
+      bookingSetsTheStart(requestId, applicationId, now),
       acceptDeclinesOthers(requestId, applicationId, now),
       db.execute(acceptWithdrawsHersThatNight(requestId, at)),
       db.execute(sql`
@@ -301,6 +318,44 @@ export async function acceptAnswer(
     if (isUniqueViolation(error)) return { ok: false, reason: "conflit" };
     throw error;
   }
+}
+
+/**
+ * `acceptAnswer`'s statement 1 holds this (JAM-306): the start the answer
+ * proposes, or the family's when it proposes none, is ahead in Brussels.
+ */
+function proposedStartAhead(requestId: string): SQL {
+  return sql`exists (
+    select 1 from care_requests pr
+    where pr.id = ${requestId}
+      and (pr.night_date + coalesce(${careRequestApplications.proposedStartTime}, pr.start_time)) > (now() AT TIME ZONE ${TIME_ZONE})
+  )`;
+}
+
+/**
+ * `acceptAnswer`'s statement 3 (JAM-306): once the request holds its booking,
+ * it becomes `attribuee` and takes the booked answer's proposed start. This is
+ * the single place where a proposal becomes the night's start: `start_time` is
+ * then the start the two sides agreed on, which each reader of a booked night
+ * reads (the gardes, the reminder, the cancellation delay, the night's end,
+ * the e-mails, the conversation, the back office), and `requested_start_time`
+ * keeps the start the family asked for. An answer with no proposal changes
+ * neither column. The right side of each `set` reads the row as it was.
+ */
+export function bookingSetsTheStart(requestId: string, applicationId: string, now: Date) {
+  const proposed = sql`(
+    select pa.proposed_start_time from care_request_applications pa
+    where pa.id = ${applicationId} and pa.request_id = ${requestId} and pa.status = 'retenue'
+  )`;
+  return db
+    .update(careRequests)
+    .set({
+      status: "attribuee",
+      updatedAt: now,
+      startTime: sql`coalesce(nullif(${proposed}, "start_time"), "start_time")`,
+      requestedStartTime: sql`case when nullif(${proposed}, "start_time") is not null then "start_time" else "requested_start_time" end`,
+    })
+    .where(and(eq(careRequests.id, requestId), eq(careRequests.status, "ouverte"), bookingMade(requestId)));
 }
 
 /** Whether the request holds a booking: the batch's later statements act only once it does. */

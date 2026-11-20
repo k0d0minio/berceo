@@ -21,6 +21,8 @@ describe("the columns a professional reads", () => {
         "locality",
         "night_date",
         "postcode",
+        // The start the family asked for, on a night booked at a proposed start (JAM-306).
+        "requested_start_time",
         "start_time",
         "urgent",
       ].sort(),

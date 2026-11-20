@@ -7,6 +7,7 @@ import { NoteDisplay } from "@/components/avis/stars";
 import { ProchainesDisponibilites } from "@/components/disponibilites/prochaines-disponibilites";
 import { MarkButton } from "@/components/favoris/mark-button";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
+import { AdaptedTimes } from "@/components/reservations/adapted-times";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,8 @@ import { waitingAnswerOf } from "@/lib/reservations/answers";
 import { creditShares } from "@/lib/credits/credits";
 import { creditRecap, feeLine } from "@/lib/paiements/format";
 import { feeCents } from "@/lib/paiements/rules";
-import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { adaptedLines, extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { adaptedNights, effectiveStart, proposalsSignature } from "@/lib/reservations/rules";
 import { priorityPath, professionalProfilePath } from "@/lib/reservations/paths";
 import { reachLine } from "@/lib/recherche/rules";
 import { publicProfile } from "@/lib/reservations/profiles";
@@ -97,6 +99,11 @@ export default async function ProfilProfessionnellePage({
     answer ? creditShares(user.id, [feeCents(answer.nightRateEur)], now) : Promise.resolve(new Map<number, number>()),
   ]);
 
+  // What her waiting answer proposes for the night (JAM-306): its lines, and what the family confirms.
+  const answered =
+    answer && request ? [{ ...request, requestId: request.id, proposedStartTime: answer.proposedStartTime }] : [];
+  const adaptedTimes = adaptedLines(adaptedNights(answered), false);
+
   // Her radius in one line under her chosen communes (zone-rayon-lecture).
   const reach = reachLine(profile);
   const communes = profile.communes.map((ins) => communeName(ins) ?? ins).sort((a, b) => a.localeCompare(b, "fr"));
@@ -155,11 +162,22 @@ export default async function ProfilProfessionnellePage({
         </div>
       ) : null}
 
+      {adaptedTimes.length > 0 ? (
+        <div className="max-w-2xl rounded-carte bg-blanc px-6 py-6 md:px-10">
+          <AdaptedTimes prenom={profile.firstName} lignes={adaptedTimes} />
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap gap-3">
         {answer && request && hasAddress ? (
           <AcceptAnswer
             recap={{
-              ...recapNight(request.nightDate, request.startTime, request.extraHours),
+              ...recapNight(
+                request.nightDate,
+                effectiveStart(request.startTime, answer.proposedStartTime),
+                request.extraHours,
+              ),
+              horairesAdaptes: adaptedTimes,
               prenom: profile.firstName,
               profession: professionLabel(profile.profession),
               tarif: rateLine(answer.nightRateEur),
@@ -167,7 +185,7 @@ export default async function ProfilProfessionnellePage({
               frais: feeLine(answer.nightRateEur),
               ...creditRecap(answer.nightRateEur, shares),
             }}
-            onAccept={acceptAnswerAction.bind(null, request.id, answer.applicationId)}
+            onAccept={acceptAnswerAction.bind(null, request.id, answer.applicationId, proposalsSignature(answered))}
           />
         ) : null}
         <Button asChild variant={answer ? "raye" : "blanc"}>

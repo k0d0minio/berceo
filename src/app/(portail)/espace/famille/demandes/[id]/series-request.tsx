@@ -8,6 +8,7 @@ import { RequestReason } from "@/components/demandes/request-reason";
 import { EuroIcon } from "@/components/icons";
 import { SeriesCard } from "@/components/demandes/series-card";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
+import { AdaptedTimes } from "@/components/reservations/adapted-times";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
 import { Button } from "@/components/ui/button";
 import { CardField } from "@/components/ui/card-field";
@@ -30,7 +31,8 @@ import { seriesFeeRecap } from "@/lib/paiements/format";
 import { feeCents } from "@/lib/paiements/rules";
 import { answersEver, familySeriesAnswers } from "@/lib/reservations/answers";
 import { bookingOfRequest } from "@/lib/reservations/bookings";
-import { extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { adaptedLines, extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
+import { adaptedNights, effectiveStart, proposalsSignature } from "@/lib/reservations/rules";
 import { familyBookingPath } from "@/lib/reservations/paths";
 
 import { acceptSeriesAction, cancelSeriesAction } from "../actions";
@@ -47,7 +49,11 @@ const m = words(messagerie);
  * any night (Q4), « Annuler toutes les nuits » while a night is open. No
  * « Republier »: to change an answered request, she cancels it and publishes a
  * new one. Each booked night links to its garde, which lives on its own (Q2).
- * The answers are white cards on a sage zone (slide 25; JAM-327).
+ * The answers are white cards on a sage zone (slide 25; JAM-327). An answer
+ * that proposes a different start for a night (JAM-306) names each such night
+ * with the start asked for, the start proposed and the new end; its
+ * récapitulatif gives the hours of the answer and asks the family to accept
+ * them before the payment.
  */
 export async function SeriesRequest({
   userId,
@@ -89,12 +95,14 @@ export async function SeriesRequest({
   const first = openNights.at(0) ?? nights.at(0) ?? request;
   // Each night has its own start and extra hours (JAM-303). When they are the same, the summary
   // says them once. When they differ, each night's line carries its own hours and its end.
-  const byDate = new Map(nights.map((item) => [item.nightDate, item]));
-  const recapOf = (dates: readonly string[]) => {
-    const items = dates.flatMap((date) => {
-      const item = byDate.get(date);
-      return item ? [item] : [];
-    });
+  // The hours are the answer's: a night she proposed another start for reads at that start (JAM-306).
+  const recapOf = (answered: readonly { nightDate: string; startTime: string; extraHours: number; proposedStartTime: string | null }[]) => {
+    const dates = answered.map((item) => item.nightDate);
+    const items = answered.map((item) => ({
+      nightDate: item.nightDate,
+      startTime: effectiveStart(item.startTime, item.proposedStartTime),
+      extraHours: item.extraHours,
+    }));
     const head = items.at(0) ?? first;
     const sameHours = items.every(
       (item) => toHourMinute(item.startTime) === toHourMinute(head.startTime) && item.extraHours === head.extraHours,
@@ -146,6 +154,7 @@ export async function SeriesRequest({
                 <ul className="grid gap-6 md:grid-cols-2">
                   {answers.map((answer) => {
                     const total = answer.nights.reduce((sum, item) => sum + feeCents(item.nightRateEur), 0);
+                    const adaptedTimes = adaptedLines(adaptedNights(answer.nights), true);
                     const conversationId = answer.nights
                       .map((item) => conversationIds.get(item.applicationId))
                       .find((id) => id !== undefined);
@@ -169,6 +178,7 @@ export async function SeriesRequest({
                               ) : null}
                             </div>
                           </div>
+                          <AdaptedTimes prenom={answer.firstName} lignes={adaptedTimes} />
                           <div className="flex flex-wrap items-center gap-3">
                             {conversationId ? (
                               <Link
@@ -182,7 +192,8 @@ export async function SeriesRequest({
                             {mayBook && hasAddress ? (
                               <AcceptAnswer
                                 recap={{
-                                  ...recapOf(answer.nights.map((item) => item.nightDate)),
+                                  ...recapOf(answer.nights),
+                                  horairesAdaptes: adaptedTimes,
                                   nuits:
                                     answer.nights.length === 1
                                       ? t.serie.uneNuit
@@ -198,7 +209,13 @@ export async function SeriesRequest({
                                     shares.get(total) ?? 0,
                                   ),
                                 }}
-                                onAccept={acceptSeriesAction.bind(null, seriesId, request.id, answer.profileId)}
+                                onAccept={acceptSeriesAction.bind(
+                                  null,
+                                  seriesId,
+                                  request.id,
+                                  answer.profileId,
+                                  proposalsSignature(answer.nights),
+                                )}
                               />
                             ) : null}
                           </div>
