@@ -6,7 +6,9 @@ import { CreditsBlock } from "@/components/credits/credits-block";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { abonnements } from "@/content/abonnements";
+import { common } from "@/content/common";
 import { comptes } from "@/content/comptes";
+import { consultationSommeil } from "@/content/consultation-sommeil";
 import { demandes } from "@/content/demandes";
 import { famille } from "@/content/famille";
 import { favoris } from "@/content/favoris";
@@ -20,6 +22,7 @@ import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
 import { scheduleWelcomeIfDue } from "@/lib/auth/welcome";
 import { noteOfUser } from "@/lib/avis/ratings";
+import { sleepConsultationEnabled } from "@/lib/consultation-sommeil/config";
 import { familyCredits } from "@/lib/credits/credits";
 import { FAMILY_REQUESTS_PATH, NEW_REQUEST_PATH, NEW_URGENT_REQUEST_PATH } from "@/lib/demandes/paths";
 import { FAMILY_CHARTER_PATH, PROFILE_PATH } from "@/lib/famille/paths";
@@ -53,7 +56,9 @@ export const dynamic = "force-dynamic";
  * balance and each Berceo credit with its expiry (credits-registre). A family who left the Checkout of the plan
  * she picked at sign-up gets one call to finish it instead
  * (abonnements-inscription-famille). An outlined button opens the charter the
- * professionals accept (charte-cote-parents). A welcome
+ * professionals accept (charte-cote-parents). A link leads to the public
+ * page of the sleep consultation, where the environment has the address of
+ * the founders' calendar (JAM-305). A welcome
  * e-mail that failed to send is tried again after the page (D-165). The
  * blocks are white cards: the page behind them is pearl (JAM-327).
  */
@@ -171,6 +176,14 @@ export default async function EspaceFamillePage() {
       >
         {d.famille.titre}
       </Link>
+      {sleepConsultationEnabled() ? (
+        <Link
+          href={words(common).pages.consultationSommeil.href}
+          className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+        >
+          {words(consultationSommeil).espace.lien}
+        </Link>
+      ) : null}
       <Button asChild variant="blanc" className="self-start">
         <Link href={FAMILY_CHARTER_PATH}>{f.charte}</Link>
       </Button>
