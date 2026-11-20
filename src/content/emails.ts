@@ -105,6 +105,27 @@ export const emails = catalogue({
         "{prenom} propose une autre heure de début. Vous la verrez sur sa réponse, et vous l'acceptez ou non au moment de réserver.",
     },
 
+    /**
+     * @relecture Surya — la professionnelle a modifié ou retiré l'heure de début
+     * qu'elle proposait, sans retirer sa réponse (JAM-349). Une ligne par nuit
+     * modifiée : l'heure demandée, l'heure proposée et la fin de la garde.
+     */
+    horaireModifie: {
+      objet: "{prenom} a modifié l'heure de début proposée",
+      /** Une demande d'une nuit. */
+      corps: "{prenom} a modifié l'heure de début de sa réponse pour votre garde du {date}.",
+      /** Une demande régulière : les nuits modifiées suivent, une par ligne. */
+      corpsSerie: "{prenom} a modifié l'heure de début de sa réponse pour votre demande régulière.",
+      ligne: "Début à {propose} au lieu de {demande}. Fin de la garde à {fin}.",
+      /** Elle a retiré sa proposition : elle commence à l'heure demandée. */
+      ligneRetiree: "{prenom} peut maintenant commencer à l'heure demandée, {demande}. Fin de la garde à {fin}.",
+      ligneNuit: "Nuit du {date} : début à {propose} au lieu de {demande}, fin de la garde à {fin}.",
+      ligneNuitRetiree: "Nuit du {date} : début à l'heure demandée, {demande}, fin de la garde à {fin}.",
+      /** Seulement quand une heure proposée reste : la famille l'accepte ou non. */
+      accepter: "Vous acceptez ou non cet horaire au moment de réserver.",
+      cta: "Voir la réponse de {prenom}",
+    },
+
     /** Confirmation de réservation (famille), le guide sans sa phrase sur l'assurance (D-8, D-78). */
     reservationFamille: {
       objet: "Votre garde du {date} est confirmée ✓",
