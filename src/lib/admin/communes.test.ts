@@ -42,7 +42,7 @@ describe("only a founder reads the page (D-33)", () => {
     );
     const guard = page.indexOf("await requireAccess(ADMIN_COMMUNES_PATH)");
     expect(guard).toBeGreaterThan(-1);
-    expect(page.indexOf("await servingCounts()")).toBeGreaterThan(guard);
+    expect(page.indexOf("servingCounts()")).toBeGreaterThan(guard);
     expect(page).not.toMatch(/from "@\/db/);
     expect(page).toContain("index: false");
   });
