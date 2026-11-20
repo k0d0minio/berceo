@@ -170,12 +170,22 @@ export type AdminBookingRow = {
   fee: BookingFee | null;
 };
 
-const bookingColumns = {
-  id: bookings.id,
-  status: bookings.status,
+/**
+ * A booked night as each back-office surface reads it: its date, the start the
+ * two sides agreed on, and the start the family asked for, which is null on a
+ * night with no adapted schedule (JAM-306). A surface that shows the start
+ * selects these three together, so it can show the record line (JAM-350).
+ */
+export const nightColumns = {
   nightDate: careRequests.nightDate,
   startTime: careRequests.startTime,
   requestedStartTime: careRequests.requestedStartTime,
+};
+
+const bookingColumns = {
+  id: bookings.id,
+  status: bookings.status,
+  ...nightColumns,
   extraHours: careRequests.extraHours,
   nightRateEur: bookings.nightRateEur,
   familyId: familyUser.id,
@@ -276,7 +286,10 @@ export async function reportCount(): Promise<number> {
 export type AdminReportRow = {
   id: string;
   nightDate: string;
+  /** The garde's start: the start the two sides agreed on (JAM-306). */
   startTime: string;
+  /** The start the family asked for, when the booked answer proposed another (JAM-306, JAM-350). */
+  requestedStartTime?: string | null;
   cancelledAt: Date;
   /** The side responsible: who cancelled, or who was absent; or Berceo (annulations-back-office). */
   side: CancellationAuthor;
@@ -341,6 +354,7 @@ export async function readReports(
               id: row.id,
               nightDate: row.nightDate,
               startTime: row.startTime,
+              requestedStartTime: row.requestedStartTime,
               cancelledAt: row.cancelledAt,
               side: row.side,
               kind: row.kind,

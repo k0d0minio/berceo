@@ -33,7 +33,7 @@ import { deletionForgetsFavourites } from "@/lib/favoris/favourites";
 import { suspensionWithdrawsAnswers } from "@/lib/reservations/answers";
 
 import { fullName, journalFor, journalInsert, journalInsertAfter, journalInsertIf, type Person } from "./journal";
-import { bookingCondition } from "./lists";
+import { bookingCondition, nightColumns } from "./lists";
 import {
   ANONYMISED,
   FOLD_FROM,
@@ -138,7 +138,10 @@ const professionalUser = alias(users, "professional_user");
 export type UpcomingGarde = {
   bookingId: string;
   nightDate: string;
+  /** The garde's start: the start the two sides agreed on (JAM-306). */
   startTime: string;
+  /** The start the family asked for, when the booked answer proposed another (JAM-306, JAM-350). */
+  requestedStartTime?: string | null;
   /** The other side's name and phone, for the founders to call (D-134). */
   other: { name: string; phone: string | null };
 };
@@ -149,8 +152,8 @@ export async function upcomingGardes(userId: string): Promise<UpcomingGarde[]> {
   const rows = await db
     .select({
       bookingId: bookings.id,
-      nightDate: careRequests.nightDate,
-      startTime: careRequests.startTime,
+      // The night with the family's own start (JAM-350): `lists.ts` names the record column.
+      ...nightColumns,
       familyUserId: bookings.familyUserId,
       familyFirst: otherUser.firstName,
       familyLast: otherUser.lastName,
@@ -172,6 +175,7 @@ export async function upcomingGardes(userId: string): Promise<UpcomingGarde[]> {
       bookingId: row.bookingId,
       nightDate: row.nightDate,
       startTime: row.startTime,
+      requestedStartTime: row.requestedStartTime,
       other: isFamily
         ? { name: fullName({ firstName: row.professionalFirst, lastName: row.professionalLast }), phone: row.professionalPhone }
         : { name: fullName({ firstName: row.familyFirst, lastName: row.familyLast }), phone: row.familyPhone },
