@@ -7,8 +7,8 @@ import { catalogue } from "./locale";
  * the request, not the words: every entry is ours, written in the guide's
  * rules (vouvoiement, no exclamation mark, no em dash, no ellipsis) and
  * tagged `@relecture`. The page names no price, no duration and no place:
- * the calendar has them. The button opens the calendar in the same tab, and
- * the calendar sends the visitor back to the confirmation page (JAM-352).
+ * the calendar has them. The button shows the calendar in the page, in a
+ * frame that loads only after the click (JAM-352).
  */
 export const consultationSommeil = catalogue({
   fr: {
@@ -32,10 +32,26 @@ export const consultationSommeil = catalogue({
       /** @relecture Surya — texte du bloc qui porte le bouton. */
       paragraphs: [
         "Les nuits avec un bébé soulèvent beaucoup de questions. Alix et Jordane prennent le temps de vous écouter et de regarder avec vous ce qui peut aider votre famille à mieux se reposer.",
-        "Le rendez-vous se prend en ligne, dans leur agenda Calendly. Vous y trouverez les créneaux disponibles et toutes les informations pratiques. Une fois votre créneau choisi, vous revenez sur le site de Berceo.",
+        "Le rendez-vous se prend en ligne, dans leur agenda Calendly. Vous y trouverez les créneaux disponibles et toutes les informations pratiques.",
       ],
-      /** @relecture Surya — bouton vers l'agenda en ligne (il s'ouvre dans le même onglet, JAM-352). */
+      /** @relecture Surya — bouton qui affiche l'agenda dans la page (JAM-352). */
       bouton: "Choisir un créneau",
+      /** @relecture Surya — phrase sous le bouton : l'agenda est un service tiers, chargé après le clic (JAM-352). */
+      service:
+        "L'agenda est un service de Calendly. Il s'affiche sur cette page après votre clic, et Calendly reçoit alors les informations que vous y saisissez.",
+      /** @relecture Surya — titre du cadre de l'agenda, lu par les lecteurs d'écran. */
+      cadre: "Agenda de la consultation sommeil, sur Calendly",
+      /** Shown above the calendar when Calendly tells the page that a booking is made. */
+      confirme: {
+        /** @relecture Surya — titre de la confirmation, après la réservation dans l'agenda. */
+        title: "Votre rendez-vous est enregistré",
+        /** @relecture Surya — texte de la confirmation, après la réservation dans l'agenda. */
+        text: "Merci pour votre confiance. Calendly vous envoie un e-mail de confirmation avec la date, l'heure et le lien du rendez-vous.",
+        /** @relecture Surya — bouton vers l'accueil du site. */
+        accueil: "Retour à l'accueil",
+        /** @relecture Surya — bouton vers la connexion, qui mène une personne connectée à son espace. */
+        espace: "Accéder à mon espace",
+      },
     },
 
     etapes: {
@@ -45,22 +61,23 @@ export const consultationSommeil = catalogue({
       items: [
         {
           title: "Choisissez votre créneau",
-          text: "Le bouton ouvre Calendly, l'agenda en ligne d'Alix et Jordane. Retenez le moment qui vous convient.",
-        },
-        {
-          title: "Revenez sur Berceo",
-          text: "Dès que votre créneau est choisi, Calendly vous ramène sur le site de Berceo, qui vous indique la suite.",
+          text: "Le bouton affiche sur cette page Calendly, l'agenda en ligne d'Alix et Jordane. Retenez le moment qui vous convient.",
         },
         {
           title: "Recevez votre e-mail",
-          text: "Calendly vous envoie un e-mail de confirmation avec la date, l'heure et le lien du rendez-vous avec une sage-femme.",
+          text: "Berceo vous confirme la prise du rendez-vous, et Calendly vous envoie un e-mail avec la date, l'heure et le lien.",
+        },
+        {
+          title: "Échangez avec une sage-femme",
+          text: "Vous parlez du sommeil de votre bébé et de vos nuits, à votre rythme et sans jugement.",
         },
       ],
     },
 
     /**
      * `/consultation-sommeil/confirmation` (JAM-352): the page that Calendly
-     * sends the visitor back to after a booking. The page cannot know whether
+     * can send the visitor back to after a booking (a setting of Calendly,
+     * the second path beside the confirmation in the page). The page cannot know whether
      * its visitor made a booking: it reads nothing of its address and has no
      * data. Each sentence is thus true for a visitor who comes straight to
      * it. It names no person, no date and no price.

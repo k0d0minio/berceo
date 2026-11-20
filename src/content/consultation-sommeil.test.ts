@@ -5,7 +5,8 @@ import { words } from "./locale";
 
 /**
  * Spec (JAM-352): the consultation page says how the booking goes (a slot on
- * Calendly, back to Berceo, the e-mail). The confirmation page says that the
+ * Calendly, shown in the page after a click, then the e-mail), and names
+ * Calendly before the click. The confirmation page says that the
  * appointment is made and what comes next, in words that are also true for a
  * visitor who comes straight to it. The two pages name no price and no
  * address. `vitrine.test.ts` holds the punctuation rules and the meta lengths.
@@ -37,12 +38,31 @@ describe("the sleep consultation's words", () => {
     expect("nouvelOnglet" in t.rendezVous).toBe(false);
   });
 
-  it("say how the booking goes in three steps: Calendly, back to Berceo, the e-mail", () => {
+  it("say how the booking goes in three steps: the slot on Calendly, the e-mail, the consultation", () => {
     const steps = t.etapes.items;
     expect(steps).toHaveLength(3);
     expect(steps[0].text).toContain("Calendly");
-    expect(steps[1].title).toBe("Revenez sur Berceo");
-    expect(steps[2].text).toContain("e-mail de confirmation");
+    expect(steps[0].text).toContain("sur cette page");
+    expect(steps[1].title).toBe("Recevez votre e-mail");
+    expect(steps[1].text).toContain("Berceo vous confirme");
+  });
+
+  it("say, before the click, that the calendar is Calendly's and that Calendly gets what the visitor types", () => {
+    expect(t.rendezVous.service).toContain("un service de Calendly");
+    expect(t.rendezVous.service).toContain("après votre clic");
+    expect(t.rendezVous.service).toContain("Calendly reçoit alors les informations que vous y saisissez");
+  });
+
+  it("give the calendar's frame a title", () => {
+    expect(t.rendezVous.cadre).toContain("Agenda");
+    expect(t.rendezVous.cadre).toContain("Calendly");
+  });
+
+  it("confirm the booking in the page, with the e-mail and the two ways on", () => {
+    expect(t.rendezVous.confirme.title).toBe("Votre rendez-vous est enregistré");
+    expect(t.rendezVous.confirme.text).toContain("e-mail de confirmation");
+    expect(t.rendezVous.confirme.accueil).toBe(t.confirmation.suite.accueil);
+    expect(t.rendezVous.confirme.espace).toBe(t.confirmation.suite.espace);
   });
 });
 
