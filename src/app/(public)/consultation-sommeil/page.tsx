@@ -22,9 +22,12 @@ export const dynamic = "force-dynamic";
 /**
  * « Consultation sommeil » (feedback round 2, JAM-305): the DA's banner, a
  * short text with the page's one button, then three steps on pearl. The
- * button opens the founders' calendar in a new tab. Its address is the value
- * of `SLEEP_CONSULTATION_URL`. Where the environment has no usable address
- * the page is not found, and no link leads to it. The page names no price.
+ * button opens the founders' calendar in the same tab: after a booking the
+ * calendar sends the visitor back to `./confirmation` (JAM-352). The button
+ * is a link only: the page loads nothing from the calendar. Its address is
+ * the value of `SLEEP_CONSULTATION_URL`. Where the environment has no usable
+ * address the page is not found, and no link leads to it. The page names no
+ * price.
  */
 export default function ConsultationSommeilPage() {
   const url = sleepConsultationUrl();
@@ -41,9 +44,8 @@ export default function ConsultationSommeilPage() {
           ))}
         </div>
         <Button asChild className="self-start">
-          <a href={url} target="_blank" rel="noopener noreferrer">
+          <a href={url} rel="noreferrer">
             {t.rendezVous.bouton}
-            <span className="sr-only"> {t.rendezVous.nouvelOnglet}</span>
           </a>
         </Button>
       </VitrineSection>
