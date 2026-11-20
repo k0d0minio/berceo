@@ -10,6 +10,7 @@ import { canGrantCredit, delayVerdict, reportOutcome, type ReportFacts } from "@
 import { formatDate, formatTime } from "@/lib/demandes/format"
 import { ADMIN_PAYMENTS_PATH } from "@/lib/paiements/paths"
 import { eurosFromCents } from "@/lib/paiements/rules"
+import { agreedStartLine } from "@/lib/reservations/format"
 
 import { GrantCreditButton } from "./grant-credit-button"
 import { MarkHandledButton } from "./mark-handled-button"
@@ -18,7 +19,8 @@ const day = new Intl.DateTimeFormat("fr-BE", { dateStyle: "short", timeStyle: "s
 
 /*
  * « Signalements » (D-139): every cancelled garde and reported absence,
- * newest first: when, the night, both people (opening their accounts), what
+ * newest first: when, the night (with the record line of an adapted
+ * schedule, JAM-350), both people (opening their accounts), what
  * happened and on which side, and « Litige » once the side reported absent
  * contested (annulations-table), the reason the cancelling side chose
  * (annulations-delai-et-motif) or the founders' note on a cancellation by
@@ -69,6 +71,8 @@ function ReportsTable({ rows }: { rows: AdminReportRow[] }) {
               <TableCell>{day.format(row.cancelledAt)}</TableCell>
               <TableCell>
                 {fill(a.demandes.nuit, { date: formatDate(row.nightDate), heure: formatTime(row.startTime) })}
+                {/* Booked at a start the professional proposed (JAM-306, JAM-350): the family's own start, as a record. */}
+                {agreedStartLine(row) ? <span className="block text-legende">{agreedStartLine(row)}</span> : null}
               </TableCell>
               <TableCell>
                 <Link href={adminUserPath(row.family.id)} className="text-sauge underline underline-offset-4">
