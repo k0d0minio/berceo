@@ -77,7 +77,10 @@ export async function answerNotice(applicationId: string): Promise<AnswerNotice 
 export type BookingNotice = {
   id: string;
   nightDate: string;
+  /** The garde's start: the start the two sides agreed on (JAM-306). */
   startTime: string;
+  /** The start the family asked for, when the booked answer proposed another (JAM-306). */
+  requestedStartTime?: string | null;
   cancelledBy: CancellationAuthor | null;
   cancellationKind: CancellationKind | null;
   family: { email: string; firstName: string };
@@ -95,6 +98,7 @@ export async function bookingNotice(bookingId: string): Promise<BookingNotice | 
       id: bookings.id,
       nightDate: careRequests.nightDate,
       startTime: careRequests.startTime,
+      requestedStartTime: careRequests.requestedStartTime,
       cancelledBy: bookings.cancelledBy,
       cancellationKind: bookings.cancellationKind,
       family: { email: familyUser.email, firstName: familyUser.firstName },

@@ -68,6 +68,8 @@ export type AdminRequestRow = {
   id: string;
   nightDate: string;
   startTime: string;
+  /** The start the family asked for, when the booked answer proposed another (JAM-306). */
+  requestedStartTime?: string | null;
   postcode: string;
   locality: string;
   urgent: boolean;
@@ -94,6 +96,7 @@ export async function readRequests(
         id: careRequests.id,
         nightDate: careRequests.nightDate,
         startTime: careRequests.startTime,
+        requestedStartTime: careRequests.requestedStartTime,
         postcode: careRequests.postcode,
         locality: careRequests.locality,
         urgent: careRequests.urgent,

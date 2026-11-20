@@ -152,9 +152,21 @@ export function canReportAbsence(garde: GardeFacts, now: Date): boolean {
   return nowStamp(now) < absenceDeadline(garde.nightDate, garde.startTime, garde.extraHours);
 }
 
-/** After any cancelled garde whose night has not started, the family may publish it again (D-107). */
-export function canRepublish(garde: GardeFacts, now: Date): boolean {
-  return garde.status === "annulee" && !hasNightStarted(garde.nightDate, garde.startTime, now);
+/**
+ * After any cancelled garde whose night has not started, the family may publish
+ * it again (D-107). The new request goes out at the start the family asked
+ * for, not at a start the cancelled garde's professional had proposed
+ * (JAM-306), so that start must be ahead too.
+ */
+export function canRepublish(
+  garde: Pick<GardeFacts, "status" | "nightDate" | "startTime"> & { requestedStartTime?: string | null },
+  now: Date,
+): boolean {
+  return (
+    garde.status === "annulee" &&
+    !hasNightStarted(garde.nightDate, garde.startTime, now) &&
+    !hasNightStarted(garde.nightDate, garde.requestedStartTime || garde.startTime, now)
+  );
 }
 
 /** The professional reads the family's address on a confirmed garde until the night ends (D-110). */

@@ -12,12 +12,12 @@ beforeAll(() => {
 });
 
 describe("the start of the night a conversation reads (JAM-306)", () => {
-  it("is its own answer's proposal, then the family's own start, then the request's start", async () => {
+  it("is its own answer's proposal while it waits or is booked, then the family's own start, then the request's start", async () => {
     const { PgDialect } = await import("drizzle-orm/pg-core");
     const { conversationStart } = await import("./conversations");
     const q = new PgDialect().sqlToQuery(conversationStart);
     expect(q.sql).toBe(
-      'coalesce("care_request_applications"."proposed_start_time", "care_requests"."requested_start_time", "care_requests"."start_time")',
+      `coalesce(case when "care_request_applications"."status" in ('en_attente', 'retenue') then "care_request_applications"."proposed_start_time" end, "care_requests"."requested_start_time", "care_requests"."start_time")`,
     );
     expect(q.params).toEqual([]);
   });

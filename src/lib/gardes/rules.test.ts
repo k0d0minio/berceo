@@ -132,6 +132,20 @@ describe("canRepublish", () => {
   it("never offers a confirmed garde", () => {
     expect(canRepublish(confirmed, BEFORE_START)).toBe(false);
   });
+
+  // JAM-306: the new request goes out at the start the family asked for, so that start must be ahead too.
+  it("stops at the family's own start when the garde ran at a later proposed start", () => {
+    const adapted = { ...cancelled, startTime: "20:00:00", requestedStartTime: "19:00:00" };
+    expect(canRepublish(adapted, new Date("2026-09-30T16:59:00Z"))).toBe(true); // 18:59
+    expect(canRepublish(adapted, new Date("2026-09-30T17:00:00Z"))).toBe(false); // 19:00
+    expect(canRepublish(adapted, BEFORE_START)).toBe(false);
+  });
+
+  it("stops at the agreed start when it is before the family's own", () => {
+    const adapted = { ...cancelled, startTime: "20:00:00", requestedStartTime: "21:00:00" };
+    expect(canRepublish(adapted, BEFORE_START)).toBe(true);
+    expect(canRepublish(adapted, AT_START)).toBe(false);
+  });
 });
 
 describe("isAddressVisible", () => {

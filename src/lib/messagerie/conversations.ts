@@ -175,12 +175,13 @@ export function bonneGardeStatement(applicationId: string, at: string): SQL {
 
 /**
  * The start of the night as a conversation reads it (JAM-306): the start its
- * own answer proposes, else the start the family asked for. A conversation
+ * own answer proposes while that answer waits or is booked, else the start the
+ * family asked for. A withdrawn or declined answer's proposal stands no more. A conversation
  * belongs to one answer, so it never shows the start another professional
  * proposed and the family booked. On its booked answer this is the request's
  * `start_time`, the start the two sides agreed on.
  */
-export const conversationStart = sql<string>`coalesce(${careRequestApplications.proposedStartTime}, ${careRequests.requestedStartTime}, ${careRequests.startTime})`;
+export const conversationStart = sql<string>`coalesce(case when ${careRequestApplications.status} in ('en_attente', 'retenue') then ${careRequestApplications.proposedStartTime} end, ${careRequests.requestedStartTime}, ${careRequests.startTime})`;
 
 /** The last message of a conversation, as the list previews it. */
 export type LastMessage = { author: Author; body: string | null; berceoKey: BerceoMessage | null };

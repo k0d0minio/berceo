@@ -32,6 +32,7 @@ const RECORD_ALLOWED = new Set([
   join("db", "schema.ts"),
   join("lib", "demandes", "requests.ts"),
   join("lib", "reservations", "bookings.ts"),
+  join("lib", "reservations", "notices.ts"),
   join("lib", "reservations", "rules.ts"),
   join("lib", "messagerie", "conversations.ts"),
   join("lib", "gardes", "gardes.ts"),
