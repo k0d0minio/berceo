@@ -155,7 +155,9 @@ export async function notifyBooking(
  * The booking of a regular request (JAM-302): one pair of confirmations for
  * all its nights, keyed by the first night's booking, so a retry sends it
  * once; then « not retained » to the others who waited, once each. The dates
- * are every night booked, in order; the hour is the first night's.
+ * are every night booked, in order. The hour is the agreed start: said once
+ * when every night has the same, and night by night when they differ (JAM-351),
+ * because each night of an answer can hold its own proposed start (JAM-306).
  */
 export async function notifySeriesBooking(
   bookingIds: readonly string[],
@@ -173,6 +175,10 @@ export async function notifySeriesBooking(
     const [notice] = sorted;
     if (notice) {
       const date = sorted.map((n) => formatDate(n.nightDate)).join(", ");
+      const heures = sorted.map((n) => formatTime(n.startTime));
+      const nuits = heures.some((heure) => heure !== heures[0])
+        ? sorted.map((n, i) => ({ date: formatDate(n.nightDate), heure: heures[i] }))
+        : undefined;
       const results = await Promise.allSettled([
         sendEmail(
           notice.family.email,
@@ -181,7 +187,8 @@ export async function notifySeriesBooking(
             prenom: notice.family.firstName,
             professionnelle: notice.professional.firstName,
             date,
-            heure: formatTime(notice.startTime),
+            heure: heures[0],
+            nuits,
             url: `${siteUrl}${familyBookingPath(notice.id)}`,
             credit: fee ? creditLine(fee) : undefined,
           }),

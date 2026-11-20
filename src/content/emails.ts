@@ -109,6 +109,10 @@ export const emails = catalogue({
     reservationFamille: {
       objet: "Votre garde du {date} est confirmée ✓",
       corps: "Tout est prêt. {prenom} sera chez vous le {date} à partir de {heure}. L'adresse lui a été transmise.",
+      /** @relecture Surya — une demande régulière dont les nuits ne commencent pas toutes à la même heure (JAM-351). */
+      corpsNuits: "Tout est prêt. {prenom} sera chez vous {nuits}. L'adresse lui a été transmise.",
+      /** @relecture Surya — une nuit de cette liste, avec son heure de début (JAM-351). */
+      nuit: "le {date} à partir de {heure}",
       cta: "Voir les détails de ma réservation",
       /** @relecture Surya — le crédit Berceo a payé tous les frais (credits-au-paiement). */
       creditTotal: "Vos frais de service de {montant} sont réglés avec votre crédit Berceo.",
