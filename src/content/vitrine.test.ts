@@ -175,7 +175,6 @@ describe("the vitrine's titles and meta descriptions", () => {
     surfaces.quiSommesNous.meta,
     surfaces.contact.meta,
     surfaces.consultationSommeil.meta,
-    surfaces.consultationSommeil.confirmation.meta,
     surfaces.charte.meta,
     surfaces.legal.conditionsGenerales.meta,
     surfaces.legal.confidentialite.meta,

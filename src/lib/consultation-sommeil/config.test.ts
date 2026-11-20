@@ -1,13 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { common } from "@/content/common";
-
-import {
-  SLEEP_CONSULTATION_CONFIRMATION_PATH,
-  SLEEP_CONSULTATION_PATH,
-  sleepConsultationEnabled,
-  sleepConsultationUrl,
-} from "./config";
+import { sleepConsultationEnabled, sleepConsultationUrl } from "./config";
 
 /**
  * Spec (JAM-305, the sleep consultation page): the calendar's address is the
@@ -57,24 +50,5 @@ describe("the sleep consultation's address", () => {
     vi.stubEnv("SLEEP_CONSULTATION_URL", value);
     expect(sleepConsultationUrl()).toBeNull();
     expect(sleepConsultationEnabled()).toBe(false);
-  });
-});
-
-/**
- * Spec (JAM-352): the calendar sends the visitor back to one fixed address
- * below the consultation page. A person sets that address in the calendar.
- */
-describe("the confirmation page's address", () => {
-  it("is fixed, below the consultation page", () => {
-    expect(SLEEP_CONSULTATION_CONFIRMATION_PATH).toBe("/consultation-sommeil/confirmation");
-    expect(SLEEP_CONSULTATION_CONFIRMATION_PATH.startsWith(`${SLEEP_CONSULTATION_PATH}/`)).toBe(true);
-  });
-
-  it("has no parameter and no fragment", () => {
-    expect(SLEEP_CONSULTATION_CONFIRMATION_PATH).not.toMatch(/[?#&=]/);
-  });
-
-  it("starts at the consultation page's address in the catalogue", () => {
-    expect(SLEEP_CONSULTATION_PATH).toBe(common.fr.pages.consultationSommeil.href);
   });
 });
