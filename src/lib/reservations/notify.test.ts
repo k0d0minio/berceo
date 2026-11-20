@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RequestCard } from "@/lib/demandes/requests";
 
-import { notifyBooking, notifyNewAnswer, notifyPriority, notifySeriesPriority } from "./notify";
+import { notifyBooking, notifyNewAnswer, notifyPriority, notifySeriesBooking, notifySeriesPriority } from "./notify";
 
 /**
  * Spec (candidature-et-reservation): each answer e-mails the family with a
@@ -165,7 +165,61 @@ describe("a booking at a proposed start (JAM-306)", () => {
   });
 });
 
+/**
+ * Spec (JAM-351): the confirmation of a regular request gives each side the
+ * agreed start. Each night of the booked answer can hold its own proposed
+ * start (JAM-306), so the family's e-mail gives each night its start when they
+ * differ, and says the start once when they are the same.
+ */
+describe("the booking of a regular request (JAM-351)", () => {
+  const night = (id: string, nightDate: string, startTime: string) => ({
+    id,
+    nightDate,
+    startTime,
+    family: { email: "sophie@example.be", firstName: "Sophie" },
+    professional: { email: "emma@example.be", firstName: "Emma" },
+  });
+  const family = () => sendEmail.mock.calls.find(([address]) => address === "sophie@example.be")!;
+
+  it("gives each night its agreed start when the nights do not start at the same hour", async () => {
+    const nights = [night("b2", "2026-11-05", "21:30:00"), night("b1", "2026-11-02", "20:00:00")];
+    bookingNotice.mockImplementation(async (id: string) => nights.find((n) => n.id === id) ?? null);
+
+    await notifySeriesBooking(["b1", "b2"], [], SITE);
+
+    expect(family()[1].subject).toBe("Votre garde du 02/11/2026, 05/11/2026 est confirmée ✓");
+    expect(family()[1].text).toContain(
+      "Tout est prêt. Emma sera chez vous le 02/11/2026 à partir de 20h00 et le 05/11/2026 à partir de 21h30. L'adresse lui a été transmise.",
+    );
+    expect(family()[2]).toBe("reservation-famille-b1");
+  });
+
+  it("says the start once when every night has the same", async () => {
+    const nights = [night("b1", "2026-11-02", "21:00:00"), night("b2", "2026-11-05", "21:00")];
+    bookingNotice.mockImplementation(async (id: string) => nights.find((n) => n.id === id) ?? null);
+
+    await notifySeriesBooking(["b1", "b2"], [], SITE);
+
+    expect(family()[1].text).toContain(
+      "Tout est prêt. Emma sera chez vous le 02/11/2026, 05/11/2026 à partir de 21h00. L'adresse lui a été transmise.",
+    );
+  });
+});
+
 describe("a priority request", () => {
+  it("reads the night at the start the family asked for (JAM-351)", async () => {
+    priorityNotice.mockResolvedValue({
+      key: "r1",
+      email: "emma@example.be",
+      firstName: "Emma",
+      request: { ...card, startTime: "21:30:00", requestedStartTime: "20:00:00" },
+    });
+    await notifyPriority("r1", SITE);
+    expect(sendEmail.mock.calls[0][1].text).toContain("30/09/2026 de 20h00 à 7h00");
+    expect(sendEmail.mock.calls[0][1].text).not.toContain("21h30");
+  });
+
+
   it("e-mails the professional it was sent to, once", async () => {
     priorityNotice.mockResolvedValue({ key: "r1", email: "emma@example.be", firstName: "Emma", request: card });
     await notifyPriority("r1", SITE);

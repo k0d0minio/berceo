@@ -339,6 +339,12 @@ export function bookingFamilyEmail(input: {
   professionnelle: string;
   date: string;
   heure: string;
+  /**
+   * The nights of a regular request whose agreed starts differ (JAM-351): each
+   * night then reads with its own start, and `heure` is not used. `date` stays
+   * every night's date, for the subject.
+   */
+  nuits?: readonly { date: string; heure: string }[];
   url: string;
   /**
    * The fee when a Berceo credit paid some of it (credits-au-paiement): the
@@ -359,7 +365,12 @@ export function bookingFamilyEmail(input: {
       siteUrl: input.siteUrl,
       prenom: input.prenom,
       paragraphs: [
-        fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure }),
+        input.nuits?.length
+          ? fill(r.corpsNuits, {
+              prenom: input.professionnelle,
+              nuits: dateList(input.nuits.map((night) => fill(r.nuit, night))),
+            })
+          : fill(r.corps, { prenom: input.professionnelle, date: input.date, heure: input.heure }),
         ...(creditLine ? [creditLine] : []),
       ],
       cta: { label: r.cta, href: input.url },

@@ -383,6 +383,26 @@ describe("the answer and the booking e-mails", () => {
     expect(email.text.toLowerCase()).not.toMatch(/assur|couvert/);
   });
 
+  it("gives each night of a regular request its own start when the starts differ (JAM-351)", () => {
+    const email = bookingFamilyEmail({
+      siteUrl: SITE,
+      prenom: "Julie",
+      professionnelle: "Emma",
+      date: "02/11/2026, 05/11/2026, 09/11/2026",
+      heure: "20h00",
+      nuits: [
+        { date: "02/11/2026", heure: "20h00" },
+        { date: "05/11/2026", heure: "21h30" },
+        { date: "09/11/2026", heure: "20h00" },
+      ],
+      url: `${SITE}/b`,
+    });
+    expect(email.subject).toBe("Votre garde du 02/11/2026, 05/11/2026, 09/11/2026 est confirmée ✓");
+    expect(email.text).toContain(
+      "Tout est prêt. Emma sera chez vous le 02/11/2026 à partir de 20h00, le 05/11/2026 à partir de 21h30 et le 09/11/2026 à partir de 20h00. L'adresse lui a été transmise.",
+    );
+  });
+
   it("confirms the professional's garde, ending « Bonne nuit. »", () => {
     const email = bookingProfessionalEmail({
       siteUrl: SITE,
