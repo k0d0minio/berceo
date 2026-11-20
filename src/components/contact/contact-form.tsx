@@ -13,7 +13,8 @@ import type { ContactState } from "@/lib/contact/send"
  * The contact form (JAM-327): the name, the e-mail address and the message,
  * the DA's capsule fields and its button on white. A field that blocks the
  * form shows in red. After the send the form gives way to the confirmation;
- * after a failed send it keeps what was typed. The trap field is off screen
+ * after a failed send, or a message past the send limit (JAM-341), it keeps
+ * what was typed. The trap field is off screen
  * and out of the tab order: a person never fills it.
  */
 function ContactForm({
@@ -31,6 +32,7 @@ function ContactForm({
   return (
     <form action={submit} noValidate className="flex flex-col gap-6">
       {state.failed ? <FormMessage>{t.erreurs.envoi}</FormMessage> : null}
+      {state.limited ? <FormMessage>{t.erreurs.limite}</FormMessage> : null}
       <Field
         name="nom"
         label={t.champs.nom}
