@@ -103,3 +103,19 @@ describe("the commune an answer reaches", () => {
     expect(q.params).toEqual([]);
   });
 });
+
+describe("the rates saved on her answers (JAM-344)", () => {
+  it("reads only her own answers still waiting, on the requests asked for", async () => {
+    const { savedRatesQuery } = await import("./answers");
+    const HER = "5d0f2b4e-6a7c-4d9e-8f3a-4b5c6d7e8f94";
+    const q = savedRatesQuery(HER, [REQUEST]).toSQL();
+    expect(q.sql).toMatch(/^select "care_request_applications"\."request_id", "care_request_applications"\."night_rate_eur", "care_request_applications"\."extra_hour_rate_eur" from "care_request_applications"/);
+    expect(q.sql).toContain(
+      'inner join "professional_profiles" on "professional_profiles"."id" = "care_request_applications"."profile_id"',
+    );
+    expect(bound(q, '"professional_profiles"."user_id"')).toEqual([HER]);
+    expect(bound(q, ANSWER_STATUS)).toEqual(["en_attente"]);
+    expect(q.params).toContain(REQUEST);
+    for (const other of ["retiree", "retenue", "non_retenue"]) expect(q.params).not.toContain(other);
+  });
+});

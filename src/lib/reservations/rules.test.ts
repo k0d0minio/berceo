@@ -7,7 +7,10 @@ import {
   canWithdraw,
   hasAddress,
   seriesAnswerState,
+  seriesShownRates,
+  shownRates,
   type AnswerFacts,
+  type Rates,
   type RequestFacts,
 } from "./rules";
 
@@ -146,5 +149,97 @@ describe("the answer to a regular request (JAM-302)", () => {
 
   it("offers nothing on an empty list", () => {
     expect(seriesAnswerState([], 0)).toBe("aucun");
+  });
+});
+
+/**
+ * Spec (JAM-344): on a request she answered, a professional reads the rates
+ * saved on her answer, the ones the family reads. On any other request she
+ * reads her profile's current rates.
+ */
+describe("the rates she reads on a family's request (JAM-344)", () => {
+  const profile = { nightRateEur: 160, extraHourRateEur: 16 };
+  const saved = { nightRateEur: 150, extraHourRateEur: 15 };
+
+  it("reads her profile's rates before an answer", () => {
+    expect(shownRates(profile, null, undefined)).toEqual({ source: "profil", ...profile });
+  });
+
+  it("reads the rates saved on her waiting answer", () => {
+    expect(shownRates(profile, "en_attente", saved)).toEqual({ source: "reponse", ...saved });
+  });
+
+  it("shows no extra hour's rate when her answer saved none", () => {
+    expect(shownRates(profile, "en_attente", { nightRateEur: 150, extraHourRateEur: null })).toEqual({
+      source: "reponse",
+      nightRateEur: 150,
+      extraHourRateEur: null,
+    });
+  });
+
+  it("reads her profile's rates after she withdrew: a new answer carries them", () => {
+    expect(shownRates(profile, "retiree", saved)).toEqual({ source: "profil", ...profile });
+  });
+
+  it("reads her profile's rates when the saved rates were not read", () => {
+    expect(shownRates(profile, "en_attente", undefined)).toEqual({ source: "profil", ...profile });
+  });
+
+  it("keeps a profile with no rate as it is", () => {
+    expect(shownRates({ nightRateEur: null, extraHourRateEur: null }, null, undefined)).toEqual({
+      source: "profil",
+      nightRateEur: null,
+      extraHourRateEur: null,
+    });
+  });
+});
+
+describe("the rates she reads on a regular request (JAM-344)", () => {
+  const profile = { nightRateEur: 160, extraHourRateEur: 16 };
+  const saved = new Map<string, Rates>([
+    ["n1", { nightRateEur: 150, extraHourRateEur: 15 }],
+    ["n2", { nightRateEur: 150, extraHourRateEur: 15 }],
+  ]);
+  const night = (id: string, nightDate: string, answer: "en_attente" | "retiree" | null) => ({ id, nightDate, answer });
+
+  it("reads her profile's rates before an answer", () => {
+    const nights = [night("n1", "2026-10-01", null), night("n2", "2026-10-02", null)];
+    expect(seriesShownRates(profile, nights, new Map())).toEqual({ source: "profil", ...profile });
+  });
+
+  it("reads the saved rates once every night holds her waiting answer", () => {
+    const nights = [night("n1", "2026-10-01", "en_attente"), night("n2", "2026-10-02", "en_attente")];
+    expect(seriesShownRates(profile, nights, saved)).toEqual({
+      source: "reponse",
+      nightRateEur: 150,
+      extraHourRateEur: 15,
+    });
+  });
+
+  it("reads the earliest night's answer, as the family's page does", () => {
+    const nights = [night("n2", "2026-10-02", "en_attente"), night("n1", "2026-10-01", "en_attente")];
+    const differing = new Map<string, Rates>([
+      ["n1", { nightRateEur: 140, extraHourRateEur: null }],
+      ["n2", { nightRateEur: 150, extraHourRateEur: 15 }],
+    ]);
+    expect(seriesShownRates(profile, nights, differing)).toEqual({
+      source: "reponse",
+      nightRateEur: 140,
+      extraHourRateEur: null,
+    });
+  });
+
+  it("reads her profile's rates after she withdrew", () => {
+    const nights = [night("n1", "2026-10-01", "retiree"), night("n2", "2026-10-02", "retiree")];
+    expect(seriesShownRates(profile, nights, saved)).toEqual({ source: "profil", ...profile });
+  });
+
+  it("reads her profile's rates when a night does not hold her waiting answer", () => {
+    const nights = [night("n1", "2026-10-01", "en_attente"), night("n2", "2026-10-02", null)];
+    expect(seriesShownRates(profile, nights, saved)).toEqual({ source: "profil", ...profile });
+  });
+
+  it("reads her profile's rates on an empty list", () => {
+    expect(seriesShownRates(profile, [], saved)).toEqual({ source: "profil", ...profile });
   });
 });
