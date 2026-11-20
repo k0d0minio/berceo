@@ -18,7 +18,6 @@ import {
 import { professionInSentence } from "./format";
 import { answerNotice, bookingNotice, declinedNotices, priorityNotice } from "./notices";
 import { familyBookingPath, professionalBookingPath, professionalProfilePath } from "./paths";
-import { requestedStart } from "./rules";
 
 /**
  * The e-mails of an answer and a booking. Each runs after the response
@@ -82,14 +81,9 @@ export async function notifyDeclined(applicationIds: string[], siteUrl: string):
       notices.map((n) =>
         sendEmail(
           n.email,
-          // The request is booked by now: its start can be another professional's proposal (JAM-306).
-          // She reads the night at the start the family asked for.
-          notRetainedEmail({
-            siteUrl,
-            prenom: n.firstName,
-            url,
-            request: summary({ ...n.request, startTime: requestedStart(n.request) }),
-          }),
+          // The request can be booked by now: its start is then another professional's proposal (JAM-306).
+          // `summary` gives her the night at the start the family asked for (JAM-351).
+          notRetainedEmail({ siteUrl, prenom: n.firstName, url, request: summary(n.request) }),
           `non-retenue-${n.key}`,
         ),
       ),
