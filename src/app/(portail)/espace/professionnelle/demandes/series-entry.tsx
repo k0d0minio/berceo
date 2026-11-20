@@ -83,6 +83,7 @@ export function SeriesEntry({
         <SeriesAnswerFooter
           request={first}
           nights={nights}
+          saved={saved}
           seriesId={seriesId}
           state={state}
           conversationId={conversationId}

@@ -121,6 +121,7 @@ export default async function DemandeProfessionnellePage({
       <div className="flex max-w-2xl flex-wrap gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
         <AnswerFooter
           request={request}
+          saved={savedRates}
           conversationId={conversationIds.get(request.id)}
           from="demande"
           now={now}

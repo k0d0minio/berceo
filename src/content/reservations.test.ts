@@ -99,6 +99,22 @@ describe("the adapted schedule's words (JAM-306)", () => {
     expect(t.professionnelle.erreurs.horaire.length).toBeGreaterThan(0);
   });
 
+  it("tells the professional that she changes her proposal on the card, with no withdrawal (JAM-349)", () => {
+    const h = t.professionnelle.horaires;
+    // The sentence of JAM-306 told her to withdraw and to answer again.
+    expect(h.changer).not.toMatch(/retirez votre disponibilité|répondez de nouveau/);
+    expect(h.changer).toContain("modifier ou retirer cette proposition");
+    for (const text of [h.changer, h.modifier, h.aideModifier, h.enregistrer, h.modifiee]) {
+      expect(text.length).toBeGreaterThan(0);
+      expect(text).not.toMatch(/[!…—]/);
+    }
+    // How to remove the proposal, and that the family is told.
+    expect(h.aideModifier).toContain("l'heure demandée");
+    expect(h.aideModifier).toContain("La famille est prévenue");
+    expect(t.professionnelle.erreurs.modification.length).toBeGreaterThan(0);
+    expect(t.professionnelle.erreurs.inchange.length).toBeGreaterThan(0);
+  });
+
   it("keeps the start the family asked for readable after the booking", () => {
     expect(t.horaireConvenu.ligne).toContain("{demande}");
     expect(t.horaireConvenu.ligne).toContain("{convenu}");

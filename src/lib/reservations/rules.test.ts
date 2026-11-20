@@ -6,9 +6,11 @@ import {
   answerRefusal,
   canRepublish,
   canWithdraw,
+  changeRefusal,
   effectiveStart,
   hasAddress,
   isAdapted,
+  proposalChanged,
   proposalField,
   proposalsSignature,
   readProposal,
@@ -17,6 +19,7 @@ import {
   seriesShownRates,
   shownRates,
   type AnswerFacts,
+  type ChangeFacts,
   type Rates,
   type RequestFacts,
 } from "./rules";
@@ -365,5 +368,63 @@ describe("the adapted schedule (JAM-306)", () => {
     expect(
       acceptRefusal({ request: tonight, answer: { ...answer, proposedStartTime: "18:00:00" }, hasAddress: true }, EVENING),
     ).toBe("nonModifiable");
+  });
+});
+
+/**
+ * Spec (JAM-349): while her answer waits, a professional changes or removes
+ * the start she proposed, on the answer itself. A booked, declined or
+ * withdrawn answer is not changed, nor an answer she never gave. The new start
+ * must be ahead, as for an answer. A value equal to the saved one is no
+ * change, so nothing is written and the family is not told.
+ */
+describe("a proposed start changed in place (JAM-349)", () => {
+  // 30 September 2026, 19:00 in Brussels (CEST): the night of 20:00 is one hour ahead.
+  const SEVEN_PM = new Date("2026-09-30T17:00:00Z");
+  const waiting: ChangeFacts = {
+    profile: { status: "valide" },
+    request: { status: "ouverte", nightDate: "2026-09-30", startTime: "20:00:00" },
+    answer: "en_attente",
+    proposedStartTime: "20:30",
+  };
+
+  it("lets her change, and remove, the proposal of a waiting answer on an open night ahead", () => {
+    expect(changeRefusal(waiting, SEVEN_PM)).toBeNull();
+    expect(changeRefusal({ ...waiting, proposedStartTime: null }, SEVEN_PM)).toBeNull();
+  });
+
+  it.each(["retenue", "non_retenue", "retiree", null] as const)(
+    "does not change an answer that is %s",
+    (answer) => {
+      expect(changeRefusal({ ...waiting, answer }, SEVEN_PM)).toBe("modification");
+    },
+  );
+
+  it("refuses a profile that is not validated", () => {
+    for (const status of ["en_attente", "complement_demande", "refuse"]) {
+      expect(changeRefusal({ ...waiting, profile: { status } }, SEVEN_PM)).toBe("nonValide");
+    }
+  });
+
+  it.each(["attribuee", "annulee"] as const)("refuses a request that is %s", (status) => {
+    expect(changeRefusal({ ...waiting, request: { ...waiting.request, status } }, SEVEN_PM)).toBe("fermee");
+  });
+
+  it("refuses once the night has started, and a new start that has passed", () => {
+    const started = new Date("2026-09-30T18:00:00Z");
+    expect(changeRefusal(waiting, started)).toBe("commencee");
+    // 18:30 has passed at 19:00, while the family's 20:00 is ahead.
+    expect(changeRefusal({ ...waiting, proposedStartTime: "18:30" }, SEVEN_PM)).toBe("commencee");
+    expect(changeRefusal({ ...waiting, proposedStartTime: "19:30" }, SEVEN_PM)).toBeNull();
+  });
+
+  it("reads a change only when the start differs from the saved one", () => {
+    expect(proposalChanged("20:30:00", "21:00")).toBe(true);
+    expect(proposalChanged("20:30:00", null)).toBe(true);
+    expect(proposalChanged(null, "20:30")).toBe(true);
+    // The column holds seconds, the form does not.
+    expect(proposalChanged("20:30:00", "20:30")).toBe(false);
+    expect(proposalChanged(null, null)).toBe(false);
+    expect(proposalChanged(undefined, "")).toBe(false);
   });
 });

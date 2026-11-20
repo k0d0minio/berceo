@@ -10,9 +10,12 @@ import { requireAccess } from "@/lib/auth/guard";
 import {
   answerRequest,
   answerSeries,
+  changeProposal,
+  changeSeriesProposals,
   withdrawAnswer,
   withdrawSeries,
   type AnswerResult,
+  type ChangeResult,
   type SeriesAnswerResult,
 } from "@/lib/reservations/answers";
 import { notifyNewAnswer } from "@/lib/reservations/notify";
@@ -29,7 +32,9 @@ import { siteOrigin } from "@/lib/site-origin";
  * (`from` is `demande`, demande-motif-facultatif). The answer's form can carry
  * a start she proposes for a night in place of the family's (JAM-306), in the
  * field `heure-<request id>`: the write reads it again and refuses a value
- * that is not a half hour of the request's range.
+ * that is not a half hour of the request's range. While her answer waits, the
+ * same field changes or removes her proposal in place (JAM-349): the family is
+ * told with the e-mail of an answer, one time for each change.
  */
 
 /** Her proposed start for one night, from the answer's form: the field's text, or null. */
@@ -151,4 +156,70 @@ export async function withdrawSeriesAction(seriesId: string, requestId: string, 
 
   revalidatePath(PROFESSIONAL_REQUESTS_PATH, "layout");
   redirect(back(id, origin, withdrawn ? "retiree=1" : "erreur=retrait"));
+}
+
+/**
+ * « Enregistrer l'heure de début » on her waiting answer (JAM-349): the start
+ * she proposes for the night is changed, or removed when the field holds the
+ * family's own start. No withdrawal and no new answer. The family reads the
+ * e-mail of an answer, which says whether the answer proposes another start.
+ */
+export async function changeProposalAction(requestId: string, from: string = "liste", form?: FormData): Promise<void> {
+  const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);
+  const id = String(requestId);
+  const origin = String(from);
+
+  let result: ChangeResult;
+  try {
+    result = await changeProposal(user.id, id, new Date(), proposalOf(form instanceof FormData ? form : undefined, id));
+  } catch (error) {
+    logWriteError("proposed start not changed", { userId: user.id, requestId: id }, error);
+    redirect(back(id, origin, "erreur=generique"));
+  }
+
+  if (!result.ok) redirect(back(id, origin, `erreur=${result.reason}`));
+
+  const site = await siteOrigin();
+  const { applicationId, answerCount } = result;
+  // The change moved the answer's count: this e-mail has its own key, and is sent one time.
+  after(() => notifyNewAnswer(applicationId, answerCount, site));
+
+  revalidatePath(PROFESSIONAL_REQUESTS_PATH, "layout");
+  redirect(back(id, origin, "modifie=1"));
+}
+
+/** The same on a regular request (JAM-302, JAM-349): the starts of all its nights, in one form and one write. */
+export async function changeSeriesProposalsAction(
+  seriesId: string,
+  requestId: string,
+  from: string = "liste",
+  form?: FormData,
+): Promise<void> {
+  const user = await requireAccess(PROFESSIONAL_REQUESTS_PATH);
+  const series = String(seriesId);
+  const id = String(requestId);
+  const origin = String(from);
+
+  let result: ChangeResult;
+  try {
+    result = await changeSeriesProposals(
+      user.id,
+      series,
+      new Date(),
+      proposalsOf(form instanceof FormData ? form : undefined),
+    );
+  } catch (error) {
+    logWriteError("series proposed starts not changed", { userId: user.id, seriesId: series }, error);
+    redirect(back(id, origin, "erreur=generique"));
+  }
+
+  if (!result.ok) redirect(back(id, origin, `erreur=${result.reason}`));
+
+  const site = await siteOrigin();
+  const { applicationId, answerCount } = result;
+  // One e-mail to the family, for the first night's answer, as for the answer itself.
+  after(() => notifyNewAnswer(applicationId, answerCount, site));
+
+  revalidatePath(PROFESSIONAL_REQUESTS_PATH, "layout");
+  redirect(back(id, origin, "modifie=1"));
 }
