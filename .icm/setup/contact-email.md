@@ -24,5 +24,5 @@ answers 404 and no link leads to it.
 
 - `RESEND_API_KEY` and `EMAIL_FROM` must have a value in the same environment. The form uses
   them to send.
-- The page does not limit how many messages one visitor sends. If spam arrives, clear the
-  variable: the page then does not exist.
+- One visitor sends 5 messages for each hour at most (JAM-341). If spam still arrives, clear
+  the variable: the page then does not exist.
