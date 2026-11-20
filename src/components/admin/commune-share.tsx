@@ -7,8 +7,8 @@ import { fill, words } from "@/content/locale"
 /*
  * The share area of one commune (JAM-361): the full address of its public page
  * as text that one click selects, « Copier le lien », and a link that opens
- * the page. `children` is the place of what comes next for the same link: the
- * QR code and its two downloads go there, with no change to the table.
+ * the page. `children` is the place of what belongs to the same link: the
+ * table puts the QR code and its two downloads there (`commune-qr.tsx`).
  */
 function CommuneShare({
   commune,

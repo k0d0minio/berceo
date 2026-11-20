@@ -1,3 +1,4 @@
+import { CommuneQr } from "@/components/admin/commune-qr"
 import { CommuneShare } from "@/components/admin/commune-share"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { admin } from "@/content/admin"
@@ -6,7 +7,8 @@ import type { CommuneRow } from "@/lib/admin/communes"
 
 /*
  * The founders' communes (JAM-361): the name, the postcodes, the number of
- * validated professionals who serve the commune, and its share area. A count
+ * validated professionals who serve the commune, and its share area with the
+ * QR code of the link. A count
  * only: no name of a family or of a professional. On a phone the table scrolls
  * inside its card; the page never does.
  */
@@ -31,7 +33,9 @@ function CommunesTable({ rows }: { rows: CommuneRow[] }) {
               <TableCell className="max-w-56 align-top whitespace-normal">{row.postcodes.join(", ")}</TableCell>
               <TableCell className="align-top">{row.professionals}</TableCell>
               <TableCell className="align-top whitespace-normal">
-                <CommuneShare commune={row.name} url={row.shareUrl} />
+                <CommuneShare commune={row.name} url={row.shareUrl}>
+                  <CommuneQr commune={row.name} slug={row.slug} />
+                </CommuneShare>
               </TableCell>
             </TableRow>
           ))}

@@ -1008,6 +1008,16 @@ export const admin = catalogue({
       echec: "Le lien n'a pas pu être copié. Sélectionnez-le pour le copier.",
       ouvrir: "Ouvrir la page publique",
       ouvrirDe: "Ouvrir la page publique de {commune}",
+      /** @relecture Surya — le code QR du lien à partager et ses deux téléchargements (JAM-361). */
+      qr: {
+        afficher: "Afficher le code QR",
+        alt: "Code QR du lien de la page de {commune}",
+        aide: "Le fichier SVG convient à l'impression. Le fichier PNG convient aux publications en ligne.",
+        svg: "Télécharger en SVG",
+        svgDe: "Télécharger le code QR de {commune} en SVG",
+        png: "Télécharger en PNG",
+        pngDe: "Télécharger le code QR de {commune} en PNG",
+      },
     },
 
     /** La pagination des listes de l'administration. */

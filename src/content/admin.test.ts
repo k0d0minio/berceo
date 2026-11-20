@@ -184,4 +184,11 @@ describe("the list of communes (JAM-361)", () => {
     expect(a.communes.ouvrirDe).toContain("{commune}");
     expect(a.communes.resultats).toContain("{q}");
   });
+
+  it("names the QR code, its image and its two downloads", () => {
+    const { qr } = a.communes;
+    expect(qr.afficher).toBe("Afficher le code QR");
+    expect([qr.svg, qr.png]).toEqual(["Télécharger en SVG", "Télécharger en PNG"]);
+    for (const text of [qr.alt, qr.svgDe, qr.pngDe]) expect(text).toContain("{commune}");
+  });
 });
