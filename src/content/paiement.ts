@@ -14,11 +14,11 @@ export const paiement = catalogue({
   fr: {
     recapitulatif: {
       /** @relecture Surya — la ligne des frais dans le récapitulatif. */
-      frais: "Frais de service (3 %)",
+      frais: "Frais de service (3 %)",
       /** Le montant des frais, l'euro après le nombre (« 4,11 € »). */
       montant: "{montant} €",
       /** Guide (page Tarifs) — la première phrase du paragraphe des frais. */
-      prelevement: "Des frais de service de 3 % sont prélevés à la confirmation de chaque réservation.",
+      prelevement: "Des frais de service de 3 % sont prélevés à la confirmation de chaque réservation.",
       /** Page Tarifs — le tableau des fondatrices (annulations-table), mot pour mot. */
       remboursement:
         "Si vous annulez plus de 24 heures avant le début de la garde, ou si la professionnelle annule ou ne se présente pas, ces frais deviennent un crédit Berceo, valable 24 mois pour une prochaine réservation. Si vous annulez moins de 24 heures avant le début, ils restent acquis à Berceo.",
