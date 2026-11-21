@@ -2,11 +2,11 @@
 
 ## Next action
 
-<What the next session, or the operator, does first.>
+Le contrôle de l'opérateur sur la préversion Vercel, puis la case Ready to merge, puis `release JAM-461`.
 
 ## How to test
 
-<1 to 3 short sentences that can be said aloud: where to go on the preview, what to do, what the operator must see.>
+Ouvrez `/tarifs` sur la préversion à 1920 px. Les cinq formules tiennent sur deux rangées de trois au plus, et chaque prix tient sur une ligne. Dans l'introduction, « 3 % » ne se coupe pas.
 
 ## Blockers
 
