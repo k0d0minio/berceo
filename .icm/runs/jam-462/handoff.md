@@ -2,16 +2,21 @@
 
 ## Next action
 
-<What the next session, or the operator, does first.>
+J coche Spec approved sur la PR #142. Le code est déjà poussé (le brief de la session demandait le build complet). Ensuite J remplit la base une fois :
+
+1. `NEON_API_KEY=<clé> npm run demo:db:make` dans le checkout principal. Sans clé : écrire `.env.demo.local` à la main (voir `.icm/local/database.md`, The local demo database), puis `npm run demo:db:make`.
+2. `npm run demo:dev`, puis `http://localhost:3000/api/demo/connexion?compte=famille-serenite`.
+
+La branche Neon `local/demo` (br-autumn-unit-b1q0mq6g) du projet `uat-berceo` existe déjà et porte la marque. Le seed n'a pas encore tourné : sa première exécution est la vérification des contraintes de la base.
 
 ## How to test
 
-<1 to 3 short sentences that can be said aloud: where to go on the preview, what to do, what the operator must see.>
+Lancez `npm run demo:dev`, ouvrez le lien de connexion d'une famille imprimé par le seed : son espace montre ses demandes, ses réponses et ses gardes. Le même lien sur la preview répond 404.
 
 ## Blockers
 
-- none
+- Le remplissage demande une clé API Neon de J, ou `.env.demo.local` écrit à la main.
 
 ## Do not touch
 
-- none
+- Les fichiers de JAM-461 (/tarifs), sur une autre branche.
