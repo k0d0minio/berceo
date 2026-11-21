@@ -86,13 +86,13 @@ export const faq = catalogue({
           {
             question: "Combien coûte une garde de nuit ?",
             answer:
-              "Vous choisissez un abonnement de 1 à 12 mois. Chaque professionnelle fixe son tarif de nuit, à partir de 130 €. Des frais de service de 3 % sont prélevés à la confirmation de la réservation.",
+              "Vous choisissez un abonnement de 1 à 12 mois. Chaque professionnelle fixe son tarif de nuit, à partir de 130 €. Des frais de service de 3 % sont prélevés à la confirmation de la réservation.",
             link: { label: "Consulter les tarifs", page: "tarifs" },
           },
           {
             question: "Comment se passe le paiement ?",
             answer:
-              "Vous rémunérez la professionnelle directement, après la garde. Berceo ne perçoit que les frais de service de 3 %, prélevés à la confirmation de la réservation.",
+              "Vous rémunérez la professionnelle directement, après la garde. Berceo ne perçoit que les frais de service de 3 %, prélevés à la confirmation de la réservation.",
           },
           {
             question: "Que se passe-t-il en cas d'annulation ?",

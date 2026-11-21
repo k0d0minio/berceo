@@ -21,7 +21,8 @@ export const metadata = pageMetadata(t.meta, c.pages.tarifs.href);
  * The four family subscriptions in the devis' order and the one-night plan
  * (feedback round 2, JAM-304), then the professional's
  * night rate from 130 €, paid to her directly, and the 3 % fee with its
- * refund rule (feedback round 1, D-1, D-2).
+ * refund rule (feedback round 1, D-1, D-2). Three cards to a row at most: five
+ * in one row are too narrow for a price at the H2 size (JAM-461).
  */
 export default function TarifsPage() {
   const blocks = [
@@ -43,7 +44,7 @@ export default function TarifsPage() {
             <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[...a.plans, a.uneNuit].map((plan) => (
             <li key={plan.name}>
               <Card className="h-full">
@@ -54,7 +55,7 @@ export default function TarifsPage() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                   <p>{plan.duree}</p>
-                  <p className="font-display text-h2 text-sauge">
+                  <p className="font-display text-h2 whitespace-nowrap text-sauge">
                     {plan.prix}
                   </p>
                 </CardContent>

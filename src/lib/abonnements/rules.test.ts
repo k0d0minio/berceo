@@ -396,8 +396,8 @@ describe("the one-night plan (JAM-304)", () => {
     }
   });
 
-  it("is sold at 14,75 €", () => {
-    expect(words(abonnements).uneNuit.prix).toBe("14,75 €");
+  it("is sold at 14,75 €", () => {
+    expect(words(abonnements).uneNuit.prix).toBe("14,75 €");
   });
 });
 

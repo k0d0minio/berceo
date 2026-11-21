@@ -99,7 +99,7 @@ describe("the vitrine's catalogue", () => {
     const [path, text] = prose.find(([p]) => p === feeSentence) ?? [];
     expect(path).toBe(feeSentence);
     expect(text).toBe(
-      "Des frais de service de 3 % sont prélevés à la confirmation de chaque réservation. Ils couvrent le bon fonctionnement de la plateforme et l'assurance.",
+      "Des frais de service de 3 % sont prélevés à la confirmation de chaque réservation. Ils couvrent le bon fonctionnement de la plateforme et l'assurance.",
     );
   });
 
@@ -110,7 +110,7 @@ describe("the vitrine's catalogue", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("names no amount in euros but the four subscriptions, the one-night plan and 130 € (feedback rounds 1 and 2)", () => {
+  it("names no amount in euros but the four subscriptions, the one-night plan and 130 € (feedback rounds 1 and 2)", () => {
     const amounts = prose.flatMap(([path, text]) =>
       [...text.matchAll(/(\d[\d  .,]*)\s*€/g)].map(
         (match) => [path, match[1].replace(/[\s  ]/g, "")] as const,
@@ -125,7 +125,7 @@ describe("the vitrine's catalogue", () => {
     ).toEqual([]);
   });
 
-  it("names no percentage but the 3 % fee (D-2)", () => {
+  it("names no percentage but the 3 % fee (D-2)", () => {
     const percents = prose.flatMap(([path, text]) =>
       [...text.matchAll(/(\d[\d,]*)\s*%/g)].map(
         (match) => [path, match[1]] as const,
@@ -133,6 +133,20 @@ describe("the vitrine's catalogue", () => {
     );
     expect(percents.length).toBeGreaterThan(0);
     expect(percents.filter(([, n]) => n !== "3")).toEqual([]);
+  });
+
+  it("never breaks a line between a number and its € or % (JAM-461)", () => {
+    // A breaking space is any white space but the no-break U+00A0 and U+202F.
+    const breaking = /\d[^\S  ]+[€%]/;
+    expect(prose.filter(([, text]) => breaking.test(text))).toEqual([]);
+    expect(
+      [...surfaces.abonnements.plans, surfaces.abonnements.uneNuit].map(
+        ({ prix }) => prix,
+      ),
+    ).toEqual(
+      ["24,90", "59,90", "94,90", "159,90", "14,75"].map((n) => `${n} €`),
+    );
+    expect(surfaces.tarifs.intro).toContain("3 %");
   });
 
   it("never says there is no subscription (feedback round 1)", () => {
@@ -146,21 +160,21 @@ describe("the vitrine's catalogue", () => {
 describe("the subscriptions on « Tarifs »", () => {
   it("lists the four plans of the devis, in its order", () => {
     expect(surfaces.abonnements.plans).toEqual([
-      { name: "Découverte", duree: "1 mois", prix: "24,90 €" },
-      { name: "Parenthèse", duree: "3 mois", prix: "59,90 €" },
-      { name: "Sérénité", duree: "6 mois", prix: "94,90 €" },
-      { name: "Premium", duree: "12 mois", prix: "159,90 €" },
+      { name: "Découverte", duree: "1 mois", prix: "24,90 €" },
+      { name: "Parenthèse", duree: "3 mois", prix: "59,90 €" },
+      { name: "Sérénité", duree: "6 mois", prix: "94,90 €" },
+      { name: "Premium", duree: "12 mois", prix: "159,90 €" },
     ]);
   });
 
-  it("names the one-night plan at 14,75 € (feedback round 2, JAM-304)", () => {
-    expect(surfaces.abonnements.uneNuit.prix).toBe("14,75 €");
-    expect(surfaces.tarifs.abonnements.paragraphs.join(" ")).toContain("14,75 €");
+  it("names the one-night plan at 14,75 € (feedback round 2, JAM-304)", () => {
+    expect(surfaces.abonnements.uneNuit.prix).toBe("14,75 €");
+    expect(surfaces.tarifs.abonnements.paragraphs.join(" ")).toContain("14,75 €");
   });
 
-  it("sets the night rate from 130 € and names no ceiling", () => {
+  it("sets the night rate from 130 € and names no ceiling", () => {
     const [rate] = surfaces.tarifs.tarif.paragraphs;
-    expect(rate).toContain("à partir de 130 €");
+    expect(rate).toContain("à partir de 130 €");
     expect(rate).not.toMatch(/\bentre\b|maximum|jusqu/i);
   });
 });

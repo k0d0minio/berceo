@@ -31,14 +31,14 @@ import { catalogue } from "./locale";
 export const abonnements = catalogue({
   fr: {
     plans: [
-      { name: "Découverte", duree: "1 mois", prix: "24,90 €" },
-      { name: "Parenthèse", duree: "3 mois", prix: "59,90 €" },
-      { name: "Sérénité", duree: "6 mois", prix: "94,90 €" },
-      { name: "Premium", duree: "12 mois", prix: "159,90 €" },
+      { name: "Découverte", duree: "1 mois", prix: "24,90 €" },
+      { name: "Parenthèse", duree: "3 mois", prix: "59,90 €" },
+      { name: "Sérénité", duree: "6 mois", prix: "94,90 €" },
+      { name: "Premium", duree: "12 mois", prix: "159,90 €" },
     ],
 
     /** @relecture Surya — la formule une nuit (retour des fondatrices, tour 2) : le nom est à confirmer. */
-    uneNuit: { name: "Une nuit", duree: "1 réservation", prix: "14,75 €" },
+    uneNuit: { name: "Une nuit", duree: "1 réservation", prix: "14,75 €" },
 
     espace: {
       /** @relecture Surya — le titre de la page et de l'onglet. */
