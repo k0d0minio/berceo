@@ -2,6 +2,8 @@ import "server-only";
 
 import { Resend } from "resend";
 
+import { demoEnvFrom, demoSwitchOn } from "@/lib/demo/switch";
+
 import type { RenderedEmail } from "./templates";
 
 /**
@@ -12,6 +14,8 @@ import type { RenderedEmail } from "./templates";
  *
  * `idempotencyKey` makes Resend send once per key for 24 hours, whatever
  * instance the request lands on: Neon retries a webhook with the same event id.
+ *
+ * In the local demo (JAM-462) no e-mail leaves: the server log names it.
  */
 let client: Resend | null = null;
 
@@ -32,6 +36,10 @@ export async function sendEmail(
     replyTo?: string;
   },
 ): Promise<void> {
+  if (demoSwitchOn(demoEnvFrom(process.env))) {
+    console.info("[demo] e-mail not sent", { to, subject: email.subject });
+    return;
+  }
   const from = process.env.EMAIL_FROM;
   if (!from) throw new Error("EMAIL_FROM is not set — e-mail is unavailable. See .env.example.");
 

@@ -30,6 +30,7 @@ The router has the commands, the stages and the lanes. A ticket is a Linear key 
 | read where the build runs | `.icm/environments.md`, the one home of the addresses |
 | read the UAT batch, record the client's sign-off, promote, roll back | `.icm/_system/features/uat.md`, then `.icm/_system/scripts/promote.sh` |
 | change the database, read which database a deployment reads, or migrate production | `.icm/local/database.md`, then `.icm/local/vercel-build.sh` and `.github/workflows/migrate-production.yml` |
+| make, fill, reset or serve the local demo database, or sign in as a demo account (JAM-462) | `.icm/local/database.md`, The local demo database; code in `src/lib/demo/` and `scripts/demo/` |
 | do a setup act in Vercel, GitHub or Neon | `.icm/setup/`: one file for each act. A person ticks its boxes |
 | change what CI checks or how a release is cut | the blueprint. `ci.yml`, `promote.yml` and `icm.yml` come from it |
 | change a file below `.icm/_system/` | the blueprint, then an update of this repo. Never edit the folder here |

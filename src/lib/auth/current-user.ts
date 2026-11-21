@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 
 import type { User } from "@/db";
+import { demoSessionActive, demoSessionUser } from "@/lib/demo/session";
 
 import { DEVICE_COOKIE, needsSecondFactor } from "./second-factor";
 import { isDeviceTrusted } from "./second-factor-store";
@@ -26,6 +27,9 @@ import { userByAuthId } from "./users";
  *   trusted in the last 30 days (comptes-2fa). It opens nothing but the code
  *   page: the guard sends it there, and every action refuses it as it refuses
  *   any status but `ok`. One read of `trusted_devices`, for these two roles only.
+ *
+ * In the local demo (JAM-462, `src/lib/demo/`), the demo cookie names the
+ * account and Neon Auth is never asked: a demo account needs no code.
  */
 export type CurrentUser =
   | { status: "signed-out" }
@@ -36,6 +40,12 @@ export type CurrentUser =
   | { status: "ok"; user: User };
 
 export const currentUser = cache(async (): Promise<CurrentUser> => {
+  if (await demoSessionActive()) {
+    const demo = await demoSessionUser();
+    if (!demo) return { status: "signed-out" };
+    return demo.suspendedAt ? { status: "suspended", user: demo } : { status: "ok", user: demo };
+  }
+
   const { data } = await getAuth().getSession();
   const identity = data?.user;
   if (!identity) return { status: "signed-out" };

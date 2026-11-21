@@ -20,6 +20,7 @@ import {
 import { sendSignInCode } from "@/lib/auth/second-factor-send";
 import { checkSignInCode, isDeviceTrusted, trustDevice, type CodeCheck } from "@/lib/auth/second-factor-store";
 import { getAuth } from "@/lib/auth/server";
+import { demoSessionActive, endDemoSession } from "@/lib/demo/session";
 import {
   deleteOrphanIdentity,
   isEmailTaken,
@@ -382,6 +383,8 @@ export async function setNewPassword(
 }
 
 export async function signOut(): Promise<void> {
-  await getAuth().signOut();
+  // The local demo (JAM-462) ends its own cookie and never asks Neon Auth.
+  if (await demoSessionActive()) await endDemoSession();
+  else await getAuth().signOut();
   redirect(SIGN_IN_PATH);
 }

@@ -181,6 +181,28 @@ build of production never migrates.
 `src/db/migrations-journal.test.ts` refuses a journal whose stamps are out of order — the one
 way Drizzle's migrator skips a file silently.
 
+## The local demo database
+
+A local server for a demo or a checktest run, on its own database, with every role signed in
+by one link (JAM-462). The rules are in `.icm/local/database.md`, The local demo database.
+
+```bash
+NEON_API_KEY=<your key> npm run demo:db:make   # make the Neon branch local/demo, migrate it, fill it
+npm run demo:seed                              # reset: empty every table and fill it again
+npm run demo:dev                               # next dev on the demo database, demo switch on
+```
+
+- `npm run demo:dev` reads `.env.demo.local` (written by `demo:db:make`, ignored by git). Its
+  variables win over `.env.local`. `npm run dev` does not change.
+- Sign in as any demo account: `http://localhost:3000/api/demo/connexion?compte=<name>`, and
+  `&retour=<path>` to land on a page. The seed prints each name. No password, no code, no mailbox.
+- The switch `BERCEO_LOCAL_DEMO=1` (`src/lib/demo/switch.ts`) works only when the server is not
+  on Vercel, is not a production build, and the host is `localhost`, `127.0.0.1`, `[::1]` or
+  `*.localhost`. Anywhere else `/api/demo/connexion` answers 404. `switch.test.ts` holds it.
+- In the demo, `currentUser()` reads the cookie `berceo-demo` and never asks Neon Auth, no
+  e-mail leaves (the server log names it), and the photos and documents are made from their
+  key (`src/lib/demo/files.ts`), never read from a bucket.
+
 ## Accounts and e-mail
 
 Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mail on **Resend**.
