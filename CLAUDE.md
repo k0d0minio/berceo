@@ -94,9 +94,12 @@ The router has the commands, the stages and the lanes. A ticket is a Linear key 
   Jamie's word, after the client's sign-off (`.icm/_system/features/uat.md`).
 - The workflow `promote` does not migrate production. A release with a migration needs
   `migrate-production.yml` before `promote.sh run` (`.icm/local/database.md`).
-- Linear: a ticket is a key of the team `JAM`. A session in this repo does not write to Linear
-  (`linear_writes: false`), and no workflow moves a ticket (`linear_states: false`). A person
-  or BAXTER moves the states.
+- Linear: a ticket is a key of the team `JAM`. A session in this repo makes its own ticket
+  acts in Linear with the BAXTER Linear tool (`linear_session_writes: true`; Jamie,
+  2026-11-24): a comment on the run's ticket, a new issue in Triage, a relation. Rule 5 of
+  `.icm/_system/rules/ticket.md` and `.icm/_system/features/linear-writes.md` have the
+  limits. No workflow moves a ticket (`linear_states: false`). A person or BAXTER moves the
+  states.
 - Never invent a commercial term. Rates, scope, launch dates and contact addresses come from
   Jamie or from `.icm/docs/`. Berceo has no published email or domain yet; a blank is the
   correct state until it does. The vitrine publishes no address for exactly this reason: « Contact » is a form, and its
