@@ -5,5 +5,5 @@
 - link: https://linear.app/jamienisbet/issue/JAM-582/berceo-family-space-charter-link-keeps-the-sign-in-conversation-title
 - branch: contact/jam-582-berceo-family-space-charter-link-keeps-the
 - lane: bug
-- pr: pending
+- pr: #145
 - started: 2026-11-25
