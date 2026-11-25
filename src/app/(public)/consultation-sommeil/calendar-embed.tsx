@@ -38,7 +38,8 @@ export function CalendarEmbed({
   url: string;
   embed: boolean;
   labels: Labels;
-  homePath: string;
+  /** The site's home; null inside a space, where the space is the one way on (JAM-582). */
+  homePath: string | null;
   spacePath: string;
 }) {
   const [frame, setFrame] = useState<string | null>(null);
@@ -89,9 +90,11 @@ export function CalendarEmbed({
           <h3 className="font-sans text-h3 font-bold text-balance">{labels.confirme.title}</h3>
           <p>{labels.confirme.text}</p>
           <div className="flex flex-wrap items-center gap-4">
-            <Button asChild>
-              <Link href={homePath}>{labels.confirme.accueil}</Link>
-            </Button>
+            {homePath ? (
+              <Button asChild>
+                <Link href={homePath}>{labels.confirme.accueil}</Link>
+              </Button>
+            ) : null}
             <Button asChild>
               <Link href={spacePath}>{labels.confirme.espace}</Link>
             </Button>
