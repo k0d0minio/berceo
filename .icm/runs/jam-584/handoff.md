@@ -2,11 +2,11 @@
 
 ## Next action
 
-<What the next session, or the operator, does first.>
+L'opérateur teste la preview, coche **Ready to merge** sur la PR #147, puis dit `release JAM-584`.
 
 ## How to test
 
-<1 to 3 short sentences that can be said aloud: where to go on the preview, what to do, what the operator must see.>
+Connectez-vous en admin sur la preview. Ouvrez « Utilisateurs », puis le compte d'une professionnelle refusée : la ligne « Dossier » montre « Profil refusé » sur une pastille rouge. Ouvrez ce dossier : la ligne « Statut » montre la même pastille rouge. Les autres statuts restent sur fond perle.
 
 ## Blockers
 

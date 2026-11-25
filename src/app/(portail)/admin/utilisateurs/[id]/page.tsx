@@ -7,6 +7,7 @@ import { AccountActions } from "@/components/admin/account-actions";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { BerceoCancelButton } from "@/components/admin/berceo-cancel-button";
 import { JournalTable } from "@/components/admin/journal-table";
+import { ProfileStatusBadge } from "@/components/admin/profile-status-badge";
 import { listHref } from "@/components/admin/list-controls";
 import { CalendrierIcon, DocumentIcon, type IconComponent } from "@/components/berceo-icons";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -118,7 +119,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
             <>
               <Row label={t.champs.dossier}>
                 <Link href={adminFilePath(view.professional.profileId)} className={link}>
-                  {a.dossier.etats[view.professional.status]}
+                  <ProfileStatusBadge status={view.professional.status} />
                 </Link>
               </Row>
               <Row label={t.champs.profession}>

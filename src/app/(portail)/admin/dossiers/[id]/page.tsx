@@ -8,6 +8,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { DecisionPanel } from "@/components/admin/decision-panel";
 import { DocumentView } from "@/components/admin/document-view";
 import { JournalTable } from "@/components/admin/journal-table";
+import { ProfileStatusBadge } from "@/components/admin/profile-status-badge";
 import { DocumentIcon } from "@/components/berceo-icons";
 import { EmptyState } from "@/components/ui/empty-state";
 import { admin } from "@/content/admin";
@@ -98,7 +99,9 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
         <Row label={a.dossier.champs.dossierEnvoye}>
           {profile.submittedAt ? dateTime.format(profile.submittedAt) : unset}
         </Row>
-        <Row label={a.dossier.champs.statut}>{a.dossier.etats[profile.status]}</Row>
+        <Row label={a.dossier.champs.statut}>
+          <ProfileStatusBadge status={profile.status} />
+        </Row>
         {profile.reviewReason ? <Row label={a.dossier.champs.motif}>{profile.reviewReason}</Row> : null}
       </dl>
 
