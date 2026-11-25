@@ -18,13 +18,14 @@ import { words } from "@/content/locale"
  * Validation is the server's; a refused form keeps what was typed, minus the
  * passwords.
  *
- * The family's form opens on the four plans (abonnements-inscription-famille):
+ * The family's form opens on the one-night plan and the four plans
+ * (abonnements-inscription-famille, JAM-581):
  * one radio card each, required, and one line on what a plan gives. The
  * professional's form has no `plans` and shows none.
  */
 
-/** One plan's card: its value for the form, and the words the page looked up. */
-type PlanChoice = { value: string; name: string; duree: string; prix: string }
+/** One plan's card: its value for the form, and the words the page looked up; `parMois` only for a subscription of more than one month (JAM-581). */
+type PlanChoice = { value: string; name: string; duree: string; prix: string; parMois?: string | null }
 
 function SignUpForm({
   action,
@@ -73,6 +74,7 @@ function SignUpForm({
                   <span className="text-h3 font-bold text-sauge">{plan.name}</span>
                   <span className="text-corps text-taupe">{plan.duree}</span>
                   <span className="text-corps font-semibold text-taupe">{plan.prix}</span>
+                  {plan.parMois ? <span className="text-corps text-taupe">{plan.parMois}</span> : null}
                 </span>
               </label>
             ))}

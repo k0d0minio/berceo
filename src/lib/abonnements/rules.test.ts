@@ -28,6 +28,10 @@ import {
   PLANS,
   planToFinish,
   PRICE_ENV,
+  SIGNUP_CHOICES,
+  signupChoiceOf,
+  signupColumns,
+  isSignupChoice,
   statusFromStripe,
   stripeSubscriptionUrl,
   subscriptionState,
@@ -200,6 +204,29 @@ describe("the plan a family's home asks her to finish", () => {
 
   it("is none for a family who signed up before the plans were part of sign-up", () => {
     expect(planToFinish(null, false)).toBeNull();
+  });
+
+  it("is the one-night plan she picked at sign-up, until a Checkout completed (JAM-581)", () => {
+    expect(planToFinish("une-nuit", false)).toBe("une-nuit");
+    expect(planToFinish("une-nuit", true)).toBeNull();
+  });
+});
+
+describe("the sign-up choice (JAM-581)", () => {
+  it("offers the one-night plan first, then the four plans, as /tarifs does", () => {
+    expect(SIGNUP_CHOICES).toEqual(["une-nuit", "decouverte", "parenthese", "serenite", "premium"]);
+    for (const choice of SIGNUP_CHOICES) expect(isSignupChoice(choice)).toBe(true);
+    expect(isSignupChoice("Une nuit")).toBe(false);
+    expect(isSignupChoice(null)).toBe(false);
+  });
+
+  it("writes and reads the two columns, one choice at a time", () => {
+    for (const choice of [...SIGNUP_CHOICES, null]) {
+      const columns = signupColumns(choice);
+      expect(columns.signupNightPass && columns.signupPlan !== null).toBe(false);
+      expect(signupChoiceOf(columns)).toBe(choice);
+    }
+    expect(signupColumns("une-nuit")).toEqual({ signupPlan: null, signupNightPass: true });
   });
 });
 

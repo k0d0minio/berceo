@@ -139,9 +139,9 @@ export const abonnements = catalogue({
       /** @relecture Surya — ce que donne une formule, repris de la page Tarifs. */
       donne:
         "Chaque formule vous donne accès aux profils complets des professionnelles et à leur contact. Vous publiez autant de demandes que nécessaire.",
-      /** @relecture Surya — quand le paiement arrive. */
+      /** @relecture Surya — quand le paiement arrive ; la formule Une nuit est aussi au choix (JAM-581). */
       suite:
-        "Vous réglez votre abonnement sur la page sécurisée de Stripe, après la confirmation de votre adresse e-mail. Il se renouvelle automatiquement à la fin de chaque période.",
+        "Vous réglez votre formule sur la page sécurisée de Stripe, après la confirmation de votre adresse e-mail. Un abonnement se renouvelle automatiquement à la fin de chaque période. La formule Une nuit est un paiement unique.",
     },
 
     /** Le bloc de l'accueil de l'espace famille. */
@@ -160,6 +160,10 @@ export const abonnements = catalogue({
       finaliser: "Finaliser mon abonnement",
       /** @relecture Surya — le lien vers les quatre formules. */
       autreFormule: "Choisir une autre formule",
+      /** @relecture Surya — la formule Une nuit choisie à l'inscription, pas encore réglée (JAM-581). */
+      finaliserNuitTexte: "Vous avez choisi la formule {plan}. Il reste à la régler.",
+      /** @relecture Surya — le bouton qui rouvre la page de paiement de la formule Une nuit (JAM-581). */
+      finaliserNuit: "Finaliser ma formule",
       /** @relecture Surya — un renouvellement a échoué (abonnements-espace-echec-paiement). */
       alerte: "Le renouvellement de votre abonnement n'a pas abouti.",
     },

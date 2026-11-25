@@ -46,6 +46,11 @@ describe("sign-up validation (spec: invalid input is refused on the field concer
     expect(result.ok && result.values.plan).toBe("premium");
   });
 
+  it("accepts the one-night plan on a family's form (JAM-581)", () => {
+    const result = validateSignUp({ ...valid, formule: "une-nuit" }, { needsPlan: true });
+    expect(result.ok && result.values.plan).toBe("une-nuit");
+  });
+
   it("ignores a plan on a professional's form", () => {
     const result = validateSignUp({ ...valid, formule: "premium" });
     expect(result.ok && result.values.plan).toBeNull();

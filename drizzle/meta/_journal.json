@@ -281,6 +281,13 @@
       "when": 1795178028959,
       "tag": "0039_horaire-adapte",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1795626858775,
+      "tag": "0040_signup-night-pass",
+      "breakpoints": true
     }
   ]
 }

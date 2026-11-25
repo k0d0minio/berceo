@@ -1,5 +1,6 @@
-import type { SubscriptionPlan, UserRole } from "@/db/schema";
+import type { UserRole } from "@/db/schema";
 import { SUBSCRIPTION_START_PATH } from "@/lib/abonnements/paths";
+import type { SignupChoice } from "@/lib/abonnements/rules";
 
 import { homeFor, landingFor, safeReturnPath } from "./routing";
 
@@ -38,7 +39,7 @@ export function returnToStore(role: UserRole, retour: string | null | undefined)
 export function verifiedLanding(
   role: UserRole,
   stored: string | null | undefined,
-  signupPlan: SubscriptionPlan | null = null,
+  signupPlan: SignupChoice | null = null,
 ): string {
   if (role !== "parent") return homeFor(role);
   return signupPlan ? SUBSCRIPTION_START_PATH : landingFor(role, stored);

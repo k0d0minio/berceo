@@ -114,14 +114,24 @@ export async function liveSubscription(userId: string): Promise<Subscription | n
   return row ?? null;
 }
 
-/** Whether a Checkout of the family's ever completed: a row Stripe gave a subscription, whatever its status since. */
+/**
+ * Whether a Checkout of the family's ever completed: a row Stripe gave a
+ * subscription, whatever its status since, or a paid one-night pass (JAM-581).
+ */
 export async function hasCompletedCheckout(userId: string): Promise<boolean> {
-  const [row] = await db
-    .select({ id: subscriptions.id })
-    .from(subscriptions)
-    .where(and(eq(subscriptions.userId, userId), isNotNull(subscriptions.stripeSubscriptionId)))
-    .limit(1);
-  return row !== undefined;
+  const [[row], [pass]] = await Promise.all([
+    db
+      .select({ id: subscriptions.id })
+      .from(subscriptions)
+      .where(and(eq(subscriptions.userId, userId), isNotNull(subscriptions.stripeSubscriptionId)))
+      .limit(1),
+    db
+      .select({ id: nightPasses.id })
+      .from(nightPasses)
+      .where(and(eq(nightPasses.userId, userId), isNotNull(nightPasses.paidAt)))
+      .limit(1),
+  ]);
+  return row !== undefined || pass !== undefined;
 }
 
 /**

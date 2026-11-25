@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { siteUrl } from "@/app/site";
 import { db, userConsents, users } from "@/db";
+import { signupColumns } from "@/lib/abonnements/rules";
 import { consentRows } from "@/lib/auth/consent";
 import { currentUser } from "@/lib/auth/current-user";
 import { RETURN_COOKIE, RETURN_COOKIE_OPTIONS, returnToStore } from "@/lib/auth/retour";
@@ -105,7 +106,7 @@ export async function signUp(
     telephone: input.telephone,
     formule: input.formule,
   };
-  // A family picks one of the four plans before her account (abonnements-inscription-famille).
+  // A family picks one of the four plans, or the one-night plan (JAM-581), before her account (abonnements-inscription-famille).
   const checked = validateSignUp(input, { needsPlan: role === "parent" });
   if (!checked.ok) return { errors: checked.errors, values };
 
@@ -176,7 +177,7 @@ export async function signUp(
   const id = crypto.randomUUID();
   try {
     await db.batch([
-      db.insert(users).values({ id, authUserId, email, firstName, lastName, phone, role, signupPlan: plan }),
+      db.insert(users).values({ id, authUserId, email, firstName, lastName, phone, role, ...signupColumns(plan) }),
       db.insert(userConsents).values(consentRows(id)),
     ]);
   } catch (writeError) {

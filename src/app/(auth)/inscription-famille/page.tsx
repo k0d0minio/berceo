@@ -6,20 +6,33 @@ import { SignUpForm } from "@/components/auth/sign-up-form";
 import { abonnements } from "@/content/abonnements";
 import { comptes } from "@/content/comptes";
 import { fill, words } from "@/content/locale";
-import { planWords } from "@/lib/abonnements/format";
-import { PLANS } from "@/lib/abonnements/rules";
+import { monthlyLine, planWords } from "@/lib/abonnements/format";
+import { NIGHT_PASS_CHOICE, PLANS } from "@/lib/abonnements/rules";
 import { redirectIfSignedIn } from "@/lib/auth/guard";
 import { safeReturnPath, SIGN_IN_PATH, withReturn } from "@/lib/auth/routing";
 
 const t = words(comptes);
 const a = words(abonnements);
 
-/** The four plans of the devis, in its order, as the form's radio cards. */
+/**
+ * The one-night plan, then the four plans of the devis, in the order of
+ * `/tarifs` (JAM-581), as the form's radio cards. A subscription of more than
+ * one month shows its price per month.
+ */
 const plans = {
-  choices: PLANS.map((plan) => {
-    const { name, duree, prix } = planWords(plan);
-    return { value: plan, name, duree: fill(a.espace.duree, { duree }), prix };
-  }),
+  choices: [
+    {
+      value: NIGHT_PASS_CHOICE,
+      name: a.uneNuit.name,
+      duree: fill(a.espace.duree, { duree: a.uneNuit.duree }),
+      prix: a.uneNuit.prix,
+      parMois: null,
+    },
+    ...PLANS.map((plan) => {
+      const { name, duree, prix } = planWords(plan);
+      return { value: plan, name, duree: fill(a.espace.duree, { duree }), prix, parMois: monthlyLine(plan) };
+    }),
+  ],
   legende: a.inscription.legende,
   lignes: [a.inscription.donne, a.inscription.suite],
 };
@@ -37,7 +50,7 @@ function first(value: string | string[] | undefined): string | undefined {
 
 /*
  * Family sign-up (B-01): the guide's message and hook sentence, then the form,
- * which opens on the four plans: no account without one
+ * which opens on the one-night plan and the four plans: no account without one
  * (abonnements-inscription-famille). The plan is paid after the e-mail
  * confirmation, on Stripe's Checkout.
  * The URL can carry a way back (`retour`, only a path inside a space): a

@@ -1,0 +1,2 @@
+ALTER TABLE "users" ADD COLUMN "signup_night_pass" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_signup_one_choice" CHECK (NOT ("users"."signup_night_pass" AND "users"."signup_plan" IS NOT NULL));

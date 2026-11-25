@@ -17,6 +17,30 @@ import { addDays, brusselsNow, hasNightEnded, isIsoDate } from "@/lib/demandes/r
 /** The four plans of the devis, in its order, which is also `src/content/abonnements.ts`'s. */
 export const PLANS = ["decouverte", "parenthese", "serenite", "premium"] as const satisfies readonly SubscriptionPlan[];
 
+/**
+ * What a family picks on the sign-up form (JAM-581): the one-night plan, then
+ * the four subscriptions, in the order of `/tarifs`.
+ */
+export const NIGHT_PASS_CHOICE = "une-nuit";
+export type SignupChoice = SubscriptionPlan | typeof NIGHT_PASS_CHOICE;
+export const SIGNUP_CHOICES = [NIGHT_PASS_CHOICE, ...PLANS] as const satisfies readonly SignupChoice[];
+
+export function isSignupChoice(value: string | null | undefined): value is SignupChoice {
+  return value === NIGHT_PASS_CHOICE || isPlan(value);
+}
+
+/** The choice a family's row holds: the one-night plan, a subscription, or none. */
+export function signupChoiceOf(user: { signupPlan: SubscriptionPlan | null; signupNightPass: boolean }): SignupChoice | null {
+  return user.signupNightPass ? NIGHT_PASS_CHOICE : user.signupPlan;
+}
+
+/** The two columns that hold a sign-up choice. */
+export function signupColumns(choice: SignupChoice | null): { signupPlan: SubscriptionPlan | null; signupNightPass: boolean } {
+  return choice === NIGHT_PASS_CHOICE
+    ? { signupPlan: null, signupNightPass: true }
+    : { signupPlan: choice, signupNightPass: false };
+}
+
 /** Each plan's length in months, as the devis and `duree` in `src/content/abonnements.ts` say it. */
 export const PLAN_MONTHS = {
   decouverte: 1,
@@ -183,14 +207,14 @@ export function familyMay(action: FamilyAction, facts: { subscribed: boolean; bo
 
 /**
  * The plan a family's home asks her to finish (abonnements-inscription-famille):
- * the one she picked at sign-up, while no Checkout of hers ever completed.
- * Leaving the Checkout unpaid completes none. A completed Checkout, paid,
- * pending or ended since, asks for nothing more.
+ * the one she picked at sign-up, the one-night plan included (JAM-581), while
+ * no Checkout of hers ever completed. Leaving the Checkout unpaid completes
+ * none. A completed Checkout, paid, pending or ended since, asks for nothing more.
  */
 export function planToFinish(
-  signupPlan: SubscriptionPlan | null,
+  signupPlan: SignupChoice | null,
   completedCheckout: boolean,
-): SubscriptionPlan | null {
+): SignupChoice | null {
   return completedCheckout ? null : signupPlan;
 }
 
