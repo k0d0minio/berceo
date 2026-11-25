@@ -2,16 +2,20 @@
 
 ## Next action
 
-Jamie answers Q1 in the pull request (AC-4, the one-night plan on the family sign-up). Then `tweak JAM-581` continues with `questions.sh JAM-581`.
+Jamie tests the preview and ticks Ready to merge. The release that carries this pull request runs `migrate-production.yml` before `promote.sh run` (migration 0040).
 
 ## How to test
 
-On the preview, open Tarifs: Une nuit comes first, and Parenthèse, Sérénité and Premium each show their price per month. Check that the header menu shows Tarifs on a wide screen and in the mobile menu.
+On the preview, open Tarifs: Une nuit comes first, and Parenthèse, Sérénité and Premium show their price per month. Check that the header menu shows Tarifs. Sign up as a family with Une nuit: after the e-mail check, the Checkout of the one-night plan opens.
+
+## Decisions
+
+- Q1, Jamie in chat, 2026-11-25: "Do it in this PR". AC-4 is in this pull request, with a database change.
 
 ## Blockers
 
-- Q1 waits for an answer. AC-1, AC-2 and AC-3 are done and do not depend on it.
+- none
 
 ## Do not touch
 
-- `src/components/auth/sign-up-form.tsx`: a parallel session (password toggle) works on it.
+- none
