@@ -777,12 +777,13 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   `familyMayNow(userId, action, now)` reads it for a page or an action.
   - Each page shows the invitation line (`SubscriptionRequired`,
     `src/components/abonnements/`) in place of a closed action. A page that is itself the
-    action (the new request, the edit, the full profile, the priority request) shows only
-    the line.
+    action (the new request, the edit, the priority request) shows only the line. The full
+    profile shows her public teaser above the line (JAM-582).
   - Each server action reads the gate again before its write and goes back to its page.
     `sendMessage` holds the gate for the family side with the facts it reads.
-  - Without a subscription the search stays open with the public teaser cards, which link to
-    the public pages. Her requests stay published, and she can cancel them. Her confirmed
+  - Without a subscription the search stays open with the public teaser cards. Each card links
+    to the full profile in her space, which shows the public teaser and the invitation line,
+    under the signed-in shell (JAM-582). Her requests stay published, and she can cancel them. Her confirmed
     gardes stay whole: the phone, cancelling, the absence, the conversation and the rating.
   - The professionals' side reads none of it.
 - **Invoices:** Stripe sends each invoice and receipt by e-mail. The platform lists none.
@@ -1194,11 +1195,19 @@ but the four subscriptions, 130 € and 3 % » for one price only: 14,75 €.
   blocks on the stripes. It is indexed and in the sitemap.
 - **Placeholders**: the two legal pages wait for the founders' texts. Both are `noindex` and
   out of the sitemap; lifting that is part of the change that brings the text.
+- **No public page from a space (JAM-582):** the public header does not read the session, so a
+  public page looks signed out. A family and a professional therefore read the two legal pages
+  inside their own space: the footer of a space links to `/espace/<space>/conditions-generales`
+  and `/espace/<space>/confidentialite` (`legalPath`, `src/lib/legal/paths.ts`; the pages in
+  `src/app/(portail)/espace/legal-page.tsx`). The family's home links to the sleep
+  consultation and to the charter inside her space (`/espace/famille/consultation-sommeil`,
+  `/espace/famille/charte`). No link of a space leads to a page of the vitrine.
 - **The sleep consultation (JAM-305, JAM-352):** `/consultation-sommeil` presents the consultation
   with the two founders. The address of their calendar is the environment variable
   `SLEEP_CONSULTATION_URL` (`src/lib/consultation-sommeil/config.ts`), never in git. Where the
   variable is empty or is not an `https://` address, the page answers 404, and the footer, the
-  family's home and the sitemap do not name it. The calendar shows in the page, in a plain
+  family's home and the sitemap do not name it. The family's home links to its copy inside her
+  space, `/espace/famille/consultation-sommeil`, with the same words and calendar (JAM-582). The calendar shows in the page, in a plain
   `<iframe>`, only after the visitor clicks « Choisir un créneau » (`calendar-embed.tsx`): before
   the click the page sends nothing to Calendly, and a sentence under the button says that the
   calendar is a service of Calendly. The page loads no script and no stylesheet of Calendly.

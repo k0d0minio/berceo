@@ -6,7 +6,6 @@ import { CreditsBlock } from "@/components/credits/credits-block";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { abonnements } from "@/content/abonnements";
-import { common } from "@/content/common";
 import { comptes } from "@/content/comptes";
 import { consultationSommeil } from "@/content/consultation-sommeil";
 import { demandes } from "@/content/demandes";
@@ -25,7 +24,7 @@ import { noteOfUser } from "@/lib/avis/ratings";
 import { sleepConsultationEnabled } from "@/lib/consultation-sommeil/config";
 import { familyCredits } from "@/lib/credits/credits";
 import { FAMILY_REQUESTS_PATH, NEW_REQUEST_PATH, NEW_URGENT_REQUEST_PATH } from "@/lib/demandes/paths";
-import { FAMILY_CHARTER_PATH, PROFILE_PATH } from "@/lib/famille/paths";
+import { FAMILY_CHARTER_PATH, FAMILY_SLEEP_CONSULTATION_PATH, PROFILE_PATH } from "@/lib/famille/paths";
 import { familyCommune } from "@/lib/famille/profile";
 import { SEARCH_PATH } from "@/lib/recherche/slugs";
 import { FAMILY_PROFESSIONALS_PATH } from "@/lib/reservations/paths";
@@ -191,7 +190,7 @@ export default async function EspaceFamillePage() {
       </Link>
       {sleepConsultationEnabled() ? (
         <Link
-          href={words(common).pages.consultationSommeil.href}
+          href={FAMILY_SLEEP_CONSULTATION_PATH}
           className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
         >
           {words(consultationSommeil).espace.lien}

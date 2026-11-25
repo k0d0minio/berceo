@@ -9,6 +9,7 @@ import { MarkButton } from "@/components/favoris/mark-button";
 import { AcceptAnswer } from "@/components/reservations/accept-answer";
 import { AdaptedTimes } from "@/components/reservations/adapted-times";
 import { ProfessionalPhoto } from "@/components/reservations/professional-photo";
+import { ProfessionalTeaser } from "@/components/recherche/public-professional";
 import { SpaceShell } from "@/components/shell/space-shell";
 import { Button } from "@/components/ui/button";
 import { words } from "@/content/locale";
@@ -32,7 +33,7 @@ import { feeCents } from "@/lib/paiements/rules";
 import { adaptedLines, extraHourLine, professionLabel, rateLine, recapNight } from "@/lib/reservations/format";
 import { adaptedNights, effectiveStart, proposalsSignature } from "@/lib/reservations/rules";
 import { priorityPath, professionalProfilePath } from "@/lib/reservations/paths";
-import { reachLine } from "@/lib/recherche/rules";
+import { reachLine, zoneNames } from "@/lib/recherche/rules";
 import { publicProfile } from "@/lib/reservations/profiles";
 
 import { acceptAnswerAction } from "../../demandes/actions";
@@ -57,8 +58,8 @@ export const dynamic = "force-dynamic";
  * phone, INAMI number or documents. « Lui envoyer ma demande en priorité »
  * always (D-71); « Accepter et réserver » when opened from one of the family's
  * open requests on which her answer waits (`?demande=`). Without a
- * subscription the invitation line takes the profile's place, from any link
- * (abonnements-acces). With one, « Ajouter à mes professionnelles » or
+ * subscription her public teaser and the invitation line take the profile's
+ * place, from any link (abonnements-acces; the teaser in the space, JAM-582). With one, « Ajouter à mes professionnelles » or
  * « Retirer de mes professionnelles » beside the priority request
  * (favoris-marquer). The profile is a white card on the pearl page (JAM-327).
  */
@@ -78,8 +79,21 @@ export default async function ProfilProfessionnellePage({
   const now = new Date();
   const subscribed = await isSubscribed(user.id, now);
   if (!familyMay("profil", { subscribed })) {
+    // Her public teaser, inside the space, then the invitation line (JAM-582).
     return (
       <SpaceShell user={user} title={r.meta.profil}>
+        <div className="max-w-2xl">
+          <ProfessionalTeaser
+            firstName={profile.firstName}
+            profession={profile.profession}
+            bio={profile.bio}
+            formations={profile.formationsComplementaires}
+            zone={zoneNames(profile.communes).map((name) => ({ name, href: null }))}
+            reach={reachLine(profile)}
+            note={profile.note}
+            level={2}
+          />
+        </div>
         <SubscriptionRequired />
       </SpaceShell>
     );

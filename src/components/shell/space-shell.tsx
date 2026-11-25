@@ -14,6 +14,7 @@ import { homeFor } from "@/lib/auth/routing"
 import { FAMILY_REQUESTS_PATH, PROFESSIONAL_REQUESTS_PATH } from "@/lib/demandes/paths"
 import { AVAILABILITY_PATH } from "@/lib/disponibilites/paths"
 import { PROFILE_PATH } from "@/lib/famille/paths"
+import { legalPath } from "@/lib/legal/paths"
 import { unreadCount } from "@/lib/messagerie/conversations"
 import { unreadLabel } from "@/lib/messagerie/format"
 import { SEARCH_PATH } from "@/lib/recherche/slugs"
@@ -27,7 +28,8 @@ import { FAMILY_BOOKINGS_PATH, FAMILY_PROFESSIONALS_PATH, PROFESSIONAL_BOOKINGS_
  * sign-out dialog wired to the session, and the greeting by first name. Each feature stub adds its own
  * navigation entries. « Messages » carries the number of conversations
  * holding an unread message, read on each page load (D-91). The footer links
- * to the general conditions and the privacy policy (round 2, JAM-301).
+ * to the general conditions and the privacy policy (round 2, JAM-301), read
+ * inside the space so the signed-in shell stays (JAM-582).
  */
 async function SpaceShell({
   user,
@@ -73,7 +75,10 @@ async function SpaceShell({
       ]}
       home={home}
       actions={<SignOutDialog onSignOut={signOut} variant="sauge" />}
-      legal={[pages.conditionsGenerales, pages.confidentialite]}
+      legal={[
+        { label: pages.conditionsGenerales.label, href: legalPath(user.role, "conditionsGenerales") },
+        { label: pages.confidentialite.label, href: legalPath(user.role, "confidentialite") },
+      ]}
     >
       <div className="flex flex-col gap-6">
         {title ? <p className="text-intro text-taupe">{greeting}</p> : null}

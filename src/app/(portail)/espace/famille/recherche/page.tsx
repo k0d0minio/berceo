@@ -23,7 +23,7 @@ import { familyCommune } from "@/lib/famille/profile";
 import { markedAmong } from "@/lib/favoris/favourites";
 import { cardsServing } from "@/lib/recherche/professionals";
 import { communesOfParams, resolveQuery, searchQuery, zoneNames } from "@/lib/recherche/rules";
-import { publicProfessionalPath, SEARCH_PATH } from "@/lib/recherche/slugs";
+import { SEARCH_PATH } from "@/lib/recherche/slugs";
 import { professionalProfilePath } from "@/lib/reservations/paths";
 
 import { markAction } from "../professionnelles/actions";
@@ -49,8 +49,9 @@ function first(value: string | string[] | undefined): string | undefined {
  * redirect to `?commune=` (repeated for a postcode that covers several), so a
  * result list is a URL a family can reload. Opened bare, the page searches
  * her own commune when her profile has one. Without a subscription the page
- * stays open with the public teaser cards, each linking to the professional's
- * public page, under the invitation line (abonnements-acces). With one, each
+ * stays open with the public teaser cards, under the invitation line
+ * (abonnements-acces). Each card links to her profile inside the space, which
+ * shows the teaser, so the signed-in shell stays (JAM-582). With one, each
  * card carries the mark « mes professionnelles » (favoris-marquer). The cards
  * are white on a sage zone, and no result is the taupe empty state (JAM-327).
  */
@@ -166,7 +167,7 @@ export default async function RecherchePage({
                   {cards.map((card) => (
                     <li key={card.id} className="min-w-0">
                       <TeaserCard
-                        href={publicProfessionalPath(card.firstName, card.id)}
+                        href={professionalProfilePath(card.id)}
                         firstName={card.firstName}
                         profession={card.profession}
                         zone={zoneNames(card.communes, communes)}
