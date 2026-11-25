@@ -61,6 +61,18 @@ export const comptes = catalogue({
       motDePasse: "8 caractères au minimum.",
     },
 
+    /** The button beside a password field that shows or hides the typed text (JAM-583). */
+    motDePasseVisible: {
+      /** @relecture Surya — texte du bouton, mot de passe masqué. */
+      afficher: "Afficher",
+      /** @relecture Surya — texte du bouton, mot de passe visible. */
+      masquer: "Masquer",
+      /** @relecture Surya — nom du bouton lu par un lecteur d'écran. */
+      afficherLibelle: "Afficher le mot de passe",
+      /** @relecture Surya — nom du bouton lu par un lecteur d'écran. */
+      masquerLibelle: "Masquer le mot de passe",
+    },
+
     inscription: {
       /** La phrase du guide, écrite pour la famille : la nuit de repos est la sienne. */
       message:

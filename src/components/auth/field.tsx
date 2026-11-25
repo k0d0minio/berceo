@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import { PasswordInput } from "@/components/auth/password-input"
 import { Input } from "@/components/ui/input"
 import { comptes } from "@/content/comptes"
 import { fill, words } from "@/content/locale"
@@ -10,13 +11,15 @@ import { cn } from "@/lib/utils"
  * input, the guide's helper line under it, and the error, if any, tied to the
  * input for screen readers (aria-invalid, aria-describedby). A field that
  * blocks the form shows in red: its border and its message (onboarding-retour-1,
- * the founders' feedback, which bends D-24 for form errors).
+ * the founders' feedback, which bends D-24 for form errors). A password field
+ * gets the button that shows or hides the typed text (JAM-583).
  */
 function Field({
   name,
   label,
   help,
   error,
+  type,
   ...input
 }: React.ComponentProps<typeof Input> & {
   name: string
@@ -27,19 +30,21 @@ function Field({
   const id = `champ-${name}`
   const helpId = help ? `${id}-aide` : undefined
   const errorId = error ? `${id}-erreur` : undefined
+  const a11y = {
+    "aria-invalid": error ? true : undefined,
+    "aria-describedby": [helpId, errorId].filter(Boolean).join(" ") || undefined,
+  }
 
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className="text-corps font-semibold text-taupe">
         {label}
       </label>
-      <Input
-        id={id}
-        name={name}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={[helpId, errorId].filter(Boolean).join(" ") || undefined}
-        {...input}
-      />
+      {type === "password" ? (
+        <PasswordInput id={id} name={name} {...a11y} {...input} />
+      ) : (
+        <Input id={id} name={name} type={type} {...a11y} {...input} />
+      )}
       {help ? (
         <p id={helpId} className="px-6 text-legende text-taupe">
           {help}
