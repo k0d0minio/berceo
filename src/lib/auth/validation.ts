@@ -1,12 +1,12 @@
-import type { SubscriptionPlan } from "@/db/schema";
-import { isPlan } from "@/lib/abonnements/rules";
+import { isSignupChoice, type SignupChoice } from "@/lib/abonnements/rules";
 
 /**
  * The sign-up and password forms' rules, as pure functions so the tests can
  * hold them to the spec: every field required, a well-formed e-mail, a Belgian
  * or international phone stored as E.164, a password of 8 to 128 characters
  * with no composition rule, a matching confirmation, and the consent ticked.
- * A family's sign-up also picks one of the four plans (abonnements-inscription-famille).
+ * A family's sign-up also picks one of the four plans (abonnements-inscription-famille)
+ * or the one-night plan (JAM-581).
  *
  * Errors are catalogue keys (`comptes.erreurs`), never sentences, so the words
  * stay in `src/content/`.
@@ -50,8 +50,8 @@ export type SignUpValues = {
   email: string;
   phone: string;
   password: string;
-  /** The plan picked: always one for a family, null for a professional. */
-  plan: SubscriptionPlan | null;
+  /** The plan picked, the one-night plan included: always one for a family, null for a professional. */
+  plan: SignupChoice | null;
 };
 
 export type FieldErrors<F extends string> = Partial<Record<F, FieldError>>;
@@ -153,7 +153,7 @@ export function validateSignUp(
 
   if (!input.consentement) errors.consentement = "consentement";
 
-  const plan = needsPlan && isPlan(input.formule) ? input.formule : null;
+  const plan = needsPlan && isSignupChoice(input.formule) ? input.formule : null;
   if (needsPlan && plan === null) errors.formule = "formule";
 
   if (Object.keys(errors).length > 0 || phone === null) {

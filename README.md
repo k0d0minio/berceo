@@ -740,6 +740,10 @@ subscription mode (abonnements-catalogue-stripe). The 3 % fee does not change.
   there. Until a Checkout of hers completes, her home shows one call, « Finaliser mon
   abonnement », for the plan she picked (`planToFinish`). The sign-in does not force the
   Checkout. A family who signed up before this has no plan and sees « Voir les formules ».
+  The form also offers the one-night plan, first, as `/tarifs` does (JAM-581). That choice
+  goes on `users.signup_night_pass`, with `signup_plan` null (a check holds one choice at
+  most). `signupChoiceOf` reads the choice. The confirmation then opens the pass's Checkout,
+  and her home shows « Finaliser ma formule » until a pass of hers is paid.
 - **Stripe's word:** `syncSubscription` reads the subscription from Stripe and copies its
   status, plan, renewal date, cancellation date (`cancels_at`) and end onto the row, so a late
   or repeated event writes the same row. Three paths call it: the webhook, the return page

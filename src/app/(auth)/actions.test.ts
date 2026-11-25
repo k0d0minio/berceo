@@ -319,7 +319,7 @@ describe("the plan on a sign-up (abonnements-inscription-famille)", () => {
     expect(await signUpParent()).toEqual({ redirect: "/verification-email" });
     const [statements] = m.batch.mock.calls[0] as [{ values: unknown }[]];
     const [userRow, consents] = statements.map((statement) => statement.values);
-    expect(userRow).toMatchObject({ role: "parent", signupPlan: "serenite" });
+    expect(userRow).toMatchObject({ role: "parent", signupPlan: "serenite", signupNightPass: false });
     expect(consents).toEqual([
       expect.objectContaining({ document: "cgu" }),
       expect.objectContaining({ document: "confidentialite" }),

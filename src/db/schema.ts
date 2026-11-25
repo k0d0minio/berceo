@@ -133,10 +133,17 @@ export const users = pgTable("users", {
    * before the plans were part of sign-up.
    */
   signupPlan: subscriptionPlanEnum("signup_plan"),
+  /**
+   * True when the family picked the one-night plan on the sign-up form
+   * (JAM-581): her e-mail confirmation opens its Checkout, and her space asks
+   * her to finish it. `signup_plan` is then null: a family picks one or the other.
+   */
+  signupNightPass: boolean("signup_night_pass").notNull().default(false),
 
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
+  check("users_signup_one_choice", sql`NOT (${table.signupNightPass} AND ${table.signupPlan} IS NOT NULL)`),
   check("users_deleted_suspended", sql`${table.deletedAt} IS NULL OR ${table.suspendedAt} IS NOT NULL`),
 ]);
 

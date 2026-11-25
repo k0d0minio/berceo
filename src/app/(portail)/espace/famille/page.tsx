@@ -16,7 +16,7 @@ import { fill, words } from "@/content/locale";
 import { recherche } from "@/content/recherche";
 import { planWords, renewalDate } from "@/lib/abonnements/format";
 import { SUBSCRIPTION_PATH } from "@/lib/abonnements/paths";
-import { planToFinish, subscriptionState } from "@/lib/abonnements/rules";
+import { NIGHT_PASS_CHOICE, planToFinish, signupChoiceOf, subscriptionState } from "@/lib/abonnements/rules";
 import { familyNightPass, hasCompletedCheckout, liveSubscription } from "@/lib/abonnements/subscriptions";
 import { requireAccess } from "@/lib/auth/guard";
 import { SPACES } from "@/lib/auth/routing";
@@ -31,7 +31,7 @@ import { SEARCH_PATH } from "@/lib/recherche/slugs";
 import { FAMILY_PROFESSIONALS_PATH } from "@/lib/reservations/paths";
 import { siteOrigin } from "@/lib/site-origin";
 
-import { startSubscriptionAction } from "./abonnement/actions";
+import { startNightPassAction, startSubscriptionAction } from "./abonnement/actions";
 
 const t = words(comptes);
 const f = words(famille).accueil;
@@ -75,7 +75,7 @@ export default async function EspaceFamillePage() {
   ]);
   const running = live && (live.status === "active" || live.status === "impayee") ? live : null;
   const state = running ? subscriptionState(running, now) : null;
-  const toFinish = planToFinish(user.signupPlan, completed);
+  const toFinish = planToFinish(signupChoiceOf(user), completed);
   // An open one-night pass (JAM-304) takes the place of the call to choose a plan.
   const pass = running ? null : await familyNightPass(user.id, now);
 
@@ -122,6 +122,19 @@ export default async function EspaceFamillePage() {
               className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
             >
               {a.accueil.gerer}
+            </Link>
+          </>
+        ) : toFinish === NIGHT_PASS_CHOICE ? (
+          <>
+            <p className="text-corps text-taupe">{fill(a.accueil.finaliserNuitTexte, { plan: a.uneNuit.name })}</p>
+            <form action={startNightPassAction}>
+              <Button type="submit">{a.accueil.finaliserNuit}</Button>
+            </form>
+            <Link
+              href={SUBSCRIPTION_PATH}
+              className="w-fit rounded-md text-corps font-semibold text-sauge underline underline-offset-4"
+            >
+              {a.accueil.autreFormule}
             </Link>
           </>
         ) : toFinish ? (

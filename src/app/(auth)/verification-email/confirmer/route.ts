@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import type { User } from "@/db";
 import { SUBSCRIPTION_START_PATH } from "@/lib/abonnements/paths";
+import { signupChoiceOf } from "@/lib/abonnements/rules";
 import { RETURN_COOKIE, verifiedLanding } from "@/lib/auth/retour";
 import { SIGN_IN_PATH } from "@/lib/auth/routing";
 import { DEVICE_COOKIE, DEVICE_COOKIE_OPTIONS, needsSecondFactor } from "@/lib/auth/second-factor";
@@ -118,8 +119,8 @@ export async function GET(request: NextRequest) {
     response = to(request, `${SIGN_IN_PATH}?erreur=compte`);
   } else {
     scheduleWelcomeIfDue(row, request.nextUrl.origin);
-    // A family with a plan pays first; one who came from a full profile goes back to it (D-129); anyone else, home.
-    const landing = verifiedLanding(row.role, request.cookies.get(RETURN_COOKIE)?.value, row.signupPlan);
+    // A family with a plan, or the one-night plan (JAM-581), pays first; one who came from a full profile goes back to it (D-129); anyone else, home.
+    const landing = verifiedLanding(row.role, request.cookies.get(RETURN_COOKIE)?.value, signupChoiceOf(row));
     response = to(request, landing);
     // The way back outlives the Checkout: the subscription's return page reads and clears it.
     if (landing !== SUBSCRIPTION_START_PATH) response.cookies.delete(RETURN_COOKIE);

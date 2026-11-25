@@ -54,6 +54,7 @@ describe("where a verified user lands", () => {
   it("a family who picked a plan: its Checkout first, way back or not (abonnements-inscription-famille)", () => {
     expect(verifiedLanding("parent", PROFILE, "serenite")).toBe("/espace/famille/abonnement/commencer");
     expect(verifiedLanding("parent", undefined, "decouverte")).toBe("/espace/famille/abonnement/commencer");
+    expect(verifiedLanding("parent", PROFILE, "une-nuit")).toBe("/espace/famille/abonnement/commencer");
   });
 });
 
