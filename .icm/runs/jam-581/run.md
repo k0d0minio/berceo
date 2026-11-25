@@ -5,5 +5,5 @@
 - link: https://linear.app/jamienisbet/issue/JAM-581/berceo-pricing-monthly-equivalent-one-night-plan-first-tarifs-in-the
 - branch: contact/jam-581-berceo-pricing-monthly-equivalent-one-night
 - lane: tweak
-- pr: pending
+- pr: #144
 - started: 2026-11-25
