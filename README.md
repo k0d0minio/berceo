@@ -226,6 +226,10 @@ Accounts run on **Neon Auth** (Managed Better Auth, `@neondatabase/auth`), e-mai
   site: `/verification-email/confirmer` (signs the user in and sends a family's welcome e-mail
   once, after the redirect) and `/nouveau-mot-de-passe`. A welcome that failed to send is tried
   again from `/espace/famille` on each visit until one goes out (`src/lib/auth/welcome.ts`).
+- **Password fields:** `Field` (`src/components/auth/field.tsx`) renders a `type="password"`
+  field as `PasswordInput` (`password-input.tsx`): the text is hidden on load, and a button
+  « Afficher » / « Masquer » shows or hides it. The button never submits the form. Its name for
+  a screen reader is « Afficher le mot de passe » or « Masquer le mot de passe » (JAM-583).
 - **Admins** never sign up. A founder signs up as a family, then
   `npm run admin:grant -- --email <address>` promotes the account on the database
   `DATABASE_URL` points at.
