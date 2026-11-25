@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { abonnements } from "@/content/abonnements";
 import { comptes } from "@/content/comptes";
 import { fill, words } from "@/content/locale";
-import { planWords, renewalDate } from "@/lib/abonnements/format";
+import { monthlyLine, planWords, renewalDate } from "@/lib/abonnements/format";
 import { SUBSCRIPTION_PATH, SUBSCRIPTION_RETURN_PATH } from "@/lib/abonnements/paths";
 import { PLANS, subscriptionState } from "@/lib/abonnements/rules";
 import { familyNightPass, liveSubscription, unpaidInvoiceUrl } from "@/lib/abonnements/subscriptions";
@@ -131,21 +131,6 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
           ) : null}
           <p className="max-w-2xl text-intro text-taupe">{t.espace.intro}</p>
           <ul className="grid max-w-4xl gap-6 md:grid-cols-2">
-            {PLANS.map((plan) => {
-              const { name, duree, prix } = planWords(plan);
-              return (
-                <li key={plan}>
-                  <article className="flex h-full flex-col gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
-                    <h2 className="text-h3 font-bold text-sauge">{name}</h2>
-                    <p className="text-corps text-taupe">{fill(t.espace.duree, { duree })}</p>
-                    <p className="text-corps font-semibold text-taupe">{prix}</p>
-                    <form action={startSubscriptionAction.bind(null, plan)} className="mt-auto">
-                      <Button type="submit">{fill(t.espace.choisir, { plan: name })}</Button>
-                    </form>
-                  </article>
-                </li>
-              );
-            })}
             {pass ? null : (
               <li>
                 <article className="flex h-full flex-col gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
@@ -158,6 +143,23 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
                 </article>
               </li>
             )}
+            {PLANS.map((plan) => {
+              const { name, duree, prix } = planWords(plan);
+              const parMois = monthlyLine(plan);
+              return (
+                <li key={plan}>
+                  <article className="flex h-full flex-col gap-3 rounded-carte bg-blanc px-6 py-6 md:px-8">
+                    <h2 className="text-h3 font-bold text-sauge">{name}</h2>
+                    <p className="text-corps text-taupe">{fill(t.espace.duree, { duree })}</p>
+                    <p className="text-corps font-semibold text-taupe">{prix}</p>
+                    {parMois ? <p className="text-corps text-taupe">{parMois}</p> : null}
+                    <form action={startSubscriptionAction.bind(null, plan)} className="mt-auto">
+                      <Button type="submit">{fill(t.espace.choisir, { plan: name })}</Button>
+                    </form>
+                  </article>
+                </li>
+              );
+            })}
           </ul>
           <p className="max-w-2xl text-corps text-taupe">{t.espace.codePromo}</p>
           <p className="max-w-2xl text-corps text-taupe">{t.espace.paiement}</p>

@@ -17,6 +17,24 @@ import { addDays, brusselsNow, hasNightEnded, isIsoDate } from "@/lib/demandes/r
 /** The four plans of the devis, in its order, which is also `src/content/abonnements.ts`'s. */
 export const PLANS = ["decouverte", "parenthese", "serenite", "premium"] as const satisfies readonly SubscriptionPlan[];
 
+/** Each plan's length in months, as the devis and `duree` in `src/content/abonnements.ts` say it. */
+export const PLAN_MONTHS = {
+  decouverte: 1,
+  parenthese: 3,
+  serenite: 6,
+  premium: 12,
+} as const satisfies Record<SubscriptionPlan, number>;
+
+/**
+ * A plan's price for each month, in cents, from its total in cents (JAM-581):
+ * the total divided by the months, rounded to the nearest cent, a half cent up.
+ * Null for a plan of one month, whose total is already its price per month.
+ */
+export function monthlyCents(plan: SubscriptionPlan, totalCents: number): number | null {
+  const months = PLAN_MONTHS[plan];
+  return months > 1 ? Math.round(totalCents / months) : null;
+}
+
 export function isPlan(value: string | null | undefined): value is SubscriptionPlan {
   return (PLANS as readonly string[]).includes(value ?? "");
 }

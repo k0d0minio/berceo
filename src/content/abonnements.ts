@@ -37,6 +37,12 @@ export const abonnements = catalogue({
       { name: "Premium", duree: "12 mois", prix: "159,90 €" },
     ],
 
+    /**
+     * @relecture Surya — le prix par mois d'un abonnement de plus d'un mois, pour comparer
+     * les formules (JAM-581). Le total divisé par les mois, arrondi au centime.
+     */
+    parMois: "soit {prix} par mois",
+
     /** @relecture Surya — la formule une nuit (retour des fondatrices, tour 2) : le nom est à confirmer. */
     uneNuit: { name: "Une nuit", duree: "1 réservation", prix: "14,75 €" },
 

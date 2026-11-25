@@ -11,7 +11,9 @@ import { contactEnabled } from "@/lib/contact/config"
 
 /*
  * The public header of the DA's slide 19 (JAM-327): the white logomark, the
- * deck's four links in white capitals, one account icon. It lies on the
+ * deck's links in white capitals, one account icon. « Tarifs » is back between
+ * « Nos gardes de nuit » and « Contact » at the client's request (JAM-581,
+ * Jamie, 2026-11-25), although the deck put it in the footer. It lies on the
  * home's photograph and on the sage band of every other page (HeaderFrame).
  * The account icon opens the sign-in page, which sends a signed-in person to
  * their own space. « Contact » exists only where the environment has a
@@ -24,6 +26,7 @@ function PublicHeader({ fullLogo }: { fullLogo?: boolean } = {}) {
     t.nav.accueil,
     t.nav.histoire,
     t.nav.gardesDeNuit,
+    t.pages.tarifs,
     ...(contactEnabled() ? [t.nav.contact] : []),
   ]
 

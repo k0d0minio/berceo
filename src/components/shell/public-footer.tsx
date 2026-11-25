@@ -9,8 +9,8 @@ import { contactEnabled } from "@/lib/contact/config"
 /*
  * The public footer: on the sage ink, the brand's identity colour deep enough
  * to carry white text (finition-accueil D-2); the focus ring turns white here. Every page of the
- * guide's URL map, the legal ones last. « Tarifs » and « FAQ » live here
- * since they left the header (JAM-327, question 5). « Contact » is a link to
+ * guide's URL map, the legal ones last. « FAQ » lives here since it left
+ * the header (JAM-327, question 5). « Tarifs » is in both since JAM-581. « Contact » is a link to
  * the form, where the environment has a contact address: no address is ever
  * published. « Consultation sommeil » is a link where the environment has
  * the address of the founders' calendar (JAM-305).
