@@ -17,8 +17,9 @@ import { contactEnabled } from "@/lib/contact/config"
  * home's photograph and on the sage band of every other page (HeaderFrame).
  * The account icon opens the sign-in page, which sends a signed-in person to
  * their own space. « Contact » exists only where the environment has a
- * contact address (src/lib/contact/config.ts). Below md the links move into
- * the menu panel; the account icon stays.
+ * contact address (src/lib/contact/config.ts). Below lg the links move into
+ * the menu panel; the account icon stays. Five links overflow a 768 px screen
+ * by 15 px, so the row starts at lg since JAM-581.
  */
 function PublicHeader({ fullLogo }: { fullLogo?: boolean } = {}) {
   const t = words(common)
@@ -37,8 +38,8 @@ function PublicHeader({ fullLogo }: { fullLogo?: boolean } = {}) {
           <HeaderLogo full={fullLogo} />
         </Link>
 
-        <nav aria-label={t.header.navLabel} className="hidden md:block">
-          <ul className="flex items-center gap-6 lg:gap-10">
+        <nav aria-label={t.header.navLabel} className="hidden lg:block">
+          <ul className="flex items-center gap-10">
             {links.map((link) => (
               <li key={link.href}>
                 <Link
@@ -60,7 +61,7 @@ function PublicHeader({ fullLogo }: { fullLogo?: boolean } = {}) {
           >
             <UserIcon aria-hidden className="size-7" />
           </Link>
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <MobileMenu
               variant="sauge"
               links={links}
