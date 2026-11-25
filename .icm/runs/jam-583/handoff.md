@@ -2,11 +2,11 @@
 
 ## Next action
 
-<What the next session, or the operator, does first.>
+L'opérateur teste la preview, puis coche « Ready to merge ». La release fusionne.
 
 ## How to test
 
-<1 to 3 short sentences that can be said aloud: where to go on the preview, what to do, what the operator must see.>
+Ouvrez /connexion sur la preview et tapez un mot de passe : le texte est masqué. Appuyez sur « Afficher » : le texte apparaît et le bouton dit « Masquer ». Faites de même sur /inscription/famille et sur /nouveau-mot-de-passe.
 
 ## Blockers
 
