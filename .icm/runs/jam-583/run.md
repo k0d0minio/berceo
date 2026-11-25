@@ -5,5 +5,5 @@
 - link: https://linear.app/jamienisbet/issue/JAM-583/berceo-showhide-control-on-password-fields
 - branch: contact/jam-583-berceo-showhide-control-on-password-fields
 - lane: tweak
-- pr: pending
+- pr: #146
 - started: 2026-11-25
