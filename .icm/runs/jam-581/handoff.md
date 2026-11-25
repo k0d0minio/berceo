@@ -10,7 +10,8 @@ On the preview, open Tarifs: Une nuit comes first, and Parenthèse, Sérénité 
 
 ## Decisions
 
-- Q1, Jamie in chat, 2026-11-25: "Do it in this PR". AC-4 is in this pull request, with a database change.
+- Q1, Jamie in chat, 2026-11-25: "Do it in this PR". In the live session, the same day: "Add it to #144". AC-4 is in this pull request, with a database change.
+- The monthly price rounds to the nearest cent, a half cent up. Jamie has not decided otherwise (2026-11-25).
 
 ## Blockers
 
