@@ -15,5 +15,5 @@
 
 ## Done when
 
-- [ ] A merge to `main` opens or updates the release pull request.
+- [x] A merge to `main` opens or updates the release pull request.
 - [ ] `.icm/_system/scripts/promote.sh status` reads each UAT project.

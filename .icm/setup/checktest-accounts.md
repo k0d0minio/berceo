@@ -28,10 +28,9 @@ The contract of the seed script. This repo writes it; the blueprint does not.
    `scripts/seed-test-roles.ts`, rules in `src/lib/auth/seed-test-roles.ts`. It gives only
    `admin`. `parent` and `professionnel` come from the sign-up form: for these roles the
    script confirms the role and changes nothing.
-2. Pull the env of UAT into the git-ignored file that the script reads:
-   `vercel env pull .env.uat.local --environment=uat`.
-3. After the checktest signed up the admin account on UAT, run the seed one time for it
-   (this repo uses npm):
-   `npm run seed:test-roles -- --email test+berceo-admin@jamienisbet.com --role admin --target uat`.
+2. After the checktest signed up the admin account on UAT, run the seed one time for it,
+   in the operator's terminal. The UAT address comes from the keyring for this one
+   command. No file holds it:
+   `UAT_DATABASE_URL="$(~/baxter_live/system/bin/baxter_env.py show berceo uat DATABASE_URL)" npm run seed:test-roles -- --email test+berceo-admin@jamienisbet.com --role admin --target uat`.
 
 - [ ] The admin test account has its role on UAT.

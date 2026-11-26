@@ -14,8 +14,8 @@ empty or is not an `https://` address, the page answers 404 and no link leads to
 
 ## The variable
 
-- [ ] Get the address of one event type from the founders: `https://calendly.com/<account>/<event>`.
-- [ ] In Vercel, project `berceo`, Settings, Environment Variables: set `SLEEP_CONSULTATION_URL`
+- [x] Get the address of one event type from the founders: `https://calendly.com/<account>/<event>`.
+- [x] In Vercel, project `berceo`, Settings, Environment Variables: set `SLEEP_CONSULTATION_URL`
       for the environment `uat`, for Preview and for Production.
 - [ ] Redeploy each environment. Production: with the promotion of the release that has JAM-352.
 - [ ] Open `/consultation-sommeil` on UAT and click « Choisir un créneau ». Make sure that the

@@ -3,9 +3,10 @@
  *
  *   npm run seed:test-roles -- --email <address> --role <role> --target local|uat
  *
- * The database address comes from the env file of the target, never from the
- * command line: `.env.local` for local, `.env.uat.local` for uat (pull it with
- * `vercel env pull .env.uat.local --environment=uat`). It refuses an address
+ * The database address comes from the environment of the target, never from
+ * the command line: `DATABASE_URL` of `.env.local` for local, and
+ * `UAT_DATABASE_URL` of the process environment for uat (the operator's secret
+ * store gives it for one command; no file holds it). It refuses an address
  * that is not test+berceo-*@jamienisbet.com and the production database.
  * Exit 0: the account has the role. Exit 1: refused or failed, one line of reason.
  */
@@ -16,9 +17,10 @@ import { eq } from "drizzle-orm";
 
 import {
   databaseRefusal,
-  ENV_FILE,
+  LOCAL_ENV_FILE,
   parseSeedArgs,
   seedRole,
+  UAT_VARIABLE,
 } from "../src/lib/auth/seed-test-roles";
 
 async function main(): Promise<number> {
@@ -29,16 +31,24 @@ async function main(): Promise<number> {
   }
   const { args } = parsed;
 
-  const file = ENV_FILE[args.target];
-  if (!existsSync(file)) {
-    console.error(`refused: ${file} does not exist`);
-    return 1;
+  if (args.target === "uat") {
+    const url = process.env[UAT_VARIABLE];
+    if (!url) {
+      console.error(`refused: ${UAT_VARIABLE} is not set`);
+      return 1;
+    }
+    process.env.DATABASE_URL = url;
+  } else {
+    if (!existsSync(LOCAL_ENV_FILE)) {
+      console.error(`refused: ${LOCAL_ENV_FILE} does not exist`);
+      return 1;
+    }
+    // The env file wins over the shell for these keys.
+    delete process.env.DATABASE_URL;
+    delete process.env.VERCEL_ENV;
+    delete process.env.VERCEL_TARGET_ENV;
+    config({ path: LOCAL_ENV_FILE, override: true, quiet: true });
   }
-  // The env file of the target wins over the shell for these keys.
-  delete process.env.DATABASE_URL;
-  delete process.env.VERCEL_ENV;
-  delete process.env.VERCEL_TARGET_ENV;
-  config({ path: file, override: true, quiet: true });
 
   const refusal = databaseRefusal(process.env);
   if (refusal) {

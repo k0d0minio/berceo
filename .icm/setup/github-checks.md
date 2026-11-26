@@ -14,5 +14,5 @@
 
 ## Done when
 
-- [ ] `grep -r legible-consulting .github` finds nothing.
-- [ ] The ruleset requires the four checks.
+- [x] `grep -r legible-consulting .github` finds nothing.
+- [x] The ruleset requires the four checks.

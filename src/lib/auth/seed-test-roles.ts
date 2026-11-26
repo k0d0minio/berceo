@@ -23,11 +23,14 @@ const ROLES: readonly UserRole[] = ["parent", "professionnel", "admin"];
 /** The only addresses the checktest uses: `test+berceo-<role or run>@jamienisbet.com`. */
 const TEST_ADDRESS = /^test\+berceo-[a-z0-9-]+@jamienisbet\.com$/;
 
-/** The env file that holds `DATABASE_URL` for each target. Both are git-ignored. */
-export const ENV_FILE: Record<SeedTarget, string> = {
-  local: ".env.local",
-  uat: ".env.uat.local",
-};
+/**
+ * Where the database address of each target comes from. local: `DATABASE_URL`
+ * of `.env.local` (development values). uat: `UAT_DATABASE_URL` of the process
+ * environment only, given by the operator's secret store for one command. No
+ * file holds the UAT address.
+ */
+export const LOCAL_ENV_FILE = ".env.local";
+export const UAT_VARIABLE = "UAT_DATABASE_URL";
 
 export type SeedArgs = { email: string; role: UserRole; target: SeedTarget };
 
@@ -79,9 +82,9 @@ function hostOf(url: string | undefined): string | null {
  */
 export function databaseRefusal(env: Record<string, string | undefined>): string | null {
   const host = hostOf(env.DATABASE_URL);
-  if (!host) return "refused: the env file of the target has no valid DATABASE_URL";
+  if (!host) return "refused: the target has no valid database address";
   if (env.VERCEL_ENV === "production" || env.VERCEL_TARGET_ENV === "production") {
-    return "refused: the env file of the target is the production environment";
+    return "refused: the environment of the target is production";
   }
   const production = hostOf(env.PRODUCTION_DATABASE_URL);
   if (production && production === host) return "refused: DATABASE_URL is the production database";
