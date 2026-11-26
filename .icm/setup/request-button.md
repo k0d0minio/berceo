@@ -35,8 +35,9 @@ value.
 - [ ] `BAXTER_REQUEST_LINEAR_API_KEY`: a Linear API key of the client's workspace that can
       create issues and labels in the team `requests.linear_team` of `.icm/project.json`.
 
-To set the two values through the keyring of BAXTER (the operator):
-`baxter_env.py add` for each name on the environment `uat` of `berceo`, then the BAXTER
-tool `vercel push_env` with `environment` `uat`.
+To set the two values through the keyring of BAXTER, in the operator's terminal (the
+keyring refuses a session):
+`baxter_env.py add berceo BAXTER_REQUEST_ENV --env uat --real-write` (the value `uat`), and
+`baxter_env.py add berceo BAXTER_REQUEST_LINEAR_API_KEY --env uat --real-write`.
 
 Each value is a secret of the deployment. Never put one in the code or in this repo.

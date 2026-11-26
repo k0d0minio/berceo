@@ -28,7 +28,9 @@ The contract of the seed script. This repo writes it; the blueprint does not.
    `scripts/seed-test-roles.ts`, rules in `src/lib/auth/seed-test-roles.ts`. It gives only
    `admin`. `parent` and `professionnel` come from the sign-up form: for these roles the
    script confirms the role and changes nothing.
-2. After the checktest signed up the admin account on UAT, run the seed one time for it,
+2. Done on 2026-11-26: a checktest run signed up `test+berceo-admin@jamienisbet.com` on
+   UAT and opened its verification link (`.icm/local/checktest/README.md`).
+3. Run the seed one time for it,
    in the operator's terminal. The UAT address comes from the keyring for this one
    command. No file holds it:
    `UAT_DATABASE_URL="$(~/baxter_live/system/bin/baxter_env.py show berceo uat DATABASE_URL)" npm run seed:test-roles -- --email test+berceo-admin@jamienisbet.com --role admin --target uat`.
