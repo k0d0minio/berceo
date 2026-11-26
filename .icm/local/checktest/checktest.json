@@ -1,0 +1,69 @@
+{
+ "server": {
+  "command": "env \"NODE_OPTIONS=--dns-result-order=ipv4first --no-network-family-autoselection\" npm run dev",
+  "url": "http://localhost:3000",
+  "wait_s": 300
+ },
+ "targets": {
+  "uat": {
+   "url": "https://uat.berceo.be",
+   "pace_ms": 1500
+  }
+ },
+ "sandboxes": [
+  "*.stripe.com"
+ ],
+ "auth": {
+  "login": {
+   "path": "/connexion",
+   "steps": [
+    [
+     "wait",
+     600
+    ],
+    [
+     "type",
+     "input[name=\"email\"]",
+     "{email}"
+    ],
+    [
+     "type",
+     "input[name=\"motDePasse\"]",
+     "{password}"
+    ],
+    [
+     "click",
+     "button:has-text(\"Se connecter\")"
+    ],
+    [
+     "waiturl",
+     "**/connexion/code**"
+    ],
+    [
+     "otp",
+     "input[name=\"code\"]",
+     "{email}"
+    ],
+    [
+     "click",
+     "button:has-text(\"Valider le code\")"
+    ],
+    [
+     "waiturl",
+     "**/admin**"
+    ]
+   ]
+  },
+  "probe": {
+   "path": "/admin",
+   "expect": [
+    {
+     "text": "Vue d'ensemble"
+    }
+   ]
+  },
+  "mail": {
+   "code": "\\b(\\d{6})\\b"
+  }
+ }
+}
