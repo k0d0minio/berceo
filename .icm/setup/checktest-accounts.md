@@ -24,8 +24,14 @@ The contract of the seed script. This repo writes it; the blueprint does not.
 
 ## Steps
 
-1. Write the seed script of the contract above, in this repo.
-2. After the checktest signed up the admin account on UAT, run the seed one time for it:
-   `pnpm seed:test-roles -- --email test+berceo-admin@jamienisbet.com --role admin --target uat`.
+1. Write the seed script of the contract above, in this repo. Done on 2026-11-26:
+   `scripts/seed-test-roles.ts`, rules in `src/lib/auth/seed-test-roles.ts`. It gives only
+   `admin`. `parent` and `professionnel` come from the sign-up form: for these roles the
+   script confirms the role and changes nothing.
+2. Pull the env of UAT into the git-ignored file that the script reads:
+   `vercel env pull .env.uat.local --environment=uat`.
+3. After the checktest signed up the admin account on UAT, run the seed one time for it
+   (this repo uses npm):
+   `npm run seed:test-roles -- --email test+berceo-admin@jamienisbet.com --role admin --target uat`.
 
-- [ ] The seed script exists, and the admin test account has its role on UAT.
+- [ ] The admin test account has its role on UAT.

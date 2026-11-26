@@ -4,6 +4,9 @@ A client asks for a change from the app itself: the button opens a form, and the
 goes to the store of this repo with a capture of the page (`.icm/_system/features/requests.md`).
 
 ## The code: one import, one route (a session can do this part)
+Done on 2026-11-26: `src/app/layout.tsx` and `src/app/api/baxter-request/route.ts`. The
+layout gives no `user`: the root layout does not read the session.
+
 The root layout (`app/layout.tsx` or `src/app/layout.tsx`) gets one import and one element
 in `<body>`. Use the relative path from the layout to `.icm/` (`../.icm` from `app/`,
 `../../.icm` from `src/app/`):
