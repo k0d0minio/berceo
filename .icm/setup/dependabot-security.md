@@ -10,4 +10,4 @@
 
 ## Done when
 
-- [ ] Dependabot opens a pull request for a dependency with a known vulnerability.
+- [x] Dependabot opens a pull request for a dependency with a known vulnerability.

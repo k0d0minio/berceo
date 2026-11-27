@@ -30,7 +30,7 @@ capture when the layout knows the user. The id leaves the server only as a hash.
 Set these in Vercel for the UAT environment. A local dev server shows the button with no
 value.
 
-- [ ] `BAXTER_REQUEST_ENV` = `uat` on UAT. Not set on production: the button does not show.
+- [x] `BAXTER_REQUEST_ENV` = `uat` on UAT. Not set on production: the button does not show.
       Production only with `production` and `BAXTER_REQUEST_PRODUCTION` = `on`.
 - [ ] `BAXTER_REQUEST_LINEAR_API_KEY`: a Linear API key of the client's workspace that can
       create issues and labels in the team `requests.linear_team` of `.icm/project.json`.
