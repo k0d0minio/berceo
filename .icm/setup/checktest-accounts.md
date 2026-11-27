@@ -35,4 +35,4 @@ The contract of the seed script. This repo writes it; the blueprint does not.
    command. No file holds it:
    `UAT_DATABASE_URL="$(~/baxter_live/system/bin/baxter_env.py show berceo uat DATABASE_URL)" npm run seed:test-roles -- --email test+berceo-admin@jamienisbet.com --role admin --target uat`.
 
-- [ ] The admin test account has its role on UAT.
+- [x] The admin test account has its role on UAT.
