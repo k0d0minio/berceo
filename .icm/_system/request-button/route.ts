@@ -1,4 +1,4 @@
-// route.ts — the API route of the request button (blueprint 1.0.0-rc32).
+// route.ts — the API route of the request button (blueprint 1.0.0-rc33).
 // A client repo adds one file, app/api/baxter-request/route.ts:
 //   export { POST } from "<relative path>/.icm/_system/request-button/route";
 // It writes one request to the store of the repo (.icm/_system/features/requests.md):
@@ -215,14 +215,10 @@ async function toLinear(input: Input): Promise<Stored> {
   if (!process.env.BAXTER_REQUEST_LINEAR_API_KEY) throw new Error("BAXTER_REQUEST_LINEAR_API_KEY is not set");
   const to = target();
   if (!to.team) throw new Error("no Linear team: set requests.linear_team or BAXTER_REQUEST_LINEAR_TEAM");
-  type Team = {
-    id: string;
-    states: { nodes: { id: string; type: string }[] };
-    projects: { nodes: { id: string; name: string; slugId: string }[] };
-  };
+  type Team = { id: string; states: { nodes: { id: string; type: string }[] } };
   type Label = { id: string; name: string; team: { id: string } | null };
   const found = await linear<{ teams: { nodes: Team[] }; issueLabels: { nodes: Label[] } }>(
-    "query($k:String!,$l:[String!]!){teams(filter:{key:{eq:$k}}){nodes{id states{nodes{id type}} projects(first:250){nodes{id name slugId}}}} issueLabels(filter:{name:{in:$l}}){nodes{id name team{id}}}}",
+    "query($k:String!,$l:[String!]!){teams(first:1,filter:{key:{eq:$k}}){nodes{id states(first:50){nodes{id type}}}} issueLabels(first:50,filter:{name:{in:$l}}){nodes{id name team{id}}}}",
     { k: to.team, l: to.labels },
   );
   const team = found.teams.nodes[0];
@@ -241,7 +237,12 @@ async function toLinear(input: Input): Promise<Stored> {
   }
   let projectId: string | undefined;
   if (to.project) {
-    const project = findProject(team.projects.nodes, to.project);
+    // A second query: Linear refuses one query with the states and the projects ("Query too complex").
+    const listed = await linear<{ team: { projects: { nodes: { id: string; name: string; slugId: string }[] } } }>(
+      "query($t:String!){team(id:$t){projects(first:100){nodes{id name slugId}}}}",
+      { t: team.id },
+    );
+    const project = findProject(listed.team.projects.nodes, to.project);
     if (!project) throw new Error(`no Linear project "${to.project}" in the team ${to.team}`);
     projectId = project.id;
   }
@@ -279,7 +280,7 @@ async function toLinear(input: Input): Promise<Stored> {
 // An other issue, or an unknown key, is not in the answer.
 async function statusFromLinear(keys: string[]): Promise<Record<string, ClientStatus>> {
   const to = target();
-  const fields = keys.map((_, n) => `i${n}:issue(id:$k${n}){identifier team{key} state{type} labels{nodes{name}}}`).join(" ");
+  const fields = keys.map((_, n) => `i${n}:issue(id:$k${n}){identifier team{key} state{type} labels(first:10){nodes{name}}}`).join(" ");
   const params = keys.map((_, n) => `$k${n}:String!`).join(",");
   const variables = Object.fromEntries(keys.map((k, n) => [`k${n}`, k]));
   const response = await fetch("https://api.linear.app/graphql", {
