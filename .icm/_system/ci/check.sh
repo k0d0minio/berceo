@@ -148,6 +148,8 @@ if compgen -G ".icm/requests/REQ-*.md" >/dev/null; then
     || fault "a client request breaks the form of $sys/features/requests.md: $(grep '^fault:' <<<"$out" | tr '\n' ' ')"
 fi
 
+# 5. The setup gaps that a file shows (rc36): a warning, never a fault.
+bash "$sys/scripts/setup.sh" --offline 2>/dev/null | sed -n 's/^missing  /::warning::setup gap /p' || true
 if [ "$faults" -gt 0 ]; then
   echo "icm-check: $faults fault(s)."
   exit 1

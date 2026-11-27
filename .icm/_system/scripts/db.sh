@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
-# db.sh — migrate one database, or reset the shared preview database.
-# CI and the Vercel build run it. The contract is .icm/_system/features/database.md.
+# db.sh — migrate the database of a deployment, or reset the shared preview database.
+# CI and the Vercel build run it. The contract is .icm/_system/features/database.md
+# (Postgres) or .icm/_system/features/mongodb.md (MongoDB).
 #
 # Usage:
-#   db.sh build     the script vercel-build (rc35): migrate DATABASE_URL_UNPOOLED (else
-#                   DATABASE_URL) of the Vercel environment, then build. A fault fails the
-#                   build. Not on Vercel, or production with UAT (the promotion migrates): build
-#   db.sh migrate   db:migrate, then db:verify, on DATABASE_URL (the dependencies installed).
-#                   No DATABASE_URL: a stop with REQUIRED=true, else a skip
-#   db.sh reset     empty DATABASE_URL (the preview database): drop each schema of the
-#                   owner. Then, when SOURCE_DATABASE_URL (UAT) is set, copy it into
+#   db.sh build     the script vercel-build of each Vercel project (Postgres rc35, MongoDB
+#                   rc37): db:migrate of the root package.json on the database of the Vercel
+#                   environment, then build of the package.json in this folder. Postgres:
+#                   DATABASE_URL_UNPOOLED (else DATABASE_URL), then db:verify. MongoDB:
+#                   MONGODB_URI and MONGODB_DATABASE_NAME; db:migrate takes the lease of the
+#                   repo. A fault fails the build. Not on Vercel, no db:migrate, or production
+#                   with UAT (the promotion migrates): build only
+#   db.sh migrate   Postgres: db:migrate, then db:verify, on DATABASE_URL (the dependencies
+#                   installed). No DATABASE_URL: a stop with REQUIRED=true, else a skip
+#   db.sh reset     Postgres: empty DATABASE_URL (the preview database): drop each schema of
+#                   the owner. Then, when SOURCE_DATABASE_URL (UAT) is set, copy it into
 #                   DATABASE_URL. Needs pg_dump and psql. A schema of another owner
 #                   (neon_auth) is not dropped and not copied
 #
@@ -21,21 +26,30 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 case "${1:-}" in
 build)
   . "$here/lib/node.sh"
+  root="$(cd "$here/../../.." && pwd)" db=postgres
+  [ ! -f "$here/../features/mongodb.md" ] || db=mongodb
   target="${VERCEL_TARGET_ENV:-${VERCEL_ENV:-}}" url="${DATABASE_URL_UNPOOLED:-${DATABASE_URL:-}}"
-  if [ "${VERCEL:-}" != 1 ] || ! node_has db:migrate; then
+  if [ "${VERCEL:-}" != 1 ] || ! (cd "$root" && node_has db:migrate); then
     echo "db.sh: not a Vercel build, or no db:migrate: no migration"
   elif [ "$target" = production ] && [ -f "$here/promote.sh" ]; then
     echo "db.sh: a production build with UAT: the promotion migrates production"
+  elif [ "$db" = mongodb ]; then
+    for v in MONGODB_URI MONGODB_DATABASE_NAME; do
+      [ -n "${!v:-}" ] || stop "the Vercel environment $target has no $v: the build stops, and no code serves on an old schema"
+    done
+    echo "db.sh: db:migrate on the $target database $MONGODB_DATABASE_NAME, with the lease of the repo, before the build"
+    (cd "$root" && node_run db:migrate) || stop "the migration failed: no build"
   elif [ -z "$url" ]; then
     stop "the Vercel environment $target has no DATABASE_URL_UNPOOLED or DATABASE_URL: the build stops, and no code serves on an old schema"
   else
     echo "db.sh: the migration of the $target database, before the build"
-    { DATABASE_URL="$url" node_run db:migrate && DATABASE_URL="$url" node_run db:verify; } || stop "the migration failed: no build"
+    (cd "$root" && DATABASE_URL="$url" node_run db:migrate && DATABASE_URL="$url" node_run db:verify) || stop "the migration failed: no build"
   fi
   node_has build || stop "package.json names no build"
   node_run build && echo "RESULT: OK built"
   ;;
 migrate)
+  [ ! -f "$here/../features/mongodb.md" ] || stop "MongoDB: db.sh migrates in the build only"
   . "$here/lib/node.sh"
   need jq
   if [ -z "${DATABASE_URL:-}" ]; then
@@ -49,6 +63,7 @@ migrate)
   echo "RESULT: OK migrated"
   ;;
 reset)
+  [ ! -f "$here/../features/mongodb.md" ] || stop "MongoDB: the repo owns its preview databases"
   need pg_dump psql
   [ -n "${DATABASE_URL:-}" ] || stop "DATABASE_URL (the preview database) is not set"
   [ "${DATABASE_URL}" != "${SOURCE_DATABASE_URL:-}" ] || stop "the preview database and the source are the same"
