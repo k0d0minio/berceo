@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "mode": "platform",
+  "title": "Connexion admin",
+  "locale": "fr-BE",
+  "role": "admin",
+  "scenes": [
+    {
+      "id": "vue-ensemble",
+      "title": "Vue d'ensemble",
+      "start": "/",
+      "steps": [
+        ["goto", "/admin"],
+        ["waitfor", "text=Vue d'ensemble"],
+        ["wait", 500]
+      ]
+    }
+  ]
+}
