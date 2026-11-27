@@ -44,8 +44,9 @@ records. The setup acts of today are in `.icm/setup/`.
 The repo uses the database model of the blueprint since 2026-11-27 (`database: postgres`,
 Jamie: "we want things to run from baxter's blueprint rather than relying on berceo's own
 pipelines"). The rule is `.icm/_system/features/database.md`. The Neon databases are in
-`.icm/environments.md`. The repo's own migration at the Vercel build and its workflow
-`migrate-production.yml` are removed.
+`.icm/environments.md`. The repo's own `vercel-build.sh` and its workflow
+`migrate-production.yml` are removed: the blueprint's `db.sh build` (the Vercel build, since
+1.0.0-rc35) and the workflow `promote` do their work.
 
 `drizzle-kit migrate` and `npm run db:verify` connect with `pg` (node-postgres), so they work
 on the empty Postgres of the CI job `code` and on a direct Neon connection string. The app
