@@ -1,5 +1,6 @@
 # The blueprint owns this file. An update of the blueprint replaces it: do not edit it.
-# The steps of the job code are in .icm/_system/ci/code.sh.
+# The steps of the job code are in .icm/_system/ci/code.sh. The contract of the database is
+# .icm/_system/features/database.md.
 # CI is the source of truth: these checks do not run on a computer of a person.
 name: ci
 on:
@@ -97,9 +98,19 @@ jobs:
       group: code-${{ github.ref }}
       cancel-in-progress: true
 
+    # A new, empty database for each run. Each migration applies from zero on it.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       BASE_REF: ${{ github.base_ref }}
 
+      DATABASE_URL: postgres://postgres:ci@localhost:5432/postgres
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -111,6 +122,37 @@ jobs:
           node-version-file: ${{ hashFiles('.nvmrc') != '' && '.nvmrc' || '' }}
           node-version: ${{ hashFiles('.nvmrc') == '' && env.NODE_DEFAULT || '' }}
       - run: bash .icm/_system/ci/code.sh
+
+
+  database:
+    # After the proof from zero, migrate the shared database of the event: the preview
+    # database for a pull request, and for a push to main the UAT database.
+    # One run at a time for each database. A run is never canceled in the middle.
+    # The condition names the job code: with no condition, the skip of the job icm-only on
+    # a push to main skips this job too. When icm-only skips code, this job does not run.
+    needs: code
+    if: ${{ !cancelled() && needs.code.result == 'success' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: database-${{ github.event_name == 'push' && 'main' || 'preview' }}
+      cancel-in-progress: false
+    env:
+      REQUIRED: ${{ github.event_name == 'push' }}
+
+      DATABASE_URL: ${{ github.event_name == 'push' && secrets.UAT_DATABASE_URL || secrets.PREVIEW_DATABASE_URL }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: ${{ hashFiles('.nvmrc') != '' && '.nvmrc' || '' }}
+          node-version: ${{ hashFiles('.nvmrc') == '' && env.NODE_DEFAULT || '' }}
+      - run: |
+          . .icm/_system/scripts/lib/node.sh
+          node_install
+          bash .icm/_system/scripts/db.sh migrate
 
 
   release:

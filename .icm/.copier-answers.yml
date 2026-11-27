@@ -1,6 +1,6 @@
 # Copier writes this file. Do not edit it. blueprint/bin/update-repo.sh reads it.
 code_ci: node
-database: none
+database: postgres
 default_branch: main
 language: fr
 linear_org: kodominio

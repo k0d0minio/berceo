@@ -2,7 +2,7 @@
 fce493b5e27da1c9efae33b51da6f71f571c75bdbb6ad71b0a69e19d6916683d  .claude/hooks/confirm-git-writes.sh
 76a51cfa59286ef6725a250c852b0020347709c37faf1f98db22eb22fdc58d9a  .claude/hooks/guard-plaintext-secrets.sh
 6e3e6760a8a8f0677bc3ee7a577d65e6814974e7c8cf3667b29bb6cad96a4a60  .icm/_system/.gitignore
-053ce3f8195abd8e5d440a663ecaeef4b11a0808d03af4c508460b9da720a170  .icm/_system/ROUTER.md
+e71f99faebb2cd4881ddcaa08f43e989e1c9ed8cac6fe7289cb5a23a028086cc  .icm/_system/ROUTER.md
 f469d8d90ab363157cd78d5736225c0de6f75bac5e37863c3ac01b4913a14295  .icm/_system/VERSION
 5a7dc6f386eebb7cb0d90d2c0485ba3e5db27ba69c27d4943edfe5d632de785b  .icm/_system/agents/review-shots/CONTEXT.md
 c3fe0d808e5d332f503842f85494d80172036d1ae3e72bcbe07529ef29b21493  .icm/_system/ci/check.sh
@@ -11,9 +11,10 @@ d1e5e4a4de2b85e4beeb11bce85fc810d8b1a3322e485ffe9b1fa45194b79920  .icm/_system/c
 ca388bc331c8e06433753f8eaacd0d88a1e9e294535fbd74a29f8a050610321f  .icm/_system/ci/husky.sh
 804be7c11e103e5fa34ab71a45a2236b21ed9a0ecbdc24805c5bcef98692c750  .icm/_system/ci/icm-only.sh
 02ebb37b57a6dc49119362613157a37ee672109333a388d737c6280edb94d314  .icm/_system/ci/requests.sh
+0d6c60835f6fca8f98180091b6bc561dac288dd635c795cf98b269736939f2d1  .icm/_system/features/database.md
 2b6d27bfae6004521ed49c17701b871d9db50409a479454d460342b8981df696  .icm/_system/features/linear-writes.md
 3246c048b7069b83b389d6948e12b6e4366c0b87e30284f80cbc5b2cc1fda69a  .icm/_system/features/requests.md
-6098b0c1b6561b50e988bfd49b0d45b77102ad474ef44dcbfc3edc63d74f4041  .icm/_system/features/uat.md
+27196f40417f4a77b5115455f8f0682adad4b4d0cc1bdf6d1a6cbf603670156b  .icm/_system/features/uat.md
 0acbec46347be4e843bcb6e88a5cd25e4431565c9e22582559dde786770dbb53  .icm/_system/hooks/dispatch.sh
 5ac062a8c305bbb7903d588e5c97b05c1da87d5ee4635d23903449458c86685a  .icm/_system/hooks/guard-system.sh
 2669bdb21d4c9df514a6bfe1f3e649372b2afa55394d9b0c81689092c565d4e5  .icm/_system/hooks/route-request.sh
@@ -42,6 +43,7 @@ a35c8a934896fe1ed0ae175b3a51132dfc422fddd432917c40d418523503918a  .icm/_system/r
 7bbe9c229bc90d4504fcc8119e60ce26a32d853fd05932d7dd4eb39dae7db8aa  .icm/_system/scripts/check-request.sh
 7893071870a08b26e4173a46f1f0430dfd1737a032f626d64c210240195a991e  .icm/_system/scripts/ci-status.sh
 78785e3c337e8d3dd6b11f14cdaeb2c8d1a85b25d81685318401c264fe939bb1  .icm/_system/scripts/close-out.sh
+85c9f9a4a1d19ed0e00a09cf6debc1954561455ebfcf23b72f892b0e0372103e  .icm/_system/scripts/db.sh
 6e202003312ef63ca71f600e4c16defebff48155b91936dedb80b0f0842e2e08  .icm/_system/scripts/dev-server.sh
 44ddb347932da74937e2350e820cf19f8d85d051e4ff85ab58dc8c2cf83345f5  .icm/_system/scripts/lib/gh.sh
 69590a25d42d944586adac0734566d68cf7fe0367c5c78e0b6e4131296f5bdda  .icm/_system/scripts/lib/node.sh
