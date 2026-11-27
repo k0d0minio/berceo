@@ -3,7 +3,7 @@
 // (blueprint 1.0.0-rc32). RequestButton.tsx shows it only in a test environment.
 // The look comes from the CSS variables --baxter-* of the app (THEME of setup/request-button.md),
 // each one with a neutral fallback.
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import { collect, watch } from "./capture";
 import type { BrowserCapture } from "./capture";
@@ -167,8 +167,6 @@ export default function RequestButtonClient({ env, user, lang = "", dom = true, 
   const [sent, setSent] = useState<Sent[]>([]);
   const t = TEXT[language];
 
-  useEffect(() => setSent(readSent()), []);
-
   function reset() {
     setKind("problem");
     setUrgency("normal");
@@ -180,6 +178,7 @@ export default function RequestButtonClient({ env, user, lang = "", dom = true, 
   async function start() {
     setLanguage(pick(lang || document.documentElement.lang || navigator.language));
     reset();
+    setSent(readSent());
     setTab("new");
     setState({ step: "capturing" });
     setOpen(true);
