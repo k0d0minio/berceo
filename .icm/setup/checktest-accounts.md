@@ -1,0 +1,38 @@
+# Setup: the test accounts of the checktest and the seed script
+
+- where: this repo (the seed script), then the database of each environment
+
+The BAXTER checktest tests UAT with test accounts (since 1.0.0-rc28, JAM-578). The
+operator's rules:
+- An account is `test+berceo-<role>@jamienisbet.com`, one for each role, or
+  `test+berceo-<run>@jamienisbet.com` for a test of sign-up or of a one-time code.
+  BAXTER reads the inbox for a code or a link. Use no other address.
+- A test password stays in BAXTER's data, never in this repo.
+- An admin role (or each role above a plain user) comes from the seed script of this repo.
+  The checktest never runs it: the operator does, or a session on the operator's word, one
+  time for each environment.
+
+The contract of the seed script. This repo writes it; the blueprint does not.
+- Name: the script `seed:test-roles` of `package.json` (a repo with no `package.json`:
+  the executable file `scripts/seed-test-roles`).
+- Input: `--email <address> --role <role> --target local|uat`. The database address comes
+  from the environment of the target, never from the command line.
+- It gives the role to an account that exists (the checktest signs the account up), and it
+  can run again with no change. It refuses an address that is not
+  `test+berceo-*@jamienisbet.com`, and it refuses the production database.
+- Exit 0: the account has the role. Exit 1: refused or failed, with one line of reason.
+
+## Steps
+
+1. Write the seed script of the contract above, in this repo. Done on 2026-11-26:
+   `scripts/seed-test-roles.ts`, rules in `src/lib/auth/seed-test-roles.ts`. It gives only
+   `admin`. `parent` and `professionnel` come from the sign-up form: for these roles the
+   script confirms the role and changes nothing.
+2. Done on 2026-11-26: a checktest run signed up `test+berceo-admin@jamienisbet.com` on
+   UAT and opened its verification link (`.icm/local/checktest/README.md`).
+3. Run the seed one time for it,
+   in the operator's terminal. The UAT address comes from the keyring for this one
+   command. No file holds it:
+   `UAT_DATABASE_URL="$(~/baxter_live/system/bin/baxter_env.py show berceo uat DATABASE_URL)" npm run seed:test-roles -- --email test+berceo-admin@jamienisbet.com --role admin --target uat`.
+
+- [ ] The admin test account has its role on UAT.

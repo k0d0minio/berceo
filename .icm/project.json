@@ -5,6 +5,21 @@
   "default_branch": "main",
   "linear": {
     "team_key": "JAM",
-    "org": "kodominio"
+    "org": "kodominio",
+    "writes": "session",
+    "states": {
+      "draft": "",
+      "ready": "",
+      "merged": "",
+      "changes": "",
+      "approved": "",
+      "live": ""
+    }
+  },
+  "requests": {
+    "store": "linear",
+    "linear_team": "JAM",
+    "linear_label": "source/client",
+    "linear_project": ""
   }
 }

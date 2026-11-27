@@ -6,6 +6,7 @@ import { texte, titre } from "./fonts";
 import { siteUrl } from "./site";
 import { themeColorJour } from "./theme-color";
 import "./globals.css";
+import { RequestButton } from "../../.icm/_system/request-button/RequestButton";
 
 /*
  * The platform's root: light, per Surya's web art direction (D-9). Fonts are
@@ -28,7 +29,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="fr"
       className={`${titre.variable} ${texte.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        {/* BAXTER request button: renders only on a dev server and on UAT. */}
+        <RequestButton lang="fr" />
+      </body>
     </html>
   );
 }

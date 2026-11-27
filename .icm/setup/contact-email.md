@@ -11,10 +11,10 @@ answers 404 and no link leads to it.
 
 ## The act
 
-- [ ] In Vercel, project `berceo`, Settings, Environment Variables: add `CONTACT_EMAIL` for
+- [x] In Vercel, project `berceo`, Settings, Environment Variables: add `CONTACT_EMAIL` for
       the environment `uat` and for Preview. The value is the address that receives the
       messages.
-- [ ] Add `CONTACT_EMAIL` for Production, before the promotion of the release that has
+- [x] Add `CONTACT_EMAIL` for Production, before the promotion of the release that has
       JAM-327.
 - [ ] Redeploy each environment. The header reads the variable at build.
 - [ ] Open `/contact` on UAT. Send one message. Make sure that it arrives, and that a reply
