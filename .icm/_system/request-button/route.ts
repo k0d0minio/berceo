@@ -1,18 +1,20 @@
-// route.ts — the API route of the request button (blueprint 1.0.0-rc27).
+// route.ts — the API route of the request button (blueprint 1.0.0-rc32).
 // A client repo adds one file, app/api/baxter-request/route.ts:
 //   export { POST } from "<relative path>/.icm/_system/request-button/route";
 // It writes one request to the store of the repo (.icm/_system/features/requests.md):
 // - markdown, with BAXTER_REQUEST_GITHUB_TOKEN and BAXTER_REQUEST_GITHUB_REPO: a pull request
 //   of the branch request/REQ-<slug>-<n> with the record, the capture and the picture;
 // - markdown on a local dev server with no token: the three files in .icm/requests/;
-// - linear, with BAXTER_REQUEST_LINEAR_API_KEY: one triage ticket with the label of
-//   requests.linear_label, the capture and the picture as uploads.
+// - linear, with BAXTER_REQUEST_LINEAR_API_KEY: one triage ticket in the team, the project
+//   and with the labels of linearTarget (core.ts), the capture and the picture as uploads.
+// A body {"status": ["JAM-1", ...]} asks for the status of the client's past requests: the
+// answer has only the status of each issue with a label of the target.
 // The secrets come from the env of the deployment. No secret is in this file.
 import { existsSync, promises as fs } from "node:fs";
 import path from "node:path";
 import project from "../../project.json";
-import { buildRecord, buttonEnv, nextNumber, oneLine, parseForm, sanitizeCapture } from "./core";
-import type { Capture, RequestForm } from "./core";
+import { buildRecord, buttonEnv, clientStatus, findProject, linearTarget, nextNumber, oneLine, parseForm, parseKeys, sanitizeCapture } from "./core";
+import type { Capture, ClientStatus, RequestForm } from "./core";
 
 type Project = {
   slug: string;
@@ -49,6 +51,15 @@ export async function POST(request: Request): Promise<Response> {
   } catch {
     return answer(400, { ok: false, error: "the body is not JSON" });
   }
+  if (Array.isArray(body.status)) {
+    const keys = parseKeys(body.status);
+    if (!keys.length || !isLinear() || !process.env.BAXTER_REQUEST_LINEAR_API_KEY) return answer(200, { ok: true, statuses: {} });
+    try {
+      return answer(200, { ok: true, statuses: await statusFromLinear(keys) });
+    } catch (reason) {
+      return answer(502, { ok: false, error: oneLine(String(reason)).slice(0, 300) });
+    }
+  }
   const parsed = parseForm(body.form);
   if ("faults" in parsed) return answer(400, { ok: false, error: parsed.faults.join("; ") });
   const version = process.env.BAXTER_REQUEST_VERSION || process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || "unknown";
@@ -56,7 +67,7 @@ export async function POST(request: Request): Promise<Response> {
   const shot = picture(body.screenshot);
   if (!shot && !capture.screenshot_error) capture.screenshot_error = "no picture";
   const input: Input = { form: parsed.form, capture, picture: shot, date: new Date().toISOString().slice(0, 10) };
-  const store = pj.requests?.store ?? (pj.ticket_source === "linear" ? "linear" : ".icm/requests");
+  const store = isLinear() ? "linear" : pj.requests?.store ?? ".icm/requests";
   try {
     let stored: Stored;
     if (store === "linear") stored = await toLinear(input);
@@ -164,6 +175,14 @@ async function toGitHub(input: Input): Promise<Stored> {
   throw new Error("no free request number");
 }
 
+function isLinear(): boolean {
+  return (pj.requests?.store ?? (pj.ticket_source === "linear" ? "linear" : ".icm/requests")) === "linear";
+}
+
+function target() {
+  return linearTarget(process.env, pj.requests, pj.linear?.team_key);
+}
+
 async function linear<T>(query: string, variables: Record<string, unknown>): Promise<T> {
   const response = await fetch("https://api.linear.app/graphql", {
     method: "POST",
@@ -190,33 +209,41 @@ async function upload(name: string, type: string, data: Buffer): Promise<string>
   return file.assetUrl;
 }
 
-// A Linear repo: one triage ticket in the client's team, with the client label.
+// A Linear repo: one triage ticket in the team of the target, with its project and labels.
+// An unknown team or project stops the request: the client sees the error.
 async function toLinear(input: Input): Promise<Stored> {
   if (!process.env.BAXTER_REQUEST_LINEAR_API_KEY) throw new Error("BAXTER_REQUEST_LINEAR_API_KEY is not set");
-  const key = pj.requests?.linear_team || pj.linear?.team_key || "";
-  const labelName = pj.requests?.linear_label || "source/client";
-  type Team = { id: string; states: { nodes: { id: string; type: string }[] } };
-  const found = await linear<{ teams: { nodes: Team[] }; issueLabels: { nodes: { id: string; team: { id: string } | null }[] } }>(
-    "query($k:String!,$l:String!){teams(filter:{key:{eq:$k}}){nodes{id states{nodes{id type}}}} issueLabels(filter:{name:{eq:$l}}){nodes{id team{id}}}}",
-    { k: key, l: labelName },
+  const to = target();
+  if (!to.team) throw new Error("no Linear team: set requests.linear_team or BAXTER_REQUEST_LINEAR_TEAM");
+  type Team = {
+    id: string;
+    states: { nodes: { id: string; type: string }[] };
+    projects: { nodes: { id: string; name: string; slugId: string }[] };
+  };
+  type Label = { id: string; name: string; team: { id: string } | null };
+  const found = await linear<{ teams: { nodes: Team[] }; issueLabels: { nodes: Label[] } }>(
+    "query($k:String!,$l:[String!]!){teams(filter:{key:{eq:$k}}){nodes{id states{nodes{id type}} projects(first:250){nodes{id name slugId}}}} issueLabels(filter:{name:{in:$l}}){nodes{id name team{id}}}}",
+    { k: to.team, l: to.labels },
   );
   const team = found.teams.nodes[0];
-  if (!team) throw new Error(`no Linear team ${key}`);
-  let labelId = found.issueLabels.nodes.find((l) => !l.team || l.team.id === team.id)?.id;
-  if (!labelId) {
-    const made = await linear<{ issueLabelCreate: { issueLabel: { id: string } } }>(
-      "mutation($n:String!,$t:String!){issueLabelCreate(input:{name:$n,teamId:$t}){issueLabel{id}}}",
-      { n: labelName, t: team.id },
-    );
-    labelId = made.issueLabelCreate.issueLabel.id;
+  if (!team) throw new Error(`no Linear team ${to.team}`);
+  const labelIds: string[] = [];
+  for (const name of to.labels) {
+    let id = found.issueLabels.nodes.find((l) => l.name === name && (!l.team || l.team.id === team.id))?.id;
+    if (!id) {
+      const made = await linear<{ issueLabelCreate: { issueLabel: { id: string } } }>(
+        "mutation($n:String!,$t:String!){issueLabelCreate(input:{name:$n,teamId:$t}){issueLabel{id}}}",
+        { n: name, t: team.id },
+      );
+      id = made.issueLabelCreate.issueLabel.id;
+    }
+    labelIds.push(id);
   }
   let projectId: string | undefined;
-  if (pj.requests?.linear_project) {
-    const projects = await linear<{ projects: { nodes: { id: string }[] } }>(
-      "query($n:String!){projects(filter:{name:{eq:$n}}){nodes{id}}}",
-      { n: pj.requests.linear_project },
-    );
-    projectId = projects.projects.nodes[0]?.id;
+  if (to.project) {
+    const project = findProject(team.projects.nodes, to.project);
+    if (!project) throw new Error(`no Linear project "${to.project}" in the team ${to.team}`);
+    projectId = project.id;
   }
   const shotUrl = input.picture
     ? await upload(`request.${input.picture.ext}`, input.picture.type, input.picture.bytes)
@@ -238,7 +265,7 @@ async function toLinear(input: Input): Promise<Stored> {
         teamId: team.id,
         title: oneLine(input.form.what).slice(0, 80),
         description,
-        labelIds: [labelId],
+        labelIds,
         stateId: team.states.nodes.find((s) => s.type === "triage")?.id,
         projectId,
         priority: { high: 2, normal: 3, low: 4 }[input.form.urgency],
@@ -246,4 +273,28 @@ async function toLinear(input: Input): Promise<Stored> {
     },
   );
   return { id: made.issueCreate.issue.identifier, url: made.issueCreate.issue.url };
+}
+
+// The status of each key that is an issue of the target team with a label of the target.
+// An other issue, or an unknown key, is not in the answer.
+async function statusFromLinear(keys: string[]): Promise<Record<string, ClientStatus>> {
+  const to = target();
+  const fields = keys.map((_, n) => `i${n}:issue(id:$k${n}){identifier team{key} state{type} labels{nodes{name}}}`).join(" ");
+  const params = keys.map((_, n) => `$k${n}:String!`).join(",");
+  const variables = Object.fromEntries(keys.map((k, n) => [`k${n}`, k]));
+  const response = await fetch("https://api.linear.app/graphql", {
+    method: "POST",
+    headers: { authorization: process.env.BAXTER_REQUEST_LINEAR_API_KEY ?? "", "content-type": "application/json" },
+    body: JSON.stringify({ query: `query(${params}){${fields}}`, variables }),
+  });
+  if (!response.ok && response.status !== 400) throw new Error(`Linear: HTTP ${response.status}`);
+  type Issue = { identifier: string; team: { key: string }; state: { type: string }; labels: { nodes: { name: string }[] } } | null;
+  const out = (await response.json()) as { data?: Record<string, Issue> | null };
+  const statuses: Record<string, ClientStatus> = {};
+  for (const issue of Object.values(out.data ?? {})) {
+    if (!issue || issue.team.key !== to.team) continue;
+    if (!issue.labels.nodes.some((l) => to.labels.includes(l.name))) continue;
+    statuses[issue.identifier] = clientStatus(issue.state.type);
+  }
+  return statuses;
 }

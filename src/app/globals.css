@@ -156,6 +156,28 @@
 
   /* The striped pattern: one stripe width everywhere, never stretched. */
   --rayure: 1.5rem;
+
+  /*
+   * The BAXTER request button (UAT and dev server only): the DA's tokens for
+   * its CSS variables (.icm/setup/request-button.md, JAM-614). No shadow.
+   */
+  --baxter-accent: var(--sauge);
+  --baxter-accent-text: var(--blanc);
+  --baxter-surface: var(--blanc);
+  --baxter-text: var(--taupe);
+  --baxter-muted: var(--taupe);
+  --baxter-border: var(--perle);
+  --baxter-status: var(--perle);
+  --baxter-focus: var(--sauge);
+  --baxter-font: var(--font-texte), sans-serif;
+  --baxter-heading-font: var(--font-titre), sans-serif;
+  --baxter-heading-transform: uppercase;
+  --baxter-heading-color: var(--sauge);
+  --baxter-radius: 2rem;
+  --baxter-field-radius: 1rem;
+  --baxter-overlay: color-mix(in oklab, var(--taupe) 45%, transparent);
+  --baxter-shadow: none;
+  --baxter-launcher-shadow: none;
 }
 
 /* The DA's "Desktop" column. */

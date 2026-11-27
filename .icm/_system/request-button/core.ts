@@ -1,4 +1,4 @@
-// core.ts — the pure functions of the request button (blueprint 1.0.0-rc27).
+// core.ts — the pure functions of the request button (blueprint 1.0.0-rc32).
 // The rules: .icm/_system/features/requests.md. The capture shape: CAPTURE.md.
 // This file has no import: the blueprint tests load it with Node.
 
@@ -24,7 +24,20 @@ export type Capture = {
   dom: string | null;
 };
 export type Urgency = "low" | "normal" | "high";
-export type RequestForm = { what: string; where: string; urgency: Urgency; words: string };
+export type Kind = "problem" | "change" | "idea";
+export type Box = { x: number; y: number; width: number; height: number };
+/** The element that the client selected on the page. `box` is in page pixels. */
+export type PickedElement = { selector: string; tag: string; text: string; box: Box };
+export type RequestForm = {
+  kind: Kind;
+  what: string;
+  where: string;
+  urgency: Urgency;
+  words: string;
+  element: PickedElement | null;
+};
+/** The status that the client sees in "My requests". */
+export type ClientStatus = "received" | "started" | "done" | "closed";
 export type Env = Record<string, string | undefined>;
 
 // The environment where the button shows, or null. Local: `next dev`, or
@@ -156,20 +169,80 @@ export function sanitizeCapture(input: unknown, app: Capture["app"], now = new D
 }
 
 const URGENCY: Urgency[] = ["low", "normal", "high"];
+const KIND: Kind[] = ["problem", "change", "idea"];
 
-// The four fields of the form, or the list of faults. The client's words stay as typed.
+// The picked element, with each text redacted, or null.
+export function parseElement(input: unknown): PickedElement | null {
+  const e = obj(input);
+  const box = obj(e.box);
+  const selector = redactText(str(e.selector, 300)).trim();
+  if (!selector) return null;
+  return {
+    selector,
+    tag: str(e.tag, 20).toLowerCase().replace(/[^a-z0-9-]/g, ""),
+    text: redactText(oneLine(str(e.text, 200))),
+    box: { x: Math.round(num(box.x)), y: Math.round(num(box.y)), width: Math.round(num(box.width)), height: Math.round(num(box.height)) },
+  };
+}
+
+// The fields of the form, or the list of faults. The client's words stay as typed.
+// `what` is optional: with no value, it is the first line of the words.
 export function parseForm(input: unknown): { form: RequestForm } | { faults: string[] } {
   const f = obj(input);
+  const words = str(f.words, 10_000);
   const form: RequestForm = {
-    what: str(f.what, 1000).trim(),
+    kind: KIND.includes(f.kind as Kind) ? (f.kind as Kind) : "change",
+    what: str(f.what, 1000).trim() || oneLine(words.split(/\r?\n/).find((l) => l.trim()) ?? "").slice(0, 120),
     where: str(f.where, 300).trim(),
     urgency: URGENCY.includes(f.urgency as Urgency) ? (f.urgency as Urgency) : "normal",
-    words: str(f.words, 10_000),
+    words,
+    element: parseElement(f.element),
   };
+  if (!form.where && form.element) form.where = form.element.text || form.element.selector;
   const faults: string[] = [];
-  if (!form.what) faults.push("what is empty");
   if (!form.words.trim()) faults.push("words is empty");
   return faults.length ? { faults } : { form };
+}
+
+export type LinearTarget = { team: string; project: string; labels: string[] };
+type RequestsConfig = { linear_team?: string; linear_project?: string; linear_label?: string };
+
+// Where a Linear request goes. The env values of the deployment come first:
+// BAXTER_REQUEST_LINEAR_TEAM (a team key), BAXTER_REQUEST_LINEAR_PROJECT (a project name,
+// slug or id; "none" for no project) and BAXTER_REQUEST_LINEAR_LABELS (label names,
+// separated by commas). Then `requests` of .icm/project.json. Then the team of `linear`.
+export function linearTarget(env: Env, requests: RequestsConfig = {}, teamKey = ""): LinearTarget {
+  const team = (env.BAXTER_REQUEST_LINEAR_TEAM || requests.linear_team || teamKey || "").trim();
+  const rawProject = (env.BAXTER_REQUEST_LINEAR_PROJECT ?? "").trim() || (requests.linear_project ?? "").trim();
+  const project = rawProject.toLowerCase() === "none" ? "" : rawProject;
+  const fromEnv = (env.BAXTER_REQUEST_LINEAR_LABELS ?? "").split(",").map((l) => l.trim()).filter(Boolean);
+  const labels = fromEnv.length ? fromEnv : [requests.linear_label || "source/client"];
+  return { team, project, labels: Array.from(new Set(labels)) };
+}
+
+// The project of the list that the value names: its id, its slug id or its name (case
+// is not important). Null: no such project.
+export function findProject<P extends { id: string; name: string; slugId?: string }>(projects: P[], value: string): P | null {
+  const v = value.trim().toLowerCase();
+  return (
+    projects.find((p) => p.id.toLowerCase() === v || (p.slugId ?? "").toLowerCase() === v) ??
+    projects.find((p) => p.name.trim().toLowerCase() === v) ??
+    null
+  );
+}
+
+// The issue keys of a status question: at most 30, each one like JAM-123.
+export function parseKeys(input: unknown): string[] {
+  const keys = Array.isArray(input) ? input : [];
+  return Array.from(new Set(keys.filter((k): k is string => typeof k === "string" && /^[A-Z][A-Z0-9]{0,9}-\d{1,7}$/.test(k)))).slice(0, 30);
+}
+
+// The status that the client sees, from the type of a Linear state.
+export function clientStatus(stateType: string): ClientStatus {
+  if (stateType === "started") return "started";
+  if (stateType === "completed") return "done";
+  if (stateType === "canceled") return "closed";
+  return "received";
 }
 
 export function oneLine(text: string): string {
@@ -230,7 +303,9 @@ export function buildRecord(r: RecordInput): string {
     "",
     "## Details",
     "",
+    `- kind: ${r.form.kind}`,
     `- where: ${oneLine(r.form.where) || "-"}`,
+    `- element: ${r.form.element ? `\`${r.form.element.selector}\`${r.form.element.text ? ` "${r.form.element.text}"` : ""}` : "-"}`,
     `- urgency: ${r.form.urgency}`,
     `- capture: ${r.captureFile}`,
     `- screenshot: ${r.screenshot}`,

@@ -1,4 +1,4 @@
-// RequestButton.tsx — the request button of a client repo (blueprint 1.0.0-rc27).
+// RequestButton.tsx — the request button of a client repo (blueprint 1.0.0-rc32).
 // Add it to the root layout, in <body>: <RequestButton />. It renders nothing outside a
 // test environment (buttonEnv of core.ts). The rules: .icm/_system/features/requests.md.
 import { createHash } from "node:crypto";
