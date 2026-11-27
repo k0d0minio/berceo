@@ -1,80 +1,56 @@
 # Setup checklist of berceo
 
-The blueprint wrote this list for the answers of this repo (1.0.0-rc30). It has only the
-items that apply to this repo. Do the items in the setup pull request of the repo.
-- (S): a session does it.
-- (J): the operator does it, in a service or with a secret value.
-- (B): BAXTER does it, with its data or its tools.
+The blueprint wrote this list for the answers of this repo (1.0.0-rc36), from
+`.icm/_system/setup/items.json`. It has only the items that apply to this repo.
+- (S): a session does it. (J): the operator does it, in a service or with a secret value.
+  (B): BAXTER does it, with its data or its tools.
 
-A session ticks the box of an item (S) when it is done. A session does not tick a box of
-(J) or (B).
+`.icm/_system/scripts/setup.sh` checks each item that it can, and prints the fix of each gap
+(`.icm/_system/features/setup.md`). A session ticks the box of an item (S) that has no check,
+when it is done. A session does not tick a box of (J) or (B).
 
 ## Render the blueprint
-- [ ] (S) Run `bin/update-repo.sh <repo>` of the blueprint on a clean tree at
-      `origin/main`. The script does not commit.
-- [ ] (S) Read `.icm/project.json`. The update adds each missing key of the template and
-      keeps each value. Write each empty value that this repo needs.
-- [ ] (S) Write `.icm/environments.md`: one row for each environment (the address, the
-      Vercel project, the database, what moves it).
-- [ ] (S) Write `.icm/project-rules.md`: the stack, the names, the code conventions.
-      When the script `dev` of `package.json` is not the correct command, add the line
-      `- dev server: <command with {port}>`.
-- [ ] (S) `CLAUDE.md` imports `.icm/_system/ROUTER.md` and routes the files of this repo.
+- [ ] (S) Run `bin/update-repo.sh <repo>` of the blueprint on a clean tree at `origin/main`. The script does not commit. `render.update`
+- [ ] (S) Read `.icm/project.json`. The update adds each missing key and keeps each value. Write each empty value that this repo needs. `render.project-json`
+- [ ] (S) Write `.icm/environments.md`: one row for each environment (the address, the Vercel project, the database, what moves it). `render.environments`
+- [ ] (S) Write `.icm/project-rules.md`: the stack, the names, the code conventions. When the script `dev` is not the correct command, add `- dev server: <command with {port}>`. `render.project-rules`
+- [ ] (S) `CLAUDE.md` imports `.icm/_system/ROUTER.md` and routes the files of this repo. `render.claude-md`
 
 ## GitHub
-- [ ] (J) A ruleset on `main` makes these checks necessary: `secrets`,
-      `workflows`, `icm-check` and `code`.
-- [ ] (S) No workflow calls `legible-consulting/.github`.
-- [ ] (J) Code security: Dependabot alerts on, and Dependabot security updates on
-      (`dependabot-security.md`).
-- [ ] (J) The Actions secret `VERCEL_TOKEN` and the Actions variable `VERCEL_TEAM`.
-- [ ] (J) The same token in the keyring of BAXTER, key `vercel_token`, account = the team
-      (`actions-promote.md`, step 4).
-- [ ] (J) Settings, Actions, General: "Allow GitHub Actions to create and approve pull
-      requests" is on (`actions-promote.md`).
+- [ ] (J) A ruleset on `main` makes these checks necessary: `secrets`, `workflows`, `icm-check` and `code`. (`github-checks.md`) `gh.ruleset`
+- [ ] (S) No workflow calls `legible-consulting/.github`. `gh.legacy`
+- [ ] (J) Code security: Dependabot alerts on, and Dependabot security updates on. (`dependabot-security.md`) `gh.dependabot`
+- [ ] (J) The Actions secret `VERCEL_TOKEN` and the Actions variable `VERCEL_TEAM`. (`actions-promote.md`) `gh.vercel-token`
+- [ ] (J) The same token in the keyring of BAXTER, key `vercel_token`, account = the team (step 4). (`actions-promote.md`) `gh.keyring-token`
+- [ ] (J) Settings, Actions, General: "Allow GitHub Actions to create and approve pull requests" is on. (`actions-promote.md`) `gh.pr-permission`
 
 ## Vercel and UAT
-- [ ] (J or B) The Vercel project is linked to this repo (`vercel-uat.md`).
-- [ ] (J or B) The custom environment `uat` follows `main`.
-- [ ] (J or B) The domain `uat.<domain>` is on `uat`, with its DNS record.
-- [ ] (J or B) "Auto-assign Custom Production Domains" is off.
-- [ ] (J) Each variable of the app is on `uat`, with sandbox keys only.
-- [ ] (J) `promote.sh status` reads each UAT project and prints no `SETUP:` line.
-- [ ] (J) A merge to `main` opens or updates the release pull request.
+- [ ] (J or B) The Vercel project is linked to this repo. The custom environment `uat` follows `main`, with the domain `uat.<domain>` and its DNS record. (`vercel-uat.md`) `uat.project`
+- [ ] (J or B) "Auto-assign Custom Production Domains" is off. `promote.sh status` prints no `SETUP:` line. (`vercel-uat.md`) `uat.auto-assign`
+- [ ] (J) Each variable of the app is on `uat`, with sandbox keys only. `uat.variables`
+- [ ] (J) A merge to `main` opens or updates the release pull request. `uat.release-pr`
 
 ## Database
-- [ ] (J) Do the acts of `databases.md`.
+- [ ] (S) `package.json` has `"vercel-build": "bash .icm/_system/scripts/db.sh build"`: the Vercel build migrates first. (`databases.md`) `db.vercel-build`
+- [ ] (J) The databases, Neon Auth of the preview branch, the integration setting off, and the two strings on each Vercel environment (`databases.md`, steps 1 to 4). (`databases.md`) `db.neon`
+- [ ] (J) The Actions secrets of the reset and the promotion (`databases.md`, step 5). (`databases.md`) `db.secrets`
 
 ## Request button
-- [ ] (S) The root layout has `<RequestButton />` after `{children}`. The form has the
-      language of `.icm/project.json` (`request-button.md`).
-- [ ] (S) When the layout knows the session, give `user`. This is optional.
-- [ ] (S) The route `app/api/baxter-request/route.ts` (or below `src/`) exports `POST` again.
-- [ ] (S) The Content-Security-Policy of this repo permits a POST to the same origin.
-- [ ] (S) The TypeScript and ESLint configuration of this repo accept
-      `.icm/_system/request-button/`.
-- [ ] (S) On a local dev server, the button shows, and an empty POST to the route gets 400.
-- [ ] (J) Vercel `uat`: `BAXTER_REQUEST_ENV` = `uat`. Production does not have it.
-- [ ] (J) Vercel `uat`: `BAXTER_REQUEST_LINEAR_API_KEY`.
-- [ ] (J) The label `requests.linear_label` of `.icm/project.json` exists in the team
-      `JAM`.
+- [ ] (S) The root layout has `<RequestButton />` after `{children}`. The form has the language of `.icm/project.json`. (`request-button.md`) `rb.layout`
+- [ ] (S) The route `app/api/baxter-request/route.ts` (or below `src/`) exports `POST` again. (`request-button.md`) `rb.route`
+- [ ] (S) Optional `user`. The Content-Security-Policy permits a POST to the same origin. TypeScript and ESLint accept `.icm/_system/request-button/`. On a local dev server the button shows, and an empty POST to the route gets 400. (`request-button.md`) `rb.config`
+- [ ] (J) Vercel `uat`: `BAXTER_REQUEST_ENV` = `uat` (not on production), and `BAXTER_REQUEST_LINEAR_API_KEY`. The label `requests.linear_label` exists in the team `JAM`. (`request-button.md`) `rb.env`
 
 ## Checktest
-- [ ] (S) Write the seed script of the contract in `checktest-accounts.md`: test addresses
-      only, it refuses production, the database address comes from the environment of the
-      target, it can run again with no change, exit 0 or 1 with one line.
-- [ ] (B) The test passwords are in the data of BAXTER. They are never in this repo.
-- [ ] (B) Storyboards exist for this repo (`baxter_tool run checktest storyboards`).
-- [ ] (J) After the checktest signs up the admin account on UAT, run the seed one time. The
-      UAT database address comes from the keyring of BAXTER for that one command. Never
-      write it in a file.
+- [ ] (S) The seed script `seed:test-roles` of the contract in `checktest-accounts.md`. (`checktest-accounts.md`) `ct.seed`
+- [ ] (B) The test passwords are in the data of BAXTER, never in this repo. Storyboards exist for this repo. (`checktest-accounts.md`) `ct.baxter`
+- [ ] (J) After the checktest signs up the admin account on UAT, run the seed one time. The UAT database address comes from the keyring of BAXTER for that one command. Never write it in a file. (`checktest-accounts.md`) `ct.seed-run`
 
 ## Linear
-- [ ] (B) The org `kodominio` is in the keyring of BAXTER.
-- [ ] (S) `linear.writes` of `.icm/project.json` is `session`.
-- [ ] (S) `linear.states`: the state names of the team `JAM`. An empty
-      name: no state move at that event.
+- [ ] (B) The org `kodominio` is in the keyring of BAXTER. `li.org`
+- [ ] (S) `linear.writes` of `.icm/project.json` is `session`. `li.writes`
+- [ ] (S) `linear.states` of `.icm/project.json`: the state names of the team `JAM`. An empty name: no state move at that event. `li.states`
 
 ## Close
-- [ ] (S) CI is green on the setup pull request, and the Vercel preview builds.
-- [ ] (J) Tick each box of the other files of `.icm/setup/` when its act is done.
+- [ ] (S) CI is green on the setup pull request, and the Vercel preview builds. `close.ci`
+- [ ] (J) Tick each box of the other files of `.icm/setup/` when its act is done. `close.acts`

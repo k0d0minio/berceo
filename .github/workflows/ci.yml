@@ -62,7 +62,7 @@ jobs:
 
   icm-only:
     # A push to a pull request that changes only the records of a run (the close-out
-    # commit of release.sh) does not run the jobs code and database again, when the check
+    # commit of release.sh) does not run the job code again, when the check
     # code is green on an earlier commit of the branch (rc25, JAM-570). Each doubt gives the
     # full CI. The rules are in .icm/_system/ci/icm-only.sh. A push to the default branch
     # always runs the full CI.
@@ -125,10 +125,10 @@ jobs:
       - run: bash .icm/_system/ci/code.sh
 
 
-  # Postgres has no job database (1.0.0-rc35): the Vercel build of each deployment migrates
-  # its database before it serves (.icm/_system/scripts/db.sh build). The job code proves
-  # each migration from zero, and checks that the script vercel-build calls db.sh build.
-
+  # No job database (Postgres 1.0.0-rc35, MongoDB 1.0.0-rc37): the Vercel build of each
+  # deployment migrates its database before it serves (.icm/_system/scripts/db.sh build).
+  # The job code checks that each script vercel-build calls db.sh build.
+  # The job code also proves each migration from zero.
 
   release:
     # release-please keeps one release pull request open: the batch since the last release.
