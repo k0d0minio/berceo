@@ -30,6 +30,10 @@ upload of the Linear ticket.
 | `screenshot_error` | string or null | Why there is no screenshot |
 | `dom` | string or null | The DOM snapshot: XHTML, 300,000 characters at most |
 
+The form is not in the capture. The element that the client selects (`form.element`:
+`selector`, `tag`, `text`, `box`) is a line of the record, and a frame on the screenshot
+(rc32).
+
 ## What a capture never has
 No cookie, no storage, no token, no password, no form value and no e-mail address.
 - The browser does not read cookies or storage.

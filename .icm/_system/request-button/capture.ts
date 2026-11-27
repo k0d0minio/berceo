@@ -1,5 +1,5 @@
 // capture.ts — what the browser adds to a request: the baxter.capture/1 fields, a picture
-// of the page and an optional DOM snapshot (blueprint 1.0.0-rc27; CAPTURE.md).
+// of the page and an optional DOM snapshot (blueprint 1.0.0-rc32; CAPTURE.md).
 // It never reads a cookie, storage or a form value. The server redacts each field again.
 import { MAX_ENTRIES, MAX_MESSAGE, redactText, redactUrl } from "./core";
 import type { CaptureEntry, CaptureUser, FailedRequest } from "./core";
@@ -182,6 +182,8 @@ async function picture(): Promise<string> {
 export type BrowserCapture = {
   capture: Record<string, unknown>;
   screenshot: string | null;
+  /** The scroll position and the width of the page at the time of the picture. */
+  view: { scrollX: number; scrollY: number; width: number };
 };
 
 // The capture of this moment. The server adds `app` and redacts each field again.
@@ -195,6 +197,7 @@ export async function collect(user: CaptureUser, withDom: boolean): Promise<Brow
   }
   return {
     screenshot,
+    view: { scrollX: window.scrollX, scrollY: window.scrollY, width: window.innerWidth },
     capture: {
       page: {
         url: redactUrl(location.href),

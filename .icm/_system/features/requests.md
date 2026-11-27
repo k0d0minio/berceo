@@ -8,7 +8,8 @@ criteria that a test can check. The request is the client's. A convention never 
 ## The store
 One triage ticket in the Linear team `requests.linear_team` of `.icm/project.json` (and the
 project `requests.linear_project` when it has a value), with the label
-`requests.linear_label`. The key of the ticket is the id of the request. The description
+`requests.linear_label`. The env values `BAXTER_REQUEST_LINEAR_TEAM`, `_PROJECT` and
+`_LABELS` of the deployment replace these keys. The key of the ticket is the id of the request. The description
 has the field lines `- <field>: <value>` and the sections of
 `.icm/_system/templates/request.md`. The request button makes the ticket, with the
 capture and the screenshot as uploads.
@@ -70,4 +71,6 @@ Change the field line `- status:` of the description with the BAXTER Linear tool
 One component and one API route, in `.icm/_system/request-button/`. A repo adds them as
 `.icm/setup/request-button.md` says. The capture shape `baxter.capture/1` is in
 `.icm/_system/request-button/CAPTURE.md`. The button shows on a local dev server and on
-UAT. Production needs the operator's choice.
+UAT. Production needs the operator's choice. The form has the kind (`problem`, `change` or
+`idea`), the client's words, the urgency and an optional element that the client selected
+on the page. The client sees the requests of the browser and their status.
