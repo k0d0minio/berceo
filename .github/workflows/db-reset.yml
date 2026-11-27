@@ -19,10 +19,10 @@ concurrency:
 
 jobs:
   reset:
-    # The image has the client of the same major version as the server. Correct the
-    # version when the server of the database changes.
+    # The client must not be older than the server: pg_dump refuses a newer server. Neon
+    # serves Postgres 18 (1.0.0-rc35). Correct the version when the server changes.
     runs-on: ubuntu-latest
-    container: postgres:17
+    container: postgres:18
     env:
       DATABASE_URL: ${{ secrets.PREVIEW_DATABASE_URL }}
 

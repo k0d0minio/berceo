@@ -98,10 +98,11 @@ jobs:
       group: code-${{ github.ref }}
       cancel-in-progress: true
 
-    # A new, empty database for each run. Each migration applies from zero on it.
+    # A new, empty database for each run. Each migration applies from zero on it. Postgres
+    # 18, as Neon.
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_PASSWORD: ci
         ports: ["5432:5432"]
@@ -124,35 +125,9 @@ jobs:
       - run: bash .icm/_system/ci/code.sh
 
 
-  database:
-    # After the proof from zero, migrate the shared database of the event: the preview
-    # database for a pull request, and for a push to main the UAT database.
-    # One run at a time for each database. A run is never canceled in the middle.
-    # The condition names the job code: with no condition, the skip of the job icm-only on
-    # a push to main skips this job too. When icm-only skips code, this job does not run.
-    needs: code
-    if: ${{ !cancelled() && needs.code.result == 'success' }}
-    runs-on: ubuntu-latest
-    concurrency:
-      group: database-${{ github.event_name == 'push' && 'main' || 'preview' }}
-      cancel-in-progress: false
-    env:
-      REQUIRED: ${{ github.event_name == 'push' }}
-
-      DATABASE_URL: ${{ github.event_name == 'push' && secrets.UAT_DATABASE_URL || secrets.PREVIEW_DATABASE_URL }}
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: ${{ hashFiles('.nvmrc') != '' && '.nvmrc' || '' }}
-          node-version: ${{ hashFiles('.nvmrc') == '' && env.NODE_DEFAULT || '' }}
-      - run: |
-          . .icm/_system/scripts/lib/node.sh
-          node_install
-          bash .icm/_system/scripts/db.sh migrate
+  # Postgres has no job database (1.0.0-rc35): the Vercel build of each deployment migrates
+  # its database before it serves (.icm/_system/scripts/db.sh build). The job code proves
+  # each migration from zero, and checks that the script vercel-build calls db.sh build.
 
 
   release:

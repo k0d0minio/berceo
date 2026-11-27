@@ -11,6 +11,12 @@ when the operator says so, after the client said yes.
 
 - `.icm/environments.md`: the addresses. Read the UAT address there.
 - `promote.sh status`: the batch, the release pull request, CI and each UAT project.
+- The Vercel token and team. A workflow gets them from the secret `VERCEL_TOKEN` and the
+  variable `VERCEL_TEAM` of the repo. On the operator's computer, the scripts read an empty
+  one: the team from the repo variable `VERCEL_TEAM` (`gh api`), the token from the keyring
+  of BAXTER (`~/baxter_live/system/bin/baxter_secret.sh get vercel_token <team>`). The
+  token stays in the process. Never print it. A computer with no such helper sets
+  `VERCEL_TOKEN` in the command, or `status` prints `not read: VERCEL_TOKEN is not set`.
 - The setup acts in `.icm/setup/`. An act with a box that is not ticked can stop a step.
 
 | Environment | Serves | Moves on |

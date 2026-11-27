@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "bash .icm/_system/scripts/db.sh build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",

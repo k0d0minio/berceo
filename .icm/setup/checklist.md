@@ -28,6 +28,8 @@ A session ticks the box of an item (S) when it is done. A session does not tick 
 - [ ] (J) Code security: Dependabot alerts on, and Dependabot security updates on
       (`dependabot-security.md`).
 - [ ] (J) The Actions secret `VERCEL_TOKEN` and the Actions variable `VERCEL_TEAM`.
+- [ ] (J) The same token in the keyring of BAXTER, key `vercel_token`, account = the team
+      (`actions-promote.md`, step 4).
 - [ ] (J) Settings, Actions, General: "Allow GitHub Actions to create and approve pull
       requests" is on (`actions-promote.md`).
 
@@ -41,13 +43,11 @@ A session ticks the box of an item (S) when it is done. A session does not tick 
 - [ ] (J) A merge to `main` opens or updates the release pull request.
 
 ## Database
-- [ ] (S) This repo has no database answer. Write the database rule of this repo in
-      `.icm/project-rules.md`, or write that it has no database.
+- [ ] (J) Do the acts of `databases.md`.
 
 ## Request button
-- [ ] (S) The root layout has `<RequestButton lang="<language of the site>" />` after
-      `{children}`. Give `lang` (`en`, `fr` or `pt`): with no `lang`, the first render of
-      the form is in English (`request-button.md`).
+- [ ] (S) The root layout has `<RequestButton />` after `{children}`. The form has the
+      language of `.icm/project.json` (`request-button.md`).
 - [ ] (S) When the layout knows the session, give `user`. This is optional.
 - [ ] (S) The route `app/api/baxter-request/route.ts` (or below `src/`) exports `POST` again.
 - [ ] (S) The Content-Security-Policy of this repo permits a POST to the same origin.

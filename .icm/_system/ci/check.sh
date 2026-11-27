@@ -4,26 +4,22 @@
 #
 # Usage:
 #   check.sh                    icm-check: verify _system/, the pointer files, and updates
-#   check.sh --gate             the gate of Ready to merge. In CI (GITHUB_REPOSITORY, HEAD_SHA
-#                               and GH_TOKEN are set) it writes the commit status icm-gate on
-#                               the head commit and exits 0. Not ticked: the state is pending,
-#                               "Waits for the operator's Ready to merge tick". It is a wait,
-#                               not a failure. Ticked, or no gate: success (1.0.0-rc31).
-#                               A token that cannot write a status (an icm.yml of rc15 with
-#                               only "checks: write"): a check run icm-gate, in_progress or
-#                               success. With no CI values: it prints the state, and exits 1
-#                               when the box is not ticked
+#   check.sh --gate             the gate of Ready to merge (rc31). In CI it writes the commit
+#                               status icm-gate and exits 0: pending (a wait, not a failure)
+#                               until the tick, then success. A token with no status write
+#                               (icm.yml of rc15): a check run. With no CI values: it prints
+#                               the state, and exits 1 when the box is not ticked
 #   check.sh --gate-report      the same as --gate. The icm.yml of rc15 uses this name
 #   check.sh --write-manifest   write MANIFEST.sha256. Only Copier runs this, at a render
 #
 # icm-check fails when:
-#   1. a file below .icm/_system/ does not match MANIFEST.sha256, or is not in it. The
-#      manifest also has the three guards of .claude/hooks/ that the blueprint owns
-#      (1.0.0-rc18): a guard that was changed in the repo, or that is absent, is a fault
+#   1. a file below .icm/_system/, a guard of .claude/hooks/ (rc18) or the answers
+#      .icm/.copier-answers.yml (rc35) does not match MANIFEST.sha256, or is not in it
 #   2. a pointer file does not point to .icm/_system/, or .claude/settings.json does not
 #      register one of the three guards
 #   3. a pull request changes .icm/_system/ or a guard and does not change
-#      .icm/_system/VERSION
+#      .icm/_system/VERSION, unless it changes an answer of .icm/.copier-answers.yml and
+#      check 1 passes: the manifest proves the render of those answers (rc35)
 #   4. a client request of .icm/requests/ breaks the form of features/requests.md
 #      (1.0.0-rc27): check-request.sh names each fault
 # The gate is the box below <!-- gate:ready-to-merge -->. A body with no such anchor
@@ -35,6 +31,7 @@ sys=".icm/_system"
 manifest="$sys/MANIFEST.sha256"
 . "$sys/scripts/lib/gh.sh"
 
+answers=".icm/.copier-answers.yml"
 # The guards are in .claude/hooks/, because .claude/settings.json registers them there.
 guards=".claude/hooks/block-local-checks.sh .claude/hooks/confirm-git-writes.sh .claude/hooks/guard-plaintext-secrets.sh"
 
@@ -42,6 +39,7 @@ files() {
   {
     find "$sys" -type f ! -name MANIFEST.sha256
     for g in $guards; do [ ! -f "$g" ] || echo "$g"; done
+    [ ! -f "$answers" ] || echo "$answers"
   } | LC_ALL=C sort
 }
 
@@ -102,6 +100,7 @@ fault() {
 }
 
 # 1. The folder matches the manifest.
+rendered=no
 if [ ! -f "$manifest" ]; then
   fault "$manifest is missing. Render the blueprint again"
 else
@@ -109,6 +108,7 @@ else
     || fault "a file below $sys/ or a guard of .claude/hooks/ was changed in this repo. They belong to the blueprint: $(sha256sum -c "$manifest" 2>/dev/null | grep -v ': OK$' | head -n 5 | tr '\n' ' ')"
   extra="$(comm -13 <(sed -E 's/^[0-9a-f]+  //' "$manifest" | LC_ALL=C sort) <(files))"
   [ -z "$extra" ] || fault "files below $sys/ that the blueprint did not write: $(tr '\n' ' ' <<<"$extra")"
+  [ "$faults" -gt 0 ] || ! grep -qF "  $answers" "$manifest" || rendered=yes
 fi
 
 # 2. The pointer files point to _system/.
@@ -131,7 +131,14 @@ if [ -n "${GITHUB_BASE_REF:-}" ]; then
   # shellcheck disable=SC2086  # the list of the guards is three words
   changed="$(git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" -- "$sys" $guards 2>/dev/null || true)"
   if [ -n "$changed" ] && ! grep -qxF "$sys/VERSION" <<<"$changed"; then
-    fault "this pull request changes $sys/ or a guard of .claude/hooks/, and not $sys/VERSION. Only a blueprint update changes them"
+    answer="$(git diff -U0 "origin/${GITHUB_BASE_REF}...HEAD" -- "$answers" 2>/dev/null | grep -E '^[+-][a-z]' || true)"
+    if [ -z "$answer" ]; then
+      fault "this pull request changes $sys/ or a guard of .claude/hooks/, and not $sys/VERSION or an answer of $answers. Only a blueprint update changes them"
+    elif [ "$rendered" != yes ]; then
+      fault "this pull request changes an answer of $answers, and $sys/ is not the render of those answers (check 1). Run blueprint/bin/update-repo.sh with --data"
+    else
+      echo "icm-check: an answer change at the same version: $(sed 's/^[+-]//' <<<"$answer" | sort -u | tr '\n' ' ')"
+    fi
   fi
 fi
 
