@@ -21,8 +21,17 @@ Do these steps on each Vercel project of an app that the client tests:
 A project that the client does not test gets no `uat`. It keeps Auto-assign on and follows
 `main`.
 
+## Read the status on the operator's computer
+
+`promote.sh status` reads `VERCEL_TOKEN` and `VERCEL_TEAM` from the environment only. On
+BAXTER's computer the token is in the keyring (tool `vercel`, key `vercel_token`, account
+`kodominio`). The keyring refuses a session. Run this command in the operator's terminal,
+from the repo. It prints no secret:
+
+`VERCEL_TOKEN="$(~/baxter_live/system/bin/baxter_secret.sh get vercel_token kodominio)" VERCEL_TEAM=kodominio .icm/_system/scripts/promote.sh status`
+
 ## Done when
 
-- [ ] `.icm/_system/scripts/promote.sh status` lists each project that the client tests.
-- [ ] It prints no line `SETUP:`.
+- [x] `.icm/_system/scripts/promote.sh status` lists each project that the client tests.
+- [x] It prints no line `SETUP:`.
 - [x] The UAT address opens the newest build of `main`.

@@ -39,4 +39,11 @@ The same session ticked two more boxes on 2026-11-27, on the evidence of that da
   `https://uat.berceo.be/api/baxter-request` answers 400. The box of the Linear key stays
   empty: no session sent a request to Linear.
 
+Jamie, 2026-11-27: Jamie ran `promote.sh status` in his terminal with the token from the
+keyring of BAXTER (the command is in `vercel-uat.md`). It exited 0 with these lines:
+- `berceo: uat READY dpl_2LqyQ3Gs7qppta1QWfQSBt7Q4kEy of 6da32d3 · production serves dpl_4Jb9x3JLqqpkgBYUib88kZ4BqW1i`
+- `RESULT: OK batch 63 since v1.2.0`
+It printed no line `SETUP:`. On this evidence a session ticked on 2026-11-27 the two boxes
+of `vercel-uat.md` for `promote.sh status` and the box of `actions-promote.md`.
+
 A box that needs a person's act or a test the session cannot do stays empty.
