@@ -34,20 +34,27 @@ A ticket is now a Linear key of the team `JAM`. A stub is not a ticket.
 records. The setup acts of today are in `.icm/setup/`.
 
 - `neon-vercel-integration` and `github-delete-head-branches` are open. They ask for one Neon
-  branch for each preview. No file of `.icm/setup/` replaces them: the repo answered
-  `database: none`.
+  branch for each preview. `.icm/setup/databases.md` replaces them since 2026-11-27: one
+  shared preview database, and no Neon branch for each preview.
 - `uat-variables` has one open point in its notes: `RESEND_API_KEY` is not on the Vercel
   environment `uat`. It is part of `.icm/setup/vercel-uat.md`, step 6.
 
 ## The database
 
-`.icm/local/database.md` is the database rule of this repo: the Neon databases, the migration
-at the Vercel build (`.icm/local/vercel-build.sh`), and the migration of production before a
-promotion (`.github/workflows/migrate-production.yml`). The database model of the blueprint
-is not adopted.
+The repo uses the database model of the blueprint since 2026-11-27 (`database: postgres`,
+Jamie: "we want things to run from baxter's blueprint rather than relying on berceo's own
+pipelines"). The rule is `.icm/_system/features/database.md`. The Neon databases are in
+`.icm/environments.md`. The repo's own `vercel-build.sh` and its workflow
+`migrate-production.yml` are removed: the blueprint's `db.sh build` (the Vercel build, since
+1.0.0-rc35) and the workflow `promote` do their work.
+
+`drizzle-kit migrate` and `npm run db:verify` connect with `pg` (node-postgres), so they work
+on the empty Postgres of the CI job `code` and on a direct Neon connection string. The app
+reads the database with the Neon HTTP driver (`src/db/index.ts`).
 
 ## The scheduled product workflows
 
 `.github/workflows/avis-invitations.yml`, `demandes-digest.yml` and `gardes-rappel.yml` belong
-to the product. Each calls a cron route of the application. `migrate-production.yml` belongs to
-the repo also. The blueprint does not own them.
+to the product. Each calls a cron route of the application on UAT and on production. The
+blueprint does not own them, and has no feature that replaces them: they are app crons, not CI.
+`vercel.json` has one more app cron, the purge of refused files.

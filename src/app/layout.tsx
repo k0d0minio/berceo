@@ -32,7 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         {children}
         {/* BAXTER request button: renders only on a dev server and on UAT. */}
-        <RequestButton lang="fr" />
+        <RequestButton />
       </body>
     </html>
   );

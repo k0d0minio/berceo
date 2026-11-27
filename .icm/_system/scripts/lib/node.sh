@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lib/node.sh — the package manager of a Node repo. Sourced, not run. Needs jq.
+# lib/node.sh — the package manager of a Node repo. Sourced, not run. Needs jq, or node.
 #
 #   node_pm              pnpm | yarn | npm, from the lockfile at the top of the repo
 #   node_has <script>    0 when package.json names the script
@@ -14,7 +14,11 @@ node_pm() {
   fi
 }
 
-node_has() { [ -f package.json ] && jq -e --arg s "$1" '.scripts[$s] // empty' package.json >/dev/null; }
+node_has() {  # a Vercel build has no jq (rc35)
+  [ -f package.json ] || return 1
+  if command -v jq >/dev/null 2>&1; then jq -e --arg s "$1" '.scripts[$s] // empty' package.json >/dev/null
+  else node -e 'process.exit((require("./package.json").scripts || {})[process.argv[1]] ? 0 : 1)' "$1"; fi
+}
 
 node_run() {
   node_has "$1" || { echo "[node] package.json names no '$1': skipped"; return 0; }

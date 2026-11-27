@@ -41,7 +41,7 @@ Keep it short. A rule that is true for all repos belongs in the blueprint, not h
   file that names a typeface.
 - A test is next to its file: `<name>.test.ts`.
 - A schema change: edit `src/db/schema.ts`, then `npm run db:generate -- --name <what>`, then
-  commit `drizzle/`. `.icm/local/database.md` has the rest.
+  commit `drizzle/`. `.icm/_system/features/database.md` has the rest.
 - Client-facing text is `fr-BE`. Code, commits, comments and notes are English.
 
 ## Docs

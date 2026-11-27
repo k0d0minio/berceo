@@ -1,5 +1,6 @@
 # The blueprint owns this file. An update of the blueprint replaces it: do not edit it.
-# The steps of the job code are in .icm/_system/ci/code.sh.
+# The steps of the job code are in .icm/_system/ci/code.sh. The contract of the database is
+# .icm/_system/features/database.md.
 # CI is the source of truth: these checks do not run on a computer of a person.
 name: ci
 on:
@@ -97,9 +98,20 @@ jobs:
       group: code-${{ github.ref }}
       cancel-in-progress: true
 
+    # A new, empty database for each run. Each migration applies from zero on it. Postgres
+    # 18, as Neon.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       BASE_REF: ${{ github.base_ref }}
 
+      DATABASE_URL: postgres://postgres:ci@localhost:5432/postgres
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -111,6 +123,11 @@ jobs:
           node-version-file: ${{ hashFiles('.nvmrc') != '' && '.nvmrc' || '' }}
           node-version: ${{ hashFiles('.nvmrc') == '' && env.NODE_DEFAULT || '' }}
       - run: bash .icm/_system/ci/code.sh
+
+
+  # Postgres has no job database (1.0.0-rc35): the Vercel build of each deployment migrates
+  # its database before it serves (.icm/_system/scripts/db.sh build). The job code proves
+  # each migration from zero, and checks that the script vercel-build calls db.sh build.
 
 
   release:

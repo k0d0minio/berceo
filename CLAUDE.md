@@ -29,7 +29,7 @@ The router has the commands, the stages and the lanes. A ticket is a Linear key 
 | read a decision, the epics or the backlog of before 2026-11-18 | `.icm/intake/README.md`, and `.icm/local/ROUTES.md` for the markdown stubs |
 | read where the build runs | `.icm/environments.md`, the one home of the addresses |
 | read the UAT batch, record the client's sign-off, promote, roll back | `.icm/_system/features/uat.md`, then `.icm/_system/scripts/promote.sh` |
-| change the database, read which database a deployment reads, or migrate production | `.icm/local/database.md`, then `.icm/local/vercel-build.sh` and `.github/workflows/migrate-production.yml` |
+| change the database, read which database a deployment reads, migrate, or reset the preview database | `.icm/_system/features/database.md` (the blueprint: each Vercel build migrates its own database, `promote` migrates production), `.icm/environments.md` (the Neon databases), the setup act `.icm/setup/databases.md` |
 | do a setup act in Vercel, GitHub or Neon | `.icm/setup/`: one file for each act. A person ticks its boxes |
 | change what CI checks or how a release is cut | the blueprint. `ci.yml`, `promote.yml` and `icm.yml` come from it |
 | change a file below `.icm/_system/` | the blueprint, then an update of this repo. Never edit the folder here |
@@ -93,8 +93,11 @@ The router has the commands, the stages and the lanes. A ticket is a Linear key 
 - A ticket's merge reaches the UAT environment, where the client tests the batch. The merge of
   the release pull request makes the release tag and moves nothing. Production moves only on
   Jamie's word, after the client's sign-off (`.icm/_system/features/uat.md`).
-- The workflow `promote` does not migrate production. A release with a migration needs
-  `migrate-production.yml` before `promote.sh run` (`.icm/local/database.md`).
+- The blueprint migrates (`.icm/_system/features/database.md`, `database: postgres`; Jamie,
+  2026-11-27). The job `code` applies each migration from zero on an empty Postgres. The
+  Vercel build of a preview or of UAT migrates its own database before it builds
+  (`vercel-build`: `.icm/_system/scripts/db.sh build`). The workflow `promote` migrates
+  production before the promotion. A production build does not migrate.
 - Linear: a ticket is a key of the team `JAM`. A session in this repo makes its own ticket
   acts in Linear with the BAXTER Linear tool (`linear_session_writes: true`; Jamie,
   2026-11-24): a comment on the run's ticket, a new issue in Triage, a relation. Rule 5 of

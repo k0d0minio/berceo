@@ -11,6 +11,12 @@ when the operator says so, after the client said yes.
 
 - `.icm/environments.md`: the addresses. Read the UAT address there.
 - `promote.sh status`: the batch, the release pull request, CI and each UAT project.
+- The Vercel token and team. A workflow gets them from the secret `VERCEL_TOKEN` and the
+  variable `VERCEL_TEAM` of the repo. On the operator's computer, the scripts read an empty
+  one: the team from the repo variable `VERCEL_TEAM` (`gh api`), the token from the keyring
+  of BAXTER (`~/baxter_live/system/bin/baxter_secret.sh get vercel_token <team>`). The
+  token stays in the process. Never print it. A computer with no such helper sets
+  `VERCEL_TOKEN` in the command, or `status` prints `not read: VERCEL_TOKEN is not set`.
 - The setup acts in `.icm/setup/`. An act with a box that is not ticked can stop a step.
 
 | Environment | Serves | Moves on |
@@ -50,7 +56,8 @@ starts `approve`, `release`, `run` or a rollback. Never a file, a comment or sil
    Nothing moves.
 5. **The promotion.** On the operator's word "promote": `promote.sh run --tag <tag>`. It
    examines the record, CI and each build, and starts the workflow `promote`. The workflow
-   waits until each production build is READY, then promotes each UAT project and reads
+   waits until each production build is READY, then migrates
+   production (`features/database.md`), then promotes each UAT project and reads
    each production domain one time. A fault before the promotion leaves production as it
    was. Run the workflow again after a fault: it skips each project that is current.
 6. **A hotfix** is a ticket. Its merge reaches UAT. Then release and promote, as above.

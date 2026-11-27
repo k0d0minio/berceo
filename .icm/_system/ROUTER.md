@@ -2,8 +2,9 @@
 
 Language: fr
 
-Do not edit `.icm/_system/`: it belongs to the blueprint. Tell the operator about a fault
-in it. All other files in `.icm/` belong to this repo.
+Do not edit `.icm/_system/` or the guards of `.claude/hooks/`: they belong to the
+blueprint. No hook stops the edit: the CI job `icm-check` refuses it. Tell the operator
+about a fault in it. All other files in `.icm/` belong to this repo.
 
 ## Commands
 A command is a word and one ticket. A ticket is a Linear key: `JAM-123`.
@@ -17,6 +18,7 @@ A command is a word and one ticket. A ticket is a Linear key: `JAM-123`.
 | `release` and a ticket | `.icm/_system/stages/release/CONTEXT.md` |
 | `revise` and a ticket and a change | `.icm/_system/stages/define/CONTEXT.md`, section Revise |
 | `status`, `approve`, `release` with no ticket, `promote`, `rollback` | `.icm/_system/features/uat.md` |
+| A migration, or a reset of the preview database | `.icm/_system/features/database.md` |
 
 Start words: `new`, `pick up`, `start work on`, and the phrases in
 `.icm/_system/rules/triggers.txt`. The intent decides. A question about a ticket is not a
@@ -38,15 +40,13 @@ When the hook `route-request` prints `[icm-router] Route:`, follow that line. If
 6. Write a finding that is not part of the ticket in `.icm/runs/<id>/findings.md`.
 7. End each session with the stop report of `.icm/_system/rules/output.md`.
 8. Write the documents of a run in the language at the top of this file.
-9. **Use no MCP tool but the server `baxter`.** Do not call a tool whose name starts with
-   `mcp__` (a connector of Claude: Linear, GitHub, Vercel, Google and all others). A tool
-   `mcp__baxter__<name>` is of BAXTER: it is permitted. The tools of four servers of the
-   Claude app are also permitted: `mcp__ccd_turn__*`, `mcp__ccd_session__*`,
-   `mcp__ccd_pr__*` (not `set_auto_merge`) and `mcp__ccd_view__*`.
-   This rule applies to each subagent also. Use the tools of BAXTER (section "On this
-   computer"). For git and GitHub, use `git` and `gh`. If no BAXTER tool does the work, stop
-   and tell the operator. Do not use an MCP tool in its place. The hook `guard-system`
-   refuses each other MCP tool call.
+9. **Use no third-party MCP server.** Call no connector of Claude (Linear, GitHub, Vercel
+   and others): use the tools of BAXTER (section "On this computer"), and `git` and `gh`.
+   The server `baxter` (`mcp__baxter__*`) is of BAXTER, and the servers of the Claude app
+   (`mcp__ccd_*`, the Browser, the terminal) are permitted, also to send a message to a
+   session that this session started. Never call `mcp__ccd_pr__set_auto_merge`: the gate
+   Ready to merge is the operator's. It applies to each subagent. No hook refuses a tool:
+   you obey this rule. If no BAXTER tool does the work, stop and tell the operator.
 
 ## On this computer
 This session runs on the computer of BAXTER, the assistant of the operator. The records and

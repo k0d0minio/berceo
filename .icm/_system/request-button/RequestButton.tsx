@@ -1,4 +1,4 @@
-// RequestButton.tsx — the request button of a client repo (blueprint 1.0.0-rc32).
+// RequestButton.tsx — the request button of a client repo (blueprint 1.0.0-rc35).
 // Add it to the root layout, in <body>: <RequestButton />. It renders nothing outside a
 // test environment (buttonEnv of core.ts). The rules: .icm/_system/features/requests.md.
 import { createHash } from "node:crypto";
@@ -12,7 +12,7 @@ export type RequestButtonUser = { signedIn: boolean; role?: string | null; id?: 
 type Props = {
   /** The signed-in person, when the layout knows it. The id leaves the server only as a hash. */
   user?: RequestButtonUser;
-  /** The language of the form: en, fr or pt. Default: the lang of the page. */
+  /** The language of the form: en, fr or pt. Default: `language` of .icm/project.json. */
   lang?: string;
   /** false: no DOM snapshot in the capture. */
   dom?: boolean;
@@ -25,7 +25,8 @@ export function RequestButton({ user, lang, dom = true }: Props) {
     ? createHash("sha256").update(`${project.slug}:${user.id}`).digest("hex").slice(0, 16)
     : null;
   const captured: CaptureUser = { signed_in: user ? user.signedIn : null, role: user?.role ?? null, id_hash: idHash };
-  return <RequestButtonClient env={env} lang={lang} dom={dom} user={captured} />;
+  // The first render has the language of the repo: no `lang` is necessary (1.0.0-rc35).
+  return <RequestButtonClient env={env} lang={lang || project.language} dom={dom} user={captured} />;
 }
 
 export default RequestButton;

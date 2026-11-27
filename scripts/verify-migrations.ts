@@ -16,13 +16,18 @@
  *
  * Read-only: it never applies anything. The fix for a gap is in the journal
  * (`src/db/migrations-journal.test.ts` says how), not here.
+ *
+ * It connects with node-postgres (`pg`), the driver `drizzle-kit migrate` also
+ * picks when `pg` is installed. A plain Postgres (the empty database of the CI
+ * job `code`) and a direct Neon connection string both work. The Neon HTTP
+ * driver of the app reaches only Neon.
  */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { neon } from "@neondatabase/serverless";
 import { config } from "dotenv";
+import { Client } from "pg";
 
 config({ path: ".env.local" });
 config({ path: ".env" });
@@ -41,11 +46,17 @@ async function main(): Promise<void> {
     readFileSync(join(drizzleDir, "meta", "_journal.json"), "utf8"),
   ) as { entries: JournalEntry[] };
 
-  const sql = neon(url);
-  // Same table and schema as `drizzle.config.ts`.
-  const rows = (await sql`
-    select hash from public.__drizzle_migrations
-  `) as Array<{ hash: string }>;
+  const client = new Client({ connectionString: url });
+  await client.connect();
+  let rows: Array<{ hash: string }>;
+  try {
+    // Same table and schema as `drizzle.config.ts`.
+    ({ rows } = await client.query<{ hash: string }>(
+      "select hash from public.__drizzle_migrations",
+    ));
+  } finally {
+    await client.end();
+  }
   const applied = new Set(rows.map((r) => r.hash));
 
   const missing = entries.filter((entry) => {
